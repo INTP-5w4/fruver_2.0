@@ -1,0 +1,23 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+header{
+    position: fixed;
+    width: 100%;
+    z-index: 100;
+}
+.header_container{
+    display: flex;
+    background-color: rgb(9, 78, 0);
+    align-items: center;
+    justify-content: flex-start;
+}
+.logo{
+    margin: 0.2em 0.4em;
+    color: rgb(241, 241, 241);
+    font-size: 2em;
+    font-weight: 600;
+}
+
