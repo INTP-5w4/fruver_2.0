@@ -28,14 +28,22 @@ public function guarda_producto(){
     return redirect()->to('lista_producto');
     }
 }
-public function lista_producto(){
+public function lista_producto($dato=null){
     $m_producto = new Modelo_producto();
-    $datos=[
-        'productos'=>$m_producto->orderBy('nombres','ASC')-> paginate(10,'default'),
-        'pager'=>$m_producto->pager
-    ];
-    //$datos['productos']=$m_producto->findAll();
-    return view('lista_producto', $datos);
+    if (!empty($dato)){
+        $datos=[
+            'productos'=>$m_producto->busqueda_compleja($dato)-> paginate(2,'default'),
+            'pager'=>$m_producto->pager
+        ];
+    }else{
+        
+        $datos=[
+            'productos'=>$m_producto->orderBy('nombre','ASC')-> paginate(2,'default'),
+            'pager'=>$m_producto->pager
+        ];
+        //$datos['productos']=$m_producto->findAll();
+        return view('lista_producto', $datos);
+    }
 }
 
 public function modifica(){

@@ -19,4 +19,18 @@ class Modelo_producto extends Model{
                 return false;
         
     }
+    //Busquedas
+    public function busqueda_compleja($filtros){
+        $builder=$this->builder();
+        if (!empty($filtros['f'])){
+            $builder->groupStart()->like('nombre',$filtros['f'])->groupEnd();
+        }
+        if (!empty($filtros['categoria'])){
+            $builder->where('categoria_id', $filtros['categoria']);
+        }
+        $orden= $filtros['orden']??'id';
+        $dir=$filtros['dir']??'ASC';
+        $builder->orderBy($orden,$dir);
+        return $this;
+    }
 }
