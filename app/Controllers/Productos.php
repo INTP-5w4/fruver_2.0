@@ -14,13 +14,34 @@ public function crea_producto(){
 }
 public function guarda_producto(){
     $m_producto= new Modelo_producto();
+    if ($this->request->getMethod()==='POST'){
+        $file = $this->request->getFile('img');
+        $reglas_validacion=[
+            'img'=>[
+                'label'=>'Archivo de Imagen',
+                'rules'=>'uploaded[img]'
+                .'|is_image[img]'
+                .'|mime_in[img,image/jpg,image/png,image/jpeg]'
+                .'|max_size[img,1024]',
+            ]
+        ];
+        if(!$this->validate($reglas_validacion)){
+            return redirect()->back()->with('errors',$this->validator->getErrors());
+        }
+        $nombre_img=$file->getRandomName();;
+        $file->move(ROOTPATH.'public/uploads',$nombre_img);
+    }
     $datos=[
         'nombre'=>$this->request->getPost('nom'),
         'descripcion'=>$this->request->getPost('desc'),
+        'categoria'=>$this->request->getPost('cat'),
+        'img'=>$nombre_img,
     ];
     if(
         empty($datos['nombre'])||
-        empty($datos['descripcion'])
+        empty($datos['descripcion'])||
+        empty($datos['categoria'])||
+        empty($datos['img'])
     ){
         return view('crea_producto');
     }else{
@@ -38,7 +59,7 @@ public function lista_producto($dato=null){
     }else{
         
         $datos=[
-            'productos'=>$m_producto->orderBy('nombre','ASC')-> paginate(2,'default'),
+            'productos'=>$m_producto->orderBy('nombre','ASC')-> paginate(5,'default'),
             'pager'=>$m_producto->pager
         ];
         //$datos['productos']=$m_producto->findAll();
@@ -46,19 +67,62 @@ public function lista_producto($dato=null){
     }
 }
 
-public function modifica(){
-        $id=$this->request->getPost('id');
-         $datos_de_producto=[
-            'nombre'=>$this->request->getPost('nom'),
-            'descripcion'=>$this->request->getPost('desc'),
-         ];
-         $m_producto= new Modelo_producto();
-         if($m_producto->update($id,$datos_de_producto)){
-            //echo "Datos almacenados exitosamente";
-            return redirect()->to('lista_producto');
-         }
-            
+public function modifica()
+{
+    $m_producto = new Modelo_producto();
+
+    if ($this->request->getMethod() === 'POST') {
+
+        $id = $this->request->getPost('id');
+        $producto = $m_producto->find($id); // Obtener datos actuales
+
+        // Imagen por defecto: mantener la actual
+        $nombre_img = $producto['img'];
+
+        // Revisar si subieron un nuevo archivo
+        $file = $this->request->getFile('img');
+        if ($file && $file->isValid() && !$file->hasMoved()) {
+
+            // Validar imagen subida
+            $reglas_validacion = [
+                'img' => [
+                    'label' => 'Archivo de Imagen',
+                    'rules' => 'is_image[img]|mime_in[img,image/jpg,image/png,image/jpeg]|max_size[img,1024]',
+                ]
+            ];
+
+            if (!$this->validate($reglas_validacion)) {
+                return redirect()->back()->with('errors', $this->validator->getErrors());
+            }
+
+            // Eliminar imagen anterior si existe
+            if (!empty($producto['img']) && file_exists(ROOTPATH.'public/uploads/'.$producto['img'])) {
+                unlink(ROOTPATH.'public/uploads/'.$producto['img']);
+            }
+
+            // Guardar nueva imagen
+            $nombre_img = $file->getRandomName();
+            $file->move(ROOTPATH.'public/uploads', $nombre_img);
+        }
+
+        // Datos a actualizar
+        $datos_de_producto = [
+            'nombre' => $this->request->getPost('nom'),
+            'descripcion' => $this->request->getPost('desc'),
+            'categoria' => $this->request->getPost('cat'),
+            'img' => $nombre_img,
+        ];
+        // Actualizar producto
+        if ($m_producto->update($id, $datos_de_producto)) {
+            return redirect()->to('lista_producto')->with('mensaje', 'Producto actualizado correctamente');
+        } else {
+            return redirect()->back()->with('error', 'No se pudo actualizar el producto');
+        }
     }
+
+    // Si no es POST, redirigir
+    return redirect()->to('lista_producto');
+}
 public function recupera($id = null){
     $m_producto = new Modelo_producto();
     $datos['productos'] = $m_producto->find($id);

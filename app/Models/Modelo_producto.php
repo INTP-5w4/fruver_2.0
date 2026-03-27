@@ -7,7 +7,7 @@ class Modelo_producto extends Model{
     protected $table      = 'producto';
     // Uncomment below if you want add primary key
     protected $primaryKey = 'id';
-    protected $allowedFields = ['nombre', 'descripcion'];
+    protected $allowedFields = ['nombre', 'descripcion', 'categoria', 'img'];
         public function getproducto($id){
         return $this->where('id',$id)-> first();
     }
