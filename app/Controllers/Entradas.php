@@ -42,9 +42,10 @@ public function guarda_entrada(){
 public function lista_entrada(){
     $m_entrada = new Modelo_entrada();
     $m_producto = new Modelo_producto();
+    $producto= array_column($m_producto->findAll(), null, 'id');
     $datos=[
         'entradas'=>$m_entrada->findAll(),
-        'productos'=>$m_producto->findAll(),  
+        'productos'=>$producto,  
     ];
     return view('lista_entrada', $datos);
 }
