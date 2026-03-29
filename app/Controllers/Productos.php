@@ -7,7 +7,17 @@ use App\Models\Modelo_producto;
 class Productos extends BaseController
 {
 public function main_page(){
-    return view('main_page');
+    $db = \Config\Database::connect();
+
+$productos = $db->query("
+    SELECT p.nombre, SUM(e.cantidad) AS total
+    FROM producto p
+    LEFT JOIN entrada e ON e.id_producto = p.id
+    GROUP BY p.id, p.nombre
+    ORDER BY total ASC
+    LIMIT 5
+")->getResultArray();
+    return view('main_page3', ['productosLowStock' => $productos]); 
 }
 public function crea_producto(){
     return view('crea_producto');
