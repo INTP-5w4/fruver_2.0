@@ -10,19 +10,24 @@
         <thead>
             <th>ID</th>
             <th>Fecha</th>
-            <th>ID del cliente</th>
-            <th>ID del repartidor</th>
+            <th>Nombre del cliente</th>
+            <th>Nombre del repartidor</th>
             <th>Editar</th>
             <th>Eliminar</th>
         </thead>
         <tbody>
             <?php foreach($pedidos as $p): ?>
             <tr>
+                <td><?= $p['id'] ?></td>
                 <td><?= $p['fecha'] ?></td>
-                <td><?= $p['id_cliente'] ?></td>
-                <td><?= $p['id_repartidor'] ?></td>
-                <td> <a href="<?= base_url('pasa_id_pedido/'.$p['id'])?>"><button><i class="fa-solid fa-pen-to-square"></button></a></td>
-                <td> <a href="<?= base_url('borra_id_pedido/'.$p['id'])?>"><button><i class="fa-solid fa-trash-can"></button></a></td>
+                <td><?php $c = $clientes[$p['id_cliente']] ?? null; 
+                            echo $c ? "{$c['nombre']} {$c['ape_pat']} {$c['ape_mat']}" : 'Desconocido';?>
+                </td>
+                <td><?php $r = $repartidores[$p['id_repartidor']] ?? null; 
+                            echo $r ? "{$r['nombre']} {$r['ape_pat']} {$r['ape_mat']}" : 'Desconocido';?>
+                </td>
+                <td> <a href="<?= base_url('pasa_id_pedido/'.$p['id'])?>"><button><i class="fa-solid fa-pen-to-square"></i></button></a></td>
+                <td> <a href="<?= base_url('borra_id_pedido/'.$p['id'])?>"><button><i class="fa-solid fa-trash-can"></i></button></a></td>
             </tr>
             <?php endforeach; ?>
         </tbody>

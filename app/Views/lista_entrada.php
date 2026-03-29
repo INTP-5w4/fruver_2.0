@@ -15,7 +15,7 @@
             <th>Unidad de compra</th>
             <th>Unidad de venta</th>
             <th>Precio compra</th>
-            <th>ID del producto</th>
+            <th>Nombre del producto</th>
             <th>Editar</th>
             <th>Eliminar</th>
         </thead>
@@ -29,7 +29,10 @@
                 <td><?= $e['u_compra']?></td>
                 <td><?= $e['u_venta']?></td>
                 <td><?= $e['precio_compra']?></td>
-                <td><?= $e['id_producto']?></td>
+                <td>
+                    <?php $p = $productos[$e['id_producto']]?? null;
+                    echo "{$p['nombre']}" ?>
+                </td>
                 <td><a href="<?= base_url('pasa_id_entrada/'.$e['id'])?>"><button><i class="fa-solid fa-pen-to-square"></i></button></a></td>
                 <td><a href="<?= base_url('borra_id_entrada/'.$e['id'])?>"><button><i class="fa-solid fa-trash-can"></i></button></a></td>
             </tr>

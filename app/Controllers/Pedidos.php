@@ -42,10 +42,20 @@ public function guarda_pedido(){
     }
 }
 public function lista_pedido(){
-    $m_pedido= new Modelo_pedido();
-    $datos['pedidos']= $m_pedido->findAll();
-    return view('lista_pedido',$datos);
+    $m_pedido = new Modelo_pedido();
+    $m_cliente = new Modelo_cliente();
+    $m_repartidor = new Modelo_repartidor();
+    $clientes = array_column($m_cliente->findAll(), null, 'id');
+    $repartidores = array_column($m_repartidor->findAll(), null, 'id');
+    $datos = [
+        'pedidos'      => $m_pedido->findAll(),
+        'clientes'     => $clientes,
+        'repartidores' => $repartidores,
+    ];
+
+    return view('lista_pedido', $datos);
 }
+
 public function recupera($id=null){
     $m_pedido = new Modelo_pedido();
     $m_cliente = new Modelo_cliente();
