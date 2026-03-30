@@ -42,4 +42,10 @@ $routes->post('guarda_entrada', 'Entradas::guarda_entrada');
 $routes->post('modifica_entrada', 'Entradas::modifica_entrada');
 $routes->get('pasa_id_entrada/(:num)', 'Entradas::recupera/$1');
 $routes->get('borra_id_entrada/(:num)', 'Entradas::eliminar_datos/$1');
-//=============================ESTATUS=================================
+//=============================PEDIDOS=================================
+$routes->get('crea_pedido', 'Pedidos::crea_pedido');
+$routes->get('lista_pedido', 'Pedidos::lista_pedido');
+$routes->post('guarda_pedido', 'Pedidos::guarda_pedido');
+$routes->post('modifica_pedido', 'Pedidos::modifica');
+$routes->get('borra_id_pedido/(:num)', 'Pedidos::eliminar_datos/$1');
+$routes->get('pasa_id_pedido/(:num)', 'Pedidos::recupera/$1');
