@@ -21,5 +21,7 @@
     <a href="<?= base_url('lista_direccion') ?>"><button>Lista direccion</button></a><br>
     <a href="<?= base_url('crea_entrada') ?>"><button>Crea entrada</button></a>
     <a href="<?= base_url('lista_entrada') ?>"><button>Lista entrada</button></a><br>
+    <a href="<?= base_url('crea_pedido') ?>"><button>Crea pedido</button></a>
+    <a href="<?= base_url('lista_pedido') ?>"><button>Lista pedido</button></a><br>
 </body>
 </html>

@@ -29,7 +29,7 @@
                 </select><br>
 
 
-                <label>Cliente</label>
+                <label>Cliente</label><br>
                     <select name="id_cliente">
                         <?php foreach($clientes as $cliente): ?>
                             <option 

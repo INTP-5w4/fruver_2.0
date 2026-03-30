@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
@@ -14,6 +15,8 @@
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
+                <th>Categoria</th>
+                <th>Imagen</th>
                 <th>Editar</th>
                 <th>Eliminar</th>
             </tr>
@@ -24,11 +27,13 @@
             <td><?= $p['id'] ?></td>
             <td><?= esc($p['nombre']) ?></td>
             <td><?= esc($p['descripcion']) ?></td>
+            <td><?= esc($p['categoria']) ?></td>
+            <td><?= esc($p['img']) ?></td>
             <td><a href="<?= base_url('pasa_id_producto/'.$p['id']) ?>"><button><i class="fa-solid fa-pen-to-square"></i></button></a></td> 
             <td><a href="<?= base_url('borra_id_producto/'.$p['id']) ?>"><button><i class="fa-solid fa-trash-can"></i></button></a></td> 
             <?php endforeach?>
         </tbody>
     </table>
-<?= $pager->links() ?>
+<?= $pager->links('default', 'w3_pager') ?>
 </body>
 </html>
