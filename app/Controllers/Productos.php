@@ -9,16 +9,27 @@ class Productos extends BaseController
 public function main_page(){
     $db = \Config\Database::connect();
 
-$productos = $db->query("
-    SELECT p.nombre, SUM(e.cantidad) AS total
-    FROM producto p
-    LEFT JOIN entrada e ON e.id_producto = p.id
-    GROUP BY p.id, p.nombre
-    ORDER BY total ASC
-    LIMIT 5
-")->getResultArray();
-    return view('main_page3', ['productosLowStock' => $productos]); 
+    $productos = $db->query("
+        SELECT p.nombre, SUM(e.cantidad) AS total
+        FROM producto p
+        LEFT JOIN entrada e ON e.id_producto = p.id
+        GROUP BY p.id, p.nombre
+        ORDER BY total ASC
+        LIMIT 5
+    ")->getResultArray();
+
+    $m_cliente = new \App\Models\Modelo_cliente();
+    $m_producto = new Modelo_producto();
+$m_repartidor = new \App\Models\Modelo_repartidor();
+
+return view('main_page3', [
+    'productosLowStock' => $productos,
+    'clientes' => $m_cliente->findAll(),
+    'productos' => $m_producto->findAll(),
+    'repartidores' => $m_repartidor->findAll(),
+]);
 }
+
 public function crea_producto(){
     return view('crea_producto');
 }
