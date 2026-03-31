@@ -68,9 +68,6 @@ public function recupera($id=null){
     return view('modifica_pedido',$datos);
 }
 public function eliminar_datos($id=null){
-    if ($id === null || $this->request->getMethod() !== 'post') {
-        return redirect()->to('lista_pedido');
-    }
     $m_pedido = new Modelo_pedido();
     $m_pedido->delete($id);
     return redirect()->to('lista_pedido');

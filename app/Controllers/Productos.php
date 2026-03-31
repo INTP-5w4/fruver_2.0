@@ -17,7 +17,7 @@ $productos = $db->query("
     ORDER BY total ASC
     LIMIT 5
 ")->getResultArray();
-    return view('main_page3', ['productosLowStock' => $productos]); 
+    return view('main_page', ['productosLowStock' => $productos]); 
 }
 public function crea_producto(){
     return view('crea_producto');
