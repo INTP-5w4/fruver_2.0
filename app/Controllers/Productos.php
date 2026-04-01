@@ -28,6 +28,15 @@ return view('main_page3', [
     'productos' => $m_producto->findAll(),
     'repartidores' => $m_repartidor->findAll(),
 ]);
+$productos = $db->query("
+    SELECT p.nombre, SUM(e.cantidad) AS total
+    FROM producto p
+    LEFT JOIN entrada e ON e.id_producto = p.id
+    GROUP BY p.id, p.nombre
+    ORDER BY total ASC
+    LIMIT 5
+")->getResultArray();
+    return view('main_page', ['productosLowStock' => $productos]); 
 }
 
 public function crea_producto(){

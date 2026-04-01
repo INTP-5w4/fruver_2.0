@@ -49,3 +49,17 @@ $routes->post('guarda_pedido', 'Pedidos::guarda_pedido');
 $routes->post('modifica_pedido', 'Pedidos::modifica');
 $routes->get('borra_id_pedido/(:num)', 'Pedidos::eliminar_datos/$1');
 $routes->get('pasa_id_pedido/(:num)', 'Pedidos::recupera/$1');
+//=============================ESTATUS=================================
+$routes->get('crea_estatus', 'Estatus::crea_estatus');
+$routes->get('lista_estatus', 'Estatus::lista_estatus');
+$routes->post('guarda_estatus', 'Estatus::guarda_estatus');
+$routes->post('modifica_estatus', 'Estatus::modifica');
+$routes->get('borra_id_estatus/(:num)', 'Estatus::eliminar_datos/$1');
+$routes->get('pasa_id_estatus/(:num)', 'Estatus::recupera/$1');
+//=============================EXISTENCIAS=================================
+$routes->get('crea_existencia', 'Existencias::crea_existencia');
+$routes->get('lista_existencia', 'Existencias::lista_existencia');
+$routes->post('guarda_existencia', 'Existencias::guarda_existencia');
+$routes->post('modifica_existencia', 'Existencias::modifica');
+$routes->get('borra_id_existencia/(:num)', 'Existencias::eliminar_datos/$1');
+$routes->get('pasa_id_existencia/(:num)', 'Existencias::recupera/$1');
