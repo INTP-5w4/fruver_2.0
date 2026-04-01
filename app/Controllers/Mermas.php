@@ -9,7 +9,11 @@ class Mermas extends Controller{
 
 public function crea_merma(){
     $m_entrada = new Modelo_entrada();
-    $datos['entradas'] = $m_entrada->findAll();
+    $date=date('Y-m-d');
+    $datos=[
+        'entradas'=> $m_entrada->findAll(),
+        'date' => $date
+    ];
     return view('crea_merma', $datos);
 }
 
@@ -24,6 +28,7 @@ public function guarda_merma(){
     if (
         empty($datos['cantidad']) || 
         empty($datos['fecha']) || 
+        empty($datos['notas']) || 
         empty($datos['id_entrada'])
     ){
         return redirect()->to('crea_merma')->with('error', 'Por favor, complete todos los campos obligatorios.');
@@ -36,14 +41,14 @@ public function guarda_merma(){
 public function lista_merma(){
     $m_merma = new Modelo_merma();
     $datos['mermas'] = $m_merma->findAll();
-    return view('lista_mermas', $datos);
+    return view('lista_merma', $datos);
 }
 public function recupera($id=null){
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();
     $datos=[
-        'merma' => $m_merma->find($id),
-        'entradas' => $m_entrada->findAll()
+        'mermas' => $m_merma->find($id),
+        'entradas' => $m_entrada->findAll(),
     ];
     return view('modifica_merma', $datos);
 }

@@ -37,7 +37,8 @@
                                     '<?= esc($c['telefono']) ?>'
                                 )"
                                 style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                            <i class="
+                            "></i>
                         </button>
                     </td>
                     <td>

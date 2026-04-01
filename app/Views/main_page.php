@@ -44,6 +44,9 @@
     
     <a href="<?= base_url('crea_merma') ?>"><button>Crea merma</button></a>
     <a href="<?= base_url('lista_merma') ?>"><button>Lista merma</button></a><br>
+    
+    <a href="<?= base_url('crea_p_pedido') ?>"><button>Crea p_pedido</button></a>
+    <a href="<?= base_url('lista_p_pedido') ?>"><button>Lista p_pedido</button></a><br>
 
 
 

@@ -63,3 +63,18 @@ $routes->post('guarda_existencia', 'Existencias::guarda_existencia');
 $routes->post('modifica_existencia', 'Existencias::modifica');
 $routes->get('borra_id_existencia/(:num)', 'Existencias::eliminar_datos/$1');
 $routes->get('pasa_id_existencia/(:num)', 'Existencias::recupera/$1');
+//=============================MERMAS======================================
+$routes->get('crea_merma', 'Mermas::crea_merma');
+$routes->get('lista_merma', 'Mermas::lista_merma');
+$routes->post('guarda_merma', 'Mermas::guarda_merma');
+$routes->post('modifica_merma', 'Mermas::modifica');
+$routes->get('borra_id_merma/(:num)', 'Mermas::eliminar_datos/$1');
+$routes->get('pasa_id_merma/(:num)', 'Mermas::recupera/$1');
+//=============================P_PEDIDOS======================================
+$routes->get('crea_p_pedido', 'P_Pedidos::crea_p_pedido');
+$routes->get('lista_p_pedido', 'P_Pedidos::lista_p_pedido');
+$routes->post('guarda_p_pedido', 'P_Pedidos::guarda_p_pedido');
+$routes->post('modifica_p_pedido', 'P_Pedidos::modifica');
+$routes->get('borra_id_p_pedido/(:num)', 'P_Pedidos::eliminar_datos/$1');
+$routes->get('pasa_id_p_pedido/(:num)', 'P_Pedidos::recupera/$1');
+$routes->get('pasa_id_p_pedido/(:num)', 'P_Pedidos::recupera/$1');
