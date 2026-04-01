@@ -22,21 +22,12 @@ public function main_page(){
     $m_producto = new Modelo_producto();
 $m_repartidor = new \App\Models\Modelo_repartidor();
 
-return view('main_page3', [
+return view('main_page', [
     'productosLowStock' => $productos,
     'clientes' => $m_cliente->findAll(),
     'productos' => $m_producto->findAll(),
     'repartidores' => $m_repartidor->findAll(),
 ]);
-$productos = $db->query("
-    SELECT p.nombre, SUM(e.cantidad) AS total
-    FROM producto p
-    LEFT JOIN entrada e ON e.id_producto = p.id
-    GROUP BY p.id, p.nombre
-    ORDER BY total ASC
-    LIMIT 5
-")->getResultArray();
-    return view('main_page', ['productosLowStock' => $productos]); 
 }
 
 public function crea_producto(){
