@@ -40,9 +40,14 @@ public function guarda_merma(){
 
 public function lista_merma(){
     $m_merma = new Modelo_merma();
-    $datos['mermas'] = $m_merma->findAll();
+    $m_entrada = new Modelo_entrada();
+    $datos = [
+        'mermas' => $m_merma->findAll(),
+        'entradas' => $m_entrada->findAll(),
+    ];
     return view('lista_merma', $datos);
 }
+
 public function recupera($id=null){
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();

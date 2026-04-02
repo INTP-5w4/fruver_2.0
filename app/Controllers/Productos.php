@@ -20,13 +20,17 @@ public function main_page(){
 
     $m_cliente = new \App\Models\Modelo_cliente();
     $m_producto = new Modelo_producto();
-$m_repartidor = new \App\Models\Modelo_repartidor();
+    $m_repartidor = new \App\Models\Modelo_repartidor();
+    $m_pedido = new \App\Models\Modelo_pedido();
+    $m_entrada = new \App\Models\Modelo_entrada();
 
 return view('main_page', [
     'productosLowStock' => $productos,
     'clientes' => $m_cliente->findAll(),
     'productos' => $m_producto->findAll(),
     'repartidores' => $m_repartidor->findAll(),
+    'pedidos' => $m_pedido->findAll(),
+    'entradas' => $m_entrada->findAll(),
 ]);
 }
 
