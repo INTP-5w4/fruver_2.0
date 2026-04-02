@@ -24,7 +24,7 @@ public function main_page(){
     $m_pedido = new \App\Models\Modelo_pedido();
     $m_entrada = new \App\Models\Modelo_entrada();
 
-return view('main_page', [
+return view('main_page3', [
     'productosLowStock' => $productos,
     'clientes' => $m_cliente->findAll(),
     'productos' => $m_producto->findAll(),

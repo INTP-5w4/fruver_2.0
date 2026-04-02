@@ -21,38 +21,46 @@
                 <p class="nav-label">Módulos</p>
 
                 <a href="<?= base_url('lista_producto') ?>" class="nav-item">
-                    <span class="nav-icon">📦</span> Productos
+                Productos
                 </a>
+
                 <a href="<?= base_url('lista_cliente') ?>" class="nav-item">
-                    <span class="nav-icon">👤</span> Clientes
+                Clientes
                 </a>
+
                 <a href="<?= base_url('lista_repartidor') ?>" class="nav-item">
-                    <span class="nav-icon">🚚</span> Repartidores
+                Repartidores
                 </a>
+
                 <a href="<?= base_url('lista_direccion') ?>" class="nav-item">
-                    <span class="nav-icon">📍</span> Direcciones
+                Direcciones
                 </a>
+
                 <a href="<?= base_url('lista_entrada') ?>" class="nav-item">
-                    <span class="nav-icon">📥</span> Entradas
+                Entradas
                 </a>
+
                 <a href="<?= base_url('lista_pedido') ?>" class="nav-item">
-                    <span class="nav-icon">🧾</span> Pedidos
+                Pedidos
                 </a>
 
-                <p class="nav-label" style="margin-top:1.5rem;">Próximamente</p>
+                <a href=" <?= base_url('lista_merma') ?>" class="nav-item">
+                Mermas
+                </a>
 
-                <a href="#" class="nav-item nav-item--placeholder">
-                    <span class="nav-icon">🔧</span> Módulo A
+                <a href=" <?= base_url('lista_p_pedido') ?>" class="nav-item">
+                Productos por pedido
                 </a>
-                <a href="#" class="nav-item nav-item--placeholder">
-                    <span class="nav-icon">🔧</span> Módulo B
+
+                <a href=" <?= base_url('lista_estatus') ?>" class="nav-item">
+                Estatus
                 </a>
-                <a href="#" class="nav-item nav-item--placeholder">
-                    <span class="nav-icon">🔧</span> Módulo C
+
+                <a href=" <?= base_url('lista_existencia') ?>" class="nav-item">
+                Existencias
                 </a>
-                <a href="#" class="nav-item nav-item--placeholder">
-                    <span class="nav-icon">🔧</span> Módulo D
-                </a>
+
+                
             </nav>
         </aside>
 
