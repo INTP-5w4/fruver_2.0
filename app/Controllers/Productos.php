@@ -22,7 +22,7 @@ public function main_page(){
     $m_producto = new Modelo_producto();
 $m_repartidor = new \App\Models\Modelo_repartidor();
 
-return view('main_page', [
+return view('main_page3', [
     'productosLowStock' => $productos,
     'clientes' => $m_cliente->findAll(),
     'productos' => $m_producto->findAll(),
