@@ -7,6 +7,17 @@
     <title>Document</title>
 </head>
 <body>
+    <?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
     <table>
         <thead>
             <tr>
