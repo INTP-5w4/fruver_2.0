@@ -73,6 +73,17 @@ public function guarda_producto(){
     $m_producto->insert($datos);
     return redirect()->to('lista_producto');
     }
+    try {
+    $m_producto->insert($datos);
+    return redirect()->to('lista_producto')->with('mensaje', 'Producto registrado');
+
+} catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+    $mensaje = $e->getMessage();
+    if (str_contains($mensaje, 'Error:')) {
+        $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+    }
+    return redirect()->to('crea_producto')->with('error', $mensaje);
+}
 }
 public function lista_producto($dato=null){
     $m_producto = new Modelo_producto();
