@@ -18,7 +18,8 @@ public function guarda_entrada(){
         'cantidad'=>$this->request->getPost('cant'),
         'u_compra'=>$this->request->getPost('u_com'),
         'u_venta'=>$this->request->getPost('u_ven'),
-        'equivalente'=>$this->request->getPost('equi'),
+        'equivalente'=>$this->request->getPost('equiv'),
+        'conversion'=>$this->request->getPost('conv'),
         'precio_compra'=>$this->request->getPost('p_compra'),
         'id_producto'=>$this->request->getPost('id_producto'),
     ];
