@@ -11,7 +11,7 @@
         <input type="date" name="f_ent" id=""><br>
         
         <label>Fecha de caducidad</label><br>
-        <input type="date" name="f_cad" id=""><br>
+        <input type="date" name="f_cad" id="" readonly><br>
         
         <label>Cantidad</label><br>
         <input type="number" name="cant" id=""><br>
@@ -30,8 +30,13 @@
             <option value="Litro">Litro</option>
             <option value="Caja">Caja</option>
         </select><br>
+        <label for="equivalente">Equivalente</label><br>
+        <input type="number" name="equi" id="equivalente"><br>
         
-        <label>Precio de compra</label><br>
+        <label for="conversion">Conversion</label><br>
+        <input type="number" name="conv" id="conversion" readonly><br>
+
+        <label>Precio por unidad de compra</label><br>
         <input type="number" name="p_compra" id=""><br>
         
         <label>ID del producto</label><br>
