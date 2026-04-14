@@ -4,24 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifica cliente</title>
+    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
 </head>
 <body>
-    <form action="<?= base_url('guarda_cliente')?>" method="post">
-        <input type="hidden" name="id" value="<?= $clientes['id'] ?> ">
-        <label for="nom">Nombre</label><br>
-        <input type="text" name="nom" id="" value="<?= $clientes['nombre'] ?> "><br>
+    <div class="modal-contenido" style="max-width:500px; margin:40px auto;">
 
-        <label for="ape_pat">Apellido Paterno</label><br>
-        <input type="text" name="ape_pat" id="" value="<?= $clientes['ape_pat'] ?> "><br>
+        <header class="modal-header">
+            <h2>Modificar Cliente</h2>
+        </header>
 
-        <label for="ape_mat">Apellido materno</label><br>
-        <input type="text" name="ape_mat" id="" value="<?= $clientes['ape_mat'] ?> "><br>
+        <form action="<?= base_url('guarda_cliente') ?>" method="post" class="modal-form">
 
-        <label for="tel">Telefono</label><br>
-        <input type="text" name="tel" id="" value="<?= $clientes['telefono'] ?> "><br>
+            <input type="hidden" name="id" value="<?= $clientes['id'] ?>">
 
-        <input type="submit" value="Enviar">
-    </form>
-    
+            <label><b>Nombre</b></label>
+            <input type="text" name="nom" class="modal-input" value="<?= $clientes['nombre'] ?>" required>
+
+            <label><b>Apellido Paterno</b></label>
+            <input type="text" name="ape_pat" class="modal-input" value="<?= $clientes['ape_pat'] ?>" required>
+
+            <label><b>Apellido Materno</b></label>
+            <input type="text" name="ape_mat" class="modal-input" value="<?= $clientes['ape_mat'] ?>" required>
+
+            <label><b>Teléfono</b></label>
+            <input type="text" name="tel" class="modal-input" value="<?= $clientes['telefono'] ?>" required>
+
+            <footer class="modal-footer">
+                <button type="submit" class="btn-guardar">Guardar</button>
+            </footer>
+
+        </form>
+    </div>
 </body>
-</html>

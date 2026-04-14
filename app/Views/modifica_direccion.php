@@ -3,46 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifica dirección</title>
+    <title>Modifica Dirección</title>
+    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
 </head>
 <body>
-    <form action="<?= base_url('modifica_direccion') ?>" method="post">
-            <label>Colonia</label><br>
-            <input type="text" name="col" id="" value="<?= $direcciones['colonia']?>" required><br>
-            <label>Calle</label><br>
-            <input type="text" name="calle" id="" value="<?= $direcciones['calle']?>" required><br>
-            <label>Numero</label><br>
-            <input type="text" name="num" id="" value="<?= $direcciones['numero']?>" required><br>
-            <label>Municipio</label><br>
-            <input type="text" name="mun" id="" value="<?= $direcciones['municipio']?>" required><br>
-            <label>Estado</label><br>
-            <?php 
-                $estados = ["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de Mexico","Coahuila","Colima","Durango","Estado de Mexico","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla","Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatan","Zacatecas"];
-                ?>
+    <div class="formulario-pagina">
 
-                <select name="edo">
+        <header class="modal-header">
+            <h2>Modificar Dirección</h2>
+        </header>
+
+        <form action="<?= base_url('modifica_direccion') ?>" method="post" class="modal-form">
+
+            <input type="hidden" name="id" value="<?= $direcciones['id'] ?>">
+
+            <label><b>Colonia</b></label>
+            <input type="text" name="col" class="modal-input" value="<?= $direcciones['colonia'] ?>" required>
+
+            <label><b>Calle</b></label>
+            <input type="text" name="calle" class="modal-input" value="<?= $direcciones['calle'] ?>" required>
+
+            <label><b>Número</b></label>
+            <input type="text" name="num" class="modal-input" value="<?= $direcciones['numero'] ?>" required>
+
+            <label><b>Municipio</b></label>
+            <input type="text" name="mun" class="modal-input" value="<?= $direcciones['municipio'] ?>" required>
+
+            <label><b>Estado</b></label>
+            <?php $estados = ["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de Mexico","Coahuila","Colima","Durango","Estado de Mexico","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla","Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatan","Zacatecas"]; ?>
+            <select name="edo" class="modal-input">
                 <?php foreach ($estados as $e): ?>
-                    <option value="<?= $e ?>" <?= ( $direcciones['estado']== $e) ? 'selected' : '' ?>>
+                    <option value="<?= $e ?>" <?= ($direcciones['estado'] == $e) ? 'selected' : '' ?>>
                         <?= $e ?>
                     </option>
                 <?php endforeach; ?>
-                </select><br>
+            </select>
 
+            <label><b>Cliente</b></label>
+            <select name="id_cliente" class="modal-input">
+                <?php foreach ($clientes as $cliente): ?>
+                    <option value="<?= $cliente['id'] ?>" <?= ($cliente['id'] == $direcciones['id_cliente']) ? 'selected' : '' ?>>
+                        <?= $cliente['nombre'] ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
-                <label>Cliente</label><br>
-                    <select name="id_cliente">
-                        <?php foreach($clientes as $cliente): ?>
-                            <option 
-                                value="<?= $cliente['id'] ?>"
-                                <?= ($cliente['id'] == $direcciones['id_cliente']) ? 'selected' : '' ?>
-                            >
-                                <?= $cliente['nombre'] ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select><br>
+            <footer class="modal-footer">
+                <button type="submit" class="btn-guardar">Guardar</button>
+            </footer>
 
-            <input type="submit" value="Enviar">
-            
-    </form>
+        </form>
+    </div>
 </body>
 </html>

@@ -4,9 +4,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <title>Document</title>
 </head>
 <body>
+    <?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+<div class="contenedor-boton">
+    <button onclick="document.getElementById('modalCrearCliente').style.display='block'"
+            class="btn-agregar">
+        + Nuevo Cliente
+    </button>
+</div>
     <table>
         <thead>
             <tr>
@@ -37,8 +55,7 @@
                                     '<?= esc($c['telefono']) ?>'
                                 )"
                                 style="border:none; cursor:pointer; background:none;">
-                            <i class="
-                            "></i>
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     </td>
                     <td>
@@ -104,6 +121,39 @@
             if (event.target === modal) modal.style.display = 'none';
         };
     </script>
+<!-- MODAL CREAR CLIENTE -->
+<div id="modalCrearCliente" class="w3-modal">
+    <div class="modal-contenido w3-animate-zoom">
 
+        <header class="modal-header">
+            <span onclick="document.getElementById('modalCrearCliente').style.display='none'"
+                  class="modal-cerrar">&times;</span>
+            <h2>Registrar Cliente</h2>
+            <form action="<?= base_url('guarda_cliente') ?>" method="post" class="modal-form">
+
+    <label><b>Nombre</b></label>
+    <input type="text" name="nom" class="modal-input" required>
+
+    <label><b>Apellido Paterno</b></label>
+    <input type="text" name="ape_pat" class="modal-input" required>
+
+    <label><b>Apellido Materno</b></label>
+    <input type="text" name="ape_mat" class="modal-input" required>
+
+    <label><b>Teléfono</b></label>
+    <input type="text" name="tel" class="modal-input" required>
+
+    <footer class="modal-footer">
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button"
+                onclick="document.getElementById('modalCrearCliente').style.display='none'"
+                class="btn-cancelar">Cancelar</button>
+    </footer>
+
+</form>
+        </header>
+
+    </div>
+</div>
 </body>
 </html>

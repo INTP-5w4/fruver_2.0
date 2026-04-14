@@ -44,9 +44,12 @@ public function guarda_p_pedido(){
 public function lista_p_pedido(){
     $m_p_pedido = new Modelo_productopedido();
     $m_producto = new Modelo_producto();
+    $m_pedido   = new Modelo_pedido();      
+
     $datos = [
         'productos' => $m_producto->findAll(),
-        'p_pedidos' => $m_p_pedido->findAll()
+        'p_pedidos' => $m_p_pedido->findAll(),
+        'pedidos'   => $m_pedido->findAll() 
     ];
     return view('lista_p_pedido', $datos);
 }

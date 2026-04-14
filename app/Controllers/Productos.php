@@ -20,13 +20,17 @@ public function main_page(){
 
     $m_cliente = new \App\Models\Modelo_cliente();
     $m_producto = new Modelo_producto();
-$m_repartidor = new \App\Models\Modelo_repartidor();
+    $m_repartidor = new \App\Models\Modelo_repartidor();
+    $m_pedido = new \App\Models\Modelo_pedido();
+    $m_entrada = new \App\Models\Modelo_entrada();
 
 return view('main_page3', [
     'productosLowStock' => $productos,
     'clientes' => $m_cliente->findAll(),
     'productos' => $m_producto->findAll(),
     'repartidores' => $m_repartidor->findAll(),
+    'pedidos' => $m_pedido->findAll(),
+    'entradas' => $m_entrada->findAll(),
 ]);
 }
 
@@ -69,6 +73,17 @@ public function guarda_producto(){
     $m_producto->insert($datos);
     return redirect()->to('lista_producto');
     }
+    try {
+    $m_producto->insert($datos);
+    return redirect()->to('lista_producto')->with('mensaje', 'Producto registrado');
+
+} catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+    $mensaje = $e->getMessage();
+    if (str_contains($mensaje, 'Error:')) {
+        $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+    }
+    return redirect()->to('crea_producto')->with('error', $mensaje);
+}
 }
 public function lista_producto($dato=null){
     $m_producto = new Modelo_producto();
