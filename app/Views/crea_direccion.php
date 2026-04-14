@@ -4,19 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea Direccion</title>
+    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
 </head>
 <body>
-    <form action="<?= base_url('guarda_direccion') ?>" method="post">
-            <label>Colonia</label><br>
-            <input type="text" name="col" id="" required><br>
-            <label>Calle</label><br>
-            <input type="text" name="calle" id="" required><br>
-            <label>Numero</label><br>
-            <input type="text" name="num" id="" required><br>
-            <label>Municipio</label><br>
-            <input type="text" name="mun" id="" required><br>
-            <label>Estado</label><br>
-            <select name="edo" id="estado" required><br>
+    <div class="formulario-pagina">
+
+        <header class="modal-header">
+            <h2>Registrar Dirección</h2>
+        </header>
+
+        <form action="<?= base_url('guarda_direccion') ?>" method="post" class="modal-form">
+
+            <label><b>Colonia</b></label>
+            <input type="text" name="col" class="modal-input" required>
+
+            <label><b>Calle</b></label>
+            <input type="text" name="calle" class="modal-input" required>
+
+            <label><b>Número</b></label>
+            <input type="text" name="num" class="modal-input" required>
+
+            <label><b>Municipio</b></label>
+            <input type="text" name="mun" class="modal-input" required>
+
+            <label><b>Estado</b></label>
+            <select name="edo" id="estado" class="modal-input" required>
                 <option value="Aguascalientes">Aguascalientes</option>
                 <option value="Baja California">Baja California</option>
                 <option value="Baja California Sur">Baja California Sur</option>
@@ -49,17 +61,22 @@
                 <option value="Veracruz" selected>Veracruz</option>
                 <option value="Yucatan">Yucatán</option>
                 <option value="Zacatecas">Zacatecas</option>
-            </select><br>
-            <label>Cliente</label><br>
-            <select name="id_cliente" id="" required>
-                <?php foreach ($clientes as $c):?>
-                <option value="<?= esc($c['id'])?>">
-                    <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat'])?>
-                </option>
-                <?php endforeach;?>
-            </select><br>
-            <input type="submit" value="Enviar">
-            
-    </form>
+            </select>
+
+            <label><b>Cliente</b></label>
+            <select name="id_cliente" class="modal-input" required>
+                <?php foreach ($clientes as $c): ?>
+                    <option value="<?= esc($c['id']) ?>">
+                        <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <footer class="modal-footer">
+                <button type="submit" class="btn-guardar">Guardar</button>
+            </footer>
+
+        </form>
+    </div>
 </body>
 </html>
