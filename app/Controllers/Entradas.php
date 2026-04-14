@@ -15,10 +15,10 @@ public function guarda_entrada(){
     $m_entrada = new Modelo_entrada();
     $datos=[
         'fecha'=>$this->request->getPost('f_ent'),
-        'fecha_cad'=>$this->request->getPost('f_cad'),
         'cantidad'=>$this->request->getPost('cant'),
         'u_compra'=>$this->request->getPost('u_com'),
         'u_venta'=>$this->request->getPost('u_ven'),
+        'equivalente'=>$this->request->getPost('equi'),
         'precio_compra'=>$this->request->getPost('p_compra'),
         'id_producto'=>$this->request->getPost('id_producto'),
     ];
@@ -28,6 +28,8 @@ public function guarda_entrada(){
         empty($datos['cantidad'])||
         empty($datos['u_compra'])||
         empty($datos['u_venta'])||
+        empty($datos['equivalente'])||
+        empty($datos['conversion'])||
         empty($datos['precio_compra'])||
         empty($datos['id_producto'])
         ){
@@ -69,5 +71,36 @@ public function eliminar_datos($id=null){
     }
     $m_entrada->delete($id);
     return redirect()->to('/lista_entrada');
+}
+public function modifica(){
+    $m_entrada = new Modelo_entrada();
+    $id=$this->request->getPost('id');
+    $datos=[
+        'fecha'=>$this->request->getPost('f_ent'),
+        'cantidad'=>$this->request->getPost('cant'),
+        'u_compra'=>$this->request->getPost('u_com'),
+        'u_venta'=>$this->request->getPost('u_ven'),
+        'equivalente'=>$this->request->getPost('equi'),
+        'precio_compra'=>$this->request->getPost('p_compra'),
+        'id_producto'=>$this->request->getPost('id_producto'),
+    ];
+    if (
+        empty($datos['fecha'])||
+        empty($datos['fecha_cad'])||
+        empty($datos['cantidad'])||
+        empty($datos['u_compra'])||
+        empty($datos['u_venta'])||
+        empty($datos['equivalente'])||
+        empty($datos['conversion'])||
+        empty($datos['precio_compra'])||
+        empty($datos['id_producto'])
+        ){
+            $m_producto = new Modelo_producto();
+            $datos_producto=$m_producto->findAll();
+            return view('modifica_entrada',$datos_producto);
+        }else{
+            $m_entrada->update($id, $datos);
+            return redirect()->to('lista_entrada');
+        }
 }
 }

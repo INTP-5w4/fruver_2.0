@@ -33,7 +33,11 @@
             <option value="Litro">Litro</option>
             <option value="Caja">Caja</option>
         </select><br>
-        
+        <label for="equivalente">Equivalente</label><br>
+        <input type="number" name="equi" id="equivalente" value="<?= $entradas['equivalente'] ?>"><br>
+        <label for="conversion">Conversion</label><br>
+        <input type="number" name="conv" id="conversion" value="<?= $entradas['conversion'] ?>"><br>
+
         <label>Precio de compra</label><br>
         <input type="number" name="precio_compra" id="" value="<?= $entradas['precio_compra'] ?>"><br>
         
