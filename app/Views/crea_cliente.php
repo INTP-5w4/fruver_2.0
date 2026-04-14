@@ -8,6 +8,19 @@
 </head>
 <body class="w3-light-grey">
 
+<!-- ✅ Mensajes de error y éxito -->
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+
 <div class="w3-container w3-padding-32">
     <button onclick="document.getElementById('modalCliente').style.display='block'"
             class="w3-button w3-green">
@@ -23,6 +36,13 @@
                   class="w3-button w3-display-topright">&times;</span>
             <h2>Registrar Cliente</h2>
         </header>
+
+        <!-- ✅ Error dentro del modal también -->
+        <?php if (session()->getFlashdata('error')): ?>
+            <div class="w3-panel w3-red w3-margin">
+                <p><?= session()->getFlashdata('error') ?></p>
+            </div>
+        <?php endif; ?>
 
         <form action="<?= base_url('guarda_cliente') ?>" method="post" class="w3-container w3-padding-16">
 
@@ -56,6 +76,11 @@
             modal.style.display = 'none';
         }
     };
+
+    // ✅ Si hay error, abre el modal automáticamente
+    <?php if (session()->getFlashdata('error')): ?>
+        document.getElementById('modalCliente').style.display = 'block';
+    <?php endif; ?>
 </script>
 
 </body>

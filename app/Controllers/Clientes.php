@@ -21,10 +21,20 @@ public function guarda_cliente(){
         empty($datos['ape_pat'])||
         empty($datos['ape_mat'])||
         empty($datos['telefono'])
-    )return view('crea_cliente');
-    else {
-        $m_cliente->insert($datos);
-        return redirect()-> to('lista_cliente');
+    ){
+        return redirect()->to('lista_cliente')->with('error', 'Todos los campos son obligatorios');
+    } else {
+        try {
+            $m_cliente->insert($datos);
+            return redirect()->to('lista_cliente')->with('mensaje', 'Cliente registrado correctamente');
+
+        } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+            $mensaje = $e->getMessage();
+            if (str_contains($mensaje, 'Error:')) {
+                $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+            }
+           return redirect()->to('lista_cliente')->with('error', $mensaje)->with('from_modal', 'cliente');
+        }
     } 
 }
 public function lista_cliente(){
