@@ -3,29 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Title</title>
+    <title>Crear Repartidor</title>
+    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
 </head>
 <body>
-    <form action="<?= base_url('guarda_repartidor')?>" method="post">
-        <label for="nom">Nombre</label><br>
-        <input type="text" name="nom" id="" required><br>
+    <div class="modal-contenido" style="max-width:500px; margin:40px auto;">
 
-        <label for="ape_pat">Apellido Paterno</label><br>
-        <input type="text" name="ape_pat" id="" required><br>
+        <header class="modal-header">
+            <h2>Registrar Repartidor</h2>
+        </header>
 
-        <label for="ape_mat">Apellido materno</label><br>
-        <input type="text" name="ape_mat" id="" required><br>
+        <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="modal-form">
 
-        <label for="tel">Telefono</label><br>
-        <input type="text" name="tel" id="" required><br>
+            <label><b>Nombre</b></label>
+            <input type="text" name="nom" class="modal-input" required>
 
-        <label for="dir">Dirección</label><br>
-        <input type="text" name="dir" id="" required><br>
+            <label><b>Apellido Paterno</b></label>
+            <input type="text" name="ape_pat" class="modal-input" required>
 
-        <label for="not">Notas</label><br>
-        <textarea name="not" id="" required></textarea><br>
+            <label><b>Apellido Materno</b></label>
+            <input type="text" name="ape_mat" class="modal-input" required>
 
-        <input type="submit" value="Enviar">
-    </form>
+            <label><b>Teléfono</b></label>
+            <input type="text" name="tel" class="modal-input" required>
+
+            <label><b>Dirección</b></label>
+            <input type="text" name="dir" class="modal-input" required>
+
+            <label><b>Notas</b></label>
+            <textarea name="not" class="modal-input" rows="4" required></textarea>
+
+            <footer class="modal-footer">
+                <button type="submit" class="btn-guardar">Guardar</button>
+            </footer>
+
+        </form>
+    </div>
 </body>
 </html>
