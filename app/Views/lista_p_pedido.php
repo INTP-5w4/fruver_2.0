@@ -24,7 +24,7 @@
         <?php foreach($p_pedidos as $pp): ?>
         <tr>
             <td><?= $pp['id'] ?></td>
-            <td><?= $pp['cantidad'] ?></td>
+            <td><?= $pp['cant'] ?></td>
             <td><?= $pp['precio_venta'] ?></td>
             <td><?= $pp['unidad_venta'] ?></td>
             <td><?= $pp['total'] ?></td>
@@ -33,7 +33,7 @@
             <td>
                 <button onclick="abrirModal(
                             '<?= $pp['id'] ?>',
-                            '<?= $pp['cantidad'] ?>',
+                            '<?= $pp['cant'] ?>',
                             '<?= $pp['precio_venta'] ?>',
                             '<?= $pp['unidad_venta'] ?>',
                             '<?= $pp['total'] ?>',

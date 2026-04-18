@@ -29,7 +29,7 @@
                 <td><?= $e['cantidad']?></td>
                 <td><?= $e['u_compra']?></td>
                 <td><?= $e['u_venta']?></td>
-                <td><?= $e['precio_compra']?></td>
+                <td><?= $e['precio_compra_u']?></td>
                   <td>
                     <?php $p = $productos[$e['id_producto']] ?? null;
                     echo $p ? "{$p['nombre']}" : 'Desconocido'; ?>
@@ -42,7 +42,7 @@
                                 '<?= $e['cantidad'] ?>',
                                 '<?= $e['u_compra'] ?>',
                                 '<?= $e['u_venta'] ?>',
-                                '<?= $e['precio_compra'] ?>',
+                                '<?= $e['precio_compra_u'] ?>',
                                 '<?= $e['id_producto'] ?>'
                             )"
                             style="border:none; cursor:pointer; background:none;">
