@@ -15,7 +15,6 @@ public function guarda_entrada(){
     $m_entrada = new Modelo_entrada();
     $datos=[
         'fecha'=>$this->request->getPost('f_ent'),
-        'fecha_cad'=>$this->request->getPost('f_cad'),
         'cantidad'=>$this->request->getPost('cant'),
         'u_compra'=>$this->request->getPost('u_com'),
         'u_venta'=>$this->request->getPost('u_ven'),
