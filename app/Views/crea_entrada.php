@@ -29,6 +29,9 @@
             <option value="Kilogramo">Kilogramo</option>
             <option value="Litro">Litro</option>
             <option value="Caja">Caja</option>
+            <option value="Domo">Domo</option>
+            <option value="Pieza">Pieza</option>
+            <option value="Ramo">Ramo</option>
         </select><br>
         
         <label>Precio de compra</label><br>
