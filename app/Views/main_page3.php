@@ -299,6 +299,7 @@
             </form>
         </div>
     </div>
+    
     <div id="modalEntrada" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
@@ -307,7 +308,7 @@
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
 
             <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom" >
+            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
 
             <label><b>Cantidad</b></label>
             <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>

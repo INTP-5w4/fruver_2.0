@@ -12,31 +12,20 @@ use App\Models\Modelo_cliente;
 class Productos extends BaseController
 {
 public function main_page(){
-    $db = \Config\Database::connect();
+     $m_producto    = new Modelo_producto();
+    $m_cliente     = new Modelo_cliente();
+    $m_repartidor  = new Modelo_repartidor();
+    $m_pedido      = new Modelo_pedido();
+    $m_entrada     = new Modelo_entrada();
 
-    $productos = $db->query("
-        SELECT p.nombre, SUM(e.cantidad) AS total
-        FROM producto p
-        LEFT JOIN entrada e ON e.id_producto = p.id
-        GROUP BY p.id, p.nombre
-        ORDER BY total ASC
-        LIMIT 5
-    ")->getResultArray();
-
-    $m_cliente = new Modelo_cliente();
-    $m_producto = new Modelo_producto();
-    $m_repartidor = new Modelo_repartidor();
-    $m_pedido = new Modelo_pedido();
-    $m_entrada = new Modelo_entrada();
-    $datos2=[
-    'productosLowStock' => $productos,
-    'clientes' => $m_cliente->findAll(),
-    'frutas' => $m_producto->findAll(),
-    'repartidores' => $m_repartidor->findAll(),
-    'pedidos' => $m_pedido->findAll(),
-    'entradas' => $m_entrada->findAll(),
-];
-return view('main_page',$datos2 );
+    return view('main_page3', [
+        'productosLowStock' => $m_producto->productosLowStock(),
+        'productos'         => $m_producto->findAll(),
+        'clientes'          => $m_cliente->findAll(),
+        'repartidores'      => $m_repartidor->findAll(),
+        'pedidos'           => $m_pedido->findAll(),
+        'entradas'          => $m_entrada->findAll(),
+    ]);
 }
 
 public function crea_producto(){

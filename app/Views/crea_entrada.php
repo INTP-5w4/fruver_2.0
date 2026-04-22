@@ -13,7 +13,7 @@
         <input type="date" name="f_ent" id=""><br>
         
         <label>Fecha de caducidad</label><br>
-        <input type="date" name="f_cad" id="" readonly><br>
+        <input type="date" name="f_cad" id=""><br>
         
         <label>Cantidad</label><br>
         <input type="number" name="cant" id=""><br>
@@ -60,7 +60,7 @@
             <input type="date" name="f_ent" class="modal-input" required>
 
             <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" class="modal-input" required>
+            <input type="date" name="f_cad" class="modal-input">
 
             <label><b>Cantidad</b></label>
             <input type="number" name="cant" class="modal-input" required>
