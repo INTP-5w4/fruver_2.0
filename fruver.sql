@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-03-2026 a las 08:10:34
+-- Tiempo de generación: 20-04-2026 a las 20:30:10
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -75,11 +75,14 @@ INSERT INTO `direccion` (`id`, `colonia`, `calle`, `numero`, `municipio`, `estad
 CREATE TABLE `entrada` (
   `id` int(11) NOT NULL,
   `fecha` date NOT NULL,
-  `fecha_cad` date NOT NULL,
+  `fecha_cad` date DEFAULT NULL,
   `cantidad` decimal(10,2) NOT NULL,
   `u_compra` enum('Caja','Arpilla','Bulto','Tonelada','') NOT NULL,
-  `u_venta` enum('Kilogramo','Litro','Caja','') NOT NULL,
-  `precio_compra` decimal(10,2) NOT NULL,
+  `u_venta` enum('Kilogramo','Litro','Caja','Pieza','Domo','Ramo','') NOT NULL,
+  `equivalente` decimal(10,0) NOT NULL,
+  `conversion` decimal(10,0) DEFAULT NULL,
+  `precio_compra_u` decimal(10,2) NOT NULL,
+  `precio_venta_u` decimal(10,0) NOT NULL,
   `id_producto` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -87,8 +90,66 @@ CREATE TABLE `entrada` (
 -- Volcado de datos para la tabla `entrada`
 --
 
-INSERT INTO `entrada` (`id`, `fecha`, `fecha_cad`, `cantidad`, `u_compra`, `u_venta`, `precio_compra`, `id_producto`) VALUES
-(2, '2026-03-23', '2026-03-28', 10.00, 'Caja', 'Kilogramo', 100.00, 5);
+INSERT INTO `entrada` (`id`, `fecha`, `fecha_cad`, `cantidad`, `u_compra`, `u_venta`, `equivalente`, `conversion`, `precio_compra_u`, `precio_venta_u`, `id_producto`) VALUES
+(2, '2026-03-23', '2026-03-28', 10.00, 'Caja', 'Kilogramo', 0, 0, 100.00, 0, 5),
+(3, '1997-03-21', '1997-03-26', 10.00, 'Caja', 'Kilogramo', 15, 150, 360.00, 0, 5);
+
+--
+-- Disparadores `entrada`
+--
+DELIMITER $$
+CREATE TRIGGER `actualiza_f2` BEFORE UPDATE ON `entrada` FOR EACH ROW BEGIN
+
+DECLARE acumulado INT;
+DECLARE cantidad_dia INT;
+  
+SELECT existencia.e_total INTO cantidad_dia FROM existencia WHERE date(existencia.fecha) = old.fecha AND existencia.id_producto = old.id_producto;
+
+if old.conversion > new.conversion then
+set acumulado = cantidad_dia + (old.conversion - new.conversion); 
+else SET acumulado = cantidad_dia - (new.conversion - old.conversion);END IF;
+
+UPDATE existencia SET e_total = acumulado WHERE date(existencia.fecha) = old.fecha AND existencia.id_producto = old.id_producto;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `caducidad` BEFORE UPDATE ON `entrada` FOR EACH ROW BEGIN
+DECLARE fecha_c date;
+
+if old.fecha != new.fecha then
+set fecha_c=ADDDATE(new.fecha,5);
+end if;
+set new.fecha_cad= fecha_c;
+
+if old.cantidad != new.cantidad OR old.equivalente != new.equivalente then
+    set new.conversion = new.cantidad * new.equivalente;
+  end if;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `calculos_automaticos` BEFORE INSERT ON `entrada` FOR EACH ROW BEGIN
+DECLARE fecha_c date;
+set fecha_c= ADDDATE(new.fecha,5);
+set new.fecha_cad=fecha_c;
+set new.conversion=new.cantidad*new.equivalente;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `resta_existencias` AFTER DELETE ON `entrada` FOR EACH ROW BEGIN
+DECLARE acumulado int;
+DECLARE cantidad_dia int;
+
+SELECT existencia.e_total INTO cantidad_dia FROM existencia WHERE date(existencia.fecha)=old.fecha AND existencia.id_producto=old.id_producto;
+
+set acumulado=cantidad_dia-old.conversion;
+
+UPDATE existencia set e_total = acumulado WHERE date(existencia.fecha)= old.fecha AND existencia.id_producto=old.id_producto;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -98,10 +159,17 @@ INSERT INTO `entrada` (`id`, `fecha`, `fecha_cad`, `cantidad`, `u_compra`, `u_ve
 
 CREATE TABLE `estatus` (
   `id` int(11) NOT NULL,
-  `estado` enum('Pedido realizado','Pedido confirmado','Pedido en tránsito','Pedido entregado','Pedido a crédito','Pedido pagado','Pedido cancelado') NOT NULL,
+  `estado` enum('pedido_realizado','pedido_confirmado','pedido_en_transito','pedido_entregado','pedido_a_credito','pedido_pagado','pedido_cancelado','pedido_pendiente') NOT NULL DEFAULT 'pedido_pendiente',
   `fecha` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `id_pedido` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `estatus`
+--
+
+INSERT INTO `estatus` (`id`, `estado`, `fecha`, `id_pedido`) VALUES
+(1, 'pedido_en_transito', '2026-03-03 06:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -113,10 +181,18 @@ CREATE TABLE `existencia` (
   `id` int(11) NOT NULL,
   `e_total` int(11) NOT NULL DEFAULT 0,
   `e_bloqueado` int(11) NOT NULL DEFAULT 0,
-  `e_venta` int(11) NOT NULL DEFAULT 0,
+  `e_venta` int(11) DEFAULT 0,
   `fecha` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `id_producto` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `existencia`
+--
+
+INSERT INTO `existencia` (`id`, `e_total`, `e_bloqueado`, `e_venta`, `fecha`, `id_producto`) VALUES
+(1, 100, 10, 80, '2026-03-20 06:00:00', 5),
+(2, 123, 43, 180, '2026-03-31 03:06:38', 7);
 
 -- --------------------------------------------------------
 
@@ -145,6 +221,13 @@ CREATE TABLE `pedido` (
   `id_repartidor` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `pedido`
+--
+
+INSERT INTO `pedido` (`id`, `fecha`, `id_cliente`, `id_repartidor`) VALUES
+(1, '2026-03-03', 8, 2);
+
 -- --------------------------------------------------------
 
 --
@@ -154,20 +237,24 @@ CREATE TABLE `pedido` (
 CREATE TABLE `producto` (
   `id` int(11) NOT NULL,
   `nombre` varchar(200) NOT NULL,
-  `descripcion` varchar(300) DEFAULT NULL
+  `descripcion` varchar(300) DEFAULT NULL,
+  `img` text NOT NULL,
+  `categoria` enum('frutas','verduras','yerbas','') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `producto`
 --
 
-INSERT INTO `producto` (`id`, `nombre`, `descripcion`) VALUES
-(5, 'tomate saladet', 'rojo'),
-(6, 'Plátano Macho', 'rojo'),
-(7, 'Brocoli', 'verde'),
-(8, 'Chayotte', 'Verde'),
-(9, 'Zanahoria', 'Naranja'),
-(10, 'pera', 'verde');
+INSERT INTO `producto` (`id`, `nombre`, `descripcion`, `img`, `categoria`) VALUES
+(5, 'tomate saladet', 'rojo', '', ''),
+(6, 'Plátano Macho', 'rojo', '', ''),
+(7, 'Brocoli', 'verde', '', ''),
+(8, 'Chayotte', 'Verde', '1774622103_bd08327a00b3e9d04723.jpg', 'verduras'),
+(9, 'Zanahoria', 'Naranja', '', ''),
+(10, 'pera', 'verde', '', ''),
+(11, 'Guisantes', 'Verde', '', 'frutas'),
+(12, 'elote', 'amarillo', '1774621516_a947228d4ed4fa0fdca3.jpg', 'frutas');
 
 -- --------------------------------------------------------
 
@@ -177,13 +264,32 @@ INSERT INTO `producto` (`id`, `nombre`, `descripcion`) VALUES
 
 CREATE TABLE `producto_pedido` (
   `id` int(11) NOT NULL,
-  `cantidad` decimal(10,2) NOT NULL,
+  `cant` decimal(10,2) NOT NULL,
   `precio_venta` decimal(10,2) NOT NULL,
   `unidad_venta` enum('Kilogramo','Domo','Ramos','Caja') NOT NULL,
-  `total` decimal(10,2) NOT NULL,
+  `total` decimal(10,2) DEFAULT NULL,
   `id_pedido` int(11) NOT NULL,
   `id_producto` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `producto_pedido`
+--
+
+INSERT INTO `producto_pedido` (`id`, `cant`, `precio_venta`, `unidad_venta`, `total`, `id_pedido`, `id_producto`) VALUES
+(1, 100.00, 30.00, 'Kilogramo', 250.00, 1, 5);
+
+--
+-- Disparadores `producto_pedido`
+--
+DELIMITER $$
+CREATE TRIGGER `calcula_total` BEFORE INSERT ON `producto_pedido` FOR EACH ROW BEGIN
+DECLARE total_var decimal;
+SET total_var=cantidad*precio_venta;
+SET new.total=total_var;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -301,43 +407,43 @@ ALTER TABLE `direccion`
 -- AUTO_INCREMENT de la tabla `entrada`
 --
 ALTER TABLE `entrada`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `estatus`
 --
 ALTER TABLE `estatus`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `existencia`
 --
 ALTER TABLE `existencia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `merma`
 --
 ALTER TABLE `merma`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `pedido`
 --
 ALTER TABLE `pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `producto_pedido`
 --
 ALTER TABLE `producto_pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `repartidor`
