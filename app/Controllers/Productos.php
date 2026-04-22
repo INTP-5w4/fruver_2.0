@@ -3,6 +3,11 @@
 namespace App\Controllers;
 
 use App\Models\Modelo_producto;
+use App\Models\Modelo_entrada;
+use App\Models\Modelo_pedido;
+use App\Models\Modelo_repartidor;
+use App\Models\Modelo_cliente;
+
 
 class Productos extends BaseController
 {
@@ -18,20 +23,20 @@ public function main_page(){
         LIMIT 5
     ")->getResultArray();
 
-    $m_cliente = new \App\Models\Modelo_cliente();
+    $m_cliente = new Modelo_cliente();
     $m_producto = new Modelo_producto();
-    $m_repartidor = new \App\Models\Modelo_repartidor();
-    $m_pedido = new \App\Models\Modelo_pedido();
-    $m_entrada = new \App\Models\Modelo_entrada();
-
-return view('main_page3', [
+    $m_repartidor = new Modelo_repartidor();
+    $m_pedido = new Modelo_pedido();
+    $m_entrada = new Modelo_entrada();
+    $datos2=[
     'productosLowStock' => $productos,
     'clientes' => $m_cliente->findAll(),
-    'productos' => $m_producto->findAll(),
+    'frutas' => $m_producto->findAll(),
     'repartidores' => $m_repartidor->findAll(),
     'pedidos' => $m_pedido->findAll(),
     'entradas' => $m_entrada->findAll(),
-]);
+];
+return view('main_page',$datos2 );
 }
 
 public function crea_producto(){

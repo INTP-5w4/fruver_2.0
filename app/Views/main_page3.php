@@ -192,6 +192,14 @@
         class="action-btn" style="border:none; cursor:pointer;">+ Entrada</button>
                         <button onclick="document.getElementById('modalPedido').style.display='block'"
         class="action-btn" style="border:none; cursor:pointer;">+ Pedido</button>
+                        <button onclick="document.getElementById('modalMerma').style.display='block'"
+        class="action-btn" style="border:none; cursor:pointer;">+ Merma</button>
+                        <button onclick="document.getElementById('modalPpedido').style.display='block'"
+        class="action-btn" style="border:none; cursor:pointer;">+ Carrito</button>
+                        <button onclick="document.getElementById('modalEstatus').style.display='block'"
+        class="action-btn" style="border:none; cursor:pointer;">+ Estatus</button>
+                        <button onclick="document.getElementById('modalExistencias').style.display='block'"
+        class="action-btn" style="border:none; cursor:pointer;">+ Existencias</button>
                     </div>
                 </div>
 
@@ -299,7 +307,7 @@
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
 
             <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom" >
 
             <label><b>Cantidad</b></label>
             <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
@@ -324,7 +332,7 @@
 
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($productos as $p): ?>
+                <?php foreach ($frutas as $p): ?>
                     <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>

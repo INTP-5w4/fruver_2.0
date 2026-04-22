@@ -46,7 +46,7 @@
         
         <label>ID del producto</label><br>
         <select name="id_producto" id="">
-            <?php foreach ($productos as $p): ?>
+            <?php foreach ($frutas as $p): ?>
             <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
             <?php endforeach; ?>
         </select><br>

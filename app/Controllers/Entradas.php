@@ -8,7 +8,7 @@ use CodeIgniter\Controller;
 class Entradas extends Controller{
 public function crea_entrada(){
     $m_producto = new Modelo_producto();
-    $datos['productos']= $m_producto->findAll();
+    $datos['frutas']= $m_producto->findAll();
     return view('crea_entrada',$datos);
 }
 public function guarda_entrada(){
