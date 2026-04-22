@@ -299,7 +299,7 @@
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
 
             <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
 
             <label><b>Cantidad</b></label>
             <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>

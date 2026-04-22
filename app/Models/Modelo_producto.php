@@ -33,4 +33,15 @@ class Modelo_producto extends Model{
         $builder->orderBy($orden,$dir);
         return $this;
     }
+    public function productosLowStock(int $limit = 5): array
+{
+    return $this->db->table('producto p')
+        ->select('p.nombre, SUM(e.cantidad) AS total')
+        ->join('entrada e', 'e.id_producto = p.id', 'left')
+        ->groupBy('p.id, p.nombre')
+        ->orderBy('total', 'ASC')
+        ->limit($limit)
+        ->get()
+        ->getResultArray();
+}
 }
