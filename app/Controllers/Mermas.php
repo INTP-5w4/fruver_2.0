@@ -3,17 +3,21 @@ namespace App\Controllers;
 
 use App\Models\Modelo_entrada;
 use App\Models\Modelo_merma;
+use App\Models\Modelo_producto;
 use CodeIgniter\Controller;
 
 class Mermas extends Controller{
 
-public function crea_merma(){
+public function crea_merma()
+{
     $m_entrada = new Modelo_entrada();
-    $date=date('Y-m-d');
-    $datos=[
-        'entradas'=> $m_entrada->findAll(),
-        'date' => $date
+    $date = date('Y-m-d');
+
+    $datos = [
+        'entradas' => $m_entrada->getEntradasConProducto(),
+        'date'     => $date,
     ];
+
     return view('crea_merma', $datos);
 }
 

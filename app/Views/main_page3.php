@@ -299,7 +299,8 @@
             </form>
         </div>
     </div>
-    
+    <label for=""></label>
+
     <div id="modalEntrada" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
@@ -333,7 +334,7 @@
 
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($frutas as $p): ?>
+                <?php foreach ($productos as $p): ?>
                     <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
@@ -399,7 +400,7 @@
 
             <label><b>Categoría</b></label>
             <select name="cat" class="w3-select w3-border w3-margin-bottom" required>
-                <option value="frutas">Frutas</option>
+                <option value="productos">productos</option>
                 <option value="verduras">Verdura</option>
                 <option value="yerbas">Yerba</option>
             </select>
