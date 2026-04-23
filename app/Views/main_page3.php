@@ -109,30 +109,49 @@
                 </div>
             </section>
 
-            <!-- CHARTS ROW -->
             <section class="charts-row">
-                <!-- Bar Chart -->
-                <div class="chart-card chart-card--wide">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Pedidos por mes</h2>
-                        <span class="chart-badge">Últimos 6 meses</span>
-                    </div>
-                    <div class="chart-area">
-                        <canvas id="pedidosChart"></canvas>
-                    </div>
-                </div>
 
-                <!-- Line Chart -->
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Entradas por mes</h2>
-                        <span class="chart-badge">Últimos 6 meses</span>
-                    </div>
-                    <div class="chart-area">
-                        <canvas id="entradasChart"></canvas>
-                    </div>
-                </div>
-            </section>
+    <div class="chart-card chart-card--wide">
+        <div class="chart-header">
+            <h2 class="chart-title">Pedidos por mes</h2>
+            <span class="chart-badge">Últimos 6 meses</span>
+        </div>
+        <div class="chart-area">
+            <canvas id="pedidosChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h2 class="chart-title">Total en ventas</h2>
+            <span class="chart-badge">Últimos 6 meses</span>
+        </div>
+        <div class="chart-area">
+            <canvas id="ventasChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card chart-card--wide">
+        <div class="chart-header">
+            <h2 class="chart-title">Top 5 productos más vendidos</h2>
+            <span class="chart-badge">Histórico</span>
+        </div>
+        <div class="chart-area">
+            <canvas id="topProductosChart"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-header">
+            <h2 class="chart-title">Pérdidas por merma</h2>
+            <span class="chart-badge">Últimos 6 meses</span>
+        </div>
+        <div class="chart-area">
+            <canvas id="mermaChart"></canvas>
+        </div>
+    </div>
+
+</section>
 
             <!-- BOTTOM ROW: Low stock table + quick actions -->
             <section class="bottom-row">
@@ -452,6 +471,14 @@
         </form>
     </div>
 </div>
+<script id="chart-data" type="application/json">
+<?= json_encode([
+    'pedidosPorMes' => $pedidosPorMes,
+    'ventasPorMes'  => $ventasPorMes,
+    'topProductos'  => $topProductos,
+    'perdidasMerma' => $perdidasMerma,
+]) ?>
+</script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="<?= base_url('js/dashboard.js') ?>"></script>
     <script>
