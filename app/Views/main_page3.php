@@ -394,6 +394,6 @@
             if (el && event.target === el) el.style.display = 'none';
         });
     };
-    </script>.
+    </script>
 </body>
 </html>
