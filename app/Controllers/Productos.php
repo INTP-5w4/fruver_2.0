@@ -11,21 +11,29 @@ use App\Models\Modelo_cliente;
 
 class Productos extends BaseController
 {
-public function main_page(){
-     $m_producto    = new Modelo_producto();
-    $m_cliente     = new Modelo_cliente();
-    $m_repartidor  = new Modelo_repartidor();
-    $m_pedido      = new Modelo_pedido();
-    $m_entrada     = new Modelo_entrada();
-
-    return view('main_page3', [
+public function main_page()
+{
+    $m_producto   = new Modelo_producto();
+    $m_cliente    = new Modelo_cliente();
+    $m_repartidor = new Modelo_repartidor();
+    $m_pedido     = new Modelo_pedido();
+    $m_entrada    = new Modelo_entrada();
+    $m_merma      = new \App\Models\Modelo_merma();
+    $datos = [
         'productosLowStock' => $m_producto->productosLowStock(),
         'productos'         => $m_producto->findAll(),
         'clientes'          => $m_cliente->findAll(),
         'repartidores'      => $m_repartidor->findAll(),
         'pedidos'           => $m_pedido->findAll(),
         'entradas'          => $m_entrada->findAll(),
-    ]);
+
+        // Datos para gráficos
+        'pedidosPorMes'     => $m_pedido->pedidosPorMes(),
+        'ventasPorMes'      => $m_pedido->totalVentasPorMes(),
+        'topProductos'      => $m_producto->topProductos(),
+        'perdidasMerma'     => $m_merma->perdidasPorMes(),
+    ];
+    return view('main_page3', $datos);
 }
 
 public function crea_producto(){

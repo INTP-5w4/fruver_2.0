@@ -1,107 +1,96 @@
-// ============================================
-//  FRUVER — dashboard.js
-//  Gráficas con Chart.js (datos de ejemplo)
-//  Reemplaza los arrays de `data` con valores
-//  reales traídos desde PHP/CI4.
-// ============================================
+document.addEventListener('DOMContentLoaded', function () {
 
-const meses = ['Oct', 'Nov', 'Dic', 'Ene', 'Feb', 'Mar'];
+    const raw   = JSON.parse(document.getElementById('chart-data').textContent);
+    const green = '#4caf50';
+    const teal  = '#26a69a';
+    const red   = '#ef5350';
+    const amber = '#ffa726';
 
-// ---- Colores reutilizables ----
-const GREEN_DARK  = '#094e00';
-const GREEN_MID   = '#1a7a0a';
-const GREEN_LIGHT = 'rgba(214, 240, 200, 0.5)';
-const TEAL        = '#0d7a6b';
-const TEAL_LIGHT  = 'rgba(194, 237, 231, 0.5)';
+    // ── Helpers ──────────────────────────────────────────
+    function labels(arr, key) { return arr.map(r => r[key]); }
+    function values(arr, key) { return arr.map(r => parseFloat(r[key]) || 0); }
 
-// ============================================
-// 1. Gráfica de barras — Pedidos por mes
-// ============================================
-const pedidosCtx = document.getElementById('pedidosChart');
-if (pedidosCtx) {
-    new Chart(pedidosCtx, {
+    // ── 1. Pedidos por mes (barras) ───────────────────────
+    new Chart(document.getElementById('pedidosChart'), {
         type: 'bar',
         data: {
-            labels: meses,
+            labels: labels(raw.pedidosPorMes, 'mes'),
             datasets: [{
                 label: 'Pedidos',
-                // TODO: reemplaza con datos reales desde PHP
-                data: [18, 24, 31, 20, 27, 35],
-                backgroundColor: GREEN_MID,
+                data: values(raw.pedidosPorMes, 'total'),
+                backgroundColor: green,
                 borderRadius: 6,
-                borderSkipped: false,
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.parsed.y} pedidos`
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#eef2e8' },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                }
-            }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
         }
     });
-}
 
-// ============================================
-// 2. Gráfica de línea — Entradas por mes
-// ============================================
-const entradasCtx = document.getElementById('entradasChart');
-if (entradasCtx) {
-    new Chart(entradasCtx, {
+    // ── 2. Total en ventas por mes (línea) ────────────────
+    new Chart(document.getElementById('ventasChart'), {
         type: 'line',
         data: {
-            labels: meses,
+            labels: labels(raw.ventasPorMes, 'mes'),
             datasets: [{
-                label: 'Entradas',
-                // TODO: reemplaza con datos reales desde PHP
-                data: [12, 19, 14, 22, 18, 25],
-                borderColor: TEAL,
-                backgroundColor: TEAL_LIGHT,
-                tension: 0.4,
+                label: 'Ventas ($)',
+                // Línea del gráfico de ventas
+                data: values(raw.ventasPorMes, 'ventas'),
+                borderColor: teal,
+                backgroundColor: teal + '22',
                 fill: true,
-                pointBackgroundColor: TEAL,
+                tension: 0.4,
                 pointRadius: 4,
-                pointHoverRadius: 6,
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.parsed.y} entradas`
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#eef2e8' },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                }
-            }
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
         }
     });
-}
+
+    // ── 3. Top productos más vendidos (barras horizontales) 
+    new Chart(document.getElementById('topProductosChart'), {
+        type: 'bar',
+        data: {
+            labels: labels(raw.topProductos, 'nombre'),
+            datasets: [{
+                label: 'Unidades vendidas',
+                data: values(raw.topProductos, 'total_vendido'),
+                backgroundColor: amber,
+                borderRadius: 6,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true } }
+        }
+    });
+
+    // ── 4. Pérdidas por merma por mes (línea roja) ────────
+    new Chart(document.getElementById('mermaChart'), {
+        type: 'line',
+        data: {
+            labels: labels(raw.perdidasMerma, 'mes'),
+            datasets: [{
+                label: 'Pérdida estimada ($)',
+                data: values(raw.perdidasMerma, 'perdida'),
+                borderColor: red,
+                backgroundColor: red + '22',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+});
