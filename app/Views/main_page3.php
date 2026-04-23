@@ -301,6 +301,13 @@
             <label><b>Fecha de caducidad</b></label>
             <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom" required>
 
+            <label><b>Producto</b></label>
+            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
+                <?php foreach ($productos as $p): ?>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
+                <?php endforeach; ?>
+            </select>
+
             <label><b>Cantidad</b></label>
             <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
 
@@ -319,15 +326,13 @@
                 <option value="Caja">Caja</option>
             </select>
 
+            <label for=""><b>Equivalente</b></label>
+            <input type="number" name="equi" class="w3-input w3-border w3-margin-bottom" >
+
             <label><b>Precio de compra</b></label>
             <input type="number" name="p_compra" class="w3-input w3-border w3-margin-bottom" required>
 
-            <label><b>Producto</b></label>
-            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($productos as $p): ?>
-                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
+
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>

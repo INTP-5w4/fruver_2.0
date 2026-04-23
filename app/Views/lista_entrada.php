@@ -39,6 +39,7 @@
                 <td><?= $e['fecha_cad'] ?></td>
                 <td><?= $e['cantidad'] ?></td>
                 <td><?= $e['u_compra'] ?></td>
+                <td><?= $e['equivalente'] ?></td>
                 <td><?= $e['u_venta'] ?></td>
                 <td><?= $e['precio_compra'] ?></td>
                 <td>
@@ -90,6 +91,13 @@
                 <label><b>Fecha de caducidad</b></label>
                 <input type="date" name="f_cad" class="modal-input" required>
 
+                <label><b>Producto</b></label>
+                <select name="id_producto" class="modal-input" required>
+                    <?php foreach ($productos as $p): ?>
+                        <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+
                 <label><b>Cantidad</b></label>
                 <input type="number" name="cant" class="modal-input" required>
 
@@ -101,6 +109,10 @@
                     <option value="Tonelada">Tonelada</option>
                 </select>
 
+                <label><b>Equivalente</b></label>
+                <input type="number" name="equiv" class="modal-input" required>
+
+
                 <label><b>Unidad de venta</b></label>
                 <select name="u_ven" class="modal-input" required>
                     <option value="Kilogramo">Kilogramo</option>
@@ -110,13 +122,6 @@
 
                 <label><b>Precio de compra</b></label>
                 <input type="number" name="p_compra" class="modal-input" required>
-
-                <label><b>Producto</b></label>
-                <select name="id_producto" class="modal-input" required>
-                    <?php foreach ($productos as $p): ?>
-                        <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
-                    <?php endforeach; ?>
-                </select>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
@@ -159,6 +164,7 @@
                     <option value="Bulto">Bulto</option>
                     <option value="Tonelada">Tonelada</option>
                 </select>
+
 
                 <label><b>Unidad de venta</b></label>
                 <select name="u_ven" id="edit_u_ven" class="modal-input" required>
