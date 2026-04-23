@@ -47,7 +47,7 @@ class Modelo_producto extends Model{
 public function topProductos()
 {
     return $this->db->table('producto_pedido pp')
-        ->select('p.nombre, SUM(pp.cant) AS total_vendido')
+        ->select('p.nombre, SUM(pp.total) AS total_vendido')
         ->join('producto p', 'p.id = pp.id_producto')
         ->groupBy('pp.id_producto')
         ->orderBy('total_vendido', 'DESC')
