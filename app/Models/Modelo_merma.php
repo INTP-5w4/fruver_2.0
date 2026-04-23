@@ -12,12 +12,15 @@ class Modelo_merma extends Model{
 
 public function perdidasPorMes()
 {
-    return $this->db->table('merma m')
-        ->select("DATE_FORMAT(m.fecha, '%Y-%m') AS mes, SUM(m.cantidad * e.precio_compra_u) AS perdida")
-        ->join('entrada e', 'e.id = m.id_entrada')
-        ->where('m.fecha >=', date('Y-m-d', strtotime('-6 months')))
-        ->groupBy('mes')
-        ->orderBy('mes', 'ASC')
-        ->get()->getResultArray();
+    return $this->db->query("
+        SELECT DATE_FORMAT(m.fecha, '%Y-%m') AS mes, 
+               SUM(m.cantidad * e.precio_compra_u) AS perdida
+        FROM merma m
+        JOIN entrada e ON e.id = m.id_entrada
+        WHERE m.fecha >= ?
+        GROUP BY mes
+        ORDER BY mes ASC
+    ", [date('Y-m-d', strtotime('-6 months'))])
+    ->getResultArray();
 }
 }
