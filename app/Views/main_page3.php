@@ -264,42 +264,53 @@
         </div>
     </div>
 
-    <div id="modalEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
-        <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
-            <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
-                <label><b>Fecha de entrada</b></label>
-                <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
-                <label><b>Fecha de caducidad</b></label>
-                <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
-                <label><b>Cantidad</b></label>
-                <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
-                <label><b>Unidad de compra</b></label>
-                <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
-                    <option value="Caja">Caja</option>
-                    <option value="Arpilla">Arpilla</option>
-                    <option value="Bulto">Bulto</option>
-                    <option value="Tonelada">Tonelada</option>
-                </select>
-                <label><b>Unidad de venta</b></label>
-                <select name="u_ven" class="w3-select w3-border w3-margin-bottom" required>
-                    <option value="Kilogramo">Kilogramo</option>
-                    <option value="Litro">Litro</option>
-                    <option value="Caja">Caja</option>
-                </select>
-                <label><b>Precio de compra</b></label>
-                <input type="number" name="p_compra" class="w3-input w3-border w3-margin-bottom" required>
-                <label><b>Producto</b></label>
-                <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                    <?php foreach ($productos as $p): ?>
-                        <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                    <button type="button" onclick="document.getElementById('modalEntrada').style.display='none'" class="w3-button w3-white">Cancelar</button>
-                </footer>
-            </form>
-        </div>
+            <label><b>Fecha de entrada</b></label>
+            <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
+
+            <label><b>Fecha de caducidad</b></label>
+            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
+
+            <label><b>Producto</b></label>
+            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
+                <?php foreach ($productos as $p): ?>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <label><b>Cantidad</b></label>
+            <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+
+            <label><b>Unidad de compra</b></label>
+            <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
+                <option value="Caja">Caja</option>
+                <option value="Arpilla">Arpilla</option>
+                <option value="Bulto">Bulto</option>
+                <option value="Tonelada">Tonelada</option>
+            </select>
+
+            <label><b>Unidad de venta</b></label>
+            <select name="u_ven" class="w3-select w3-border w3-margin-bottom" required>
+                <option value="Kilogramo">Kilogramo</option>
+                <option value="Litro">Litro</option>
+                <option value="Caja">Caja</option>
+            </select>
+
+            <label for=""><b>Equivalente</b></label>
+            <input type="number" name="equi" class="w3-input w3-border w3-margin-bottom" >
+
+            <label><b>Precio de compra</b></label>
+            <input type="number" name="p_compra" class="w3-input w3-border w3-margin-bottom" required>
+
+
+
+            <footer class="w3-container w3-green w3-padding">
+                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="button"
+                        onclick="document.getElementById('modalEntrada').style.display='none'"
+                        class="w3-button w3-white">Cancelar</button>
+            </footer>
+
+        </form>
     </div>
 
     <div id="modalPedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
