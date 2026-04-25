@@ -160,7 +160,7 @@
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
 
             <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
 
             <label><b>Cantidad</b></label>
             <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
@@ -171,6 +171,7 @@
                 <option value="Arpilla">Arpilla</option>
                 <option value="Bulto">Bulto</option>
                 <option value="Tonelada">Tonelada</option>
+                <option value="Mazo">Mazo</option>
             </select>
 
             <label><b>Unidad de venta</b></label>
@@ -185,7 +186,7 @@
 
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($productos as $p): ?>
+                <?php foreach ($frutas as $p): ?>
                     <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
@@ -253,7 +254,7 @@
             <select name="cat" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="frutas">Frutas</option>
                 <option value="verduras">Verdura</option>
-                <option value="yerbas">Yerba</option>
+                <option value="hierbas">Hierba</option>
             </select>
 
             <label><b>Imagen</b></label>
@@ -363,7 +364,7 @@
 
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($productos as $p): ?>
+                <?php foreach ($frutas as $p): ?>
                     <option value="<?= $p['id'] ?>"><?= esc($p['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
@@ -431,6 +432,8 @@
                 <option value="Domo">Domo</option>
                 <option value="Ramos">Ramo</option>
                 <option value="Caja">Caja</option>
+                <option value="Ramo">Hierba</option>
+
             </select>
 
             <label><b>Total</b></label>
@@ -446,7 +449,7 @@
 
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($productos as $pr): ?>
+                <?php foreach ($frutas as $pr): ?>
                     <option value="<?= $pr['id'] ?>"><?= esc($pr['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
