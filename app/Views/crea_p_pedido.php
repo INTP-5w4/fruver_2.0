@@ -6,7 +6,7 @@
     <title>Crea p_pedido</title>
 </head>
 <body>
-    <form action="<?php echo base_url('guarda_p_pedido'); ?>" method="post">
+    <form action="<?=base_url('guarda_p_pedido') ?>" method="post">
     <label for="cantidad">Cantidad:</label><br>
     <input type="number" id="cantidad" name="cant" required><br>
 
@@ -22,7 +22,7 @@
     </select><br>
 
     <label for="tot">Total:</label><br>
-    <input type="number" id="tot" name="tot" step="0.01" required><br>
+    <input type="number" id="tot" name="tot" step="0.01"><br>
 
     <label for="id_pedido">ID Pedido:</label><br>
     <select name="id_pedido" id="">
@@ -39,5 +39,6 @@
     </select><br>
     <input type="submit" value="Enviar">
     </form>
+    
 </body>
 </html>

@@ -3,7 +3,7 @@ namespace App\Controllers;
 
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_producto;
-use App\Models\Modelo_productopedido;
+use App\Models\Modelo_productopedidos;
 use CodeIgniter\Controller;
 
 class P_pedidos extends Controller{
@@ -17,20 +17,20 @@ public function crea_p_pedido(){
     return view('crea_p_pedido', $datos);
 }
 public function guarda_p_pedido(){
-    $m_p_pedido = new Modelo_productopedido();
+    $m_p_pedido = new Modelo_productopedidos();
     $datos = [
-        'cantidad' => $this->request->getPost('cant'),
+        'cant' => $this->request->getPost('cant'),
         'precio_venta' => $this->request->getPost('p_venta'),
         'unidad_venta' => $this->request->getPost('u_venta'),
         'total' => $this->request->getPost('tot'),
         'id_pedido' => $this->request->getPost('id_pedido'),
         'id_producto' => $this->request->getPost('id_producto')
     ];
+
     if (
-        empty($datos['cantidad']) || 
+        empty($datos['cant']) || 
         empty($datos['precio_venta']) ||
         empty($datos['unidad_venta']) ||
-        empty($datos['total']) ||
         empty($datos['id_pedido']) ||
         empty($datos['id_producto'])
     ){
@@ -42,7 +42,7 @@ public function guarda_p_pedido(){
 }
 
 public function lista_p_pedido(){
-    $m_p_pedido = new Modelo_productopedido();
+    $m_p_pedido = new Modelo_productopedidos();
     $m_producto = new Modelo_producto();
     $m_pedido   = new Modelo_pedido();      
 
@@ -54,7 +54,7 @@ public function lista_p_pedido(){
     return view('lista_p_pedido', $datos);
 }
 public function recupera($id=null){
-    $m_p_pedido = new Modelo_productopedido();
+    $m_p_pedido = new Modelo_productopedidos();
     $m_pedido = new Modelo_pedido();
     $m_producto = new Modelo_producto();
     $datos = [
@@ -66,14 +66,14 @@ public function recupera($id=null){
 }
 
 public function eliminar_datos($id=null){
-    $m_p_pedido = new Modelo_productopedido();
+    $m_p_pedido = new Modelo_productopedidos();
     $m_p_pedido->delete($id);
     return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro eliminado');
 }
 public function modifica(){
-    $m_p_pedido = new Modelo_productopedido();
+    $m_p_pedido = new Modelo_productopedidos();
     $datos = [
-        'cantidad' => $this->request->getPost('cant'),
+        'cant' => $this->request->getPost('cant'),
         'precio_venta' => $this->request->getPost('p_venta'),
         'unidad_venta' => $this->request->getPost('u_venta'),
         'total' => $this->request->getPost('tot'),
@@ -82,10 +82,9 @@ public function modifica(){
     ];
     $id = $this->request->getPost('id');
     if (
-        empty($datos['cantidad']) || 
+        empty($datos['cant']) || 
         empty($datos['precio_venta']) ||
         empty($datos['unidad_venta']) ||
-        empty($datos['total']) ||
         empty($datos['id_pedido']) ||
         empty($datos['id_producto'])
     ){

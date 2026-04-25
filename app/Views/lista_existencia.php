@@ -28,7 +28,7 @@
                     <td><?= $e['e_bloqueado'] ?></td>
                     <td><?= $e['e_venta'] ?></td>
                     <td><?= $e['fecha'] ?></td>
-                    <td><?= $productos[$e['id_producto1']]['nombre'] ?></td>
+                    <td><?= $productos[$e['id_producto']]['nombre'] ?></td>
                     <td>
                         <button onclick="abrirModal(
                                     '<?= $e['id'] ?>',
@@ -36,7 +36,7 @@
                                     '<?= $e['e_bloqueado'] ?>',
                                     '<?= $e['e_venta'] ?>',
                                     '<?= $e['fecha'] ?>',
-                                    '<?= $e['id_producto1'] ?>'
+                                    '<?= $e['id_producto'] ?>'
                                 )"
                                 style="border:none; cursor:pointer; background:none;">
                             <i class="fa-solid fa-pen-to-square"></i>

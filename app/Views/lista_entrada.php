@@ -54,7 +54,7 @@
                                 '<?= $e['cantidad'] ?>',
                                 '<?= $e['u_compra'] ?>',
                                 '<?= $e['u_venta'] ?>',
-                                '<?= $e['precio_compra'] ?>',
+                                '<?= $e['precio_compra_u'] ?>',
                                 '<?= $e['id_producto'] ?>'
                             )"
                             class="btn-icono">

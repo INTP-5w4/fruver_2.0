@@ -31,6 +31,9 @@
             <option value="Kilogramo">Kilogramo</option>
             <option value="Litro">Litro</option>
             <option value="Caja">Caja</option>
+            <option value="Domo">Domo</option>
+            <option value="Pieza">Pieza</option>
+            <option value="Ramo">Ramo</option>
         </select><br>
         <label for="equivalente">Equivalente</label><br>
         <input type="number" name="equi" id="equivalente"><br>
@@ -43,7 +46,7 @@
         
         <label>ID del producto</label><br>
         <select name="id_producto" id="">
-            <?php foreach ($productos as $p): ?>
+            <?php foreach ($frutas as $p): ?>
             <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
             <?php endforeach; ?>
         </select><br>
