@@ -74,12 +74,14 @@
                           class="w3-input w3-border w3-margin-bottom"></textarea>
 
                 <label><b>Entrada</b></label>
-                <select name="id_entrada" id="edit_id_entrada"
-                        class="w3-select w3-border w3-margin-bottom" required>
-                    <?php foreach ($entradas as $e): ?>
-                        <option value="<?= $e['id'] ?>"><?= $e['id'] ?></option>
-                    <?php endforeach; ?>
-                </select>
+               <select name="id_entrada" id="edit_id_entrada"
+        class="w3-select w3-border w3-margin-bottom" required>
+    <?php foreach ($entradas as $e): ?>
+        <option value="<?= $e['id'] ?>">
+            #<?= $e['id'] ?> — <?= esc($e['nombre_producto']) ?> (<?= $e['fecha'] ?>)
+        </option>
+    <?php endforeach; ?>
+</select>
 
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>

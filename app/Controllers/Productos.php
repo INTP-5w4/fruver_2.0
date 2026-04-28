@@ -25,7 +25,7 @@ public function main_page()
         'clientes'          => $m_cliente->findAll(),
         'repartidores'      => $m_repartidor->findAll(),
         'pedidos'           => $m_pedido->findAll(),
-        'entradas'          => $m_entrada->findAll(),
+        'entradas' => $m_entrada->getEntradasConProducto(),
 
         // Datos para gráficos
         'pedidosPorMes'     => $m_pedido->pedidosPorMes(),
@@ -55,7 +55,7 @@ public function guarda_producto(){
         if(!$this->validate($reglas_validacion)){
             return redirect()->back()->with('errors',$this->validator->getErrors());
         }
-        $nombre_img=$file->getRandomName();;
+        $nombre_img=$file->getRandomName();
         $file->move(ROOTPATH.'public/uploads',$nombre_img);
     }
     $datos=[
@@ -71,21 +71,20 @@ public function guarda_producto(){
         empty($datos['img'])
     ){
         return view('crea_producto');
-    }else{
-    $m_producto->insert($datos);
-    return redirect()->to('lista_producto');
     }
-    try {
-    $m_producto->insert($datos);
-    return redirect()->to('lista_producto')->with('mensaje', 'Producto registrado');
 
-} catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
-    $mensaje = $e->getMessage();
-    if (str_contains($mensaje, 'Error:')) {
-        $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+    try {
+        $m_producto->insert($datos);
+        return redirect()->to('lista_producto')->with('mensaje', 'Producto registrado');
+
+    } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+        $mensaje = $e->getMessage();
+        if (str_contains($mensaje, 'Error:')) {
+            $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+        }
+        return redirect()->to('lista_producto')
+            ->with('error', $mensaje);
     }
-    return redirect()->to('crea_producto')->with('error', $mensaje);
-}
 }
 public function lista_producto($dato=null){
     $m_producto = new Modelo_producto();
