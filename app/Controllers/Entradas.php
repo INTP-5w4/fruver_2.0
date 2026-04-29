@@ -78,42 +78,37 @@ public function eliminar_datos($id=null){
     return redirect()->to('/lista_entrada');
 }
 public function modifica_entrada(){
-    $m_entrada    = new Modelo_entrada();
-    $m_existencia = new Modelo_existencia();
+    $m_entrada = new Modelo_entrada();
     $id = $this->request->getPost('id');
 
     $datos = [
-        'fecha'          => $this->request->getPost('f_ent'),
-        'fecha_cad'      => $this->request->getPost('fecha_cad'),
-        'cantidad'       => $this->request->getPost('cant'),
-        'u_compra'       => $this->request->getPost('u_com'),
-        'u_venta'        => $this->request->getPost('u_ven'),
-        'equivalente'    => $this->request->getPost('equi'),
-        'conversion'     => $this->request->getPost('conv'),
-        'precio_compra_u'=> $this->request->getPost('p_compra'),
-        'precio_venta_u' => $this->request->getPost('p_venta'),
-        'id_producto'    => $this->request->getPost('id_producto'),
+        'fecha'           => $this->request->getPost('f_ent'),
+        'fecha_cad'       => $this->request->getPost('fecha_cad'),
+        'cantidad'        => $this->request->getPost('cant'),
+        'u_compra'        => $this->request->getPost('u_com'),
+        'u_venta'         => $this->request->getPost('u_ven'),
+        'equivalente'     => $this->request->getPost('equi'),
+        'conversion'      => $this->request->getPost('conv'),
+        'precio_compra_u' => $this->request->getPost('p_compra'),
+        'precio_venta_u'  => $this->request->getPost('p_venta'),
+        'id_producto'     => $this->request->getPost('id_producto'),
     ];
 
     if (
-        empty($datos['fecha'])         ||
-        empty($datos['cantidad'])      ||
-        empty($datos['u_compra'])      ||
-        empty($datos['u_venta'])       ||
-        empty($datos['equivalente'])   ||
+        empty($datos['fecha'])          ||
+        empty($datos['cantidad'])       ||
+        empty($datos['u_compra'])       ||
+        empty($datos['u_venta'])        ||
+        empty($datos['equivalente'])    ||
         empty($datos['precio_compra_u'])||
         empty($datos['id_producto'])
     ){
-        $m_producto = new Modelo_producto();
-        return view('lista_entrada', [
-            'productos' => $m_producto->findAll(),
-            'entradas'  => $m_entrada->find($id),
-        ]);
+        // ✅ Redirige en lugar de cargar la vista directamente
+        return redirect()->to('lista_entrada')->with('error', 'Por favor, complete todos los campos obligatorios.');
 
     } else {
-        // 1. Actualiza la entrada
         $m_entrada->update($id, $datos);
-        return redirect()->to('lista_entrada');
+        return redirect()->to('lista_entrada')->with('mensaje', 'Entrada actualizada correctamente');
     }
 }
 }
