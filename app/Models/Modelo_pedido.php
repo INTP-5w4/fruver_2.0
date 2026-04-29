@@ -7,7 +7,7 @@ class Modelo_pedido extends Model{
     protected $table      = 'pedido';
     // Uncomment below if you want add primary key
     protected $primaryKey = 'id';
-    protected $allowedFields = ['fecha','id_cliente','id_repartidor'];
+    protected $allowedFields = ['fecha','id_cliente','id_repartidor','id_producto_pedido'];
     public function pedidosPorMes()
 {
     return $this->db->table('pedido')
