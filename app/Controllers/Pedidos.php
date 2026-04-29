@@ -86,10 +86,26 @@ public function recupera($id=null){
     ];
     return view('modifica_pedido',$datos);
 }
-public function eliminar_datos($id=null){
+public function eliminar_datos($id = null)
+{
     $m_pedido = new Modelo_pedido();
-    $m_pedido->delete($id);
-    return redirect()->to('lista_pedido');
+
+    try {
+        $m_pedido->delete($id);
+        return redirect()->to('lista_pedido')
+                         ->with('mensaje', 'Pedido eliminado correctamente.');
+
+    } catch (\Exception $e) {
+        $codigo = $e->getPrevious() ? $e->getPrevious()->getCode() : $e->getCode();
+
+        if ($codigo == 1451) {
+            return redirect()->to('lista_pedido')
+                             ->with('error', 'No se puede eliminar este pedido porque tiene registros relacionados. Elimina primero su estatus o productos asociados.');
+        }
+
+        return redirect()->to('lista_pedido')
+                         ->with('error', 'Error inesperado al eliminar.');
+    }
 }
 
 public function modifica(){

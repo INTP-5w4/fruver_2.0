@@ -32,6 +32,8 @@ public function main_page()
         'ventasPorMes'      => $m_pedido->totalVentasPorMes(),
         'topProductos'      => $m_producto->topProductos(),
         'perdidasMerma'     => $m_merma->perdidasPorMes(),
+
+        'precioSugeridoPorProducto' => $m_entrada->precioMaximoPorProducto(),
     ];
     return view('main_page3', $datos);
 }
