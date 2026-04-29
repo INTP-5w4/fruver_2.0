@@ -1,16 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <title>Lista p_pedido</title>
 </head>
-<body>.
+<body>
+    <?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+<div class="contenedor-boton">
+    <button onclick="document.getElementById('modalCrearPpedido').style.display='block'"
+            class="btn-agregar">
+        + Nuevo Carrito
+    </button>
+</div>
 
     <table>
-        <tr>
+        <thead>
+            <tr>
             <th>ID</th>
             <th>Cantidad</th>
             <th>Precio de venta</th>
@@ -21,6 +39,8 @@
             <th>Editar</th>
             <th>Eliminar</th>
         </tr>
+        </thead>
+        
         <?php foreach($p_pedidos as $pp): ?>
         <tr>
             <td><?= $pp['id'] ?></td>
@@ -46,7 +66,7 @@
             </td>
             <td>
                 <a href="<?= base_url('borra_id_p_pedido/'.$pp['id']) ?>"
-                   onclick="return confirm('¿Estás seguro de que quieres eliminar este registro?')">
+                onclick="return confirm('¿Estás seguro de que quieres eliminar este registro?')">
                     <button style="border:none; cursor:pointer; background:none;">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
@@ -65,11 +85,11 @@
 
                 <label><b>Cantidad</b></label>
                 <input type="number" name="cant" id="edit_cant"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>Precio de venta</b></label>
                 <input type="number" name="p_venta" id="edit_p_venta" step="0.01"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>Unidad de venta</b></label>
                 <select name="u_venta" id="edit_u_venta"
@@ -82,7 +102,7 @@
 
                 <label><b>Total</b></label>
                 <input type="number" name="tot" id="edit_tot" step="0.01"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>Pedido</b></label>
                 <select name="id_pedido" id="edit_id_pedido"
@@ -110,6 +130,52 @@
             </form>
         </div>
     </div>
+
+        <div id="modalCrearPpedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
+    <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+        <form action="<?= base_url('guarda_p_pedido') ?>" method="post" class="w3-container w3-padding-16">
+
+            <label><b>Pedido</b></label>
+            <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
+                <?php foreach ($pedidos as $p): ?>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <label><b>Producto</b></label>
+            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
+                <?php foreach ($productos as $pr): ?>
+                    <option value="<?= esc($pr['id']) ?>"><?= esc($pr['nombre']) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <label><b>Unidad de venta</b></label>
+            <select name="u_venta" class="w3-select w3-border w3-margin-bottom" required>
+                <option value="Kilogramo">Kilogramo</option>
+                <option value="Domo">Domo</option>
+                <option value="Ramos">Ramo</option>
+                <option value="Caja">Caja</option>
+            </select>
+
+            <label><b>Cantidad</b></label>
+            <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+
+            <label><b>Precio de venta</b></label>
+            <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+
+            <label><b>Total</b></label>
+            <input type="number" name="tot" step="0.01" class="w3-input w3-border w3-margin-bottom">
+
+            <footer class="w3-container w3-green w3-padding">
+                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="button"
+                        onclick="document.getElementById('modalCrearPpedido').style.display='none'"
+                        class="w3-button w3-white">Cancelar</button>
+            </footer>
+
+        </form>
+    </div>
+</div>
 
     <script>
         function abrirModal(id, cantidad, precio_venta, unidad_venta, total, id_pedido, id_producto) {

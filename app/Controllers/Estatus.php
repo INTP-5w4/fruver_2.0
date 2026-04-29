@@ -36,7 +36,9 @@ public function guarda_estatus(){
 }
 public function lista_estatus(){
     $m_estatus = new Modelo_estatus();
+    $m_pedido = new Modelo_pedido();
     $datos['estatus']=$m_estatus->findAll();
+    $datos['pedidos']=$m_pedido->findAll();
     return view('lista_estatus', $datos);
 }
 

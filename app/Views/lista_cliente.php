@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <title>Document</title>
+    <title>Lista Clientes</title>
 </head>
 <body>
     <?php if (session()->getFlashdata('error')): ?>
@@ -25,6 +25,7 @@
         + Nuevo Cliente
     </button>
 </div>
+
     <table>
         <thead>
             <tr>
