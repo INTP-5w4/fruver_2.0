@@ -104,10 +104,11 @@
 
                 <label><b>Unidad de compra</b></label>
                 <select name="u_com" class="modal-input" required>
-                    <option value="Caja">Caja</option>
+                     <option value="Caja">Caja</option>
                     <option value="Arpilla">Arpilla</option>
                     <option value="Bulto">Bulto</option>
                     <option value="Tonelada">Tonelada</option>
+                    <option value="Mazo">Mazo</option>
                 </select>
 
                 <label><b>Equivalente</b></label>
@@ -119,6 +120,8 @@
                     <option value="Kilogramo">Kilogramo</option>
                     <option value="Litro">Litro</option>
                     <option value="Caja">Caja</option>
+                    <option value="Pieza">Pieza</option>
+                    <option value="Domo">Domo</option>
                 </select>
 
                 <label><b>Precio de compra</b></label>
@@ -164,6 +167,7 @@
                     <option value="Arpilla">Arpilla</option>
                     <option value="Bulto">Bulto</option>
                     <option value="Tonelada">Tonelada</option>
+                    <option value="Mazo">Mazo</option>
                 </select>
 
 
@@ -172,6 +176,8 @@
                     <option value="Kilogramo">Kilogramo</option>
                     <option value="Litro">Litro</option>
                     <option value="Caja">Caja</option>
+                    <option value="Pieza">Pieza</option>
+                    <option value="Domo">Domo</option>
                 </select>
 
                 <label><b>Precio de compra</b></label>
