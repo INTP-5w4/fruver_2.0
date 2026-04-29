@@ -3,6 +3,6 @@
 
 <header>
     <div class="header_container">
-        <div class="logo">FRUVER</div>
+        <div class="logo"><a href="<?= base_url('')?>">FRUVER</a></div>
     </div>
 </header>
