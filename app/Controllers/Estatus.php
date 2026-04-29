@@ -31,6 +31,9 @@ public function guarda_estatus(){
             return redirect()->to('crea_estatus');
         } else {
             $m_estatus->insert($datos);
+            if ($this->request->getPost('origen') == 'main_page') {
+                return redirect()->to('/')->with('mensaje', 'Estatus registrado exitosamente.');
+            }
             return redirect()->to('lista_estatus');
         }
 }

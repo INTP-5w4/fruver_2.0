@@ -14,7 +14,6 @@ public function crea_entrada(){
 }
 public function guarda_entrada(){
     $m_entrada = new Modelo_entrada();
-    $m_existencia = new Modelo_existencia();
     $datos = [
         'fecha'           => $this->request->getPost('f_ent'),
         'fecha_cad'       => $this->request->getPost('f_cad'),
@@ -40,8 +39,10 @@ public function guarda_entrada(){
         return view('crea_entrada', $datos);
 
     } else {
-        // 1. Guarda la entrada
         $m_entrada->insert($datos);
+        if($this->request->getPost('origen') === 'main_page'){
+            return redirect()->to('/')->with('mensaje', 'Entrada registrada correctamente');
+        }
         return redirect()->to('lista_entrada');
     }
 }
