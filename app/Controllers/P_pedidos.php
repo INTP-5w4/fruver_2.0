@@ -18,30 +18,40 @@ public function crea_p_pedido(){
 }
 public function guarda_p_pedido(){
     $m_p_pedido = new Modelo_productopedidos();
-    $datos = [
-        'cant' => $this->request->getPost('cant'),
-        'precio_venta' => $this->request->getPost('p_venta'),
-        'unidad_venta' => $this->request->getPost('u_venta'),
-        'total' => $this->request->getPost('tot'),
-        'id_pedido' => $this->request->getPost('id_pedido'),
-        'id_producto' => $this->request->getPost('id_producto')
-    ];
+    $items  = json_decode($this->request->getPost('items'), true);
+    $origen = $this->request->getPost('origen');
 
-    if (
-        empty($datos['cant']) || 
-        empty($datos['precio_venta']) ||
-        empty($datos['unidad_venta']) ||
-        empty($datos['id_pedido']) ||
-        empty($datos['id_producto'])
-    ){
-        return redirect()->to('crea_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
-    } else {
-        $m_p_pedido->insert($datos);
-        if ($this->request->getPost('origen') === 'main_page') {
-            return redirect()->to('main_page')->with('mensaje', 'Registro guardado');
-        }
-        return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
+    if (empty($items) || !is_array($items)) {
+        return redirect()->to('crea_p_pedido')->with('mensaje', 'El carrito está vacío');
     }
+
+    foreach ($items as $item) {
+        $datos = [
+            'cant'         => $item['cant'],
+            'precio_venta' => $item['p_venta'],
+            'unidad_venta' => $item['u_venta'],
+            'total'        => $item['total'],
+            'id_pedido'    => $item['id_pedido'],
+            'id_producto'  => $item['id_producto'],
+        ];
+
+        if (
+            empty($datos['cant'])         ||
+            empty($datos['precio_venta']) ||
+            empty($datos['unidad_venta']) ||
+            empty($datos['id_pedido'])    ||
+            empty($datos['id_producto'])
+        ) {
+            return redirect()->to('crea_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
+        }
+
+        $m_p_pedido->insert($datos);
+    }
+
+    if ($origen === 'main_page') {
+        return redirect()->to('main_page')->with('mensaje', 'Registro guardado');
+    }
+    return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
 }
 
 public function lista_p_pedido(){
