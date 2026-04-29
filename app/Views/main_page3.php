@@ -356,10 +356,9 @@
                 <textarea name="desc" rows="4" class="w3-input w3-border w3-margin-bottom" required></textarea>
                 <label><b>Categoría</b></label>
                 <select name="cat" class="w3-select w3-border w3-margin-bottom" required>
-                    <option value="productos">productos</option>
-                    <option value="verduras">Verdura</option>
-                    <option value="yerbas">Yerba</option>
                     <option value="frutas">Frutas</option>
+                    <option value="verduras">Verdura</option>
+                    <option value="hierbas">Hierba</option>
                 </select>
                 <label><b>Imagen</b></label>
                 <input type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
