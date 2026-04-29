@@ -45,17 +45,17 @@ public function lista_cliente(){
 }
 public function modifica(){
         $id=$this->request->getPost('id');
-         $datos=[
+        $datos=[
             'nombre'=>$this->request->getPost('nom'),
             'ape_pat'=>$this->request->getPost('ape_pat'),
             'ape_mat'=>$this->request->getPost('ape_mat'),
             'telefono'=>$this->request->getPost('tel'),
-         ];
-         $m_cliente= new Modelo_cliente();
-         if($m_cliente->update($id,$datos)){
+    ];
+        $m_cliente= new Modelo_cliente();
+        if($m_cliente->update($id,$datos)){
             //echo "Datos almacenados exitosamente";
             return view('lista_cliente');
-         }
+        }
             
     }
 public function recupera($id = null){

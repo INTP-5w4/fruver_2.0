@@ -40,7 +40,7 @@
         <tbody>
             <?php foreach ($clientes as $c):?>
                 <tr>
-                    <td><?= $c['id'] ?></td>
+                    <td><?= esc($c['id'])?></td>
                     <td><?= esc($c['nombre']) ?></td>
                     <td><?= esc($c['ape_pat']) ?></td>
                     <td><?= esc($c['ape_mat']) ?></td>
@@ -48,7 +48,7 @@
                     <td>
                         <!-- ↓ Botón que abre el modal y llena los datos -->
                         <button onclick="abrirModal(
-                                    '<?= $c['id'] ?>',
+                                    '<?= esc($c['id']) ?>',
                                     '<?= esc($c['nombre']) ?>',
                                     '<?= esc($c['ape_pat']) ?>',
                                     '<?= esc($c['ape_mat']) ?>',
