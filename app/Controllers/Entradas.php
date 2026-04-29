@@ -76,7 +76,7 @@ public function eliminar_datos($id=null){
     $m_entrada->delete($id);
     return redirect()->to('/lista_entrada');
 }
-public function modifica(){
+public function modifica_entrada(){
     $m_entrada    = new Modelo_entrada();
     $m_existencia = new Modelo_existencia();
     $id = $this->request->getPost('id');

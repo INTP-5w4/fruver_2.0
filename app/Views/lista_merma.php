@@ -10,50 +10,66 @@
 <body>
 
     <table>
-        <thead>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+            <th>Notas</th>
+            <th>Entrada</th>          <!-- ← antes era "ID Entrada" -->
+            <th>Unidad de Venta</th>  <!-- ← nueva columna -->
+            <th>Editar</th>
+            <th>Eliminar</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($mermas as $m): ?>
             <tr>
-                <th>ID</th>
-                <th>Cantidad</th>
-                <th>Fecha</th>
-                <th>Notas</th>
-                <th>ID Entrada</th>
-                <th>Editar</th>
-                <th>Eliminar</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($mermas as $m): ?>
-                <tr>
-                    <td><?= $m['id'] ?></td>
-                    <td><?= $m['cantidad'] ?></td>
-                    <td><?= $m['fecha'] ?></td>
-                    <td><?= $m['notas'] ?></td>
-                    <td><?= $m['id_entrada'] ?></td>
-                    <td>
-                        <button onclick="abrirModal(
-                                    '<?= $m['id'] ?>',
-                                    '<?= $m['cantidad'] ?>',
-                                    '<?= $m['fecha'] ?>',
-                                    '<?= esc($m['notas']) ?>',
-                                    '<?= $m['id_entrada'] ?>'
-                                )"
-                                style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                    </td>
-                    <td>
-                        <a href="<?= base_url('borra_id_merma/'.$m['id']) ?>"
-                           onclick="return confirm('¿Estás seguro de que quieres eliminar esta merma?')">
-                            <button style="border:none; cursor:pointer; background:none;">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </a>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+                <td><?= $m['id'] ?></td>
+                <td><?= $m['cantidad'] ?></td>
+                <td><?= $m['fecha'] ?></td>
+                <td><?= $m['notas'] ?></td>
 
+                <!-- Columna Entrada -->
+                <td>
+                    <?php
+                        $entradaEncontrada = array_filter($entradas, fn($e) => $e['id'] == $m['id_entrada']);
+                        $entradaEncontrada = reset($entradaEncontrada);
+                        echo $entradaEncontrada
+                            ? '#'.$entradaEncontrada['id'].' — '.esc($entradaEncontrada['nombre_producto']).' ('.$entradaEncontrada['fecha'].')'
+                            : 'N/A';
+                    ?>
+                </td>
+
+                <!-- Columna Unidad de Venta — reutiliza $entradaEncontrada de arriba -->
+                <td>
+                    <?= $entradaEncontrada ? esc($entradaEncontrada['u_venta']) : 'N/A' ?>
+                </td>
+
+                <td>
+                    <button onclick="abrirModal(
+                                '<?= $m['id'] ?>',
+                                '<?= $m['cantidad'] ?>',
+                                '<?= $m['fecha'] ?>',
+                                '<?= esc($m['notas']) ?>',
+                                '<?= $m['id_entrada'] ?>'
+                            )"
+                            style="border:none; cursor:pointer; background:none;">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                </td>
+                <td>
+                    <a href="<?= base_url('borra_id_merma/'.$m['id']) ?>"
+                       onclick="return confirm('¿Estás seguro de que quieres eliminar esta merma?')">
+                        <button style="border:none; cursor:pointer; background:none;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
     <!-- MODAL EDITAR MERMA -->
     <div id="modalEditarMerma" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
