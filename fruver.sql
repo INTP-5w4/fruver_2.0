@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 24-04-2026 a las 21:00:43
+-- Tiempo de generación: 28-04-2026 a las 19:57:32
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -233,15 +233,16 @@ CREATE TABLE `pedido` (
   `id` int(11) NOT NULL,
   `fecha` date NOT NULL,
   `id_cliente` int(11) NOT NULL,
-  `id_repartidor` int(11) NOT NULL
+  `id_repartidor` int(11) NOT NULL,
+  `id_producto_pedido` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `pedido`
 --
 
-INSERT INTO `pedido` (`id`, `fecha`, `id_cliente`, `id_repartidor`) VALUES
-(1, '2026-03-03', 8, 2);
+INSERT INTO `pedido` (`id`, `fecha`, `id_cliente`, `id_repartidor`, `id_producto_pedido`) VALUES
+(1, '2026-03-03', 8, 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -272,7 +273,9 @@ INSERT INTO `producto` (`id`, `nombre`, `descripcion`, `img`, `categoria`) VALUE
 (12, 'elote', 'amarillo', '1774621516_a947228d4ed4fa0fdca3.jpg', 'frutas'),
 (13, 'kiwi', 'fruta neozelandesa de importacion', '1776799343_30f41c9820d50d860a45.jpg', 'frutas'),
 (14, 'flor de calabaza', 'Se vende por manojo', '1776799626_d4694eedc0272714a81c.jpeg', ''),
-(15, 'flor de calabaza', 'Se vende por manojo', '1776799627_c4608c2e3ba5121d8d01.jpeg', '');
+(15, 'flor de calabaza', 'Se vende por manojo', '1776799627_c4608c2e3ba5121d8d01.jpeg', ''),
+(16, 'Xonegui', 'un quelite trepador con forma de corazón, Ipomoea dumosa', '1777424218_270d1b63c72c5c085019.jpeg', ''),
+(17, 'Xoxogo', 'Bolita Negra', '1777424431_d396674dfd011bc9eb93.jpeg', 'frutas');
 
 -- --------------------------------------------------------
 
@@ -383,7 +386,8 @@ ALTER TABLE `merma`
 ALTER TABLE `pedido`
   ADD PRIMARY KEY (`id`),
   ADD KEY `pedido_ibfk_1` (`id_cliente`),
-  ADD KEY `pedido_ibfk_2` (`id_repartidor`);
+  ADD KEY `pedido_ibfk_2` (`id_repartidor`),
+  ADD KEY `id_producto_pedido` (`id_producto_pedido`);
 
 --
 -- Indices de la tabla `producto`
@@ -455,7 +459,7 @@ ALTER TABLE `pedido`
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `producto_pedido`
@@ -507,6 +511,7 @@ ALTER TABLE `merma`
 -- Filtros para la tabla `pedido`
 --
 ALTER TABLE `pedido`
+  ADD CONSTRAINT `id_pp` FOREIGN KEY (`id_producto_pedido`) REFERENCES `producto_pedido` (`id`),
   ADD CONSTRAINT `pedido_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id`),
   ADD CONSTRAINT `pedido_ibfk_2` FOREIGN KEY (`id_repartidor`) REFERENCES `repartidor` (`id`);
 
