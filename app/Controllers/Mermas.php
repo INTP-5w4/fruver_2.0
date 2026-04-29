@@ -46,8 +46,8 @@ public function lista_merma(){
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();
     $datos = [
-        'mermas' => $m_merma->findAll(),
-        'entradas' => $m_entrada->findAll(),
+        'mermas'   => $m_merma->findAll(),
+        'entradas' => $m_entrada->getEntradasConProducto(),
     ];
     return view('lista_merma', $datos);
 }
@@ -56,8 +56,8 @@ public function recupera($id=null){
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();
     $datos=[
-        'mermas' => $m_merma->find($id),
-        'entradas' => $m_entrada->findAll(),
+        'mermas'   => $m_merma->find($id),
+        'entradas' => $m_entrada->getEntradasConProducto(),
     ];
     return view('modifica_merma', $datos);
 }
