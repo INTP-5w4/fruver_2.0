@@ -27,16 +27,15 @@ public function guarda_p_pedido(){
 
     foreach ($items as $item) {
         $datos = [
-            'cant'         => $item['cant'],
+            'cantidad'         => $item['cant'],
             'precio_venta' => $item['p_venta'],
             'unidad_venta' => $item['u_venta'],
             'total'        => $item['total'],
             'id_pedido'    => $item['id_pedido'],
             'id_producto'  => $item['id_producto'],
         ];
-
         if (
-            empty($datos['cant'])         ||
+            empty($datos['cantidad'])         ||
             empty($datos['precio_venta']) ||
             empty($datos['unidad_venta']) ||
             empty($datos['id_pedido'])    ||
@@ -86,7 +85,7 @@ public function eliminar_datos($id=null){
 public function modifica(){
     $m_p_pedido = new Modelo_productopedidos();
     $datos = [
-        'cant' => $this->request->getPost('cant'),
+        'cantidad' => $this->request->getPost('cant'),
         'precio_venta' => $this->request->getPost('p_venta'),
         'unidad_venta' => $this->request->getPost('u_venta'),
         'total' => $this->request->getPost('tot'),
@@ -95,7 +94,7 @@ public function modifica(){
     ];
     $id = $this->request->getPost('id');
     if (
-        empty($datos['cant']) || 
+        empty($datos['cantidad']) || 
         empty($datos['precio_venta']) ||
         empty($datos['unidad_venta']) ||
         empty($datos['id_pedido']) ||

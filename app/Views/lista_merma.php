@@ -98,6 +98,44 @@
     </tbody>
 </table>
 
+<div id="modalCrearMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
+    <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+        <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
+            <input type="hidden" name="origen" value="main_page">
+            <label><b>Entrada</b></label>
+            <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
+                <option value="">-- Selecciona una entrada --</option>
+                <?php foreach ($entradas as $entrada): ?>
+                    <option value="<?= $entrada['id'] ?>">
+                        #<?= $entrada['id'] ?> — <?= esc($entrada['nombre_producto']) ?> (<?= $entrada['fecha'] ?>)
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <label><b>Unidad de venta</b></label>
+            <input type="text" id="u_venta_modal" name="u_venta" class="w3-input w3-border w3-margin-bottom" readonly placeholder="Se llena automáticamente">
+
+            <label><b>Cantidad</b></label>
+            <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+
+            <label><b>Fecha</b></label>
+            <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d') ?>" required>
+
+            <label><b>Notas</b></label>
+            <textarea name="notas" rows="3" class="w3-input w3-border w3-margin-bottom"></textarea>
+
+            
+
+            <footer class="w3-container w3-green w3-padding">
+                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="button"
+                        onclick="document.getElementById('modalCrearMerma').style.display='none'"
+                        class="w3-button w3-white">Cancelar</button>
+            </footer>
+
+        </form>
+    </div>
+</div>
 <!-- MODAL EDITAR MERMA -->
 <div id="modalEditarMerma" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">

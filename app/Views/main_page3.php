@@ -276,10 +276,22 @@
             <label><b>Fecha de caducidad</b></label>
             <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
 
+            <!-- NUEVO: Filtro de categoría -->
+            <label><b>Categoría</b></label>
+            <select id="filtroCategoriaEntrada" class="w3-select w3-border w3-margin-bottom">
+                <option value="">— Todas —</option>
+                <option value="frutas">Frutas</option>
+                <option value="verduras">Verduras</option>
+                <option value="hierbas">Hierbas</option>
+            </select>
+
             <label><b>Producto</b></label>
-            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
+            <select id="selectProductoEntrada" name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($productos as $p): ?>
-                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
+                    <option value="<?= esc($p['id']) ?>"
+                            data-categoria="<?= esc($p['categoria']) ?>">
+                        <?= esc($p['nombre']) ?>
+                    </option>
                 <?php endforeach; ?>
             </select>
 
@@ -293,7 +305,6 @@
                 <option value="Bulto">Bulto</option>
                 <option value="Tonelada">Tonelada</option>
                 <option value="Mazo">Mazo</option>
-
             </select>
 
             <label><b>Unidad de venta</b></label>
@@ -311,6 +322,9 @@
 
             <label><b>Precio de compra</b></label>
             <input type="number" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            
+            <label><b>Precio de venta(Unitario)</b></label>
+            <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -318,10 +332,11 @@
                         onclick="document.getElementById('modalEntrada').style.display='none'"
                         class="w3-button w3-white">Cancelar</button>
             </footer>
-
         </form>
     </div>
 </div>
+
+
 
     <div id="modalPedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
@@ -412,7 +427,10 @@
       <label><b>Producto</b></label>
       <select id="cp_id_producto" class="w3-select w3-border w3-margin-bottom">
         <?php foreach ($productos as $pr): ?>
-          <option value="<?= esc($pr['id']) ?>"><?= esc($pr['nombre']) ?></option>
+            <option value="<?= esc($pr['id']) ?>"
+            data-precio="<?= esc($precioSugeridoPorProducto[$pr['id']] ?? '') ?>">
+            <?= esc($pr['nombre']) ?>
+            </option>
         <?php endforeach; ?>
       </select>
 
@@ -425,11 +443,13 @@
       </select>
 
       <label><b>Cantidad</b></label>
-      <input type="number" id="cp_cant" class="w3-input w3-border w3-margin-bottom">
+      <input type="number" id="cp_cant" name="cant" class="w3-input w3-border w3-margin-bottom">
 
-      <label><b>Precio de venta(unitario)</b></label>
-      <input type="number" id="cp_p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
-
+      <label><b>Precio de venta(Unitario)</b></label>
+        <input type="number" id="cp_p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
+        <small id="cp_precio_sugerido" class="w3-text-grey" style="display:none;">
+            💡 Precio sugerido (entrada más cara): $<span id="cp_precio_valor"></span>
+        </small>
       <!-- Botón para agregar al carrito (NO envía al servidor) -->
       <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
         + Agregar producto
@@ -572,10 +592,7 @@
             <label><b>Notas</b></label>
             <textarea name="notas" rows="3" class="w3-input w3-border w3-margin-bottom"></textarea>
 
-            <!-- Datos para JS -->
-            <script id="entradas-data" type="application/json">
-                <?= json_encode($entradas) ?>
-            </script>
+            
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -587,6 +604,11 @@
         </form>
     </div>
 </div>
+   <!-- Marcado -->
+<script id="entradas-data" type="application/json">
+                <?= json_encode($entradas) ?>
+            </script>
+
     <!-- Datos para Chart.js -->
     <script id="chart-data" type="application/json">
     <?= json_encode([
@@ -609,7 +631,7 @@
         });
     };
     </script>
-    <script>
+<script>
 let carrito = [];
 
 // Mapas para mostrar el nombre del producto en la tabla (no solo el id)
@@ -681,6 +703,42 @@ function cerrarModal() {
   renderCarrito();
   document.getElementById('modalPpedido').style.display = 'none';
 }
+</script>
+<script>
+document.getElementById('cp_id_producto').addEventListener('change', function () {
+    const opcionSeleccionada = this.options[this.selectedIndex];
+    const precio = opcionSeleccionada.dataset.precio;
+    const etiqueta = document.getElementById('cp_precio_sugerido');
+    const valorSpan = document.getElementById('cp_precio_valor');
+
+    if (precio !== '') {
+        valorSpan.textContent = parseFloat(precio).toFixed(2);
+        etiqueta.style.display = 'block';
+        document.getElementById('cp_p_venta').value = parseFloat(precio).toFixed(2);
+    } else {
+        etiqueta.style.display = 'none';
+        document.getElementById('cp_p_venta').value = '';
+    }
+});
+
+document.getElementById('cp_id_producto').dispatchEvent(new Event('change'));
+</script>
+<script>
+document.getElementById('filtroCategoriaEntrada').addEventListener('change', function () {
+    const categoriaElegida = this.value;
+    const selectProducto   = document.getElementById('selectProductoEntrada');
+    const opciones         = selectProducto.querySelectorAll('option');
+
+    opciones.forEach(function (opcion) {
+        const coincide = categoriaElegida === '' || opcion.dataset.categoria === categoriaElegida;
+        opcion.hidden   = !coincide;
+        opcion.disabled = !coincide;
+    });
+
+    // Seleccionar automáticamente la primera opción visible
+    const primeraVisible = selectProducto.querySelector('option:not([hidden])');
+    if (primeraVisible) primeraVisible.selected = true;
+});
 </script>
 </body>
 </html>

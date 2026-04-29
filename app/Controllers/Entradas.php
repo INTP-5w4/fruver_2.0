@@ -27,6 +27,7 @@ public function guarda_entrada(){
         'id_producto'     => $this->request->getPost('id_producto'),
     ];
 
+
     if (
         empty($datos['fecha'])       ||
         empty($datos['cantidad'])    ||
@@ -93,6 +94,7 @@ public function modifica_entrada(){
         'precio_venta_u'  => $this->request->getPost('p_venta'),
         'id_producto'     => $this->request->getPost('id_producto'),
     ];
+
 
     if (
         empty($datos['fecha'])          ||
