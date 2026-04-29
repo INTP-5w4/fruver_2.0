@@ -3,17 +3,21 @@ namespace App\Controllers;
 
 use App\Models\Modelo_entrada;
 use App\Models\Modelo_merma;
+use App\Models\Modelo_producto;
 use CodeIgniter\Controller;
 
 class Mermas extends Controller{
 
-public function crea_merma(){
+public function crea_merma()
+{
     $m_entrada = new Modelo_entrada();
-    $date=date('Y-m-d');
-    $datos=[
-        'entradas'=> $m_entrada->findAll(),
-        'date' => $date
+    $date = date('Y-m-d');
+
+    $datos = [
+        'entradas' => $m_entrada->getEntradasConProducto(),
+        'date'     => $date,
     ];
+
     return view('crea_merma', $datos);
 }
 
@@ -42,8 +46,8 @@ public function lista_merma(){
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();
     $datos = [
-        'mermas' => $m_merma->findAll(),
-        'entradas' => $m_entrada->findAll(),
+        'mermas'   => $m_merma->findAll(),
+        'entradas' => $m_entrada->getEntradasConProducto(),
     ];
     return view('lista_merma', $datos);
 }
@@ -52,8 +56,8 @@ public function recupera($id=null){
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();
     $datos=[
-        'mermas' => $m_merma->find($id),
-        'entradas' => $m_entrada->findAll(),
+        'mermas'   => $m_merma->find($id),
+        'entradas' => $m_entrada->getEntradasConProducto(),
     ];
     return view('modifica_merma', $datos);
 }

@@ -1,107 +1,119 @@
-// ============================================
-//  FRUVER — dashboard.js
-//  Gráficas con Chart.js (datos de ejemplo)
-//  Reemplaza los arrays de `data` con valores
-//  reales traídos desde PHP/CI4.
-// ============================================
+// Espera a que Chart.js esté disponible antes de inicializar
+function initCharts() {
+    if (typeof Chart === 'undefined') {
+        setTimeout(initCharts, 50);
+        return;
+    }
 
-const meses = ['Oct', 'Nov', 'Dic', 'Ene', 'Feb', 'Mar'];
+    const raw   = JSON.parse(document.getElementById('chart-data').textContent);
+    const green = '#4caf50';
+    const teal  = '#26a69a';
+    const red   = '#ef5350';
+    const amber = '#ffa726';
 
-// ---- Colores reutilizables ----
-const GREEN_DARK  = '#094e00';
-const GREEN_MID   = '#1a7a0a';
-const GREEN_LIGHT = 'rgba(214, 240, 200, 0.5)';
-const TEAL        = '#0d7a6b';
-const TEAL_LIGHT  = 'rgba(194, 237, 231, 0.5)';
+    function labels(arr, key) { return arr.map(r => r[key]); }
+    function values(arr, key) { return arr.map(r => parseFloat(r[key]) || 0); }
 
-// ============================================
-// 1. Gráfica de barras — Pedidos por mes
-// ============================================
-const pedidosCtx = document.getElementById('pedidosChart');
-if (pedidosCtx) {
-    new Chart(pedidosCtx, {
-        type: 'bar',
-        data: {
-            labels: meses,
-            datasets: [{
-                label: 'Pedidos',
-                // TODO: reemplaza con datos reales desde PHP
-                data: [18, 24, 31, 20, 27, 35],
-                backgroundColor: GREEN_MID,
-                borderRadius: 6,
-                borderSkipped: false,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.parsed.y} pedidos`
-                    }
-                }
+    // ── 1. Pedidos por mes (barras) ───────────────────────
+    const ctxPedidos = document.getElementById('pedidosChart');
+    if (ctxPedidos && raw.pedidosPorMes.length) {
+        new Chart(ctxPedidos, {
+            type: 'bar',
+            data: {
+                labels: labels(raw.pedidosPorMes, 'mes'),
+                datasets: [{
+                    label: 'Pedidos',
+                    data: values(raw.pedidosPorMes, 'total'),
+                    backgroundColor: green,
+                    borderRadius: 6,
+                }]
             },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#eef2e8' },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                }
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
             }
-        }
-    });
+        });
+    }
+
+    // ── 2. Total en ventas por mes (línea) ────────────────
+    const ctxVentas = document.getElementById('ventasChart');
+    if (ctxVentas && raw.ventasPorMes.length) {
+        new Chart(ctxVentas, {
+            type: 'line',
+            data: {
+                labels: labels(raw.ventasPorMes, 'mes'),
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: values(raw.ventasPorMes, 'ventas'),
+                    borderColor: teal,
+                    backgroundColor: teal + '22',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    } else if (ctxVentas) {
+        ctxVentas.parentElement.innerHTML = '<p style="color:#aaa;text-align:center;padding:2rem;">Sin ventas registradas</p>';
+    }
+
+    // ── 3. Top productos más vendidos (barras horizontales)
+    const ctxTop = document.getElementById('topProductosChart');
+    if (ctxTop && raw.topProductos.length) {
+        new Chart(ctxTop, {
+            type: 'bar',
+            data: {
+                labels: labels(raw.topProductos, 'nombre'),
+                datasets: [{
+                    label: 'Ingresos ($)',
+                    data: values(raw.topProductos, 'total_vendido'),
+                    backgroundColor: amber,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { x: { beginAtZero: true } }
+            }
+        });
+    } else if (ctxTop) {
+        ctxTop.parentElement.innerHTML = '<p style="color:#aaa;text-align:center;padding:2rem;">Sin productos vendidos</p>';
+    }
+
+    // ── 4. Pérdidas por merma por mes (línea roja) ────────
+    const ctxMerma = document.getElementById('mermaChart');
+    if (ctxMerma && raw.perdidasMerma.length) {
+        new Chart(ctxMerma, {
+            type: 'line',
+            data: {
+                labels: labels(raw.perdidasMerma, 'mes'),
+                datasets: [{
+                    label: 'Pérdida estimada ($)',
+                    data: values(raw.perdidasMerma, 'perdida'),
+                    borderColor: red,
+                    backgroundColor: red + '22',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+    } else if (ctxMerma) {
+        ctxMerma.parentElement.innerHTML = '<p style="color:#aaa;text-align:center;padding:2rem;">Sin mermas registradas</p>';
+    }
 }
 
-// ============================================
-// 2. Gráfica de línea — Entradas por mes
-// ============================================
-const entradasCtx = document.getElementById('entradasChart');
-if (entradasCtx) {
-    new Chart(entradasCtx, {
-        type: 'line',
-        data: {
-            labels: meses,
-            datasets: [{
-                label: 'Entradas',
-                // TODO: reemplaza con datos reales desde PHP
-                data: [12, 19, 14, 22, 18, 25],
-                borderColor: TEAL,
-                backgroundColor: TEAL_LIGHT,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: TEAL,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: ctx => ` ${ctx.parsed.y} entradas`
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                },
-                y: {
-                    beginAtZero: true,
-                    grid: { color: '#eef2e8' },
-                    ticks: { font: { family: 'DM Sans', size: 11 } }
-                }
-            }
-        }
-    });
-}
+document.addEventListener('DOMContentLoaded', initCharts);

@@ -29,13 +29,12 @@ public function guarda_cliente(){
             return redirect()->to('lista_cliente')->with('mensaje', 'Cliente registrado correctamente');
 
         } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
-    $mensaje = $e->getMessage();
-    if (str_contains($mensaje, 'Error:')) {
-        $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
-    }
-    return redirect()->to('/')
-        ->with('error', $mensaje)
-        ->with('from_modal', 'producto');
+            $mensaje = $e->getMessage();
+            if (str_contains($mensaje, 'Error:')) {
+                $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+            }
+            return redirect()->to('lista_cliente')
+                ->with('error', $mensaje);
         }
     } 
 }
@@ -46,17 +45,17 @@ public function lista_cliente(){
 }
 public function modifica(){
         $id=$this->request->getPost('id');
-         $datos=[
+        $datos=[
             'nombre'=>$this->request->getPost('nom'),
             'ape_pat'=>$this->request->getPost('ape_pat'),
             'ape_mat'=>$this->request->getPost('ape_mat'),
             'telefono'=>$this->request->getPost('tel'),
-         ];
-         $m_cliente= new Modelo_cliente();
-         if($m_cliente->update($id,$datos)){
+    ];
+        $m_cliente= new Modelo_cliente();
+        if($m_cliente->update($id,$datos)){
             //echo "Datos almacenados exitosamente";
             return view('lista_cliente');
-         }
+        }
             
     }
 public function recupera($id = null){

@@ -11,21 +11,29 @@ use App\Models\Modelo_cliente;
 
 class Productos extends BaseController
 {
-public function main_page(){
-     $m_producto    = new Modelo_producto();
-    $m_cliente     = new Modelo_cliente();
-    $m_repartidor  = new Modelo_repartidor();
-    $m_pedido      = new Modelo_pedido();
-    $m_entrada     = new Modelo_entrada();
-
-    return view('main_page3', [
+public function main_page()
+{
+    $m_producto   = new Modelo_producto();
+    $m_cliente    = new Modelo_cliente();
+    $m_repartidor = new Modelo_repartidor();
+    $m_pedido     = new Modelo_pedido();
+    $m_entrada    = new Modelo_entrada();
+    $m_merma      = new \App\Models\Modelo_merma();
+    $datos = [
         'productosLowStock' => $m_producto->productosLowStock(),
         'productos'         => $m_producto->findAll(),
         'clientes'          => $m_cliente->findAll(),
         'repartidores'      => $m_repartidor->findAll(),
         'pedidos'           => $m_pedido->findAll(),
-        'entradas'          => $m_entrada->findAll(),
-    ]);
+        'entradas' => $m_entrada->getEntradasConProducto(),
+
+        // Datos para gráficos
+        'pedidosPorMes'     => $m_pedido->pedidosPorMes(),
+        'ventasPorMes'      => $m_pedido->totalVentasPorMes(),
+        'topProductos'      => $m_producto->topProductos(),
+        'perdidasMerma'     => $m_merma->perdidasPorMes(),
+    ];
+    return view('main_page3', $datos);
 }
 
 public function crea_producto(){
@@ -47,7 +55,7 @@ public function guarda_producto(){
         if(!$this->validate($reglas_validacion)){
             return redirect()->back()->with('errors',$this->validator->getErrors());
         }
-        $nombre_img=$file->getRandomName();;
+        $nombre_img=$file->getRandomName();
         $file->move(ROOTPATH.'public/uploads',$nombre_img);
     }
     $datos=[
@@ -63,21 +71,20 @@ public function guarda_producto(){
         empty($datos['img'])
     ){
         return view('crea_producto');
-    }else{
-    $m_producto->insert($datos);
-    return redirect()->to('lista_producto');
     }
-    try {
-    $m_producto->insert($datos);
-    return redirect()->to('lista_producto')->with('mensaje', 'Producto registrado');
 
-} catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
-    $mensaje = $e->getMessage();
-    if (str_contains($mensaje, 'Error:')) {
-        $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+    try {
+        $m_producto->insert($datos);
+        return redirect()->to('lista_producto')->with('mensaje', 'Producto registrado');
+
+    } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+        $mensaje = $e->getMessage();
+        if (str_contains($mensaje, 'Error:')) {
+            $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
+        }
+        return redirect()->to('lista_producto')
+            ->with('error', $mensaje);
     }
-    return redirect()->to('crea_producto')->with('error', $mensaje);
-}
 }
 public function lista_producto($dato=null){
     $m_producto = new Modelo_producto();
