@@ -47,20 +47,18 @@ public function lista_cliente(){
     return view('lista_cliente', $datos);
 }
 public function modifica(){
-        $id=$this->request->getPost('id');
-        $datos=[
-            'nombre'=>$this->request->getPost('nom'),
-            'ape_pat'=>$this->request->getPost('ape_pat'),
-            'ape_mat'=>$this->request->getPost('ape_mat'),
-            'telefono'=>$this->request->getPost('tel'),
+    $id = $this->request->getPost('id');
+    $datos = [
+        'nombre'   => $this->request->getPost('nom'),
+        'ape_pat'  => $this->request->getPost('ape_pat'),
+        'ape_mat'  => $this->request->getPost('ape_mat'),
+        'telefono' => $this->request->getPost('tel'),
     ];
-        $m_cliente= new Modelo_cliente();
-        if($m_cliente->update($id,$datos)){
-            //echo "Datos almacenados exitosamente";
-            return view('lista_cliente');
-        }
-            
+    $m_cliente = new Modelo_cliente();
+    if($m_cliente->update($id, $datos)){
+        return redirect()->to('/lista_cliente');
     }
+}
 public function recupera($id = null){
     $m_cliente = new Modelo_cliente();
     $datos['clientes'] = $m_cliente->find($id);
