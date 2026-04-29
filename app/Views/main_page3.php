@@ -290,6 +290,8 @@
                 <option value="Arpilla">Arpilla</option>
                 <option value="Bulto">Bulto</option>
                 <option value="Tonelada">Tonelada</option>
+                <option value="Mazo">Mazo</option>
+
             </select>
 
             <label><b>Unidad de venta</b></label>
@@ -297,8 +299,8 @@
                 <option value="Kilogramo">Kilogramo</option>
                 <option value="Litro">Litro</option>
                 <option value="Caja">Caja</option>
-                <option value="Domo">Domo</option>
                 <option value="Pieza">Pieza</option>
+                <option value="Domo">Domo</option>
                 <option value="Ramo">Ramo</option>
             </select>
 
