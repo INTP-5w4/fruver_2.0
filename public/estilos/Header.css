@@ -20,4 +20,8 @@ header{
     font-size: 2em;
     font-weight: 600;
 }
+.logo a {
+    text-decoration: none !important;
+    color: rgb(241, 241, 241) !important;
+}
 
