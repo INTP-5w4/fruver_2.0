@@ -35,7 +35,7 @@ public function guarda_direccion(){
         } else {
             $m_direccion->insert($datos);
             if ($this->request->getPost('origen') === 'main_page') {
-                return redirect()->to('main_page3')->with('mensaje', 'Dirección registrada correctamente')->;
+                return redirect()->to('main_page3')->with('mensaje', 'Dirección registrada correctamente');
             }
             return redirect()->to('lista_direccion');
         }
