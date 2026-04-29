@@ -188,6 +188,7 @@
     <div id="modalCliente" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_cliente') ?>" method="post" class="w3-container w3-padding-16">
+                <input type="hidden" name="origen" value="main_page">
                 <label><b>Nombre</b></label>
                 <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Apellido Paterno</b></label>
@@ -207,6 +208,7 @@
     <div id="modalDireccion" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_direccion') ?>" method="post" class="w3-container w3-padding-16">
+                <input type="hidden" name="origen" value="main_page">
                 <label><b>Colonia</b></label>
                 <input type="text" name="col" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Calle</b></label>
@@ -267,7 +269,7 @@
 <div id="modalEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
-
+            <input type="hidden" name="origen" value="main_page">
             <label><b>Fecha de entrada</b></label>
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
 
@@ -324,7 +326,7 @@
     <div id="modalPedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_pedido') ?>" method="post" class="w3-container w3-padding-16">
-
+                <input type="hidden" name="origen" value="main_page">
                 <label><b>Fecha</b></label>
                 <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Cliente</b></label>
@@ -350,6 +352,7 @@
     <div id="modalProducto" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
+                <input type="hidden" name="origen" value="main_page">
                 <label><b>Nombre</b></label>
                 <input type="text" name="nom" placeholder="Ej: Tomate Saladet" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Descripción</b></label>
@@ -373,6 +376,7 @@
     <div id="modalRepartidor" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="w3-container w3-padding-16">
+                <input type="hidden" name="origen" value="main_page">
                 <label><b>Nombre</b></label>
                 <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Apellido Paterno</b></label>
@@ -396,7 +400,7 @@
     <div id="modalPpedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_p_pedido') ?>" method="post" class="w3-container w3-padding-16">
-
+            <input type="hidden" name="origen" value="main_page">
             <label><b>Pedido</b></label>
             <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($pedidos as $p): ?>
@@ -442,7 +446,7 @@
 <div id="modalEstatus" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
-
+            <input type="hidden" name="origen" value="main_page">
             <label><b>Pedido</b></label>
             <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($pedidos as $p): ?>
@@ -478,7 +482,7 @@
 <div id="modalExistencias" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_existencia') ?>" method="post" class="w3-container w3-padding-16">
-
+            <input type="hidden" name="origen" value="main_page">
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($productos as $p): ?>
@@ -512,7 +516,7 @@
 <div id="modalMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
-
+            <input type="hidden" name="origen" value="main_page">
             <label><b>Entrada</b></label>
             <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="">-- Selecciona una entrada --</option>

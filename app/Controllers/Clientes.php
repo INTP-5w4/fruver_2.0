@@ -26,6 +26,9 @@ public function guarda_cliente(){
     } else {
         try {
             $m_cliente->insert($datos);
+            if ($this->request->getPost('origen') === 'main_page') {
+                return redirect()->to('/')->with('mensaje', 'Cliente registrado correctamente');
+            }
             return redirect()->to('lista_cliente')->with('mensaje', 'Cliente registrado correctamente');
 
         } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {

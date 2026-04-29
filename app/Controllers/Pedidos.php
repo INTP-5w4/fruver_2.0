@@ -44,6 +44,9 @@ public function guarda_pedido(){
         return view ('crea_pedido',$datos_recuperados);
     }else{
         $m_pedido->insert($datos);
+        if ($this->request->getPost('origen') == 'main_page') {
+            return redirect()->to('/')->with('Mensaje', 'Pedido creado exitosamente');
+        }
         return redirect()->to('lista_pedido');
     }
 }

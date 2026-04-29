@@ -75,6 +75,9 @@ public function guarda_producto(){
 
     try {
         $m_producto->insert($datos);
+        if ($this->request->getPost('origen') === 'main_page') {
+            return redirect()->to('/')->with('mensaje', 'Producto registrado');
+        }
         return redirect()->to('lista_producto')->with('mensaje', 'Producto registrado');
 
     } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {

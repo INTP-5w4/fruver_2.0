@@ -28,6 +28,9 @@ public function guarda_repartidor(){
     )return view('crea_repartidor');
     else{
         $m_repartidor->insert($datos);
+        if ($this->request->getPost('origen') === 'main_page') {
+            return redirect()->to('/')->with('mensaje', 'Repartidor creado exitosamente');
+        }
         return redirect()->to('lista_repartidor');
     }
 }

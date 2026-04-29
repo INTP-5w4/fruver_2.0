@@ -37,6 +37,9 @@ public function guarda_p_pedido(){
         return redirect()->to('crea_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
     } else {
         $m_p_pedido->insert($datos);
+        if ($this->request->getPost('origen') === 'main_page') {
+            return redirect()->to('main_page')->with('mensaje', 'Registro guardado');
+        }
         return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
     }
 }
