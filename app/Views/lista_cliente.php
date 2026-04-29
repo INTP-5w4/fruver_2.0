@@ -40,15 +40,15 @@
         <tbody>
             <?php foreach ($clientes as $c):?>
                 <tr>
-                    <td><?= $c['id'] ?></td>
+                    <td><?= esc($c['id'])?></td>
                     <td><?= esc($c['nombre']) ?></td>
                     <td><?= esc($c['ape_pat']) ?></td>
                     <td><?= esc($c['ape_mat']) ?></td>
                     <td><?= esc($c['telefono']) ?></td>
-                   <td>
+                    <td>
                         <!-- ↓ Botón que abre el modal y llena los datos -->
                         <button onclick="abrirModal(
-                                    '<?= $c['id'] ?>',
+                                    '<?= esc($c['id']) ?>',
                                     '<?= esc($c['nombre']) ?>',
                                     '<?= esc($c['ape_pat']) ?>',
                                     '<?= esc($c['ape_mat']) ?>',
@@ -79,19 +79,19 @@
 
                 <label><b>Nombre</b></label>
                 <input type="text" name="nom" id="edit_nom"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>Apellido Paterno</b></label>
                 <input type="text" name="ape_pat" id="edit_ape_pat"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>Apellido Materno</b></label>
                 <input type="text" name="ape_mat" id="edit_ape_mat"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>Teléfono</b></label>
                 <input type="text" name="tel" id="edit_tel"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -127,7 +127,7 @@
 
         <header class="modal-header">
             <span onclick="document.getElementById('modalCrearCliente').style.display='none'"
-                  class="modal-cerrar">&times;</span>
+                class="modal-cerrar">&times;</span>
             <h2>Registrar Cliente</h2>
             <form action="<?= base_url('guarda_cliente') ?>" method="post" class="modal-form">
 
@@ -143,15 +143,14 @@
     <label><b>Teléfono</b></label>
     <input type="text" name="tel" class="modal-input" required>
 
-    <footer class="modal-footer">
-        <button type="submit" class="btn-guardar">Guardar</button>
-        <button type="button"
+        <footer class="modal-footer">
+            <button type="submit" class="btn-guardar">Guardar</button>
+            <button type="button"
                 onclick="document.getElementById('modalCrearCliente').style.display='none'"
                 class="btn-cancelar">Cancelar</button>
-    </footer>
-
+        </footer>
+    </header>
 </form>
-        </header>
 
     </div>
 </div>

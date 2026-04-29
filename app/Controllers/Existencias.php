@@ -42,8 +42,8 @@ public function lista_existencia(){
     $m_existencia = new Modelo_existencia();
     $m_producto = new Modelo_producto();
     $datos=[
-        'existencias'=>$m_existencia->findAll(),
-        'productos'=>$m_producto->findAll()
+        'existencias' => $m_existencia->findAll(),
+        'productos'   => array_column($m_producto->findAll(), null, 'id') // ← fix
     ];
     return view('lista_existencia',$datos);
 }
@@ -57,8 +57,8 @@ public function recupera($id=null){
     $m_existencia = new Modelo_existencia();
     $m_producto = new Modelo_producto();
     $datos=[
-        'existencias'=>$m_existencia->find($id),
-        'productos'=>$m_producto->findAll()
+        'existencias' => $m_existencia->find($id),
+        'productos'   => array_column($m_producto->findAll(), null, 'id') // ← fix
     ];
     return view('modifica_existencia',$datos);
 }
