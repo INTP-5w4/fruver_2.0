@@ -82,7 +82,7 @@
 
             <header class="modal-header">
                 <span onclick="document.getElementById('modalCrearEntrada').style.display='none'"
-                      class="modal-cerrar">&times;</span>
+                    class="modal-cerrar">&times;</span>
                 <h2>Registrar Entrada</h2>
             </header>
 
