@@ -1,13 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <title>Lista estatus</title>
 </head>
 <body>
+
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+<div class="contenedor-boton">
+    <button onclick="document.getElementById('modalCrearEstatus').style.display='block'"
+            class="btn-agregar">
+        + Nuevo Estatus
+    </button>
+</div>
+
     <table>
         <thead>
             <th>ID</th>
@@ -67,11 +86,11 @@
 
                 <label><b>Fecha</b></label>
                 <input type="date" name="fecha" id="edit_fecha"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>ID Pedido</b></label>
                 <input type="number" name="id_pedido" id="edit_id_pedido"
-                       class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required>
 
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -83,6 +102,43 @@
             </form>
         </div>
     </div>
+
+<div id="modalCrearEstatus" class="w3-modal" style="padding-top:100px;z-index:9999;">
+    <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+        <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
+
+            <label><b>Pedido</b></label>
+            <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
+                <?php foreach ($pedidos as $p): ?>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
+                <?php endforeach; ?>
+            </select>
+
+            <label><b>Estado</b></label>
+            <select name="edo" class="w3-select w3-border w3-margin-bottom" required>
+                <option value="pedido_realizado">Pedido realizado</option>
+                <option value="pedido_confirmado">Pedido confirmado</option>
+                <option value="pedido_en_transito">Pedido en tránsito</option>
+                <option value="pedido_entregado">Pedido entregado</option>
+                <option value="pedido_a_credito">Pedido a crédito</option>
+                <option value="pedido_pagado">Pedido pagado</option>
+                <option value="pedido_cancelado">Pedido cancelado</option>
+            </select>
+
+            <label><b>Fecha</b></label>
+            <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
+
+            <footer class="w3-container w3-green w3-padding">
+                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="button"
+                        onclick="document.getElementById('modalCrearEstatus').style.display='none'"
+                        class="w3-button w3-white">Cancelar</button>
+            </footer>
+
+        </form>
+    </div>
+</div>
+
 
     <script>
         function abrirModal(id, estado, fecha, id_pedido) {
