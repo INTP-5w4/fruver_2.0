@@ -418,14 +418,14 @@
 
       <!-- Campos del ítem actual -->
       <label><b>Pedido</b></label>
-      <select id="cp_id_pedido" class="w3-select w3-border w3-margin-bottom">
+      <select id="cp_id_pedido" name="id_pedido" class="w3-select w3-border w3-margin-bottom">
         <?php foreach ($pedidos as $p): ?>
           <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
         <?php endforeach; ?>
       </select>
 
       <label><b>Producto</b></label>
-      <select id="cp_id_producto" class="w3-select w3-border w3-margin-bottom">
+      <select id="cp_id_producto" name="id_producto" class="w3-select w3-border w3-margin-bottom">
         <?php foreach ($productos as $pr): ?>
             <option value="<?= esc($pr['id']) ?>"
             data-precio="<?= esc($precioSugeridoPorProducto[$pr['id']] ?? '') ?>">
@@ -435,18 +435,19 @@
       </select>
 
       <label><b>Unidad de venta</b></label>
-      <select id="cp_u_venta" class="w3-select w3-border w3-margin-bottom">
+      <select id="cp_u_venta" name="u_venta" class="w3-select w3-border w3-margin-bottom">
         <option value="Kilogramo">Kilogramo</option>
         <option value="Domo">Domo</option>
         <option value="Ramos">Ramo</option>
         <option value="Caja">Caja</option>
+        <option value="Pieza">Pieza</option>
       </select>
 
       <label><b>Cantidad</b></label>
       <input type="number" id="cp_cant" name="cant" class="w3-input w3-border w3-margin-bottom">
 
       <label><b>Precio de venta(Unitario)</b></label>
-        <input type="number" id="cp_p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
+        <input type="number" id="cp_p_venta" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
         <small id="cp_precio_sugerido" class="w3-text-grey" style="display:none;">
             💡 Precio sugerido (entrada más cara): $<span id="cp_precio_valor"></span>
         </small>
