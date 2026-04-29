@@ -24,6 +24,8 @@
                 <th>Fecha de caducidad</th>
                 <th>Cantidad</th>
                 <th>Unidad de compra</th>
+                <th>Equivalente</th>
+                <th>Conversión</th>
                 <th>Unidad de venta</th>
                 <th>Precio compra</th>
                 <th>Nombre del producto</th>
@@ -40,6 +42,7 @@
                 <td><?= $e['cantidad'] ?></td>
                 <td><?= $e['u_compra'] ?></td>
                 <td><?= $e['equivalente'] ?></td>
+                <td><?= $e['conversion'] ?></td>
                 <td><?= $e['u_venta'] ?></td>
                 <td><?= $e['precio_compra_u'] ?></td>
                 <td>
@@ -178,9 +181,11 @@
                     <option value="Pieza">Pieza</option>
                     <option value="Domo">Domo</option>
                 </select>
+                <label for="">Equivalente</label>
+                <input type="number" name="equi" id="">
 
                 <label><b>Precio de compra</b></label>
-                <input type="number" name="precio_compra" id="edit_precio_compra" class="modal-input" required>
+                <input type="number" name="p_compra" id="edit_precio_compra" class="modal-input" required>
 
                 <label><b>Producto</b></label>
                 <select name="id_producto" id="edit_id_producto" class="modal-input" required>
@@ -190,7 +195,8 @@
                 </select>
 
                 <footer class="modal-footer">
-                    <button type="submit" class="btn-guardar">Guardar</button>
+                    <input type="submit" value="enviar" class="btn-guardar">
+
                     <button type="button"
                             onclick="document.getElementById('modalEditarEntrada').style.display='none'"
                             class="btn-cancelar">Cancelar</button>

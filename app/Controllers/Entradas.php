@@ -24,6 +24,7 @@ public function guarda_entrada(){
         'precio_compra_u' => $this->request->getPost('p_compra'),
         'precio_venta_u'  => $this->request->getPost('p_venta'),
         'equivalente'     => $this->request->getPost('equi'),
+        'conversion'     => $this->request->getPost('conv'),
         'id_producto'     => $this->request->getPost('id_producto'),
     ];
 
@@ -95,7 +96,6 @@ public function modifica(){
 
     if (
         empty($datos['fecha'])         ||
-        empty($datos['fecha_cad'])     ||
         empty($datos['cantidad'])      ||
         empty($datos['u_compra'])      ||
         empty($datos['u_venta'])       ||
@@ -104,7 +104,7 @@ public function modifica(){
         empty($datos['id_producto'])
     ){
         $m_producto = new Modelo_producto();
-        return view('modifica_entrada', [
+        return view('lista_entrada', [
             'productos' => $m_producto->findAll(),
             'entradas'  => $m_entrada->find($id),
         ]);
