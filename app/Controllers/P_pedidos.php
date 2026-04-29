@@ -34,6 +34,7 @@ public function guarda_p_pedido(){
             'id_pedido'    => $item['id_pedido'],
             'id_producto'  => $item['id_producto'],
         ];
+        
         if (
             empty($datos['cantidad'])         ||
             empty($datos['precio_venta']) ||
@@ -43,12 +44,12 @@ public function guarda_p_pedido(){
         ) {
             return redirect()->to('crea_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
         }
-
+        var_dump($datos);die();
         $m_p_pedido->insert($datos);
     }
 
     if ($origen === 'main_page') {
-        return redirect()->to('main_page')->with('mensaje', 'Registro guardado');
+        return redirect()->to('/')->with('mensaje', 'Registro guardado');
     }
     return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
 }
