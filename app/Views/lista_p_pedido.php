@@ -178,9 +178,9 @@
 </div>
 
     <script>
-        function abrirModal(id, cantidad, precio_venta, unidad_venta, total, id_pedido, id_producto) {
+        function abrirModal(id, cant, precio_venta, unidad_venta, total, id_pedido, id_producto) {
             document.getElementById('edit_id').value = id;
-            document.getElementById('edit_cant').value = cantidad;
+            document.getElementById('edit_cant').value = cant;
             document.getElementById('edit_p_venta').value = precio_venta;
             document.getElementById('edit_u_venta').value = unidad_venta;
             document.getElementById('edit_tot').value = total;

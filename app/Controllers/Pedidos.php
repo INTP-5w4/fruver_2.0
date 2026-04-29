@@ -50,18 +50,24 @@ public function guarda_pedido(){
         return redirect()->to('lista_pedido');
     }
 }
-public function lista_pedido(){
-    $m_pedido = new Modelo_pedido();
-    $m_cliente = new Modelo_cliente();
+public function lista_pedido()
+{
+    $buscar = $this->request->getGet('buscar') ?? '';
+
+    $m_pedido     = new Modelo_pedido();
+    $m_cliente    = new Modelo_cliente();
     $m_repartidor = new Modelo_repartidor();
-    $m_pps = new Modelo_productopedidos();
-    $clientes = array_column($m_cliente->findAll(), null, 'id');
+    $m_pps        = new Modelo_productopedidos();
+
+    $clientes     = array_column($m_cliente->findAll(), null, 'id');
     $repartidores = array_column($m_repartidor->findAll(), null, 'id');
+
     $datos = [
-        'pedidos'      => $m_pedido->findAll(),
+        'pedidos'      => $m_pedido->buscarPedidos($buscar),
         'clientes'     => $clientes,
         'repartidores' => $repartidores,
-        'pps'=>$m_pps->findAll(),
+        'pps'          => $m_pps->findAll(),
+        'buscar'       => $buscar,
     ];
 
     return view('lista_pedido', $datos);

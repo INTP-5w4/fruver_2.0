@@ -106,7 +106,7 @@
 
                 <label><b>Unidad de compra</b></label>
                 <select name="u_com" class="modal-input" required>
-                     <option value="Caja">Caja</option>
+                    <option value="Caja">Caja</option>
                     <option value="Arpilla">Arpilla</option>
                     <option value="Bulto">Bulto</option>
                     <option value="Tonelada">Tonelada</option>
@@ -114,7 +114,7 @@
                 </select>
 
                 <label><b>Equivalente</b></label>
-                <input type="number" name="equiv" class="modal-input" required>
+                <input type="number" name="equi" class="modal-input">
 
 
                 <label><b>Unidad de venta</b></label>
@@ -124,6 +124,7 @@
                     <option value="Caja">Caja</option>
                     <option value="Pieza">Pieza</option>
                     <option value="Domo">Domo</option>
+                    <option value="Ramo">Ramo</option>
                 </select>
 
                 <label><b>Precio de compra</b></label>
@@ -146,7 +147,7 @@
 
             <header class="modal-header">
                 <span onclick="document.getElementById('modalEditarEntrada').style.display='none'"
-                      class="modal-cerrar">&times;</span>
+                    class="modal-cerrar">&times;</span>
                 <h2>Editar Entrada</h2>
             </header>
 
@@ -180,9 +181,10 @@
                     <option value="Caja">Caja</option>
                     <option value="Pieza">Pieza</option>
                     <option value="Domo">Domo</option>
+                    <option value="Ramo">Ramo</option>
                 </select>
-                <label for="">Equivalente</label>
-                <input type="number" name="equi" id="">
+                <label for=""><b>Equivalente</b></label>
+                <input type="number" name="equi" id="" class="modal-input">
 
                 <label><b>Precio de compra</b></label>
                 <input type="number" name="p_compra" id="edit_precio_compra" class="modal-input" required>
