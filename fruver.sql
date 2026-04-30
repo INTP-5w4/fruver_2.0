@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-04-2026 a las 16:11:43
+-- Tiempo de generación: 28-04-2026 a las 19:57:32
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -319,9 +319,7 @@ CREATE TABLE `pedido` (
 --
 
 INSERT INTO `pedido` (`id`, `fecha`, `id_cliente`, `id_repartidor`, `id_producto_pedido`) VALUES
-(1, '2026-03-03', 8, 2, NULL),
-(2, '2026-04-28', 9, 2, NULL),
-(3, '2026-04-28', 7, 3, NULL);
+(1, '2026-03-03', 8, 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -354,25 +352,7 @@ INSERT INTO `producto` (`id`, `nombre`, `descripcion`, `img`, `categoria`) VALUE
 (14, 'flor de calabaza', 'Se vende por manojo', '1776799626_d4694eedc0272714a81c.jpeg', ''),
 (15, 'flor de calabaza', 'Se vende por manojo', '1776799627_c4608c2e3ba5121d8d01.jpeg', ''),
 (16, 'Xonegui', 'un quelite trepador con forma de corazón, Ipomoea dumosa', '1777424218_270d1b63c72c5c085019.jpeg', ''),
-(17, 'Xoxogo', 'Bolita Negra', '1777424431_d396674dfd011bc9eb93.jpeg', 'frutas'),
-(18, 'Durazno', 'Naranja', '1777434990_c3028123e9df6464dca9.jpg', 'frutas'),
-(19, 'Berenjena', 'Morao', '1777438264_586969ea4471c3729903.jpg', 'frutas');
-
---
--- Disparadores `producto`
---
-DELIMITER $$
-CREATE TRIGGER `no_duplica_producto` BEFORE INSERT ON `producto` FOR EACH ROW BEGIN
-    IF EXISTS (
-        SELECT 1 FROM producto
-        WHERE nombre = NEW.nombre
-    ) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Error: Ya existe un producto con ese nombre';
-    END IF;
-END
-$$
-DELIMITER ;
+(17, 'Xoxogo', 'Bolita Negra', '1777424431_d396674dfd011bc9eb93.jpeg', 'frutas');
 
 -- --------------------------------------------------------
 
@@ -557,7 +537,7 @@ ALTER TABLE `pedido`
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT de la tabla `producto_pedido`

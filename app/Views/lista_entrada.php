@@ -9,6 +9,18 @@
 </head>
 <body>
 
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+
 <div class="contenedor-boton">
     <button onclick="document.getElementById('modalCrearEntrada').style.display='block'"
             class="btn-agregar">
@@ -28,6 +40,7 @@
                 <th>Conversión</th>
                 <th>Unidad de venta</th>
                 <th>Precio compra</th>
+                <th>Precio venta</th>
                 <th>Nombre del producto</th>
                 <th>Editar</th>
                 <th>Eliminar</th>
@@ -45,6 +58,7 @@
                 <td><?= $e['conversion'] ?></td>
                 <td><?= $e['u_venta'] ?></td>
                 <td><?= $e['precio_compra_u'] ?></td>
+                <td><?= $e['precio_venta_u'] ?></td>
                 <td>
                     <?php $p = $productos[$e['id_producto']] ?? null;
                     echo $p ? "{$p['nombre']}" : 'Desconocido'; ?>
@@ -77,68 +91,76 @@
     </table>
 
     <!-- MODAL CREAR ENTRADA -->
-    <div id="modalCrearEntrada" class="w3-modal" style="display:none;">
-        <div class="modal-contenido w3-animate-zoom">
+<div id="modalCrearEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
+    <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+        <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
+            <label><b>Fecha de entrada</b></label>
+            <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
 
-            <header class="modal-header">
-                <span onclick="document.getElementById('modalCrearEntrada').style.display='none'"
-                    class="modal-cerrar">&times;</span>
-                <h2>Registrar Entrada</h2>
-            </header>
+            <label><b>Fecha de caducidad</b></label>
+            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
 
-            <form action="<?= base_url('guarda_entrada') ?>" method="post" class="modal-form">
+            <!-- NUEVO: Filtro de categoría -->
+            <label><b>Categoría</b></label>
+            <select id="filtroCategoriaEntrada" class="w3-select w3-border w3-margin-bottom">
+                <option value="">— Todas —</option>
+                <option value="frutas">Frutas</option>
+                <option value="verduras">Verduras</option>
+                <option value="hierbas">Hierbas</option>
+            </select>
 
-                <label><b>Fecha de entrada</b></label>
-                <input type="date" name="f_ent" class="modal-input" required>
+            <label><b>Producto</b></label>
+            <select id="selectProductoEntrada" name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
+                <?php foreach ($productos as $p): ?>
+                    <option value="<?= esc($p['id']) ?>"
+                            data-categoria="<?= esc($p['categoria']) ?>">
+                        <?= esc($p['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
-                <label><b>Fecha de caducidad</b></label>
-                <input type="date" name="f_cad" class="modal-input">
+            <label><b>Cantidad</b></label>
+            <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Producto</b></label>
-                <select name="id_producto" class="modal-input" required>
-                    <?php foreach ($productos as $p): ?>
-                        <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
-                    <?php endforeach; ?>
-                </select>
+            <label><b>Unidad de compra</b></label>
+            <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
+                <option value="Caja">Caja</option>
+                <option value="Arpilla">Arpilla</option>
+                <option value="Bulto">Bulto</option>
+                <option value="Tonelada">Tonelada</option>
+                <option value="Mazo">Mazo</option>
+            </select>
 
-                <label><b>Cantidad</b></label>
-                <input type="number" name="cant" class="modal-input" required>
+            <label><b>Unidad de venta</b></label>
+            <select name="u_ven" class="w3-select w3-border w3-margin-bottom" required>
+                <option value="Kilogramo">Kilogramo</option>
+                <option value="Litro">Litro</option>
+                <option value="Caja">Caja</option>
+                <option value="Pieza">Pieza</option>
+                <option value="Domo">Domo</option>
+                <option value="Ramo">Ramo</option>
+            </select>
 
-                <label><b>Unidad de compra</b></label>
-                <select name="u_com" class="modal-input" required>
-                     <option value="Caja">Caja</option>
-                    <option value="Arpilla">Arpilla</option>
-                    <option value="Bulto">Bulto</option>
-                    <option value="Tonelada">Tonelada</option>
-                    <option value="Mazo">Mazo</option>
-                </select>
+            <label><b>Equivalente</b></label>
+            <input type="number" name="equi" class="w3-input w3-border w3-margin-bottom">
 
-                <label><b>Equivalente</b></label>
-                <input type="number" name="equiv" class="modal-input" required>
+            <label><b>Precio de compra</b></label>
+            <input type="number" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            
+            <label><b>Precio de venta(Unitario)</b></label>
+            <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
-
-                <label><b>Unidad de venta</b></label>
-                <select name="u_ven" class="modal-input" required>
-                    <option value="Kilogramo">Kilogramo</option>
-                    <option value="Litro">Litro</option>
-                    <option value="Caja">Caja</option>
-                    <option value="Pieza">Pieza</option>
-                    <option value="Domo">Domo</option>
-                </select>
-
-                <label><b>Precio de compra</b></label>
-                <input type="number" name="p_compra" class="modal-input" required>
-
-                <footer class="modal-footer">
-                    <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button"
-                            onclick="document.getElementById('modalCrearEntrada').style.display='none'"
-                            class="btn-cancelar">Cancelar</button>
-                </footer>
-
-            </form>
-        </div>
+            <footer class="w3-container w3-green w3-padding">
+                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="button"
+                        onclick="document.getElementById('modalCrearEntrada').style.display='none'"
+                        class="w3-button w3-white">Cancelar</button>
+            </footer>
+        </form>
     </div>
+</div>
+
+
 
     <!-- MODAL EDITAR ENTRADA -->
     <div id="modalEditarEntrada" class="w3-modal" style="display:none;">
@@ -146,7 +168,7 @@
 
             <header class="modal-header">
                 <span onclick="document.getElementById('modalEditarEntrada').style.display='none'"
-                      class="modal-cerrar">&times;</span>
+                    class="modal-cerrar">&times;</span>
                 <h2>Editar Entrada</h2>
             </header>
 
@@ -180,12 +202,16 @@
                     <option value="Caja">Caja</option>
                     <option value="Pieza">Pieza</option>
                     <option value="Domo">Domo</option>
+                    <option value="Ramo">Ramo</option>
                 </select>
-                <label for="">Equivalente</label>
-                <input type="number" name="equi" id="">
+                <label for=""><b>Equivalente</b></label>
+                <input type="number" name="equi" id="" class="modal-input">
 
                 <label><b>Precio de compra</b></label>
                 <input type="number" name="p_compra" id="edit_precio_compra" class="modal-input" required>
+                
+                <label><b>Precio de venta(Unitario)</b></label>
+                <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
                 <label><b>Producto</b></label>
                 <select name="id_producto" id="edit_id_producto" class="modal-input" required>
@@ -205,6 +231,24 @@
             </form>
         </div>
     </div>
+
+<script>
+document.getElementById('filtroCategoriaEntrada').addEventListener('change', function () {
+    const categoriaElegida = this.value;
+    const selectProducto   = document.getElementById('selectProductoEntrada');
+    const opciones         = selectProducto.querySelectorAll('option');
+
+    opciones.forEach(function (opcion) {
+        const coincide = categoriaElegida === '' || opcion.dataset.categoria === categoriaElegida;
+        opcion.hidden   = !coincide;
+        opcion.disabled = !coincide;
+    });
+
+    // Seleccionar automáticamente la primera opción visible
+    const primeraVisible = selectProducto.querySelector('option:not([hidden])');
+    if (primeraVisible) primeraVisible.selected = true;
+});
+</script>
 
     <script>
         function abrirModal(id, fecha, fecha_cad, cantidad, u_compra, u_venta, precio_compra, id_producto) {
