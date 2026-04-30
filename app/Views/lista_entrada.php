@@ -114,7 +114,7 @@
                 </select>
 
                 <label><b>Equivalente</b></label>
-                <input type="number" name="equi" class="modal-input" required>
+                <input type="number" name="equiv" class="modal-input" required>
 
 
                 <label><b>Unidad de venta</b></label>
