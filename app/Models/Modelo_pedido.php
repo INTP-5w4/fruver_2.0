@@ -28,5 +28,21 @@ public function totalVentasPorMes()
         ->orderBy('mes', 'ASC')
         ->get()->getResultArray();
 }
+public function buscarPedidos(string $buscar = ''): array
+{
+    $builder = $this->db->table('pedido p')
+    ->select('p.*, r.nombre, r.ape_pat, r.ape_mat')
+    ->join('repartidor r', 'r.id = p.id_repartidor', 'left');
+
+    if ($buscar !== '') {
+        $builder->groupStart()
+            ->like('r.nombre',   $buscar)
+            ->orLike('r.ape_pat', $buscar)
+            ->orLike('r.ape_mat', $buscar)
+        ->groupEnd();
+    }
+
+    return $builder->get()->getResultArray();
+}
 
 }

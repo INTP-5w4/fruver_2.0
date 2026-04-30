@@ -276,10 +276,22 @@
             <label><b>Fecha de caducidad</b></label>
             <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
 
+            <!-- NUEVO: Filtro de categoría -->
+            <label><b>Categoría</b></label>
+            <select id="filtroCategoriaEntrada" class="w3-select w3-border w3-margin-bottom">
+                <option value="">— Todas —</option>
+                <option value="frutas">Frutas</option>
+                <option value="verduras">Verduras</option>
+                <option value="hierbas">Hierbas</option>
+            </select>
+
             <label><b>Producto</b></label>
-            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
+            <select id="selectProductoEntrada" name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($productos as $p): ?>
-                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
+                    <option value="<?= esc($p['id']) ?>"
+                            data-categoria="<?= esc($p['categoria']) ?>">
+                        <?= esc($p['nombre']) ?>
+                    </option>
                 <?php endforeach; ?>
             </select>
 
@@ -293,7 +305,6 @@
                 <option value="Bulto">Bulto</option>
                 <option value="Tonelada">Tonelada</option>
                 <option value="Mazo">Mazo</option>
-
             </select>
 
             <label><b>Unidad de venta</b></label>
@@ -311,6 +322,9 @@
 
             <label><b>Precio de compra</b></label>
             <input type="number" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            
+            <label><b>Precio de venta(Unitario)</b></label>
+            <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -318,10 +332,11 @@
                         onclick="document.getElementById('modalEntrada').style.display='none'"
                         class="w3-button w3-white">Cancelar</button>
             </footer>
-
         </form>
     </div>
 </div>
+
+
 
     <div id="modalPedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
@@ -396,53 +411,92 @@
             </form>
         </div>
     </div>
+             <!-- Pegriloso -->
+<div id="modalPpedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
+  <div class="w3-modal-content w3-animate-zoom" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+    <div class="w3-container w3-padding-16">
 
-    <div id="modalPpedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
-    <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
-        <form action="<?= base_url('guarda_p_pedido') ?>" method="post" class="w3-container w3-padding-16">
-            <input type="hidden" name="origen" value="main_page">
-            <label><b>Pedido</b></label>
-            <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($pedidos as $p): ?>
-                    <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
-                <?php endforeach; ?>
-            </select>
+      <!-- Campos del ítem actual -->
+      <label><b>Pedido</b></label>
+      <select id="cp_id_pedido" name="id_pedido" class="w3-select w3-border w3-margin-bottom">
+        <?php foreach ($pedidos as $p): ?>
+          <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
+        <?php endforeach; ?>
+      </select>
 
-            <label><b>Producto</b></label>
-            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($productos as $pr): ?>
-                    <option value="<?= esc($pr['id']) ?>"><?= esc($pr['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
+      <label><b>Producto</b></label>
+      <select id="cp_id_producto" name="id_producto" class="w3-select w3-border w3-margin-bottom">
+        <?php foreach ($productos as $pr): ?>
+            <option value="<?= esc($pr['id']) ?>"
+            data-precio="<?= esc($precioSugeridoPorProducto[$pr['id']] ?? '') ?>">
+            <?= esc($pr['nombre']) ?>
+            </option>
+        <?php endforeach; ?>
+      </select>
 
-            <label><b>Unidad de venta</b></label>
-            <select name="u_venta" class="w3-select w3-border w3-margin-bottom" required>
-                <option value="Kilogramo">Kilogramo</option>
-                <option value="Domo">Domo</option>
-                <option value="Ramos">Ramo</option>
-                <option value="Caja">Caja</option>
-            </select>
+      <label><b>Unidad de venta</b></label>
+      <select id="cp_u_venta" name="u_venta" class="w3-select w3-border w3-margin-bottom">
+        <option value="Kilogramo">Kilogramo</option>
+        <option value="Domo">Domo</option>
+        <option value="Ramos">Ramo</option>
+        <option value="Caja">Caja</option>
+        <option value="Pieza">Pieza</option>
+      </select>
 
-            <label><b>Cantidad</b></label>
-            <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+      <label><b>Cantidad</b></label>
+      <input type="number" id="cp_cant" name="cant" class="w3-input w3-border w3-margin-bottom">
 
-            <label><b>Precio de venta</b></label>
-            <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+      <label><b>Precio de venta(Unitario)</b></label>
+        <input type="number" id="cp_p_venta" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
+        <small id="cp_precio_sugerido" class="w3-text-grey" style="display:none;">
+            💡 Precio sugerido (entrada más cara): $<span id="cp_precio_valor"></span>
+        </small>
+      <!-- Botón para agregar al carrito (NO envía al servidor) -->
+      <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
+        + Agregar producto
+      </button>
 
-            <label><b>Total</b></label>
-            <input type="number" name="tot" step="0.01" class="w3-input w3-border w3-margin-bottom">
+      <!-- Mini-tabla del carrito -->
+      <div id="carritoContainer" style="display:none;">
+        <hr>
+        <b>Carrito:</b>
+        <table class="w3-table w3-bordered w3-small w3-margin-top">
+          <thead class="w3-green">
+            <tr>
+              <th>Producto</th>
+              <th>Unidad</th>
+              <th>Cant</th>
+              <th>Precio</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="carritoBody"></tbody>
+        </table>
+      </div>
 
-            <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                <button type="button"
-                        onclick="document.getElementById('modalPpedido').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
-            </footer>
+      <!-- Form oculto que hace el POST real -->
+      <form id="formCarrito" action="<?= base_url('guarda_p_pedido') ?>" method="post">
+        <input type="hidden" name="origen" value="main_page">
+        <input type="hidden" name="items" id="inputItems">
+        <?= csrf_field() ?>
+      </form>
 
-        </form>
+      <footer class="w3-container w3-green w3-padding w3-margin-top">
+        <button type="button" onclick="enviarCarrito()" class="w3-button w3-white w3-right">
+          Guardar todo
+        </button>
+        <button type="button"
+                onclick="cerrarModal()"
+                class="w3-button w3-white">Cancelar</button>
+      </footer>
+
     </div>
+  </div>
 </div>
 
+
+             <!-- Pegriloso -->
 <div id="modalEstatus" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
@@ -539,10 +593,7 @@
             <label><b>Notas</b></label>
             <textarea name="notas" rows="3" class="w3-input w3-border w3-margin-bottom"></textarea>
 
-            <!-- Datos para JS -->
-            <script id="entradas-data" type="application/json">
-                <?= json_encode($entradas) ?>
-            </script>
+            
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -554,6 +605,11 @@
         </form>
     </div>
 </div>
+   <!-- Marcado -->
+<script id="entradas-data" type="application/json">
+                <?= json_encode($entradas) ?>
+            </script>
+
     <!-- Datos para Chart.js -->
     <script id="chart-data" type="application/json">
     <?= json_encode([
@@ -576,5 +632,114 @@
         });
     };
     </script>
+<script>
+let carrito = [];
+
+// Mapas para mostrar el nombre del producto en la tabla (no solo el id)
+const nombreProducto = {
+  <?php foreach ($productos as $pr): ?>
+    <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
+  <?php endforeach; ?>
+};
+
+function agregarAlCarrito() {
+  const id_pedido  = document.getElementById('cp_id_pedido').value;
+  const id_producto = document.getElementById('cp_id_producto').value;
+  const u_venta    = document.getElementById('cp_u_venta').value;
+  const cant       = parseFloat(document.getElementById('cp_cant').value);
+  const p_venta    = parseFloat(document.getElementById('cp_p_venta').value);
+
+  if (!cant || !p_venta) {
+    alert('Completa cantidad y precio antes de agregar.');
+    return;
+  }
+
+  const total = (cant * p_venta).toFixed(2);
+
+  carrito.push({ id_pedido, id_producto, u_venta, cant, p_venta, total });
+  renderCarrito();
+
+  // Limpia los campos numéricos para el siguiente ítem
+  document.getElementById('cp_cant').value    = '';
+  document.getElementById('cp_p_venta').value = '';
+}
+
+function renderCarrito() {
+  const tbody = document.getElementById('carritoBody');
+  tbody.innerHTML = '';
+
+  carrito.forEach((item, i) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${nombreProducto[item.id_producto]}</td>
+        <td>${item.u_venta}</td>
+        <td>${item.cant}</td>
+        <td>$${item.p_venta}</td>
+        <td>$${item.total}</td>
+        <td><button type="button" onclick="quitarItem(${i})"
+            class="w3-button w3-red w3-small">✕</button></td>
+      </tr>`;
+  });
+
+  document.getElementById('carritoContainer').style.display =
+    carrito.length ? 'block' : 'none';
+}
+
+function quitarItem(i) {
+  carrito.splice(i, 1);
+  renderCarrito();
+}
+
+function enviarCarrito() {
+  if (carrito.length === 0) {
+    alert('El carrito está vacío.');
+    return;
+  }
+  document.getElementById('inputItems').value = JSON.stringify(carrito);
+  document.getElementById('formCarrito').submit();
+}
+
+function cerrarModal() {
+  carrito = [];
+  renderCarrito();
+  document.getElementById('modalPpedido').style.display = 'none';
+}
+</script>
+<script>
+document.getElementById('cp_id_producto').addEventListener('change', function () {
+    const opcionSeleccionada = this.options[this.selectedIndex];
+    const precio = opcionSeleccionada.dataset.precio;
+    const etiqueta = document.getElementById('cp_precio_sugerido');
+    const valorSpan = document.getElementById('cp_precio_valor');
+
+    if (precio !== '') {
+        valorSpan.textContent = parseFloat(precio).toFixed(2);
+        etiqueta.style.display = 'block';
+        document.getElementById('cp_p_venta').value = parseFloat(precio).toFixed(2);
+    } else {
+        etiqueta.style.display = 'none';
+        document.getElementById('cp_p_venta').value = '';
+    }
+});
+
+document.getElementById('cp_id_producto').dispatchEvent(new Event('change'));
+</script>
+<script>
+document.getElementById('filtroCategoriaEntrada').addEventListener('change', function () {
+    const categoriaElegida = this.value;
+    const selectProducto   = document.getElementById('selectProductoEntrada');
+    const opciones         = selectProducto.querySelectorAll('option');
+
+    opciones.forEach(function (opcion) {
+        const coincide = categoriaElegida === '' || opcion.dataset.categoria === categoriaElegida;
+        opcion.hidden   = !coincide;
+        opcion.disabled = !coincide;
+    });
+
+    // Seleccionar automáticamente la primera opción visible
+    const primeraVisible = selectProducto.querySelector('option:not([hidden])');
+    if (primeraVisible) primeraVisible.selected = true;
+});
+</script>
 </body>
 </html>
