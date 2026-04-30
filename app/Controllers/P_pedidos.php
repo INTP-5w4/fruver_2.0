@@ -44,7 +44,6 @@ public function guarda_p_pedido(){
         ) {
             return redirect()->to('crea_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
         }
-        var_dump($datos);die();
         $m_p_pedido->insert($datos);
     }
 
