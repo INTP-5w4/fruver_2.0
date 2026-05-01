@@ -5,9 +5,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista de productos</title>
 </head>
 <body>
+    <?php include 'Header.php'; ?>
+
 <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
         <p><?= session()->getFlashdata('error') ?></p>
@@ -21,7 +24,7 @@
 <?php endif; ?>
 
 
-<div class="contenedor-boton">
+<div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearProducto').style.display='block'"
             class="btn-agregar">
         + Nuevo Producto
@@ -81,15 +84,15 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Nombre</b></label>
+                <label><b>Nombre*</b></label>
                 <input type="text" name="nom" id="edit_nom"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Descripción</b></label>
+                <label><b>Descripción*</b></label>
                 <textarea name="desc" id="edit_desc" rows="4"
                     class="w3-input w3-border w3-margin-bottom" required></textarea>
 
-                <label><b>Categoría</b></label>
+                <label><b>Categoría*</b></label>
                 <select name="cat" id="edit_cat"
                 class="w3-select w3-border w3-margin-bottom" required>
                     <option value="frutas">Frutas</option>
@@ -97,7 +100,7 @@
                     <option value="hierbas">Hierbas</option>
                 </select>
 
-                <label><b>Imagen</b> <span style="font-weight:normal;">(opcional, solo si deseas cambiarla)</span></label>
+                <label><b>Imagen*</b> <span style="font-weight:normal;">(opcional, solo si deseas cambiarla)</span></label>
                 <input type="file" name="img"
                     class="w3-input w3-border w3-margin-bottom">
 
@@ -114,17 +117,17 @@
     <div id="modalCrearProducto" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
-                <label><b>Nombre</b></label>
+                <label><b>Nombre*</b></label>
                 <input type="text" name="nom" placeholder="Ej: Tomate Saladet" class="w3-input w3-border w3-margin-bottom" required>
-                <label><b>Descripción</b></label>
+                <label><b>Descripción*</b></label>
                 <textarea name="desc" rows="4" class="w3-input w3-border w3-margin-bottom" required></textarea>
-                <label><b>Categoría</b></label>
+                <label><b>Categoría*</b></label>
                 <select name="cat" class="w3-select w3-border w3-margin-bottom" required>
                     <option value="frutas">Frutas</option>
                     <option value="verduras">Verdura</option>
                     <option value="hierbas">Hierba</option>
                 </select>
-                <label><b>Imagen</b></label>
+                <label><b>Imagen*</b></label>
                 <input type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>

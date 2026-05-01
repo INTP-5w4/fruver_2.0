@@ -5,9 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Entrada</title>
 </head>
 <body>
+        <?php include 'Header.php'; ?>
+        <?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+
 
 <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
@@ -21,7 +35,7 @@
     </div>
 <?php endif; ?>
 
-<div class="contenedor-boton">
+<div class="contenedor-boton"style=" padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearEntrada').style.display='block'"
             class="btn-agregar">
         + Nueva Entrada
@@ -39,7 +53,10 @@
                 <th>Equivalente</th>
                 <th>Conversión</th>
                 <th>Unidad de venta</th>
-                <th>Precio compra</th>
+                <th>Precio compra
+                    (Unitario)
+                </th>
+                <th>Monto compra total</th>
                 <th>Precio venta</th>
                 <th>Nombre del producto</th>
                 <th>Editar</th>
@@ -58,6 +75,7 @@
                 <td><?= $e['conversion'] ?></td>
                 <td><?= $e['u_venta'] ?></td>
                 <td><?= $e['precio_compra_u'] ?></td>
+                <td><?= $e['conv_pc'] ?></td>
                 <td><?= $e['precio_venta_u'] ?></td>
                 <td>
                     <?php $p = $productos[$e['id_producto']] ?? null;
@@ -120,7 +138,7 @@
             </select>
 
             <label><b>Cantidad</b></label>
-            <input type="number" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" required>
 
             <label><b>Unidad de compra</b></label>
             <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
@@ -142,13 +160,13 @@
             </select>
 
             <label><b>Equivalente</b></label>
-            <input type="number" name="equi" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej: 20" name="equi" class="w3-input w3-border w3-margin-bottom">
 
             <label><b>Precio de compra</b></label>
-            <input type="number" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej: 45" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
             
             <label><b>Precio de venta(Unitario)</b></label>
-            <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej: 50" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -176,16 +194,16 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Fecha de entrada</b></label>
+                <label><b>Fecha de entrada*</b></label>
                 <input type="date" name="f_ent" id="edit_f_ent" class="modal-input" required>
 
                 <label><b>Fecha de caducidad</b></label>
                 <input type="date" name="f_cad" id="edit_f_cad" class="modal-input">
 
-                <label><b>Cantidad</b></label>
+                <label><b>Cantidad*</b></label>
                 <input type="number" name="cant" id="edit_cant" class="modal-input" required>
 
-                <label><b>Unidad de compra</b></label>
+                <label><b>Unidad de compra*</b></label>
                 <select name="u_com" id="edit_u_com" class="modal-input" required>
                     <option value="Caja">Caja</option>
                     <option value="Arpilla">Arpilla</option>
@@ -195,7 +213,7 @@
                 </select>
 
 
-                <label><b>Unidad de venta</b></label>
+                <label><b>Unidad de venta*</b></label>
                 <select name="u_ven" id="edit_u_ven" class="modal-input" required>
                     <option value="Kilogramo">Kilogramo</option>
                     <option value="Litro">Litro</option>
@@ -204,16 +222,16 @@
                     <option value="Domo">Domo</option>
                     <option value="Ramo">Ramo</option>
                 </select>
-                <label for=""><b>Equivalente</b></label>
+                <label for=""><b>Equivalente*</b></label>
                 <input type="number" name="equi" id="" class="modal-input">
 
-                <label><b>Precio de compra</b></label>
+                <label><b>Precio de compra(Unitario)*</b></label>
                 <input type="number" name="p_compra" id="edit_precio_compra" class="modal-input" required>
                 
-                <label><b>Precio de venta(Unitario)</b></label>
+                <label><b>Precio de venta(Unitario)*</b></label>
                 <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Producto</b></label>
+                <label><b>Producto*</b></label>
                 <select name="id_producto" id="edit_id_producto" class="modal-input" required>
                     <?php foreach ($productos as $p): ?>
                         <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
