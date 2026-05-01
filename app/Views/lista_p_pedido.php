@@ -5,9 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista p_pedido</title>
 </head>
 <body>
+    <?php include 'Header.php'; ?>
+
     <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
         <p><?= session()->getFlashdata('error') ?></p>
@@ -19,7 +22,7 @@
         <p><?= session()->getFlashdata('mensaje') ?></p>
     </div>
 <?php endif; ?>
-<div class="contenedor-boton">
+<div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearPpedido').style.display='block'"
             class="btn-agregar">
         + Nuevo Carrito
@@ -83,15 +86,15 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Cantidad</b></label>
+                <label><b>Cantidad*</b></label>
                 <input type="number" name="cant" id="edit_cant"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Precio de venta</b></label>
+                <label><b>Precio de venta*</b></label>
                 <input type="number" name="p_venta" id="edit_p_venta" step="0.01"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Unidad de venta</b></label>
+                <label><b>Unidad de venta*</b></label>
                 <select name="u_venta" id="edit_u_venta"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <option value="Kilogramo">Kilogramo</option>
@@ -100,11 +103,11 @@
                     <option value="Caja">Caja</option>
                 </select>
 
-                <label><b>Total</b></label>
+                <label><b>Total*</b></label>
                 <input type="number" name="tot" id="edit_tot" step="0.01"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Pedido</b></label>
+                <label><b>Pedido*</b></label>
                 <select name="id_pedido" id="edit_id_pedido"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach($pedidos as $p): ?>
@@ -112,7 +115,7 @@
                     <?php endforeach; ?>
                 </select>
 
-                <label><b>Producto</b></label>
+                <label><b>Producto*</b></label>
                 <select name="id_producto" id="edit_id_producto"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach($productos as $pr): ?>
@@ -137,21 +140,21 @@
       
 
       <!-- Campos del ítem actual -->
-      <label><b>Pedido</b></label>
+      <label><b>Pedido*</b></label>
       <select id="cp_id_pedido" class="w3-select w3-border w3-margin-bottom">
         <?php foreach ($pedidos as $p): ?>
           <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
         <?php endforeach; ?>
       </select>
 
-      <label><b>Producto</b></label>
+      <label><b>Producto*</b></label>
       <select id="cp_id_producto" class="w3-select w3-border w3-margin-bottom">
         <?php foreach ($productos as $pr): ?>
           <option value="<?= esc($pr['id']) ?>"><?= esc($pr['nombre']) ?></option>
         <?php endforeach; ?>
       </select>
 
-      <label><b>Unidad de venta</b></label>
+      <label><b>Unidad de venta*</b></label>
       <select id="cp_u_venta" class="w3-select w3-border w3-margin-bottom">
         <option value="Kilogramo">Kilogramo</option>
         <option value="Domo">Domo</option>
@@ -159,11 +162,11 @@
         <option value="Caja">Caja</option>
       </select>
 
-      <label><b>Cantidad</b></label>
-      <input type="number" id="cp_cant" class="w3-input w3-border w3-margin-bottom">
+      <label><b>Cantidad*</b></label>
+      <input type="number" placeholder="Ej: 45" id="cp_cant" class="w3-input w3-border w3-margin-bottom">
 
-      <label><b>Precio de venta(unitario)</b></label>
-      <input type="number" id="cp_p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
+      <label><b>Precio de venta(Unitario)*</b></label>
+      <input type="number" placeholder="Ej:50" id="cp_p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
 
       <!-- Botón para agregar al carrito (NO envía al servidor) -->
       <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">

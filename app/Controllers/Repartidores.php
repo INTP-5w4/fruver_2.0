@@ -23,8 +23,7 @@ public function guarda_repartidor(){
         empty($datos['ape_pat'])||
         empty($datos['ape_mat'])||
         empty($datos['telefono'])||
-        empty($datos['direccion'])||
-        empty($datos['notas'])
+        empty($datos['direccion'])
     )return view('crea_repartidor');
     else{
         $m_repartidor->insert($datos);

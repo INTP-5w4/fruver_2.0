@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista estatus</title>
 </head>
 <body>
+        <?php include 'Header.php'; ?>
+
 
 <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
@@ -20,7 +24,7 @@
         <p><?= session()->getFlashdata('mensaje') ?></p>
     </div>
 <?php endif; ?>
-<div class="contenedor-boton">
+<div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearEstatus').style.display='block'"
             class="btn-agregar">
         + Nuevo Estatus
@@ -73,7 +77,7 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Estado</b></label>
+                <label><b>Estado*</b></label>
                 <select name="edo" id="edit_edo" class="w3-select w3-border w3-margin-bottom" required>
                     <option value="pedido_realizado">Pedido realizado</option>
                     <option value="pedido_confirmado">Pedido confirmado</option>
@@ -84,11 +88,11 @@
                     <option value="pedido_cancelado">Pedido cancelado</option>
                 </select>
 
-                <label><b>Fecha</b></label>
+                <label><b>Fecha*</b></label>
                 <input type="date" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>ID Pedido</b></label>
+                <label><b>ID Pedido*</b></label>
                 <input type="number" name="id_pedido" id="edit_id_pedido"
                     class="w3-input w3-border w3-margin-bottom" required>
 
@@ -107,14 +111,14 @@
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
 
-            <label><b>Pedido</b></label>
+            <label><b>Pedido*</b></label>
             <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($pedidos as $p): ?>
                     <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Estado</b></label>
+            <label><b>Estado*</b></label>
             <select name="edo" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="pedido_realizado">Pedido realizado</option>
                 <option value="pedido_confirmado">Pedido confirmado</option>
@@ -125,7 +129,7 @@
                 <option value="pedido_cancelado">Pedido cancelado</option>
             </select>
 
-            <label><b>Fecha</b></label>
+            <label><b>Fecha*</b></label>
             <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
 
             <footer class="w3-container w3-green w3-padding">

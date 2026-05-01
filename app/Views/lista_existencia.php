@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista existencia</title>
 </head>
 <body>
+    <?php include 'Header.php'; ?>
 
 <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
@@ -20,7 +22,7 @@
         <p><?= session()->getFlashdata('mensaje') ?></p>
     </div>
 <?php endif; ?>
-<div class="contenedor-boton">
+<div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearExistencias').style.display='block'"
             class="btn-agregar">
         + Nueva Existencia
@@ -78,23 +80,23 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Existencias totales</b></label>
+                <label><b>Existencias totales*</b></label>
                 <input type="number" name="e_total" id="edit_e_total"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Existencias bloqueadas</b></label>
+                <label><b>Existencias bloqueadas*</b></label>
                 <input type="number" name="e_bloqueado" id="edit_e_bloqueado"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Existencias para venta</b></label>
+                <label><b>Existencias para venta*</b></label>
                 <input type="number" name="e_venta" id="edit_e_venta"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Fecha</b></label>
+                <label><b>Fecha*</b></label>
                 <input type="datetime-local" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Producto</b></label>
+                <label><b>Producto*</b></label>
                 <select name="id_producto" id="edit_id_producto"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach($productos as $p): ?>
@@ -124,16 +126,16 @@
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Existencias totales</b></label>
-            <input type="number" name="e_total" class="w3-input w3-border w3-margin-bottom">
+            <label><b>Existencias totales*</b></label>
+            <input type="number" placeholder="Ej: 30" name="e_total" class="w3-input w3-border w3-margin-bottom">
 
-            <label><b>Existencias bloqueadas</b></label>
-            <input type="number" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom">
+            <label><b>Existencias bloqueadas*</b></label>
+            <input type="number" placeholder="Ej: 20" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom">
 
-            <label><b>Existencias para venta</b></label>
-            <input type="number" name="e_venta" class="w3-input w3-border w3-margin-bottom">
+            <label><b>Existencias para venta*</b></label>
+            <input type="number" placeholder="Ej: 10" name="e_venta" class="w3-input w3-border w3-margin-bottom">
 
-            <label><b>Fecha</b></label>
+            <label><b>Fecha*</b></label>
             <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
 
             <footer class="w3-container w3-green w3-padding">

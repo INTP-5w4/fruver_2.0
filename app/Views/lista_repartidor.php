@@ -6,11 +6,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Repartidores</title>
 </head>
 <body>
+    <?php include 'Header.php'; ?>
+<?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
 
-<div class="contenedor-boton">
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+
+<div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearRepartidor').style.display='block'"
             class="btn-agregar">
         + Nuevo Repartidor
@@ -79,23 +92,23 @@
 
             <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="modal-form">
 
-                <label><b>Nombre</b></label>
+                <label><b>Nombre*</b></label>
                 <input type="text" name="nom" class="modal-input" required>
 
-                <label><b>Apellido Paterno</b></label>
+                <label><b>Apellido Paterno*</b></label>
                 <input type="text" name="ape_pat" class="modal-input" required>
 
-                <label><b>Apellido Materno</b></label>
+                <label><b>Apellido Materno*</b></label>
                 <input type="text" name="ape_mat" class="modal-input" required>
 
-                <label><b>Teléfono</b></label>
-                <input type="text" name="tel" class="modal-input" required>
+                <label><b>Teléfono*</b></label>
+                <input type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required>
 
-                <label><b>Dirección</b></label>
+                <label><b>Dirección*</b></label>
                 <input type="text" name="dir" class="modal-input" required>
 
                 <label><b>Notas</b></label>
-                <textarea name="not" class="modal-input" rows="4" required></textarea>
+                <textarea name="not" class="modal-input" rows="4"></textarea>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
@@ -122,19 +135,19 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Nombre</b></label>
+                <label><b>Nombre*</b></label>
                 <input type="text" name="nom" id="edit_nom" class="modal-input" required>
 
-                <label><b>Apellido Paterno</b></label>
+                <label><b>Apellido Paterno*</b></label>
                 <input type="text" name="ape_pat" id="edit_ape_pat" class="modal-input" required>
 
-                <label><b>Apellido Materno</b></label>
+                <label><b>Apellido Materno*</b></label>
                 <input type="text" name="ape_mat" id="edit_ape_mat" class="modal-input" required>
 
-                <label><b>Teléfono</b></label>
+                <label><b>Teléfono*</b></label>
                 <input type="text" name="tel" id="edit_tel" class="modal-input" required>
 
-                <label><b>Dirección</b></label>
+                <label><b>Dirección*</b></label>
                 <input type="text" name="dir" id="edit_dir" class="modal-input" required>
 
                 <label><b>Notas</b></label>

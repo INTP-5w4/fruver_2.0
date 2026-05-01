@@ -31,8 +31,7 @@ public function guarda_merma(){
     ];
     if (
         empty($datos['cantidad']) || 
-        empty($datos['fecha']) || 
-        empty($datos['notas']) || 
+        empty($datos['fecha']) ||  
         empty($datos['id_entrada'])
     ){
         return redirect()->to('crea_merma')->with('error', 'Por favor, complete todos los campos obligatorios.');

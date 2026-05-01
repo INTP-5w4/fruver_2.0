@@ -5,11 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Direcciones</title>
 </head>
 <body>
+        <?php include 'Header.php'; ?>
+        <?php if (session()->getFlashdata('error')): ?>
+    <div class="w3-panel w3-red w3-animate-opacity">
+        <p><?= session()->getFlashdata('error') ?></p>
+    </div>
+<?php endif; ?>
 
-<div class="contenedor-boton">
+<?php if (session()->getFlashdata('mensaje')): ?>
+    <div class="w3-panel w3-green w3-animate-opacity">
+        <p><?= session()->getFlashdata('mensaje') ?></p>
+    </div>
+<?php endif; ?>
+
+
+<div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearDireccion').style.display='block'"
             class="btn-agregar">
         + Nueva Dirección
@@ -81,19 +95,19 @@
 
             <form action="<?= base_url('guarda_direccion') ?>" method="post" class="modal-form">
 
-                <label><b>Colonia</b></label>
-                <input type="text" name="col" class="modal-input" required>
+                <label><b>Colonia*</b></label>
+                <input type="text" placeholder="Ej: Centro" name="col" class="modal-input" required>
 
-                <label><b>Calle</b></label>
-                <input type="text" name="calle" class="modal-input" required>
+                <label><b>Calle*</b></label>
+                <input type="text" placeholder="Ej: Benito Juárez" name="calle" class="modal-input" required>
 
-                <label><b>Número</b></label>
-                <input type="text" name="num" class="modal-input" required>
+                <label><b>Número*</b></label>
+                <input type="text" placeholder="Ej: 59" name="num" class="modal-input" required>
 
-                <label><b>Municipio</b></label>
-                <input type="text" name="mun" class="modal-input" required>
+                <label><b>Municipio*</b></label>
+                <input type="text" placeholder="Ej: Rafael Lara Grajales" name="mun" class="modal-input" required>
 
-                <label><b>Estado</b></label>
+                <label><b>Estado*</b></label>
                 <select name="edo" class="modal-input" required>
                     <?php
                     $estados = ["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de Mexico","Coahuila","Colima","Durango","Estado de Mexico","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla","Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatan","Zacatecas"];
@@ -102,7 +116,7 @@
                     <?php endforeach; ?>
                 </select>
 
-                <label><b>Cliente</b></label>
+                <label><b>Cliente*</b></label>
                 <select name="id_cliente" class="modal-input" required>
                     <?php foreach ($clientes as $cliente): ?>
                         <option value="<?= $cliente['id'] ?>">
@@ -136,26 +150,26 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Colonia</b></label>
+                <label><b>Colonia*</b></label>
                 <input type="text" name="col" id="edit_col" class="modal-input" required>
 
-                <label><b>Calle</b></label>
+                <label><b>Calle*</b></label>
                 <input type="text" name="calle" id="edit_calle" class="modal-input" required>
 
-                <label><b>Número</b></label>
+                <label><b>Número*</b></label>
                 <input type="text" name="num" id="edit_num" class="modal-input" required>
 
-                <label><b>Municipio</b></label>
+                <label><b>Municipio*</b></label>
                 <input type="text" name="mun" id="edit_mun" class="modal-input" required>
 
-                <label><b>Estado</b></label>
+                <label><b>Estado*</b></label>
                 <select name="edo" id="edit_edo" class="modal-input" required>
                     <?php foreach ($estados as $e): ?>
                         <option value="<?= $e ?>"><?= $e ?></option>
                     <?php endforeach; ?>
                 </select>
 
-                <label><b>Cliente</b></label>
+                <label><b>Cliente*</b></label>
                 <select name="id_cliente" id="edit_id_cliente" class="modal-input" required>
                     <?php foreach ($clientes as $cliente): ?>
                         <option value="<?= $cliente['id'] ?>">
