@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 28-04-2026 a las 19:57:32
+-- Tiempo de generación: 01-05-2026 a las 03:37:10
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -211,7 +211,7 @@ CREATE TRIGGER `actualiza_existencia` AFTER INSERT ON `estatus` FOR EACH ROW BEG
     DECLARE prod_id INT;
  
     -- Obtiene cantidad y producto del primer item del pedido
-    SELECT cant, id_producto
+    SELECT cantidad, id_producto
     INTO   cant_p, prod_id
     FROM   producto_pedido
     WHERE  id_pedido = NEW.id_pedido
@@ -247,11 +247,12 @@ CREATE TABLE `existencia` (
 
 INSERT INTO `existencia` (`id`, `e_total`, `e_bloqueado`, `e_venta`, `fecha`, `id_producto`) VALUES
 (2, 123, 43, 180, '2026-03-31 03:06:38', 7),
-(3, 29, 0, 29, '2026-04-29 04:53:46', 5),
-(4, 428, 0, 428, '2026-04-29 04:53:46', 5),
-(5, 98, 0, 98, '2026-04-29 04:01:58', 10),
-(6, 2848, 0, 2848, '2026-04-29 04:53:46', 5),
-(7, 197, 0, 197, '2026-04-29 04:54:34', 13);
+(3, 29, 100, 29, '2026-04-30 04:31:46', 5),
+(4, 428, 100, 428, '2026-04-30 04:31:46', 5),
+(5, 96, 0, 96, '2026-04-30 04:29:51', 10),
+(6, 2848, 100, 2848, '2026-04-30 04:31:46', 5),
+(7, 197, 0, 197, '2026-04-29 04:54:34', 13),
+(8, 0, 0, 0, '2026-04-30 04:27:03', 12);
 
 -- --------------------------------------------------------
 
@@ -319,7 +320,9 @@ CREATE TABLE `pedido` (
 --
 
 INSERT INTO `pedido` (`id`, `fecha`, `id_cliente`, `id_repartidor`, `id_producto_pedido`) VALUES
-(1, '2026-03-03', 8, 2, NULL);
+(1, '2026-03-03', 8, 2, NULL),
+(2, '2026-04-28', 9, 2, NULL),
+(3, '2026-04-28', 7, 3, NULL);
 
 -- --------------------------------------------------------
 
@@ -352,7 +355,25 @@ INSERT INTO `producto` (`id`, `nombre`, `descripcion`, `img`, `categoria`) VALUE
 (14, 'flor de calabaza', 'Se vende por manojo', '1776799626_d4694eedc0272714a81c.jpeg', ''),
 (15, 'flor de calabaza', 'Se vende por manojo', '1776799627_c4608c2e3ba5121d8d01.jpeg', ''),
 (16, 'Xonegui', 'un quelite trepador con forma de corazón, Ipomoea dumosa', '1777424218_270d1b63c72c5c085019.jpeg', ''),
-(17, 'Xoxogo', 'Bolita Negra', '1777424431_d396674dfd011bc9eb93.jpeg', 'frutas');
+(17, 'Xoxogo', 'Bolita Negra', '1777424431_d396674dfd011bc9eb93.jpeg', 'frutas'),
+(18, 'Durazno', 'Naranja', '1777434990_c3028123e9df6464dca9.jpg', 'frutas'),
+(19, 'Berenjena', 'Morao', '1777438264_586969ea4471c3729903.jpg', 'frutas');
+
+--
+-- Disparadores `producto`
+--
+DELIMITER $$
+CREATE TRIGGER `no_duplica_producto` BEFORE INSERT ON `producto` FOR EACH ROW BEGIN
+    IF EXISTS (
+        SELECT 1 FROM producto
+        WHERE nombre = NEW.nombre
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Error: Ya existe un producto con ese nombre';
+    END IF;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -375,7 +396,8 @@ CREATE TABLE `producto_pedido` (
 --
 
 INSERT INTO `producto_pedido` (`id`, `cant`, `precio_venta`, `unidad_venta`, `total`, `id_pedido`, `id_producto`) VALUES
-(1, 100.00, 30.00, 'Kilogramo', 250.00, 1, 5);
+(1, 100.00, 30.00, 'Kilogramo', 250.00, 1, 5),
+(2, 2.00, 10.00, 'Kilogramo', 20.00, 1, 5);
 
 --
 -- Disparadores `producto_pedido`
@@ -383,7 +405,7 @@ INSERT INTO `producto_pedido` (`id`, `cant`, `precio_venta`, `unidad_venta`, `to
 DELIMITER $$
 CREATE TRIGGER `calcula_total` BEFORE INSERT ON `producto_pedido` FOR EACH ROW BEGIN
 DECLARE total_var decimal;
-SET total_var=cantidad*precio_venta;
+SET total_var=new.cant*new.precio_venta;
 SET new.total=total_var;
 END
 $$
@@ -495,61 +517,61 @@ ALTER TABLE `repartidor`
 -- AUTO_INCREMENT de la tabla `cliente`
 --
 ALTER TABLE `cliente`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de la tabla `direccion`
 --
 ALTER TABLE `direccion`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `entrada`
 --
 ALTER TABLE `entrada`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `estatus`
 --
 ALTER TABLE `estatus`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `existencia`
 --
 ALTER TABLE `existencia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de la tabla `merma`
 --
 ALTER TABLE `merma`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `pedido`
 --
 ALTER TABLE `pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `producto_pedido`
 --
 ALTER TABLE `producto_pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `repartidor`
 --
 ALTER TABLE `repartidor`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Restricciones para tablas volcadas
