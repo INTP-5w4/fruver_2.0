@@ -27,7 +27,7 @@ public function guarda_p_pedido(){
 
     foreach ($items as $item) {
         $datos = [
-            'cantidad'         => $item['cant'],
+            'cant'         => $item['cant'],
             'precio_venta' => $item['p_venta'],
             'unidad_venta' => $item['u_venta'],
             'total'        => $item['total'],
@@ -36,7 +36,7 @@ public function guarda_p_pedido(){
         ];
         
         if (
-            empty($datos['cantidad'])         ||
+            empty($datos['cant'])         ||
             empty($datos['precio_venta']) ||
             empty($datos['unidad_venta']) ||
             empty($datos['id_pedido'])    ||
@@ -44,7 +44,7 @@ public function guarda_p_pedido(){
         ) {
             return redirect()->to('crea_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
         }
-        var_dump($datos);die();
+        
         $m_p_pedido->insert($datos);
     }
 
@@ -86,7 +86,7 @@ public function eliminar_datos($id=null){
 public function modifica(){
     $m_p_pedido = new Modelo_productopedidos();
     $datos = [
-        'cantidad' => $this->request->getPost('cant'),
+        'cant' => $this->request->getPost('cant'),
         'precio_venta' => $this->request->getPost('p_venta'),
         'unidad_venta' => $this->request->getPost('u_venta'),
         'total' => $this->request->getPost('tot'),
@@ -95,7 +95,7 @@ public function modifica(){
     ];
     $id = $this->request->getPost('id');
     if (
-        empty($datos['cantidad']) || 
+        empty($datos['cant']) || 
         empty($datos['precio_venta']) ||
         empty($datos['unidad_venta']) ||
         empty($datos['id_pedido']) ||
