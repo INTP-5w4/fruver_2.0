@@ -29,6 +29,25 @@
     </button>
 </div>
 
+<form method="get" action="<?= base_url('lista_cliente') ?>" class="w3-margin-bottom">
+    <div style="display:flex; gap:8px;">
+        <input
+            type="text"
+            name="buscar"
+            value="<?= esc($buscar ?? '') ?>"
+            placeholder="Buscar por id..."
+            class="w3-input w3-border"
+            style="max-width:350px;"
+        >
+        <button type="submit" class="w3-button w3-green">
+            <i class="fa-solid fa-magnifying-glass"></i> Buscar
+        </button>
+        <?php if (!empty($buscar)): ?>
+            <a href="<?= base_url('lista_cliente') ?>" class="w3-button w3-red">✕ Limpiar</a>
+        <?php endif; ?>
+    </div>
+</form>
+
     <table>
         <thead>
             <tr>
@@ -73,6 +92,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    <?= $pager->links('default', 'w3_pager') ?>
 
     <!-- MODAL EDITAR CLIENTE -->
     <div id="modalEditarCliente" class="w3-modal" style="padding-top:100px; z-index:9999;">

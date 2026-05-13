@@ -42,15 +42,39 @@ public function guarda_existencia(){
 }
 
 public function lista_existencia(){
+
+    $buscar = $this->request->getGet('buscar');
+
     $m_existencia = new Modelo_existencia();
     $m_producto = new Modelo_producto();
-    $datos=[
-        'existencias' => $m_existencia->findAll(),
-        'productos'   => array_column($m_producto->findAll(), null, 'id') // ← fix
-    ];
-    return view('lista_existencia',$datos);
-}
 
+    if($buscar){
+
+        $m_existencia->groupStart()
+            ->like('id', $buscar)
+            ->orLike('e_total', $buscar)
+            ->orLike('e_bloqueado', $buscar)
+            ->orLike('e_venta', $buscar)
+            ->orLike('fecha', $buscar)
+        ->groupEnd();
+    }
+
+    $datos = [
+        'existencias' => $m_existencia
+            ->orderBy('id', 'DESC')
+            ->findAll(),
+
+        'productos' => array_column(
+            $m_producto->findAll(),
+            null,
+            'id'
+        ),
+
+        'buscar' => $buscar
+    ];
+
+    return view('lista_existencia', $datos);
+}
 public function eliminar_datos($id=null){
     $m_existencia = new Modelo_existencia();
     $m_existencia->delete($id);

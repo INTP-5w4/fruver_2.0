@@ -91,22 +91,34 @@ public function guarda_producto(){
             ->with('error', $mensaje);
     }
 }
-public function lista_producto($dato=null){
+public function lista_producto()
+{
+    $buscar = $this->request->getGet('buscar') ?? '';
+
     $m_producto = new Modelo_producto();
-    if (!empty($dato)){
-        $datos=[
-            'productos'=>$m_producto->busqueda_compleja($dato)-> paginate(2,'default'),
-            'pager'=>$m_producto->pager
-        ];
-    }else{
-        
-        $datos=[
-            'productos'=>$m_producto->orderBy('nombre','ASC')-> paginate(5,'default'),
-            'pager'=>$m_producto->pager
-        ];
-        //$datos['productos']=$m_producto->findAll();
-        return view('lista_producto', $datos);
+
+    if (!empty($buscar)) {
+
+        $m_producto->groupStart()
+
+            ->where('id', $buscar)
+
+            ->orLike('nombre', $buscar)
+            ->orLike('descripcion', $buscar)
+            ->orLike('categoria', $buscar)
+
+        ->groupEnd();
     }
+
+    $datos['productos'] = $m_producto
+        ->orderBy('id', 'DESC')
+        ->paginate(20, 'default');
+
+    $datos['pager'] = $m_producto->pager;
+
+    $datos['buscar'] = $buscar;
+
+    return view('lista_producto', $datos);
 }
 
 public function modifica()
