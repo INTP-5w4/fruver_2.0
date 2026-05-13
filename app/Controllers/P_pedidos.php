@@ -87,6 +87,11 @@ public function lista_p_pedido(){
 
     $datos['pedidos'] = $m_pedido->findAll();
 
+    $datos = [
+        'productos' => $m_producto->findAll(),
+        'p_pedidos' => $m_p_pedido->conNombreProducto(),
+        'pedidos'   => $m_pedido->findAll() 
+    ];
     return view('lista_p_pedido', $datos);
 }
 public function recupera($id=null){
