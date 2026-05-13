@@ -47,18 +47,12 @@ public function lista_existencia(){
 
     $m_existencia = new Modelo_existencia();
     $m_producto = new Modelo_producto();
-
-    if($buscar){
-
-        $m_existencia->groupStart()
-            ->like('id', $buscar)
-            ->orLike('e_total', $buscar)
-            ->orLike('e_bloqueado', $buscar)
-            ->orLike('e_venta', $buscar)
-            ->orLike('fecha', $buscar)
-        ->groupEnd();
+    
+    if ($buscar) {
+        $existencias = $m_existencia->buscar($buscar);
+    } else {
+        $existencias = $m_existencia->orderBy('id', 'DESC')->findAll();
     }
-
     $datos = [
         'existencias' => $m_existencia
             ->orderBy('id', 'DESC')
@@ -70,7 +64,6 @@ public function lista_existencia(){
             'id'
         ),
 
-        'buscar' => $buscar
     ];
 
     return view('lista_existencia', $datos);
