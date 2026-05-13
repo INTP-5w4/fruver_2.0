@@ -31,13 +31,24 @@
     </button>
 </div>
 
-<!-- Buscador -->
-<input type="text" id="buscador"
-       onkeyup="filtrar()"
-       placeholder="Buscar por producto..."
-       class="w3-input w3-border w3-margin-bottom"
-       style="max-width:300px;">
-
+<form method="get" action="<?= base_url('lista_merma') ?>" class="w3-margin-bottom">
+    <div style="display:flex; gap:8px;">
+        <input
+            type="text"
+            name="buscar"
+            value="<?= esc($buscar ?? '') ?>"
+            placeholder="Buscar por id..."
+            class="w3-input w3-border"
+            style="max-width:350px;"
+        >
+        <button type="submit" class="w3-button w3-green">
+            <i class="fa-solid fa-magnifying-glass"></i> Buscar
+        </button>
+        <?php if (!empty($buscar)): ?>
+            <a href="<?= base_url('lista_merma') ?>" class="w3-button w3-red">✕ Limpiar</a>
+        <?php endif; ?>
+    </div>
+</form>
 <table>
     <thead>
         <tr>
@@ -99,11 +110,11 @@
         <?php endforeach; ?>
     </tbody>
 </table>
-
+<?= $pager->links('default', 'w3_pager') ?>
 <div id="modalCrearMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
-            <input type="hidden" name="origen" value="main_page">
+        <input type="hidden" name="origen" value="lista_merma">
             <label><b>Entrada*</b></label>
             <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="">-- Selecciona una entrada --</option>

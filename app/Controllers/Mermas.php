@@ -37,23 +37,46 @@ public function guarda_merma(){
         return redirect()->to('crea_merma')->with('error', 'Por favor, complete todos los campos obligatorios.');
     }else{
         $m_merma->insert($datos);
-        if($this->request->getPost('origen') === 'main_page'){
-            return redirect()->to('/')->with('mensaje', 'Merma registrada exitosamente.');
-        }
-        return redirect()->to('lista_merma');
+
+        return redirect()->to('lista_merma')
+            ->with('mensaje', 'Merma registrada exitosamente.');
     }
 }
 
 public function lista_merma(){
+
+    $buscar = $this->request->getGet('buscar') ?? '';
+
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();
-    $datos = [
-        'mermas'   => $m_merma->findAll(),
-        'entradas' => $m_entrada->getEntradasConProducto(),
-    ];
+
+    // BUSCADOR
+    if (!empty($buscar)) {
+
+        $m_merma->groupStart()
+            ->where('id', $buscar)
+            ->orLike('cantidad', $buscar)
+            ->orLike('fecha', $buscar)
+            ->orLike('id_entrada', $buscar)
+        ->groupEnd();
+    }
+
+    // PAGINACIÓN
+    $datos['mermas'] = $m_merma
+        ->orderBy('id', 'DESC')
+        ->paginate(20);
+
+    // ENTRADAS
+    $datos['entradas'] = $m_entrada->getEntradasConProducto();
+
+    // PAGER
+    $datos['pager'] = $m_merma->pager;
+
+    // TEXTO BUSQUEDA
+    $datos['buscar'] = $buscar;
+
     return view('lista_merma', $datos);
 }
-
 public function recupera($id=null){
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();

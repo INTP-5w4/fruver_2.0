@@ -48,11 +48,31 @@ public function modifica(){
     if ($m_repartidor->update($id,$datos)){
         return redirect()->to('lista_repartidor');
     }
-}
+}   
 public function lista_repartidor(){
+    $buscar = $this->request->getGet('buscar') ?? '';
+
     $m_repartidor = new Modelo_repartidor();
-    $datos['repartidores']=$m_repartidor->findAll();
-    return view('lista_repartidor',$datos);
+
+    if (!empty($buscar)) {
+
+        $m_repartidor->groupStart()
+            ->where('id', $buscar)
+            ->orLike('nombre', $buscar)
+            ->orLike('ape_pat', $buscar)
+            ->orLike('ape_mat', $buscar)
+        ->groupEnd();
+    }
+
+    $datos['repartidores'] = $m_repartidor
+        ->orderBy('id', 'DESC')
+        ->paginate(20);
+
+    $datos['pager'] = $m_repartidor->pager;
+
+    $datos['buscar'] = $buscar;
+
+    return view('lista_repartidor', $datos);
 }
 public function recupera($id=null){
     $m_repartidor = new Modelo_repartidor();

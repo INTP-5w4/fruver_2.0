@@ -51,27 +51,48 @@ public function guarda_pedido(){
     }
 }
 public function lista_pedido()
-{
-    $buscar = $this->request->getGet('buscar') ?? '';
+    {
+        $buscar = $this->request->getGet('buscar') ?? '';
 
-    $m_pedido     = new Modelo_pedido();
-    $m_cliente    = new Modelo_cliente();
-    $m_repartidor = new Modelo_repartidor();
-    $m_pps        = new Modelo_productopedidos();
+        $m_pedido     = new Modelo_pedido();
+        $m_cliente    = new Modelo_cliente();
+        $m_repartidor = new Modelo_repartidor();
+        $m_pps        = new Modelo_productopedidos();
 
-    $clientes     = array_column($m_cliente->findAll(), null, 'id');
-    $repartidores = array_column($m_repartidor->findAll(), null, 'id');
+        // BUSQUEDA
+        if (!empty($buscar)) {
 
-    $datos = [
-        'pedidos'      => $m_pedido->buscarPedidos($buscar),
-        'clientes'     => $clientes,
-        'repartidores' => $repartidores,
-        'pps'          => $m_pps->findAll(),
-        'buscar'       => $buscar,
-    ];
+            $m_pedido->groupStart()
+                ->like('id', $buscar)
+                ->orLike('fecha', $buscar)
+            ->groupEnd();
+        }
 
-    return view('lista_pedido', $datos);
-}
+        // PAGINACION
+        $datos['pedidos'] = $m_pedido
+            ->orderBy('id', 'DESC')
+            ->paginate(20);
+
+        $datos['pager'] = $m_pedido->pager;
+
+        $datos['clientes'] = array_column(
+            $m_cliente->findAll(),
+            null,
+            'id'
+        );
+
+        $datos['repartidores'] = array_column(
+            $m_repartidor->findAll(),
+            null,
+            'id'
+        );
+
+        $datos['pps'] = $m_pps->findAll();
+
+        $datos['buscar'] = $buscar;
+
+        return view('lista_pedido', $datos);
+    }
 
 public function recupera($id=null){
     $m_pedido = new Modelo_pedido();

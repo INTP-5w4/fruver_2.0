@@ -41,9 +41,32 @@ public function guarda_cliente(){
         }
     } 
 }
-public function lista_cliente(){
+public function lista_cliente()
+{
+    $buscar = $this->request->getGet('buscar');
+
     $m_cliente = new Modelo_cliente();
-    $datos['clientes']= $m_cliente->findAll();
+
+    if (!empty($buscar)) {
+
+        if (is_numeric($buscar)) {
+            $m_cliente->where('id', (int)$buscar);
+        } else {
+            $m_cliente->groupStart()
+                ->orLike('nombre', $buscar)
+                ->orLike('ape_pat', $buscar)
+                ->orLike('ape_mat', $buscar)
+                ->orLike('telefono', $buscar)
+            ->groupEnd();
+        }
+    }
+    $datos['clientes'] = $m_cliente
+        ->orderBy('id', 'DESC')
+        ->paginate(20);
+
+    $datos['pager'] = $m_cliente->pager;
+    $datos['buscar'] = $buscar;
+
     return view('lista_cliente', $datos);
 }
 public function modifica(){
