@@ -11,17 +11,20 @@
 <body>
     <?php include 'Header.php'; ?>
 
+<div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
-    <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
-    </div>
-<?php endif; ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= session()->getFlashdata('error') ?></p>
+        </div>
+    <?php endif; ?>
 
-<?php if (session()->getFlashdata('mensaje')): ?>
-    <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
-    </div>
-<?php endif; ?>
+    <?php if (session()->getFlashdata('mensaje')): ?>
+        <div class="w3-panel w3-green w3-animate-opacity">
+            <p><?= session()->getFlashdata('mensaje') ?></p>
+        </div>
+    <?php endif; ?>
+</div>
+
 <div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearPpedido').style.display='block'"
             class="btn-agregar">
@@ -302,6 +305,5 @@ function cerrarModal() {
             if (event.target === modal) modal.style.display = 'none';
         };
     </script>
-
 </body>
 </html>
