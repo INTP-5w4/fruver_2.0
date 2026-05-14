@@ -49,22 +49,22 @@
         
         <?php foreach($p_pedidos as $pp): ?>
         <tr>
-            <td><?= $pp['id'] ?></td>
-            <td><?= $pp['cant'] ?></td>
-            <td><?= $pp['precio_venta'] ?></td>
-            <td><?= $pp['unidad_venta'] ?></td>
-            <td><?= $pp['total'] ?></td>
-            <td><?= $pp['id_pedido'] ?></td>
-            <td><?= $productos[$pp['id_producto']]['nombre'] ?></td>
+            <td><?= esc($pp['id']) ?></td>
+            <td><?= esc($pp['cant']) ?></td>
+            <td><?= esc($pp['precio_venta']) ?></td>
+            <td><?= esc($pp['unidad_venta']) ?></td>
+            <td><?= esc($pp['total']) ?></td>
+            <td><?= esc($pp['id_pedido']) ?></td>
+            <td><?= esc($pp['nombre_producto']) ?></td>
             <td>
                 <button onclick="abrirModal(
-                            '<?= $pp['id'] ?>',
-                            '<?= $pp['cant'] ?>',
-                            '<?= $pp['precio_venta'] ?>',
-                            '<?= $pp['unidad_venta'] ?>',
-                            '<?= $pp['total'] ?>',
-                            '<?= $pp['id_pedido'] ?>',
-                            '<?= $pp['id_producto'] ?>'
+                            '<?= esc($pp['id']) ?>',
+                            '<?= esc($pp['cant']) ?>',
+                            '<?= esc($pp['precio_venta']) ?>',
+                            '<?= esc($pp['unidad_venta']) ?>',
+                            '<?= esc($pp['total']) ?>',
+                            '<?= esc($pp['id_pedido']) ?>',
+                            '<?= esc($pp['id_producto']) ?>'
                         )"
                         style="border:none; cursor:pointer; background:none;">
                     <i class="fa-solid fa-pen-to-square"></i>
