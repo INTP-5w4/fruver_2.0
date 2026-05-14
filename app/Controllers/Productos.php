@@ -180,6 +180,6 @@ public function eliminar_datos($id = null){
         return redirect()->to('/lista_producto');
     }
     $m_producto->delete($id);
-    return redirect()->to('/lista_producto');
+    return redirect()->to('/lista_producto')->with('mensaje', 'Producto eliminado');
 }
 }
