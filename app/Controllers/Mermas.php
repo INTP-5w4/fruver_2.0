@@ -37,9 +37,10 @@ public function guarda_merma(){
         return redirect()->to('crea_merma')->with('error', 'Por favor, complete todos los campos obligatorios.');
     }else{
         $m_merma->insert($datos);
-
-        return redirect()->to('lista_merma')
-            ->with('mensaje', 'Merma registrada exitosamente.');
+        if($this->request->getPost('origen') === 'main_page'){
+            return redirect()->to('/')->with('mensaje', 'Merma registrada exitosamente.');
+        }
+        return redirect()->to('lista_merma')->with('mensaje', 'Merma registrada exitosamente.');
     }
 }
 

@@ -11,18 +11,21 @@
 <body>
     <?php include 'Header.php'; ?>
 
+<div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
-    <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
-    </div>
-<?php endif; ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= session()->getFlashdata('error') ?></p>
+        </div>
+    <?php endif; ?>
 
-<?php if (session()->getFlashdata('mensaje')): ?>
-    <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
-    </div>
-<?php endif; ?>
-<div class="contenedor-boton" style="padding-top: 80px;">
+    <?php if (session()->getFlashdata('mensaje')): ?>
+        <div class="w3-panel w3-green w3-animate-opacity">
+            <p><?= session()->getFlashdata('mensaje') ?></p>
+        </div>
+    <?php endif; ?>
+</div>
+
+<div class="contenedor-boton" style="padding-top: 40px;">
     <button onclick="document.getElementById('modalCrearCliente').style.display='block'"
             class="btn-agregar">
         + Nuevo Cliente
@@ -176,7 +179,8 @@
     </header>
 </form>
 
-    </div>
 </div>
+</div>
+<?php include 'Footer.php'; ?>
 </body>
 </html>
