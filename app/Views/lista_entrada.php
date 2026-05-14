@@ -10,6 +10,7 @@
 </head>
 <body>
         <?php include 'Header.php'; ?>
+<div class="flash-container">
         <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
         <p><?= session()->getFlashdata('error') ?></p>
@@ -34,6 +35,7 @@
         <p><?= session()->getFlashdata('mensaje') ?></p>
     </div>
 <?php endif; ?>
+</div>
 
 <div class="contenedor-boton"style=" padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearEntrada').style.display='block'"
@@ -288,6 +290,5 @@ document.getElementById('filtroCategoriaEntrada').addEventListener('change', fun
             if (event.target === modalCrear) modalCrear.style.display = 'none';
         };
     </script>
-
 </body>
 </html>
