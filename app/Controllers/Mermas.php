@@ -40,7 +40,7 @@ public function guarda_merma(){
         if($this->request->getPost('origen') === 'main_page'){
             return redirect()->to('/')->with('mensaje', 'Merma registrada exitosamente.');
         }
-        return redirect()->to('lista_merma');
+        return redirect()->to('lista_merma')->with('mensaje', 'Merma registrada exitosamente.');
     }
 }
 
