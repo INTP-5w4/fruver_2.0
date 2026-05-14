@@ -30,4 +30,27 @@ public function precioMaximoPorProducto(): array
     }
     return $mapa;
 }
+public function conProducto(): static
+{
+    return $this
+        ->select('entrada.*, producto.nombre as nombre_producto')
+        ->join('producto', 'producto.id = entrada.id_producto');
+}
+public function filtrar(string $buscar = null): static
+{
+    if (!empty($buscar)) {
+
+        if (is_numeric($buscar)) {
+            $this->where('entrada.id', $buscar);
+        } else {
+            $this->groupStart()
+                ->like('entrada.fecha', $buscar)
+                ->orLike('entrada.cantidad', $buscar)
+                ->orLike('producto.nombre', $buscar)
+            ->groupEnd();
+        }
     }
+
+    return $this;
+}
+}

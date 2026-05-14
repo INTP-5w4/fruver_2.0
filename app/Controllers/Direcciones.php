@@ -41,42 +41,24 @@ public function guarda_direccion(){
         }
 }
 
-public function lista_direccion(){
-
+public function lista_direccion()
+{
     $buscar = $this->request->getGet('buscar') ?? '';
 
     $m_direccion = new Modelo_direccion();
-    $m_cliente = new Modelo_cliente();
-
-    if (!empty($buscar)) {
-
-        $m_direccion->groupStart()
-
-            ->like('id', $buscar)
-            ->orLike('colonia', $buscar)
-            ->orLike('calle', $buscar)
-            ->orLike('numero', $buscar)
-            ->orLike('municipio', $buscar)
-            ->orLike('estado', $buscar)
-
-        ->groupEnd();
-    }
+    $m_cliente   = new Modelo_cliente();
 
     $datos = [
-
         'direcciones' => $m_direccion
+            ->filtrar($buscar)
             ->orderBy('id', 'DESC')
             ->paginate(20),
 
-        'pager' => $m_direccion->pager,
+        'pager'    => $m_direccion->pager,
 
-        'clientes' => array_column(
-            $m_cliente->findAll(),
-            null,
-            'id'
-        ),
+        'clientes' => $m_cliente->findAll(), // o array_column si lo necesitas indexado
 
-        'buscar' => $buscar
+        'buscar'   => $buscar,
     ];
 
     return view('lista_direccion', $datos);

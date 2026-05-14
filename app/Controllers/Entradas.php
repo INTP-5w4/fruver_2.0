@@ -54,31 +54,9 @@ public function lista_entrada(){
     $m_entrada = new Modelo_entrada();
     $m_producto = new Modelo_producto();
 
-    $m_entrada
-        ->select('entrada.*, producto.nombre as nombre_producto')
-        ->join('producto', 'producto.id = entrada.id_producto');
-
-    if (!empty($buscar)) {
-
-        if (is_numeric($buscar)) {
-
-            $m_entrada->where('entrada.id', $buscar);
-
-        } else {
-
-            $m_entrada->groupStart()
-
-                ->like('entrada.fecha', $buscar)
-
-                ->orLike('entrada.cantidad', $buscar)
-
-                ->orLike('producto.nombre', $buscar)
-
-            ->groupEnd();
-        }
-    }
-
     $datos['entradas'] = $m_entrada
+        ->filtrar($buscar)
+        ->conProducto()
         ->orderBy('entrada.id', 'DESC')
         ->paginate(20);
 
