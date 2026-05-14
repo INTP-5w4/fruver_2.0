@@ -95,7 +95,6 @@
         </tr>
         <?php endforeach; ?>
     </table>
-    <?= $pager->links('default', 'w3_pager') ?>
     <!-- MODAL EDITAR P_PEDIDO -->
     <div id="modalEditarPPedido" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">

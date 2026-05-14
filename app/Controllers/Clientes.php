@@ -47,20 +47,8 @@ public function lista_cliente()
 
     $m_cliente = new Modelo_cliente();
 
-    if (!empty($buscar)) {
-
-        if (is_numeric($buscar)) {
-            $m_cliente->where('id', (int)$buscar);
-        } else {
-            $m_cliente->groupStart()
-                ->orLike('nombre', $buscar)
-                ->orLike('ape_pat', $buscar)
-                ->orLike('ape_mat', $buscar)
-                ->orLike('telefono', $buscar)
-            ->groupEnd();
-        }
-    }
     $datos['clientes'] = $m_cliente
+        ->filtrar($buscar)
         ->orderBy('id', 'DESC')
         ->paginate(20);
 
