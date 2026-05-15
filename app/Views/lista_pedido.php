@@ -57,7 +57,6 @@
             <th>Fecha</th>
             <th>Nombre del cliente</th>
             <th>Nombre del repartidor</th>
-            <th>Carrito</th>
             <th>Editar</th>
             <th>Eliminar</th>
         </thead>
@@ -72,7 +71,6 @@
                 <td><?php $r = $repartidores[$p['id_repartidor']] ?? null;
                     echo $r ? "{$r['nombre']} {$r['ape_pat']} {$r['ape_mat']}" : 'Desconocido'; ?>
                 </td>
-                <td><?= $p['id_producto_pedido']?></td>
                 <td>
                     <button onclick="abrirModal(
                                 '<?= $p['id'] ?>',
@@ -128,9 +126,6 @@
                 </select>
                 <label for=""><b>Carrito*</b></label>
                 <select name="id_pp" id="" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($pps as $pp) :?>
-                    <option value="<?= esc($pp['id']) ?>"><?= $pp['id'] ?></option>
-                    <?php endforeach; ?>
                 </select>
 
 
@@ -174,9 +169,6 @@
                 </select>
                 <label for=""><b>Carrito*</b></label>
                 <select name="id_pp" id="" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($pps as $pp) :?>
-                    <option value="<?= esc($pp['id']) ?>"><?= $pp['id'] ?></option>
-                    <?php endforeach; ?>
                 </select>                
                 <label><b>Repartidor*</b></label>
                 <select name="id_repartidor" class="w3-select w3-border w3-margin-bottom" required>
