@@ -36,11 +36,6 @@
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
 
-            <!-- PAGE TITLE -->
-            <div class="page-header">
-                <h1 class="page-title">Panel de Control</h1>
-                <p class="page-subtitle">Resumen general del sistema FRUVER</p>
-            </div>
 
             <!-- KPI CARDS — valores dinámicos desde PHP -->
             <section class="kpi-grid">
@@ -418,9 +413,6 @@
 
       <label><b>Precio de venta(Unitario)*</b></label>
         <input type="number" placeholder="Ej:45" id="cp_p_venta" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
-        <small id="cp_precio_sugerido" class="w3-text-grey" style="display:none;">
-            💡 Precio sugerido (entrada más cara): $<span id="cp_precio_valor"></span>
-        </small>
       <!-- Botón para agregar al carrito (NO envía al servidor) -->
       <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
         + Agregar producto
