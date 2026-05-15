@@ -33,53 +33,64 @@
 </div>
 
     <table>
-        <thead>
-            <tr>
-            <th>ID</th>
-            <th>Cantidad</th>
-            <th>Precio de venta</th>
-            <th>Unidad de venta</th>
-            <th>Total</th>
-            <th>ID Pedido</th>
-            <th>Producto</th>
-            <th>Editar</th>
-            <th>Eliminar</th>
-        </tr>
-        </thead>
+      <thead>
+          <tr>
+              <th>ID</th>
+              <th>Cantidad</th>
+              <th>Precio de venta</th>
+              <th>Unidad de venta</th>
+              <th>Total</th>
+              <th>ID Pedido</th>
+              <th>Repartidor</th> <th>Estatus</th>
+              <th>Producto</th>
+              <th>Editar</th>
+              <th>Eliminar</th>
+          </tr>
+      </thead>
         
         <?php foreach($p_pedidos as $pp): ?>
-        <tr>
-            <td><?= esc($pp['id']) ?></td>
-            <td><?= esc($pp['cant']) ?></td>
-            <td><?= esc($pp['precio_venta']) ?></td>
-            <td><?= esc($pp['unidad_venta']) ?></td>
-            <td><?= esc($pp['total']) ?></td>
-            <td><?= esc($pp['id_pedido']) ?></td>
-            <td><?= esc($pp['nombre_producto']) ?></td>
-            <td>
-                <button onclick="abrirModal(
-                            '<?= esc($pp['id']) ?>',
-                            '<?= esc($pp['cant']) ?>',
-                            '<?= esc($pp['precio_venta']) ?>',
-                            '<?= esc($pp['unidad_venta']) ?>',
-                            '<?= esc($pp['total']) ?>',
-                            '<?= esc($pp['id_pedido']) ?>',
-                            '<?= esc($pp['id_producto']) ?>'
-                        )"
-                        style="border:none; cursor:pointer; background:none;">
-                    <i class="fa-solid fa-pen-to-square"></i>
+    <tr>
+        <td><?= esc($pp['id']) ?></td>
+        <td><?= esc($pp['cant']) ?></td>
+        <td><?= esc($pp['precio_venta']) ?></td>
+        <td><?= esc($pp['unidad_venta']) ?></td>
+        <td><?= esc($pp['total']) ?></td>
+        <td><?= esc($pp['id_pedido']) ?></td>
+        
+        <td><?= esc($pp['nombre_repartidor'] ?? 'Sin asignar') ?></td>
+        
+        <td>
+            <span class="w3-tag w3-round w3-blue-gray">
+                <?= esc(str_replace('_', ' ', $pp['estado_actual'] ?? 'pendiente')) ?>
+            </span>
+        </td>
+
+        <td><?= esc($pp['nombre_producto']) ?></td>
+        
+        <td>
+            <button onclick="abrirModal(
+                        '<?= esc($pp['id']) ?>',
+                        '<?= esc($pp['cant']) ?>',
+                        '<?= esc($pp['precio_venta']) ?>',
+                        '<?= esc($pp['unidad_venta']) ?>',
+                        '<?= esc($pp['total']) ?>',
+                        '<?= esc($pp['id_pedido']) ?>',
+                        '<?= esc($pp['id_producto']) ?>'
+                    )"
+                    style="border:none; cursor:pointer; background:none;">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+        </td>
+        <td>
+            <a href="<?= base_url('borra_id_p_pedido/'.$pp['id']) ?>"
+              onclick="return confirm('¿Estás seguro de que quieres eliminar este registro?')">
+                <button style="border:none; cursor:pointer; background:none;">
+                    <i class="fa-solid fa-trash-can"></i>
                 </button>
-            </td>
-            <td>
-                <a href="<?= base_url('borra_id_p_pedido/'.$pp['id']) ?>"
-                onclick="return confirm('¿Estás seguro de que quieres eliminar este registro?')">
-                    <button style="border:none; cursor:pointer; background:none;">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </a>
-            </td>
-        </tr>
-        <?php endforeach; ?>
+            </a>
+        </td>
+    </tr>
+<?php endforeach; ?>
     </table>
 
     <!-- MODAL EDITAR P_PEDIDO -->
