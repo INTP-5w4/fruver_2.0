@@ -57,7 +57,7 @@
         <td><?= esc($pp['total']) ?></td>
         <td><?= esc($pp['id_pedido']) ?></td>
         
-        <td><?= esc($pp['nombre_repartidor'] ?? 'Sin asignar') ?></td>
+        <td><?= esc($pp['nombre_repartidor'].' '.$pp['ape_pat'].' '.$pp['ape_mat'] ?? 'Sin asignar') ?></td>
         
         <td>
             <span class="w3-tag w3-round w3-blue-gray">

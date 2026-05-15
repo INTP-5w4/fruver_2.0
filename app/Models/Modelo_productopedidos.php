@@ -14,6 +14,8 @@ class Modelo_productopedidos extends Model{
                 pp.*, 
                 pr.nombre AS nombre_producto, 
                 rep.nombre AS nombre_repartidor,
+                rep.ape_pat AS ape_pat,
+                rep.ape_mat AS ape_mat,
                 (SELECT estado FROM estatus WHERE id_pedido = pp.id_pedido ORDER BY id DESC LIMIT 1) as estado_actual
             ')
             ->join('producto pr', 'pr.id = pp.id_producto')
