@@ -29,7 +29,6 @@
                 <a href="<?= base_url('lista_pedido') ?>" class="nav-item">Pedidos</a>
                 <a href="<?= base_url('lista_merma') ?>" class="nav-item">Mermas</a>
                 <a href="<?= base_url('lista_p_pedido') ?>" class="nav-item">Productos por pedido</a>
-                <a href="<?= base_url('lista_estatus') ?>" class="nav-item">Estatus</a>
                 <a href="<?= base_url('lista_existencia') ?>" class="nav-item">Existencias</a>
             </nav>
         </aside>
@@ -37,11 +36,6 @@
         <!-- MAIN CONTENT -->
         <main class="dashboard-main">
 
-            <!-- PAGE TITLE -->
-            <div class="page-header">
-                <h1 class="page-title">Panel de Control</h1>
-                <p class="page-subtitle">Resumen general del sistema FRUVER</p>
-            </div>
 
             <!-- KPI CARDS — valores dinámicos desde PHP -->
             <section class="kpi-grid">
@@ -171,10 +165,8 @@
                         <button onclick="document.getElementById('modalRepartidor').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Repartidor</button>
                         <button onclick="document.getElementById('modalDireccion').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Dirección</button>
                         <button onclick="document.getElementById('modalEntrada').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Entrada</button>
-                        <button onclick="document.getElementById('modalPedido').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Pedido</button>
                         <button onclick="document.getElementById('modalMerma').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Merma</button>
                         <button onclick="document.getElementById('modalPpedido').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Carrito</button>
-                        <button onclick="document.getElementById('modalEstatus').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Estatus</button>
                         <button onclick="document.getElementById('modalExistencias').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Existencias</button>
                     </div>
                 </div>
@@ -337,33 +329,6 @@
 </div>
 
 
-
-    <div id="modalPedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
-        <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
-            <form action="<?= base_url('guarda_pedido') ?>" method="post" class="w3-container w3-padding-16">
-                <input type="hidden" name="origen" value="main_page">
-                <label><b>Fecha</b></label>
-                <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" required>
-                <label><b>Cliente</b></label>
-                <select name="id_cliente" class="w3-select w3-border w3-margin-bottom" required>
-                    <?php foreach ($clientes as $c): ?>
-                        <option value="<?= esc($c['id']) ?>"><?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <label><b>Repartidor</b></label>
-                <select name="id_repartidor" class="w3-select w3-border w3-margin-bottom" required>
-                    <?php foreach ($repartidores as $r): ?>
-                        <option value="<?= esc($r['id']) ?>"><?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                    <button type="button" onclick="document.getElementById('modalPedido').style.display='none'" class="w3-button w3-white">Cancelar</button>
-                </footer>
-            </form>
-        </div>
-    </div>
-
     <div id="modalProducto" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
@@ -448,9 +413,6 @@
 
       <label><b>Precio de venta(Unitario)*</b></label>
         <input type="number" placeholder="Ej:45" id="cp_p_venta" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
-        <small id="cp_precio_sugerido" class="w3-text-grey" style="display:none;">
-            💡 Precio sugerido (entrada más cara): $<span id="cp_precio_valor"></span>
-        </small>
       <!-- Botón para agregar al carrito (NO envía al servidor) -->
       <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
         + Agregar producto
@@ -497,41 +459,7 @@
 
 
              <!-- Pegriloso -->
-<div id="modalEstatus" class="w3-modal" style="padding-top:100px;z-index:9999;">
-    <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
-        <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
-            <input type="hidden" name="origen" value="main_page">
-            <label><b>Pedido*</b></label>
-            <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
-                <?php foreach ($pedidos as $p): ?>
-                    <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
-                <?php endforeach; ?>
-            </select>
 
-            <label><b>Estado*</b></label>
-            <select name="edo" class="w3-select w3-border w3-margin-bottom" required>
-                <option value="pedido_realizado">Pedido realizado</option>
-                <option value="pedido_confirmado">Pedido confirmado</option>
-                <option value="pedido_en_transito">Pedido en tránsito</option>
-                <option value="pedido_entregado">Pedido entregado</option>
-                <option value="pedido_a_credito">Pedido a crédito</option>
-                <option value="pedido_pagado">Pedido pagado</option>
-                <option value="pedido_cancelado">Pedido cancelado</option>
-            </select>
-
-            <label><b>Fecha*</b></label>
-            <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
-
-            <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                <button type="button"
-                        onclick="document.getElementById('modalEstatus').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
-            </footer>
-
-        </form>
-    </div>
-</div>
 
 <div id="modalExistencias" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
@@ -625,13 +553,14 @@
 
     <script>
     window.onclick = function(event) {
-        const ids = ['modalCliente','modalDireccion','modalEntrada','modalPedido','modalProducto','modalRepartidor','modalPpedido','modalExistencias','modalEstatus','modalMerma'];
+        const ids = ['modalCliente','modalDireccion','modalEntrada','modalProducto','modalRepartidor','modalPpedido','modalExistencias','modalMerma'];
         ids.forEach(id => {
             const el = document.getElementById(id);
             if (el && event.target === el) el.style.display = 'none';
         });
     };
     </script>
+<!----------------Carrito------------------------->
 <script>
 let carrito = [];
 
@@ -705,6 +634,7 @@ function cerrarModal() {
   document.getElementById('modalPpedido').style.display = 'none';
 }
 </script>
+<!----------------Carrito------------------------->
 <script>
 document.getElementById('cp_id_producto').addEventListener('change', function () {
     const opcionSeleccionada = this.options[this.selectedIndex];

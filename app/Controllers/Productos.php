@@ -101,7 +101,7 @@ public function lista_producto($dato=null){
     }else{
         
         $datos=[
-            'productos'=>$m_producto->orderBy('nombre','ASC')-> paginate(5,'default'),
+            'productos'=>$m_producto->orderBy('id','ASC')-> paginate(20,'default'),
             'pager'=>$m_producto->pager
         ];
         //$datos['productos']=$m_producto->findAll();
