@@ -140,7 +140,7 @@
             </select>
 
             <label><b>Cantidad</b></label>
-            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <label><b>Unidad de compra</b></label>
             <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
@@ -203,7 +203,7 @@
                 <input type="date" name="f_cad" id="edit_f_cad" class="modal-input">
 
                 <label><b>Cantidad*</b></label>
-                <input type="number" name="cant" id="edit_cant" class="modal-input" required>
+                <input type="number" name="cant" id="edit_cant" class="modal-input"  min="1" required>
 
                 <label><b>Unidad de compra*</b></label>
                 <select name="u_com" id="edit_u_com" class="modal-input" required>
