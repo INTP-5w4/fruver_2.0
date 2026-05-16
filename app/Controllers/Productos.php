@@ -179,7 +179,11 @@ public function eliminar_datos($id = null){
     if(!$m_producto->find($id)){
         return redirect()->to('/lista_producto');
     }
-    $m_producto->delete($id);
-    return redirect()->to('/lista_producto');
+    try {
+        $m_producto->delete($id);
+        return redirect()->to('/lista_producto')->with('mensaje', 'Producto eliminado correctamente.');
+    } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+        return redirect()->to('/lista_producto')->with('error', 'No se puede eliminar el producto porque tiene registros relacionados (entradas, pedidos, etc.).');
+    }
 }
 }

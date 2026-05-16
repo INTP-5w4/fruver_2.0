@@ -120,7 +120,7 @@
             <input type="text" id="u_venta_modal" name="u_venta" class="w3-input w3-border w3-margin-bottom" readonly placeholder="Se llena automáticamente">
 
             <label><b>Cantidad*</b></label>
-            <input type="number" placeholder="Ej: 45" name="cant" class="w3-input w3-border w3-margin-bottom" min="0" required>
+            <input type="number" placeholder="Ej: 45" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <label><b>Fecha*</b></label>
             <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d') ?>" required>

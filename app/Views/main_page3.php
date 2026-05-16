@@ -296,7 +296,7 @@
             </select>
 
             <label><b>Cantidad*</b></label>
-            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <label><b>Unidad de compra*</b></label>
             <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
@@ -318,13 +318,13 @@
             </select>
 
             <label><b>Equivalente*</b></label>
-            <input type="number" placeholder="Ej: 50" name="equi" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej: 50" name="equi" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <label><b>Precio de compra(Unitario)*</b></label>
-            <input type="number" placeholder="Ej:45" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej:45" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" min="1" required>
             
             <label><b>Precio de venta(Unitario)*</b></label>
-            <input type="number" placeholder="Ej:45" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej:45" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -444,7 +444,7 @@
       </select>
 
       <label><b>Cantidad*</b></label>
-      <input type="number" placeholder="Ej:45" id="cp_cant" name="cant" class="w3-input w3-border w3-margin-bottom">
+      <input type="number" placeholder="Ej:45" id="cp_cant" name="cant" class="w3-input w3-border w3-margin-bottom" min="1">
 
       <label><b>Precio de venta(Unitario)*</b></label>
         <input type="number" placeholder="Ej:45" id="cp_p_venta" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
@@ -545,13 +545,13 @@
             </select>
 
             <label><b>Existencias totales*</b></label>
-            <input type="number" placeholder="Ej:30" name="e_total" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej:30" name="e_total" class="w3-input w3-border w3-margin-bottom" min="1">
 
             <label><b>Existencias bloqueadas*</b></label>
-            <input type="number" placeholder="Ej:20" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej:20" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom" min="1">
 
             <label><b>Existencias para venta*</b></label>
-            <input type="number" placeholder="Ej:10" name="e_venta" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej:10" name="e_venta" class="w3-input w3-border w3-margin-bottom" min="1">
 
             <label><b>Fecha*</b></label>
             <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
@@ -585,7 +585,7 @@
             <input type="text" id="u_venta_modal" name="u_venta" class="w3-input w3-border w3-margin-bottom" readonly placeholder="Se llena automáticamente">
 
             <label><b>Cantidad*</b></label>
-            <input type="number"placeholder="Ej:45" name="cant" class="w3-input w3-border w3-margin-bottom" min="0" required>
+            <input type="number"placeholder="Ej:45" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <label><b>Fecha*</b></label>
             <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d') ?>" required>

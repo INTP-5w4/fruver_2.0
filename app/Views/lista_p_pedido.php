@@ -91,11 +91,11 @@
 
                 <label><b>Cantidad*</b></label>
                 <input type="number" name="cant" id="edit_cant"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" min="1" required>
 
                 <label><b>Precio de venta*</b></label>
                 <input type="number" name="p_venta" id="edit_p_venta" step="0.01"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" min="0.01" required>
 
                 <label><b>Unidad de venta*</b></label>
                 <select name="u_venta" id="edit_u_venta"
@@ -108,7 +108,7 @@
 
                 <label><b>Total*</b></label>
                 <input type="number" name="tot" id="edit_tot" step="0.01"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" min="0.01" required>
 
                 <label><b>Pedido*</b></label>
                 <select name="id_pedido" id="edit_id_pedido"
@@ -166,10 +166,10 @@
       </select>
 
       <label><b>Cantidad*</b></label>
-      <input type="number" placeholder="Ej: 45" id="cp_cant" class="w3-input w3-border w3-margin-bottom">
+      <input type="number" placeholder="Ej: 45" id="cp_cant" class="w3-input w3-border w3-margin-bottom" min="1">
 
       <label><b>Precio de venta(Unitario)*</b></label>
-      <input type="number" placeholder="Ej:50" id="cp_p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom">
+      <input type="number" placeholder="Ej:50" id="cp_p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" min="0.01">
 
       <!-- Botón para agregar al carrito (NO envía al servidor) -->
       <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
