@@ -61,7 +61,8 @@ public function lista_p_pedido(){
 
     $datos = [
         'productos' => $m_producto->findAll(),
-        'p_pedidos' => $m_p_pedido->conNombreProducto(),
+        // Cambiamos la llamada a la nueva función con JOINs
+        'p_pedidos' => $m_p_pedido->obtenerInformacionCompleta(), 
         'pedidos'   => $m_pedido->findAll() 
     ];
     return view('lista_p_pedido', $datos);
