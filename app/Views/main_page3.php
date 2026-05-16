@@ -560,6 +560,7 @@
         });
     };
     </script>
+<!----------------Carrito------------------------->
 <script>
 let carrito = [];
 
@@ -633,6 +634,7 @@ function cerrarModal() {
   document.getElementById('modalPpedido').style.display = 'none';
 }
 </script>
+<!----------------Carrito------------------------->
 <script>
 document.getElementById('cp_id_producto').addEventListener('change', function () {
     const opcionSeleccionada = this.options[this.selectedIndex];
