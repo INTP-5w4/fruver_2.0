@@ -4,108 +4,196 @@ namespace App\Controllers;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_producto;
 use App\Models\Modelo_productopedidos;
+use App\Models\Modelo_estatus;
+use App\Models\Modelo_cliente;
+use App\Models\Modelo_repartidor;
 use CodeIgniter\Controller;
 
-class P_pedidos extends Controller{
-public function crea_p_pedido(){
-    $m_pedido = new Modelo_pedido();
-    $m_producto = new Modelo_producto();
-    $datos = [
-        'pedidos' => $m_pedido->findAll(),
-        'productos' => $m_producto->findAll()
-    ];
-    return view('crea_p_pedido', $datos);
-}
-public function guarda_p_pedido(){
-    $m_p_pedido = new Modelo_productopedidos();
-    $items  = json_decode($this->request->getPost('items'), true);
-    $origen = $this->request->getPost('origen');
+class P_pedidos extends Controller {
 
-    if (empty($items) || !is_array($items)) {
-        return redirect()->to('crea_p_pedido')->with('mensaje', 'El carrito está vacío');
-    }
-
-    foreach ($items as $item) {
+    public function crea_p_pedido() {
+        $m_pedido   = new Modelo_pedido();
+        $m_producto = new Modelo_producto();
         $datos = [
-            'cant'         => $item['cant'],
-            'precio_venta' => $item['p_venta'],
-            'unidad_venta' => $item['u_venta'],
-            'total'        => $item['total'],
-            'id_pedido'    => $item['id_pedido'],
-            'id_producto'  => $item['id_producto'],
+            'pedidos'   => $m_pedido->findAll(),
+            'productos' => $m_producto->findAll()
         ];
-        
-        if (
-            empty($datos['cant'])         ||
-            empty($datos['precio_venta']) ||
-            empty($datos['unidad_venta']) ||
-            empty($datos['id_pedido'])    ||
-            empty($datos['id_producto'])
-        ) {
-            return redirect()->to('crea_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
+        return view('crea_p_pedido', $datos);
+    }
+
+    // ── Guardado COMPLETO (pedido + carrito + estatus) ─────────────
+    public function guarda_pedido_completo() {
+        $mPedido  = new Modelo_pedido();
+        $mPP      = new Modelo_productopedidos();
+        $mEstatus = new Modelo_estatus();
+
+        $datosPedido = [
+            'fecha'         => $this->request->getPost('fecha'),
+            'id_cliente'    => $this->request->getPost('id_cliente'),
+            'id_repartidor' => $this->request->getPost('id_repartidor'),
+        ];
+
+        if (in_array('', $datosPedido, true)) {
+            return redirect()->back()->with('mensaje', 'Datos del pedido incompletos');
         }
-        
-        $m_p_pedido->insert($datos);
+
+        $mPedido->insert($datosPedido);
+        $idPedido = $mPedido->insertID();
+
+        $items = json_decode($this->request->getPost('items'), true);
+
+        if (empty($items) || !is_array($items)) {
+            return redirect()->back()->with('mensaje', 'El carrito está vacío');
+        }
+
+        foreach ($items as $item) {
+            $datosItem = [
+                'cant'         => $item['cant'],
+                'precio_venta' => $item['p_venta'],
+                'unidad_venta' => $item['u_venta'],
+                'total'        => $item['total'],
+                'id_pedido'    => $idPedido,
+                'id_producto'  => $item['id_producto'],
+            ];
+
+            if (empty($datosItem['cant']) || empty($datosItem['precio_venta'])
+                || empty($datosItem['unidad_venta']) || empty($datosItem['id_producto'])) {
+                return redirect()->back()->with('mensaje', 'Un ítem del carrito tiene datos incompletos');
+            }
+
+            $mPP->insert($datosItem);
+        }
+
+        $mEstatus->insert([
+            'estado'    => $this->request->getPost('estado'),
+            'fecha'     => $this->request->getPost('fecha_estatus'),
+            'id_pedido' => $idPedido,
+        ]);
+
+        $origen = $this->request->getPost('origen');
+        if ($origen === 'lista_p_pedido') {
+            return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido creado exitosamente');
+        }
+        return redirect()->to('/')->with('mensaje', 'Pedido creado exitosamente');
     }
 
-    if ($origen === 'main_page') {
-        return redirect()->to('/')->with('mensaje', 'Registro guardado');
+    // ── Modificación COMPLETA (pedido + carrito + nuevo estatus) ───
+    public function modifica_pedido_completo() {
+        $mPedido  = new Modelo_pedido();
+        $mPP      = new Modelo_productopedidos();
+        $mEstatus = new Modelo_estatus();
+
+        $idPedido = $this->request->getPost('id_pedido');
+
+        // 1. Actualizar pedido
+        $mPedido->update($idPedido, [
+            'fecha'         => $this->request->getPost('fecha'),
+            'id_cliente'    => $this->request->getPost('id_cliente'),
+            'id_repartidor' => $this->request->getPost('id_repartidor'),
+        ]);
+
+        // 2. Reemplazar ítems del carrito
+        $mPP->where('id_pedido', $idPedido)->delete();
+        $items = json_decode($this->request->getPost('items'), true);
+
+        if (!empty($items) && is_array($items)) {
+            foreach ($items as $item) {
+                $mPP->insert([
+                    'cant'         => $item['cant'],
+                    'precio_venta' => $item['p_venta'],
+                    'unidad_venta' => $item['u_venta'],
+                    'total'        => $item['total'],
+                    'id_pedido'    => $idPedido,
+                    'id_producto'  => $item['id_producto'],
+                ]);
+            }
+        }
+
+        // 3. Insertar nuevo registro de estatus
+        $mEstatus->insert([
+            'estado'    => $this->request->getPost('estado'),
+            'fecha'     => $this->request->getPost('fecha_estatus'),
+            'id_pedido' => $idPedido,
+        ]);
+
+        $origen = $this->request->getPost('origen');
+        if ($origen === 'lista_p_pedido') {
+            return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido modificado exitosamente');
+        }
+        return redirect()->to('/')->with('mensaje', 'Pedido modificado exitosamente');
     }
-    return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
-}
 
-public function lista_p_pedido(){
-    $m_p_pedido = new Modelo_productopedidos();
-    $m_producto = new Modelo_producto();
-    $m_pedido   = new Modelo_pedido();      
+    // ── API para cargar datos de un pedido en el wizard de edición ─
+    public function api_pedido($id = null) {
+        $mPedido  = new Modelo_pedido();
+        $mPP      = new Modelo_productopedidos();
+        $mEstatus = new Modelo_estatus();
 
-    $datos = [
-        'productos' => $m_producto->findAll(),
-        // Cambiamos la llamada a la nueva función con JOINs
-        'p_pedidos' => $m_p_pedido->obtenerInformacionCompleta(), 
-        'pedidos'   => $m_pedido->findAll() 
-    ];
-    return view('lista_p_pedido', $datos);
-}
-public function recupera($id=null){
-    $m_p_pedido = new Modelo_productopedidos();
-    $m_pedido = new Modelo_pedido();
-    $m_producto = new Modelo_producto();
-    $datos = [
-        'p_pedidos' => $m_p_pedido->find($id),
-        'pedidos' => $m_pedido->findAll(),
-        'productos' => $m_producto->findAll()
-    ];
-    return view('modifica_p_pedido', $datos);
-}
+        $pedido  = $mPedido->find($id);
+        $items   = $mPP->where('id_pedido', $id)->findAll();
+        $estatus = $mEstatus->where('id_pedido', $id)
+                            ->orderBy('fecha', 'DESC')
+                            ->first();
 
-public function eliminar_datos($id=null){
-    $m_p_pedido = new Modelo_productopedidos();
-    $m_p_pedido->delete($id);
-    return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro eliminado');
-}
-public function modifica(){
-    $m_p_pedido = new Modelo_productopedidos();
-    $datos = [
-        'cant' => $this->request->getPost('cant'),
-        'precio_venta' => $this->request->getPost('p_venta'),
-        'unidad_venta' => $this->request->getPost('u_venta'),
-        'total' => $this->request->getPost('tot'),
-        'id_pedido' => $this->request->getPost('id_pedido'),
-        'id_producto' => $this->request->getPost('id_producto')
-    ];
-    $id = $this->request->getPost('id');
-    if (
-        empty($datos['cant']) || 
-        empty($datos['precio_venta']) ||
-        empty($datos['unidad_venta']) ||
-        empty($datos['id_pedido']) ||
-        empty($datos['id_producto'])
-    ){
-        return redirect()->to('pasa_id_p_pedido/'.$id)->with('mensaje', 'Todos los campos son obligatorios');
-    } else {
-        $m_p_pedido->update($id, $datos);
-        return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro modificado');
+        return $this->response->setJSON([
+            'pedido'  => $pedido,
+            'items'   => $items,
+            'estatus' => $estatus,
+        ]);
     }
-}
+
+    public function lista_p_pedido() {
+        $m_p_pedido   = new Modelo_productopedidos();
+        $m_producto   = new Modelo_producto();
+        $m_pedido     = new Modelo_pedido();
+        $m_cliente    = new Modelo_cliente();
+        $m_repartidor = new Modelo_repartidor();
+
+        $datos = [
+            'productos'                 => $m_producto->findAll(),
+            'p_pedidos'                 => $m_p_pedido->obtenerInformacionCompleta(),
+            'pedidos'                   => $m_pedido->findAll(),
+            'clientes'                  => $m_cliente->findAll(),
+            'repartidores'              => $m_repartidor->findAll(),
+            'precioSugeridoPorProducto' => [],
+        ];
+        return view('lista_p_pedido', $datos);
+    }
+
+    public function eliminar_datos($id = null) {
+        $m_p_pedido = new Modelo_productopedidos();
+        $m_p_pedido->delete($id);
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro eliminado');
+    }
+
+    // ── guarda_p_pedido se mantiene para compatibilidad con rutas viejas ──
+    public function guarda_p_pedido() {
+        $m_p_pedido = new Modelo_productopedidos();
+        $items      = json_decode($this->request->getPost('items'), true);
+
+        if (empty($items) || !is_array($items)) {
+            return redirect()->to('lista_p_pedido')->with('mensaje', 'El carrito está vacío');
+        }
+
+        foreach ($items as $item) {
+            $datos = [
+                'cant'         => $item['cant'],
+                'precio_venta' => $item['p_venta'],
+                'unidad_venta' => $item['u_venta'],
+                'total'        => $item['total'],
+                'id_pedido'    => $item['id_pedido'],
+                'id_producto'  => $item['id_producto'],
+            ];
+
+            if (empty($datos['cant']) || empty($datos['precio_venta'])
+                || empty($datos['unidad_venta']) || empty($datos['id_pedido'])
+                || empty($datos['id_producto'])) {
+                return redirect()->to('lista_p_pedido')->with('mensaje', 'Todos los campos son obligatorios');
+            }
+
+            $m_p_pedido->insert($datos);
+        }
+
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
+    }
 }

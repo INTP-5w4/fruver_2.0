@@ -8,21 +8,26 @@ class Modelo_productopedidos extends Model{
     // Uncomment below if you want add primary key
     protected $primaryKey = 'id';
     protected $allowedFields = ['id','cant','precio_venta','unidad_venta','total','id_pedido','id_producto'];
-    public function obtenerInformacionCompleta() {
-        return $this->db->table('producto_pedido pp')
-            ->select('
-                pp.*, 
-                pr.nombre AS nombre_producto, 
-                rep.nombre AS nombre_repartidor,
-                rep.ape_pat AS ape_pat,
-                rep.ape_mat AS ape_mat,
-                (SELECT estado FROM estatus WHERE id_pedido = pp.id_pedido ORDER BY id DESC LIMIT 1) as estado_actual
-            ')
-            ->join('producto pr', 'pr.id = pp.id_producto')
-            ->join('pedido ped', 'ped.id = pp.id_pedido')
-            ->join('repartidor rep', 'rep.id = ped.id_repartidor')
-            ->get()->getResultArray();
-    }
+public function obtenerInformacionCompleta() {
+    return $this->db->table('producto_pedido pp')
+        ->select('
+            pp.*, 
+            pr.nombre AS nombre_producto, 
+            rep.nombre AS nombre_repartidor,
+            rep.ape_pat AS ape_pat_repartidor,
+            rep.ape_mat AS ape_mat_repartidor,
+            ped.fecha AS fecha_pedido,
+            cli.nombre AS nombre_cliente,
+            cli.ape_pat AS ape_pat_cliente,
+            cli.ape_mat AS ape_mat_cliente,
+            (SELECT estado FROM estatus WHERE id_pedido = pp.id_pedido ORDER BY id DESC LIMIT 1) as estado_actual
+        ')
+        ->join('producto pr', 'pr.id = pp.id_producto')
+        ->join('pedido ped', 'ped.id = pp.id_pedido')
+        ->join('repartidor rep', 'rep.id = ped.id_repartidor')
+        ->join('cliente cli', 'cli.id = ped.id_cliente')
+        ->get()->getResultArray();
+}
     
     
     }
