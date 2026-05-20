@@ -172,7 +172,7 @@ tbody tr:nth-child(even) {
 
 /* ── FOOTER ─────────────────────────────────────── */
 .footer {
-    background: linear-gradient(135deg, #007542, #3AA346);
+    background: #00910a;
     margin-top: 40px;
     padding: 0;
     box-shadow: 0 -2px 8px rgba(0, 117, 66, 0.2);

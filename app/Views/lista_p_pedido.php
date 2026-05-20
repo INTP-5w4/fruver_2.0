@@ -512,18 +512,15 @@ function eValidarPaso2() {
 }
 
 async function abrirEditarPedido(idPedido) {
-  // Cargar datos del pedido vía API
   try {
     const res  = await fetch(`<?= base_url('api_pedido/') ?>${idPedido}`);
     const data = await res.json();
 
-    // Pre-llenar paso 1
     document.getElementById('efn_id_pedido').value      = idPedido;
     document.getElementById('eped_fecha').value         = data.pedido.fecha;
     document.getElementById('eped_id_cliente').value    = data.pedido.id_cliente;
     document.getElementById('eped_id_repartidor').value = data.pedido.id_repartidor;
 
-    // Pre-llenar carrito con ítems existentes
     carritoEditar = data.items.map(item => ({
       id_producto: item.id_producto,
       u_venta:     item.unidad_venta,
@@ -533,9 +530,25 @@ async function abrirEditarPedido(idPedido) {
     }));
     eRenderCarrito();
 
-    // Pre-llenar paso 3 con el último estatus
-    if (data.estatus) {
-      document.getElementById('eest_estado').value = data.estatus.estado;
+    // ── Habilitar solo las transiciones válidas ──────────────────
+    const select     = document.getElementById('eest_estado');
+    const permitidos = data.transiciones_validas;
+
+    Array.from(select.options).forEach(opt => {
+      const esPermitido = permitidos.includes(opt.value);
+      opt.disabled = !esPermitido;
+      opt.style.color = esPermitido ? '' : '#aaa';
+    });
+
+    // Seleccionar la primera opción válida por defecto
+    const primeraValida = select.querySelector('option:not([disabled])');
+    if (primeraValida) primeraValida.selected = true;
+
+    // Si no hay transiciones posibles (terminal), advertir
+    if (permitidos.length === 0) {
+      const estadoLegible = data.estado_actual.replace(/_/g, ' ');
+      alert(`Este pedido está en estado "${estadoLegible}" y no admite más cambios de estatus.`);
+      return; // No abrir el modal
     }
 
     eMostrarPaso(1);
@@ -546,7 +559,6 @@ async function abrirEditarPedido(idPedido) {
     console.error(e);
   }
 }
-
 function eAgregarAlCarrito() {
   const id_producto = document.getElementById('ecp_id_producto').value;
   const u_venta     = document.getElementById('ecp_u_venta').value;
@@ -606,6 +618,15 @@ function eCerrarModal() {
 window.onclick = function(event) {
   if (event.target === document.getElementById('modalCrearPpedido')) cerrarModal();
   if (event.target === document.getElementById('modalEditarPedido')) eCerrarModal();
+};
+</script>
+<script>
+const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
+
+const nombreProducto = {
+  <?php foreach ($productos as $pr): ?>
+    <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
+  <?php endforeach; ?>
 };
 </script>
 

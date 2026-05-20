@@ -7,6 +7,7 @@ use App\Models\Modelo_productopedidos;
 use App\Models\Modelo_estatus;
 use App\Models\Modelo_cliente;
 use App\Models\Modelo_repartidor;
+use App\Models\Modelo_existencia;
 use CodeIgniter\Controller;
 
 class P_pedidos extends Controller {
@@ -45,6 +46,25 @@ class P_pedidos extends Controller {
         if (empty($items) || !is_array($items)) {
             return redirect()->back()->with('mensaje', 'El carrito está vacío');
         }
+        $mExistencia = new Modelo_existencia();
+$stockMap    = $mExistencia->stockDisponiblePorProducto();
+
+foreach ($items as $item) {
+    $disponible = $stockMap[$item['id_producto']] ?? 0;
+
+    if ($item['cant'] > $disponible) {
+        // Borrar el pedido recién insertado para no dejar huérfanos
+        $mPedido->delete($idPedido);
+
+        $mProducto  = new Modelo_producto();
+        $prod       = $mProducto->find($item['id_producto']);
+        $nombre     = $prod['nombre'] ?? 'Producto ID '.$item['id_producto'];
+
+        return redirect()->back()
+                        ->with('error', "Stock insuficiente para \"$nombre\". 
+                                    Disponible: $disponible, solicitado: {$item['cant']}.");
+    }
+}
 
         foreach ($items as $item) {
             $datosItem = [
@@ -78,87 +98,134 @@ class P_pedidos extends Controller {
     }
 
     // ── Modificación COMPLETA (pedido + carrito + nuevo estatus) ───
-    public function modifica_pedido_completo() {
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
+public function modifica_pedido_completo() {
+    $mPedido  = new Modelo_pedido();
+    $mPP      = new Modelo_productopedidos();
+    $mEstatus = new Modelo_estatus();
 
-        $idPedido = $this->request->getPost('id_pedido');
+    $idPedido    = $this->request->getPost('id_pedido');
+    $nuevoEstado = $this->request->getPost('estado');
 
-        // 1. Actualizar pedido
-        $mPedido->update($idPedido, [
-            'fecha'         => $this->request->getPost('fecha'),
-            'id_cliente'    => $this->request->getPost('id_cliente'),
-            'id_repartidor' => $this->request->getPost('id_repartidor'),
-        ]);
+    // ── 1. Obtener el estatus actual del pedido ────────────────────
+    $estatusActual = $mEstatus->where('id_pedido', $idPedido)
+                              ->orderBy('fecha', 'DESC')
+                              ->first();
 
-        // 2. Reemplazar ítems del carrito
-        $mPP->where('id_pedido', $idPedido)->delete();
-        $items = json_decode($this->request->getPost('items'), true);
+    $estadoActual = $estatusActual['estado'] ?? 'pedido_pendiente';
 
-        if (!empty($items) && is_array($items)) {
-            foreach ($items as $item) {
-                $mPP->insert([
-                    'cant'         => $item['cant'],
-                    'precio_venta' => $item['p_venta'],
-                    'unidad_venta' => $item['u_venta'],
-                    'total'        => $item['total'],
-                    'id_pedido'    => $idPedido,
-                    'id_producto'  => $item['id_producto'],
-                ]);
-            }
-        }
+    // ── 2. Mapa de transiciones válidas ────────────────────────────
+    $transicionesValidas = [
+        'pedido_pendiente'   => ['pedido_realizado'],
+        'pedido_realizado'   => ['pedido_confirmado',  'pedido_cancelado'],
+        'pedido_confirmado'  => ['pedido_en_transito', 'pedido_cancelado'],
+        'pedido_en_transito' => ['pedido_entregado',   'pedido_a_credito'],
+        'pedido_entregado'   => ['pedido_pagado',      'pedido_a_credito'],
+        'pedido_a_credito'   => ['pedido_pagado'],
+        'pedido_pagado'      => [],
+        'pedido_cancelado'   => [],
+    ];
 
-        // 3. Insertar nuevo registro de estatus
-        $mEstatus->insert([
-            'estado'    => $this->request->getPost('estado'),
-            'fecha'     => $this->request->getPost('fecha_estatus'),
-            'id_pedido' => $idPedido,
-        ]);
+    // ── 3. Validar transición ──────────────────────────────────────
+    $permitidos = $transicionesValidas[$estadoActual] ?? [];
 
-        $origen = $this->request->getPost('origen');
-        if ($origen === 'lista_p_pedido') {
-            return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido modificado exitosamente');
-        }
-        return redirect()->to('/')->with('mensaje', 'Pedido modificado exitosamente');
+    if (!in_array($nuevoEstado, $permitidos)) {
+        $estadoLegible = str_replace('_', ' ', $estadoActual);
+        return redirect()->to('lista_p_pedido')
+                         ->with('error', "No se puede cambiar a '$nuevoEstado'. 
+                                          El pedido está en '$estadoLegible' 
+                                          y solo permite: " . implode(', ', $permitidos));
     }
+
+    // ── 4. Actualizar pedido ───────────────────────────────────────
+    $mPedido->update($idPedido, [
+        'fecha'         => $this->request->getPost('fecha'),
+        'id_cliente'    => $this->request->getPost('id_cliente'),
+        'id_repartidor' => $this->request->getPost('id_repartidor'),
+    ]);
+
+    // ── 5. Reemplazar ítems del carrito ────────────────────────────
+    $mPP->where('id_pedido', $idPedido)->delete();
+    $items = json_decode($this->request->getPost('items'), true);
+
+    if (!empty($items) && is_array($items)) {
+        foreach ($items as $item) {
+            $mPP->insert([
+                'cant'         => $item['cant'],
+                'precio_venta' => $item['p_venta'],
+                'unidad_venta' => $item['u_venta'],
+                'total'        => $item['total'],
+                'id_pedido'    => $idPedido,
+                'id_producto'  => $item['id_producto'],
+            ]);
+        }
+    }
+
+    // ── 6. Insertar nuevo estatus ──────────────────────────────────
+    $mEstatus->insert([
+        'estado'    => $nuevoEstado,
+        'fecha'     => $this->request->getPost('fecha_estatus'),
+        'id_pedido' => $idPedido,
+    ]);
+
+    return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido modificado exitosamente');
+}
 
     // ── API para cargar datos de un pedido en el wizard de edición ─
-    public function api_pedido($id = null) {
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
+public function api_pedido($id = null) {
+    $mPedido  = new Modelo_pedido();
+    $mPP      = new Modelo_productopedidos();
+    $mEstatus = new Modelo_estatus();
 
-        $pedido  = $mPedido->find($id);
-        $items   = $mPP->where('id_pedido', $id)->findAll();
-        $estatus = $mEstatus->where('id_pedido', $id)
-                            ->orderBy('fecha', 'DESC')
-                            ->first();
+    $pedido  = $mPedido->find($id);
+    $items   = $mPP->where('id_pedido', $id)->findAll();
+    $estatus = $mEstatus->where('id_pedido', $id)
+                        ->orderBy('fecha', 'DESC')
+                        ->first();
 
-        return $this->response->setJSON([
-            'pedido'  => $pedido,
-            'items'   => $items,
-            'estatus' => $estatus,
-        ]);
-    }
+    // Transiciones válidas — misma tabla que en PHP
+    $transicionesValidas = [
+        'pedido_pendiente'   => ['pedido_realizado'],
+        'pedido_realizado'   => ['pedido_confirmado',  'pedido_cancelado'],
+        'pedido_confirmado'  => ['pedido_en_transito', 'pedido_cancelado'],
+        'pedido_en_transito' => ['pedido_entregado',   'pedido_a_credito'],
+        'pedido_entregado'   => ['pedido_pagado',      'pedido_a_credito'],
+        'pedido_a_credito'   => ['pedido_pagado'],
+        'pedido_pagado'      => [],
+        'pedido_cancelado'   => [],
+    ];
 
-    public function lista_p_pedido() {
-        $m_p_pedido   = new Modelo_productopedidos();
-        $m_producto   = new Modelo_producto();
-        $m_pedido     = new Modelo_pedido();
-        $m_cliente    = new Modelo_cliente();
-        $m_repartidor = new Modelo_repartidor();
+    $estadoActual = $estatus['estado'] ?? 'pedido_pendiente';
 
-        $datos = [
-            'productos'                 => $m_producto->findAll(),
-            'p_pedidos'                 => $m_p_pedido->obtenerInformacionCompleta(),
-            'pedidos'                   => $m_pedido->findAll(),
-            'clientes'                  => $m_cliente->findAll(),
-            'repartidores'              => $m_repartidor->findAll(),
-            'precioSugeridoPorProducto' => [],
-        ];
-        return view('lista_p_pedido', $datos);
-    }
+    return $this->response->setJSON([
+        'pedido'              => $pedido,
+        'items'               => $items,
+        'estatus'             => $estatus,
+        'estado_actual'       => $estadoActual,
+        'transiciones_validas'=> $transicionesValidas[$estadoActual] ?? [],
+    ]);
+}
+
+
+
+public function lista_p_pedido() {
+    $m_p_pedido   = new Modelo_productopedidos();
+    $m_producto   = new Modelo_producto();
+    $m_pedido     = new Modelo_pedido();
+    $m_cliente    = new Modelo_cliente();
+    $m_repartidor = new Modelo_repartidor();
+    $m_existencia = new Modelo_existencia();   // ← modelo correcto
+
+    $datos = [
+        'productos'                 => $m_producto->findAll(),
+        'p_pedidos'                 => $m_p_pedido->obtenerInformacionCompleta(),
+        'pedidos'                   => $m_pedido->findAll(),
+        'clientes'                  => $m_cliente->findAll(),
+        'repartidores'              => $m_repartidor->findAll(),
+        'precioSugeridoPorProducto' => [],
+        'stockPorProducto'          => $m_existencia->stockDisponiblePorProducto(),
+    ];
+    return view('lista_p_pedido', $datos);
+}
 
     public function eliminar_datos($id = null) {
         $m_p_pedido = new Modelo_productopedidos();

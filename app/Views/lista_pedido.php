@@ -28,7 +28,7 @@
 <div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearPedido').style.display='block'"
             class="btn-agregar">
-        + Nuevo Cliente
+        + Nuevo Pedido
     </button>
 </div>
 
@@ -124,9 +124,6 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <label for=""><b>Carrito*</b></label>
-                <select name="id_pp" id="" class="w3-select w3-border w3-margin-bottom" required>
-                </select>
 
 
                 <footer class="w3-container w3-green w3-padding">
@@ -139,6 +136,7 @@
             </form>
         </div>
     </div>
+<?php include 'Footer.php'; ?>
 
 
     
@@ -166,10 +164,7 @@
                     <?php foreach ($clientes as $c): ?>
                         <option value="<?= esc($c['id']) ?>"><?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?></option>
                     <?php endforeach; ?>
-                </select>
-                <label for=""><b>Carrito*</b></label>
-                <select name="id_pp" id="" class="w3-select w3-border w3-margin-bottom" required>
-                </select>                
+                </select>               
                 <label><b>Repartidor*</b></label>
                 <select name="id_repartidor" class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach ($repartidores as $r): ?>

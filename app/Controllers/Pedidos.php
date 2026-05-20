@@ -39,9 +39,10 @@ public function guarda_pedido(){
     }else{
         $m_pedido->insert($datos);
         if ($this->request->getPost('origen') == 'main_page') {
-            return redirect()->to('/')->with('Mensaje', 'Pedido creado exitosamente');
+            return redirect()->to('/')->with('mensaje', 'Pedido creado exitosamente');
         }
-        return redirect()->to('lista_pedido')->with('Mensaje', 'Pedido creado exitosamente');
+        return redirect()->to('lista_pedido')->with('mensaje', 'Pedido creado exitosamente');
+
     }
 }
 public function lista_pedido()

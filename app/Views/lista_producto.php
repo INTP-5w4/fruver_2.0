@@ -137,6 +137,8 @@
             </form>
         </div>
     </div>
+<?php include 'Footer.php'; ?>
+
 
     <script>
         function abrirModal(id, nombre, descripcion, categoria) {

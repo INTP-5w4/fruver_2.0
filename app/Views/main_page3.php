@@ -4,16 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FRUVER — Panel de Control</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https:fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/dashboard.css') ?>">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
+    <link rel="stylesheet" href="https:www.w3schools.com/w3css/5/w3.css">
     <!-- Chart.js cargado en el HEAD para garantizar que esté disponible -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https:cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
     <?php include 'Header.php'; ?>
+    <div class="flash-container">
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= session()->getFlashdata('error') ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('mensaje')): ?>
+        <div class="w3-panel w3-green w3-animate-opacity">
+            <p><?= session()->getFlashdata('mensaje') ?></p>
+        </div>
+    <?php endif; ?>
+</div>
 
     <div class="dashboard-wrapper">
 
@@ -420,9 +433,17 @@
           <?php endforeach; ?>
         </select>
       </div>
+      
 
       <!-- ══ PASO 2: Carrito de productos ══ -->
       <div id="paso2" style="display:none;">
+        <label><b>Categoría</b></label>
+<select id="filtroCategoriaCrear" class="w3-select w3-border w3-margin-bottom">
+    <option value="">— Todas —</option>
+    <option value="frutas">Frutas</option>
+    <option value="verduras">Verduras</option>
+    <option value="hierbas">Hierbas</option>
+</select>
         <label><b>Producto*</b></label>
         <select id="cp_id_producto" class="w3-select w3-border w3-margin-bottom">
           <?php foreach ($productos as $pr): ?>
@@ -602,208 +623,353 @@
         </form>
     </div>
 </div>
+<?php include 'Footer.php'; ?>
    <!-- Marcado -->
-<script id="entradas-data" type="application/json">
-                <?= json_encode($entradas) ?>
-            </script>
-
-    <!-- Datos para Chart.js -->
-    <script id="chart-data" type="application/json">
-    <?= json_encode([
-        'pedidosPorMes' => $pedidosPorMes,
-        'ventasPorMes'  => $ventasPorMes,
-        'topProductos'  => $topProductos,
-        'perdidasMerma' => $perdidasMerma,
-    ]) ?>
-    </script>
-
-    <!-- dashboard.js DESPUÉS del chart-data -->
-    <script src="<?= base_url('js/dashboard.js') ?>"></script>
-
-    <script>
-    window.onclick = function(event) {
-        const ids = ['modalCliente','modalDireccion','modalEntrada','modalProducto','modalRepartidor','modalPpedido','modalExistencias','modalMerma'];
-        ids.forEach(id => {
-            const el = document.getElementById(id);
-            if (el && event.target === el) el.style.display = 'none';
-        });
-    };
-    </script>
-<!----------------Carrito------------------------->
 <script>
-let carrito    = [];
-let pasoActual = 1;
-
-const nombreProducto = {
+// ── Datos del servidor ────────────────────────────────────────
+const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
+const nombreProducto   = {
   <?php foreach ($productos as $pr): ?>
     <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
   <?php endforeach; ?>
 };
 
-// ── Navegación ───────────────────────────────────────────────────
+// ── Pool de opciones para el filtro ──────────────────────────
+const opcionesProductoCrear  = [];
+const opcionesProductoEditar = [];
+
+document.querySelectorAll('#cp_id_producto option').forEach(op => {
+    opcionesProductoCrear.push(op.cloneNode(true));
+});
+document.querySelectorAll('#ecp_id_producto option').forEach(op => {
+    opcionesProductoEditar.push(op.cloneNode(true));
+});
+
+// ── Filtro de categorías ──────────────────────────────────────
+function filtrarProductos(selectId, categoria, pool) {
+    const select = document.getElementById(selectId);
+    select.innerHTML = '';
+
+    const filtradas = categoria === ''
+        ? pool
+        : pool.filter(op => op.dataset.categoria === categoria);
+
+    filtradas.forEach(op => select.appendChild(op.cloneNode(true)));
+
+    if (select.options.length === 0) {
+        const vacia = document.createElement('option');
+        vacia.text     = '— Sin resultados —';
+        vacia.disabled = true;
+        select.appendChild(vacia);
+    }
+}
+
+const filtroCategoriaCrear  = document.getElementById('filtroCategoriaCrear');
+const filtroCategoriaEditar = document.getElementById('filtroCategoriaEditar');
+
+if (filtroCategoriaCrear) {
+    filtroCategoriaCrear.addEventListener('change', function () {
+        filtrarProductos('cp_id_producto', this.value, opcionesProductoCrear);
+    });
+}
+if (filtroCategoriaEditar) {
+    filtroCategoriaEditar.addEventListener('change', function () {
+        filtrarProductos('ecp_id_producto', this.value, opcionesProductoEditar);
+    });
+}
+
+// ════════════════════════════════════════════════════════════
+//  WIZARD CREAR
+// ════════════════════════════════════════════════════════════
+let carrito    = [];
+let pasoActual = 1;
+
 function mostrarPaso(n) {
-  [1, 2, 3].forEach(i => {
-    document.getElementById('paso' + i).style.display  = i === n ? 'block' : 'none';
-    const tab = document.getElementById('tab' + i);
-    tab.style.borderBottom = i === n ? '3px solid green' : '3px solid #ccc';
-    tab.style.fontWeight   = i === n ? 'bold' : 'normal';
-  });
-  document.getElementById('btnAtras').style.display     = n > 1 ? 'inline-block' : 'none';
-  document.getElementById('btnSiguiente').style.display = n < 3 ? 'inline-block' : 'none';
-  document.getElementById('btnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
-  pasoActual = n;
+    [1, 2, 3].forEach(i => {
+        document.getElementById('paso' + i).style.display = i === n ? 'block' : 'none';
+        const tab = document.getElementById('tab' + i);
+        tab.style.borderBottom = i === n ? '3px solid green' : '3px solid #ccc';
+        tab.style.fontWeight   = i === n ? 'bold' : 'normal';
+    });
+    document.getElementById('btnAtras').style.display     = n > 1 ? 'inline-block' : 'none';
+    document.getElementById('btnSiguiente').style.display = n < 3 ? 'inline-block' : 'none';
+    document.getElementById('btnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
+    pasoActual = n;
 }
 
 function siguientePaso() {
-  if (pasoActual === 1 && !validarPaso1()) return;
-  if (pasoActual === 2 && !validarPaso2()) return;
-  if (pasoActual < 3) mostrarPaso(pasoActual + 1);
-
-  // Prellenar fecha/hora al entrar al paso 3
-  if (pasoActual === 3) {
-    const now   = new Date();
-    const local = new Date(now - now.getTimezoneOffset() * 60000)
-                    .toISOString().slice(0, 16);
-    document.getElementById('est_fecha').value = local;
-  }
+    if (pasoActual === 1 && !validarPaso1()) return;
+    if (pasoActual === 2 && !validarPaso2()) return;
+    if (pasoActual < 3) mostrarPaso(pasoActual + 1);
+    if (pasoActual === 3) {
+        const now   = new Date();
+        const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('est_fecha').value = local;
+    }
 }
 
 function anteriorPaso() {
-  if (pasoActual > 1) mostrarPaso(pasoActual - 1);
+    if (pasoActual > 1) mostrarPaso(pasoActual - 1);
 }
 
-// ── Validaciones ─────────────────────────────────────────────────
 function validarPaso1() {
-  const fecha        = document.getElementById('ped_fecha').value;
-  const idCliente    = document.getElementById('ped_id_cliente').value;
-  const idRepartidor = document.getElementById('ped_id_repartidor').value;
-
-  if (!fecha || !idCliente || !idRepartidor) {
-    alert('Completa todos los campos del pedido antes de continuar.');
-    return false;
-  }
-  return true;
+    if (!document.getElementById('ped_fecha').value ||
+        !document.getElementById('ped_id_cliente').value ||
+        !document.getElementById('ped_id_repartidor').value) {
+        alert('Completa todos los campos del pedido.');
+        return false;
+    }
+    return true;
 }
 
 function validarPaso2() {
-  if (carrito.length === 0) {
-    alert('Agrega al menos un producto al carrito.');
-    return false;
-  }
-  return true;
+    if (carrito.length === 0) {
+        alert('Agrega al menos un producto al carrito.');
+        return false;
+    }
+    return true;
 }
 
-// ── Carrito ───────────────────────────────────────────────────────
 function agregarAlCarrito() {
-  const id_producto = document.getElementById('cp_id_producto').value;
-  const u_venta     = document.getElementById('cp_u_venta').value;
-  const cant        = parseFloat(document.getElementById('cp_cant').value);
-  const p_venta     = parseFloat(document.getElementById('cp_p_venta').value);
+    const id_producto = document.getElementById('cp_id_producto').value;
+    const u_venta     = document.getElementById('cp_u_venta').value;
+    const cant        = parseFloat(document.getElementById('cp_cant').value);
+    const p_venta     = parseFloat(document.getElementById('cp_p_venta').value);
 
-  if (!cant || !p_venta) {
-    alert('Completa cantidad y precio antes de agregar.');
-    return;
-  }
+    if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
 
-  const total = (cant * p_venta).toFixed(2);
-  carrito.push({ id_producto, u_venta, cant, p_venta, total });
-  renderCarrito();
+    const disponible  = stockPorProducto[id_producto] ?? 0;
+    const yaEnCarrito = carrito
+        .filter(i => i.id_producto === id_producto)
+        .reduce((sum, i) => sum + i.cant, 0);
 
-  document.getElementById('cp_cant').value    = '';
-  document.getElementById('cp_p_venta').value = '';
+    if (yaEnCarrito + cant > disponible) {
+        const maxPosible = disponible - yaEnCarrito;
+        alert(maxPosible <= 0
+            ? `"${nombreProducto[id_producto]}" ya no tiene stock disponible.`
+            : `Stock insuficiente para "${nombreProducto[id_producto]}". Puedes agregar máximo ${maxPosible} más.`
+        );
+        return;
+    }
+
+    carrito.push({ id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
+    renderCarrito();
+    document.getElementById('cp_cant').value    = '';
+    document.getElementById('cp_p_venta').value = '';
 }
 
 function renderCarrito() {
-  const tbody = document.getElementById('carritoBody');
-  tbody.innerHTML = '';
-  carrito.forEach((item, i) => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${nombreProducto[item.id_producto]}</td>
-        <td>${item.u_venta}</td>
-        <td>${item.cant}</td>
-        <td>$${item.p_venta}</td>
-        <td>$${item.total}</td>
-        <td>
-          <button type="button" onclick="quitarItem(${i})"
-                  class="w3-button w3-red w3-small">✕</button>
-        </td>
-      </tr>`;
-  });
-  document.getElementById('carritoContainer').style.display =
-    carrito.length ? 'block' : 'none';
-}
-
-function quitarItem(i) {
-  carrito.splice(i, 1);
-  renderCarrito();
-}
-
-// ── Envío final ───────────────────────────────────────────────────
-function enviarCarrito() {
-  const estado      = document.getElementById('est_estado').value;
-  const fechaEst    = document.getElementById('est_fecha').value;
-
-  if (!estado || !fechaEst) {
-    alert('Completa el estado y la fecha antes de guardar.');
-    return;
-  }
-
-  document.getElementById('fn_fecha').value         = document.getElementById('ped_fecha').value;
-  document.getElementById('fn_id_cliente').value    = document.getElementById('ped_id_cliente').value;
-  document.getElementById('fn_id_repartidor').value = document.getElementById('ped_id_repartidor').value;
-  document.getElementById('inputItems').value       = JSON.stringify(carrito);
-  document.getElementById('fn_estado').value        = estado;
-  document.getElementById('fn_fecha_estatus').value = fechaEst;
-
-  document.getElementById('formCarrito').submit();
-}
-
-// ── Reset al cerrar ───────────────────────────────────────────────
-function cerrarModal() {
-  carrito = [];
-  renderCarrito();
-  mostrarPaso(1);
-  document.getElementById('ped_fecha').value = '';
-  document.getElementById('modalPpedido').style.display = 'none';
-}
-</script>
-<!----------------Carrito------------------------->
-<script>
-document.getElementById('cp_id_producto').addEventListener('change', function () {
-    const opcionSeleccionada = this.options[this.selectedIndex];
-    const precio = opcionSeleccionada.dataset.precio;
-    const etiqueta = document.getElementById('cp_precio_sugerido');
-    const valorSpan = document.getElementById('cp_precio_valor');
-
-    if (precio !== '') {
-        valorSpan.textContent = parseFloat(precio).toFixed(2);
-        etiqueta.style.display = 'block';
-        document.getElementById('cp_p_venta').value = parseFloat(precio).toFixed(2);
-    } else {
-        etiqueta.style.display = 'none';
-        document.getElementById('cp_p_venta').value = '';
-    }
-});
-
-document.getElementById('cp_id_producto').dispatchEvent(new Event('change'));
-</script>
-<script>
-document.getElementById('filtroCategoriaEntrada').addEventListener('change', function () {
-    const categoriaElegida = this.value;
-    const selectProducto   = document.getElementById('selectProductoEntrada');
-    const opciones         = selectProducto.querySelectorAll('option');
-
-    opciones.forEach(function (opcion) {
-        const coincide = categoriaElegida === '' || opcion.dataset.categoria === categoriaElegida;
-        opcion.hidden   = !coincide;
-        opcion.disabled = !coincide;
+    const tbody = document.getElementById('carritoBody');
+    tbody.innerHTML = '';
+    carrito.forEach((item, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${nombreProducto[item.id_producto]}</td>
+            <td>${item.u_venta}</td>
+            <td>${item.cant}</td>
+            <td>$${item.p_venta}</td>
+            <td>$${item.total}</td>
+            <td><button type="button" onclick="quitarItem(${i})"
+                class="w3-button w3-red w3-small">✕</button></td>
+          </tr>`;
     });
+    document.getElementById('carritoContainer').style.display = carrito.length ? 'block' : 'none';
+}
 
-    // Seleccionar automáticamente la primera opción visible
-    const primeraVisible = selectProducto.querySelector('option:not([hidden])');
-    if (primeraVisible) primeraVisible.selected = true;
-});
+function quitarItem(i) { carrito.splice(i, 1); renderCarrito(); }
+
+function enviarCarrito() {
+    const estado   = document.getElementById('est_estado').value;
+    const fechaEst = document.getElementById('est_fecha').value;
+    if (!estado || !fechaEst) { alert('Completa estado y fecha.'); return; }
+
+    document.getElementById('fn_fecha').value         = document.getElementById('ped_fecha').value;
+    document.getElementById('fn_id_cliente').value    = document.getElementById('ped_id_cliente').value;
+    document.getElementById('fn_id_repartidor').value = document.getElementById('ped_id_repartidor').value;
+    document.getElementById('inputItems').value       = JSON.stringify(carrito);
+    document.getElementById('fn_estado').value        = estado;
+    document.getElementById('fn_fecha_estatus').value = fechaEst;
+    document.getElementById('formCarrito').submit();
+}
+
+function cerrarModal() {
+    carrito = [];
+    renderCarrito();
+    mostrarPaso(1);
+    document.getElementById('ped_fecha').value = '';
+    document.getElementById('modalCrearPpedido').style.display = 'none';
+}
+
+
+// ════════════════════════════════════════════════════════════
+//  WIZARD EDITAR
+// ════════════════════════════════════════════════════════════
+let carritoEditar = [];
+let ePasoActual   = 1;
+
+function eMostrarPaso(n) {
+    [1, 2, 3].forEach(i => {
+        document.getElementById('epaso' + i).style.display = i === n ? 'block' : 'none';
+        const tab = document.getElementById('etab' + i);
+        tab.style.borderBottom = i === n ? '3px solid green' : '3px solid #ccc';
+        tab.style.fontWeight   = i === n ? 'bold' : 'normal';
+    });
+    document.getElementById('eBtnAtras').style.display     = n > 1 ? 'inline-block' : 'none';
+    document.getElementById('eBtnSiguiente').style.display = n < 3 ? 'inline-block' : 'none';
+    document.getElementById('eBtnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
+    ePasoActual = n;
+}
+
+function eSiguientePaso() {
+    if (ePasoActual === 1 && !eValidarPaso1()) return;
+    if (ePasoActual === 2 && !eValidarPaso2()) return;
+    if (ePasoActual < 3) eMostrarPaso(ePasoActual + 1);
+    if (ePasoActual === 3) {
+        const now   = new Date();
+        const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('eest_fecha').value = local;
+    }
+}
+
+function eAnteriorPaso() {
+    if (ePasoActual > 1) eMostrarPaso(ePasoActual - 1);
+}
+
+function eValidarPaso1() {
+    if (!document.getElementById('eped_fecha').value ||
+        !document.getElementById('eped_id_cliente').value ||
+        !document.getElementById('eped_id_repartidor').value) {
+        alert('Completa todos los campos del pedido.');
+        return false;
+    }
+    return true;
+}
+
+function eValidarPaso2() {
+    if (carritoEditar.length === 0) {
+        alert('El carrito no puede quedar vacío.');
+        return false;
+    }
+    return true;
+}
+
+async function abrirEditarPedido(idPedido) {
+    try {
+        const res  = await fetch(`<?= base_url('api_pedido/') ?>${idPedido}`);
+        const data = await res.json();
+
+        document.getElementById('efn_id_pedido').value      = idPedido;
+        document.getElementById('eped_fecha').value         = data.pedido.fecha;
+        document.getElementById('eped_id_cliente').value    = data.pedido.id_cliente;
+        document.getElementById('eped_id_repartidor').value = data.pedido.id_repartidor;
+
+        carritoEditar = data.items.map(item => ({
+            id_producto: item.id_producto,
+            u_venta:     item.unidad_venta,
+            cant:        parseFloat(item.cant),
+            p_venta:     parseFloat(item.precio_venta),
+            total:       parseFloat(item.total).toFixed(2),
+        }));
+        eRenderCarrito();
+
+        const select     = document.getElementById('eest_estado');
+        const permitidos = data.transiciones_validas;
+        Array.from(select.options).forEach(opt => {
+            const esPermitido = permitidos.includes(opt.value);
+            opt.disabled      = !esPermitido;
+            opt.style.color   = esPermitido ? '' : '#aaa';
+        });
+        const primeraValida = select.querySelector('option:not([disabled])');
+        if (primeraValida) primeraValida.selected = true;
+
+        if (permitidos.length === 0) {
+            alert(`Este pedido está en "${data.estado_actual.replace(/_/g,' ')}" y no admite más cambios.`);
+            return;
+        }
+
+        eMostrarPaso(1);
+        document.getElementById('modalEditarPedido').style.display = 'block';
+
+    } catch (e) {
+        alert('Error al cargar los datos del pedido.');
+        console.error(e);
+    }
+}
+
+function eAgregarAlCarrito() {
+    const id_producto = document.getElementById('ecp_id_producto').value;
+    const u_venta     = document.getElementById('ecp_u_venta').value;
+    const cant        = parseFloat(document.getElementById('ecp_cant').value);
+    const p_venta     = parseFloat(document.getElementById('ecp_p_venta').value);
+
+    if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
+
+    const disponible  = stockPorProducto[id_producto] ?? 0;
+    const yaEnCarrito = carritoEditar
+        .filter(i => i.id_producto === id_producto)
+        .reduce((sum, i) => sum + i.cant, 0);
+
+    if (yaEnCarrito + cant > disponible) {
+        const maxPosible = disponible - yaEnCarrito;
+        alert(maxPosible <= 0
+            ? `"${nombreProducto[id_producto]}" ya no tiene stock disponible.`
+            : `Stock insuficiente para "${nombreProducto[id_producto]}". Puedes agregar máximo ${maxPosible} más.`
+        );
+        return;
+    }
+
+    carritoEditar.push({ id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
+    eRenderCarrito();
+    document.getElementById('ecp_cant').value    = '';
+    document.getElementById('ecp_p_venta').value = '';
+}
+
+function eRenderCarrito() {
+    const tbody = document.getElementById('eCarritoBody');
+    tbody.innerHTML = '';
+    carritoEditar.forEach((item, i) => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${nombreProducto[item.id_producto]}</td>
+            <td>${item.u_venta}</td>
+            <td>${item.cant}</td>
+            <td>$${item.p_venta}</td>
+            <td>$${item.total}</td>
+            <td><button type="button" onclick="eQuitarItem(${i})"
+                class="w3-button w3-red w3-small">✕</button></td>
+          </tr>`;
+    });
+    document.getElementById('eCarritoContainer').style.display = carritoEditar.length ? 'block' : 'none';
+}
+
+function eQuitarItem(i) { carritoEditar.splice(i, 1); eRenderCarrito(); }
+
+function eEnviarCarrito() {
+    const estado   = document.getElementById('eest_estado').value;
+    const fechaEst = document.getElementById('eest_fecha').value;
+    if (!estado || !fechaEst) { alert('Completa estado y fecha.'); return; }
+
+    document.getElementById('efn_fecha').value         = document.getElementById('eped_fecha').value;
+    document.getElementById('efn_id_cliente').value    = document.getElementById('eped_id_cliente').value;
+    document.getElementById('efn_id_repartidor').value = document.getElementById('eped_id_repartidor').value;
+    document.getElementById('eInputItems').value       = JSON.stringify(carritoEditar);
+    document.getElementById('efn_estado').value        = estado;
+    document.getElementById('efn_fecha_estatus').value = fechaEst;
+    document.getElementById('eFormCarrito').submit();
+}
+
+function eCerrarModal() {
+    carritoEditar = [];
+    eRenderCarrito();
+    eMostrarPaso(1);
+    document.getElementById('modalEditarPedido').style.display = 'none';
+}
+
+// ── Cierre por click fuera ────────────────────────────────────
+window.onclick = function(event) {
+    if (event.target === document.getElementById('modalCrearPpedido'))  cerrarModal();
+    if (event.target === document.getElementById('modalEditarPedido'))  eCerrarModal();
+};
 </script>
 </body>
 </html>

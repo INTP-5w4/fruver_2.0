@@ -23,7 +23,6 @@ public function guarda_entrada(){
         'precio_compra_u' => $this->request->getPost('p_compra'),
         'precio_venta_u'  => $this->request->getPost('p_venta'),
         'equivalente'     => $this->request->getPost('equi'),
-        'conversion'     => $this->request->getPost('conv'),
         'id_producto'     => $this->request->getPost('id_producto'),
     ];
 
@@ -42,9 +41,9 @@ public function guarda_entrada(){
     } else {
         $m_entrada->insert($datos);
         if($this->request->getPost('origen') === 'main_page'){
-            return redirect()->to('/')->with('mensaje', 'Entrada registrada correctamente');
+            return redirect()->to('main_page3')->with('mensaje', 'Entrada registrada correctamente');
         }
-        return redirect()->to('lista_entrada');
+        return redirect()->to('lista_entrada')->with('mensaje', 'Entrada registrada correctamente');
     }
 }
 public function lista_entrada(){
@@ -89,7 +88,6 @@ public function modifica_entrada(){
         'u_compra'        => $this->request->getPost('u_com'),
         'u_venta'         => $this->request->getPost('u_ven'),
         'equivalente'     => $this->request->getPost('equi'),
-        'conversion'      => $this->request->getPost('conv'),
         'precio_compra_u' => $this->request->getPost('p_compra'),
         'precio_venta_u'  => $this->request->getPost('p_venta'),
         'id_producto'     => $this->request->getPost('id_producto'),
