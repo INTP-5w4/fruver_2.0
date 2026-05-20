@@ -7,6 +7,7 @@ use App\Models\Modelo_entrada;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_repartidor;
 use App\Models\Modelo_cliente;
+use App\Models\Modelo_existencia;
 
 
 class Productos extends BaseController
@@ -18,6 +19,8 @@ public function main_page()
     $m_repartidor = new Modelo_repartidor();
     $m_pedido     = new Modelo_pedido();
     $m_entrada    = new Modelo_entrada();
+    $m_existencia    = new Modelo_existencia();
+
     $m_merma      = new \App\Models\Modelo_merma();
     $datos = [
         'productosLowStock' => $m_producto->productosLowStock(),
@@ -34,6 +37,7 @@ public function main_page()
         'perdidasMerma'     => $m_merma->perdidasPorMes(),
 
         'precioSugeridoPorProducto' => $m_entrada->precioMaximoPorProducto(),
+        'stockPorProducto' => $m_existencia->stockDisponiblePorProducto(),
     ];
     return view('main_page3', $datos);
 }

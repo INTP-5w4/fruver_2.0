@@ -271,3 +271,67 @@ body {
     position: sticky;
     top: 80px; /* Lo mantiene pegado pero debajo de la barra */
 }
+.footer {
+    background: #00910a;
+    margin-top: 40px;
+    padding: 0;
+    box-shadow: 0 -2px 8px rgba(0, 117, 66, 0.2);
+}
+
+.footer_container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.footer_brand {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer_logo {
+    color: #ffffff;
+    font-size: 1.2em;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.footer_tagline {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.75em;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.footer_copy {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8em;
+    letter-spacing: 0.3px;
+}
+
+.flash-container {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    width: 60vw;
+}
+
+.flash-container .w3-panel {
+    border-radius: 12px;
+    padding: 20px 30px;
+    margin: 0;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.flash-container .w3-panel p {
+    color: white;
+    font-weight: bold;
+    font-size: 24px;
+    margin: 0;
+}
