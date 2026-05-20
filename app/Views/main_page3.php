@@ -87,15 +87,15 @@
             <section class="charts-row">
                 <div class="chart-card chart-card--wide">
                     <div class="chart-header">
-                        <h2 class="chart-title">Pedidos por mes</h2>
-                        <span class="chart-badge">Últimos 6 meses</span>
+                        <h2 class="chart-title">Pedidos por semana</h2>
+                        <span class="chart-badge">Últimas 8 semanas</span>
                     </div>
                     <div class="chart-area"><canvas id="pedidosChart"></canvas></div>
                 </div>
                 <div class="chart-card">
                     <div class="chart-header">
                         <h2 class="chart-title">Total en ventas</h2>
-                        <span class="chart-badge">Últimos 6 meses</span>
+                        <span class="chart-badge">Últimas 8 semanas</span>
                     </div>
                     <div class="chart-area"><canvas id="ventasChart"></canvas></div>
                 </div>
@@ -109,7 +109,7 @@
                 <div class="chart-card">
                     <div class="chart-header">
                         <h2 class="chart-title">Pérdidas por merma</h2>
-                        <span class="chart-badge">Últimos 6 meses</span>
+                        <span class="chart-badge">Últimas 8 semanas</span>
                     </div>
                     <div class="chart-area"><canvas id="mermaChart"></canvas></div>
                 </div>
@@ -755,11 +755,11 @@
 
     <!-- Charts -->
     <script>
-    // ── Pedidos por mes ───────────────────────────────────────────
+    // ── Pedidos por semana ────────────────────────────────────────
     new Chart(document.getElementById('pedidosChart'), {
         type: 'bar',
         data: {
-            labels: <?= json_encode(array_column($pedidosPorMes, 'mes')) ?>,
+            labels: <?= json_encode(array_column($pedidosPorMes, 'semana')) ?>,
             datasets: [{
                 label: 'Pedidos',
                 data:  <?= json_encode(array_column($pedidosPorMes, 'total')) ?>,
@@ -770,14 +770,14 @@
         options: { responsive: true, plugins: { legend: { display: false } } }
     });
 
-    // ── Ventas por mes ────────────────────────────────────────────
+    // ── Ventas por semana ─────────────────────────────────────────
     new Chart(document.getElementById('ventasChart'), {
         type: 'line',
         data: {
-            labels: <?= json_encode(array_column($ventasPorMes, 'mes')) ?>,
+            labels: <?= json_encode(array_column($ventasPorMes, 'semana')) ?>,
             datasets: [{
                 label: 'Total ventas ($)',
-                data:  <?= json_encode(array_column($ventasPorMes, 'total')) ?>,
+                data:  <?= json_encode(array_column($ventasPorMes, 'ventas')) ?>,
                 borderColor: '#16a34a',
                 backgroundColor: 'rgba(22,163,74,0.1)',
                 tension: 0.4,
@@ -793,7 +793,7 @@
         data: {
             labels: <?= json_encode(array_column($topProductos, 'nombre')) ?>,
             datasets: [{
-                label: 'Unidades vendidas',
+                label: 'Total vendido ($)',
                 data:  <?= json_encode(array_column($topProductos, 'total_vendido')) ?>,
                 backgroundColor: 'rgba(20,184,166,0.7)',
                 borderRadius: 6,
@@ -806,14 +806,14 @@
         }
     });
 
-    // ── Pérdidas por merma ────────────────────────────────────────
+    // ── Pérdidas por merma (semana) ───────────────────────────────
     new Chart(document.getElementById('mermaChart'), {
         type: 'bar',
         data: {
-            labels: <?= json_encode(array_column($perdidasMerma, 'mes')) ?>,
+            labels: <?= json_encode(array_column($perdidasMerma, 'semana')) ?>,
             datasets: [{
                 label: 'Pérdidas ($)',
-                data:  <?= json_encode(array_column($perdidasMerma, 'total_perdida')) ?>,
+                data:  <?= json_encode(array_column($perdidasMerma, 'perdida')) ?>,
                 backgroundColor: 'rgba(239,68,68,0.7)',
                 borderRadius: 6,
             }]

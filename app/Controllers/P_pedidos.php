@@ -143,20 +143,46 @@ public function modifica_pedido_completo() {
         'id_repartidor' => $this->request->getPost('id_repartidor'),
     ]);
 
-    // ── 5. Reemplazar ítems del carrito ────────────────────────────
-    $mPP->where('id_pedido', $idPedido)->delete();
+    // ── 5. Sincronizar ítems del carrito (conserva IDs existentes) ─
     $items = json_decode($this->request->getPost('items'), true);
+    if (!is_array($items)) $items = [];
 
-    if (!empty($items) && is_array($items)) {
-        foreach ($items as $item) {
-            $mPP->insert([
+    // IDs que vienen del frontend (solo los que ya existían en BD)
+    $idsEntrantes = array_filter(
+        array_column($items, 'id'),
+        fn($id) => !empty($id) && is_numeric($id)
+    );
+
+    // Borrar solo los que ya no están en el carrito
+    $existentesEnBD = $mPP->where('id_pedido', $idPedido)->findAll();
+    foreach ($existentesEnBD as $fila) {
+        if (!in_array($fila['id'], $idsEntrantes)) {
+            $mPP->delete($fila['id']);
+        }
+    }
+
+    // Actualizar los que ya existen, insertar los nuevos
+    foreach ($items as $item) {
+        $datos = [
+            'cant'         => $item['cant'],
+            'precio_venta' => $item['p_venta'],
+            'unidad_venta' => $item['u_venta'],
+            'total'        => $item['total'],
+            'id_pedido'    => $idPedido,
+            'id_producto'  => $item['id_producto'],
+        ];
+
+        if (!empty($item['id']) && is_numeric($item['id'])) {
+            // Ya existía → solo actualiza cantidad, precio y total
+            $mPP->update($item['id'], [
                 'cant'         => $item['cant'],
                 'precio_venta' => $item['p_venta'],
                 'unidad_venta' => $item['u_venta'],
                 'total'        => $item['total'],
-                'id_pedido'    => $idPedido,
-                'id_producto'  => $item['id_producto'],
             ]);
+        } else {
+            // Nuevo ítem → inserta y obtiene su ID nuevo
+            $mPP->insert($datos);
         }
     }
 
