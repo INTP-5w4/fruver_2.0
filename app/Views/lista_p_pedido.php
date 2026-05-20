@@ -68,7 +68,6 @@
             </span>
         </td>
         <td>
-            <!-- Edita el pedido completo al que pertenece esta fila -->
             <button onclick="abrirEditarPedido('<?= esc($pp['id_pedido']) ?>')"
                     style="border:none; cursor:pointer; background:none;">
                 <i class="fa-solid fa-pen-to-square"></i>
@@ -130,12 +129,22 @@
 
       <!-- PASO 2 -->
       <div id="paso2" style="display:none;">
+        <label><b>Categoría</b></label>
+        <select id="filtroCategoriaCrear" class="w3-select w3-border w3-margin-bottom">
+          <option value="">— Todas —</option>
+          <option value="frutas">Frutas</option>
+          <option value="verduras">Verduras</option>
+          <option value="hierbas">Hierbas</option>
+        </select>
+
         <label><b>Producto*</b></label>
         <select id="cp_id_producto" class="w3-select w3-border w3-margin-bottom">
           <?php foreach ($productos as $pr): ?>
             <option value="<?= esc($pr['id']) ?>"
+                    data-categoria="<?= esc($pr['categoria']) ?>"
                     data-precio="<?= esc($precioSugeridoPorProducto[$pr['id']] ?? '') ?>">
               <?= esc($pr['nombre']) ?>
+              (stock: <?= $stockPorProducto[$pr['id']] ?? 0 ?>)
             </option>
           <?php endforeach; ?>
         </select>
@@ -258,11 +267,22 @@
 
       <!-- PASO 2 -->
       <div id="epaso2" style="display:none;">
+        <label><b>Categoría</b></label>
+        <select id="filtroCategoriaEditar" class="w3-select w3-border w3-margin-bottom">
+          <option value="">— Todas —</option>
+          <option value="frutas">Frutas</option>
+          <option value="verduras">Verduras</option>
+          <option value="hierbas">Hierbas</option>
+        </select>
+
         <label><b>Producto*</b></label>
         <select id="ecp_id_producto" class="w3-select w3-border w3-margin-bottom">
           <?php foreach ($productos as $pr): ?>
-            <option value="<?= esc($pr['id']) ?>">
+            <option value="<?= esc($pr['id']) ?>"
+                    data-categoria="<?= esc($pr['categoria']) ?>"
+                    data-precio="<?= esc($precioSugeridoPorProducto[$pr['id']] ?? '') ?>">
               <?= esc($pr['nombre']) ?>
+              (stock: <?= $stockPorProducto[$pr['id']] ?? 0 ?>)
             </option>
           <?php endforeach; ?>
         </select>
@@ -318,7 +338,6 @@
       <!-- Form oculto -->
       <form id="eFormCarrito" action="<?= base_url('modifica_pedido_completo') ?>" method="post">
         <?= csrf_field() ?>
-        <input type="hidden" name="origen"         value="lista_p_pedido">
         <input type="hidden" name="id_pedido"      id="efn_id_pedido">
         <input type="hidden" name="fecha"          id="efn_fecha">
         <input type="hidden" name="id_cliente"     id="efn_id_cliente">
@@ -344,17 +363,53 @@
 
 
 <script>
+// ── Datos del servidor ────────────────────────────────────────
+const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
+const nombreProducto   = {
+  <?php foreach ($productos as $pr): ?>
+    <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
+  <?php endforeach; ?>
+};
+
+// ── Pool de opciones para filtros de categoría ────────────────
+const opcionesCrear  = [];
+const opcionesEditar = [];
+
+document.querySelectorAll('#cp_id_producto option').forEach(op => {
+    opcionesCrear.push(op.cloneNode(true));
+});
+document.querySelectorAll('#ecp_id_producto option').forEach(op => {
+    opcionesEditar.push(op.cloneNode(true));
+});
+
+function filtrarProductos(selectId, categoria, pool) {
+    const select = document.getElementById(selectId);
+    select.innerHTML = '';
+    const filtradas = categoria === ''
+        ? pool
+        : pool.filter(op => op.dataset.categoria === categoria);
+    filtradas.forEach(op => select.appendChild(op.cloneNode(true)));
+    if (select.options.length === 0) {
+        const vacia = document.createElement('option');
+        vacia.text = '— Sin resultados —';
+        vacia.disabled = true;
+        select.appendChild(vacia);
+    }
+}
+
+document.getElementById('filtroCategoriaCrear').addEventListener('change', function () {
+    filtrarProductos('cp_id_producto', this.value, opcionesCrear);
+});
+document.getElementById('filtroCategoriaEditar').addEventListener('change', function () {
+    filtrarProductos('ecp_id_producto', this.value, opcionesEditar);
+});
+
+
 // ════════════════════════════════════════════════════════════
 //  WIZARD CREAR
 // ════════════════════════════════════════════════════════════
 let carrito    = [];
 let pasoActual = 1;
-
-const nombreProducto = {
-  <?php foreach ($productos as $pr): ?>
-    <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
-  <?php endforeach; ?>
-};
 
 function mostrarPaso(n) {
   [1, 2, 3].forEach(i => {
@@ -409,6 +464,20 @@ function agregarAlCarrito() {
   const p_venta     = parseFloat(document.getElementById('cp_p_venta').value);
 
   if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
+
+  const disponible  = stockPorProducto[id_producto] ?? 0;
+  const yaEnCarrito = carrito
+      .filter(i => i.id_producto === id_producto)
+      .reduce((sum, i) => sum + i.cant, 0);
+
+  if (yaEnCarrito + cant > disponible) {
+      const maxPosible = disponible - yaEnCarrito;
+      alert(maxPosible <= 0
+          ? `"${nombreProducto[id_producto]}" ya no tiene stock disponible.`
+          : `Stock insuficiente. Puedes agregar máximo ${maxPosible} más de "${nombreProducto[id_producto]}".`
+      );
+      return;
+  }
 
   carrito.push({ id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
   renderCarrito();
@@ -521,7 +590,9 @@ async function abrirEditarPedido(idPedido) {
     document.getElementById('eped_id_cliente').value    = data.pedido.id_cliente;
     document.getElementById('eped_id_repartidor').value = data.pedido.id_repartidor;
 
+    // ── Cargar items conservando su id de producto_pedido ─────────
     carritoEditar = data.items.map(item => ({
+      id:          item.id,                          // ← ID de producto_pedido conservado
       id_producto: item.id_producto,
       u_venta:     item.unidad_venta,
       cant:        parseFloat(item.cant),
@@ -530,25 +601,23 @@ async function abrirEditarPedido(idPedido) {
     }));
     eRenderCarrito();
 
-    // ── Habilitar solo las transiciones válidas ──────────────────
+    // ── Habilitar solo las transiciones válidas ───────────────────
     const select     = document.getElementById('eest_estado');
     const permitidos = data.transiciones_validas;
 
     Array.from(select.options).forEach(opt => {
       const esPermitido = permitidos.includes(opt.value);
-      opt.disabled = !esPermitido;
-      opt.style.color = esPermitido ? '' : '#aaa';
+      opt.disabled      = !esPermitido;
+      opt.style.color   = esPermitido ? '' : '#aaa';
     });
 
-    // Seleccionar la primera opción válida por defecto
     const primeraValida = select.querySelector('option:not([disabled])');
     if (primeraValida) primeraValida.selected = true;
 
-    // Si no hay transiciones posibles (terminal), advertir
     if (permitidos.length === 0) {
       const estadoLegible = data.estado_actual.replace(/_/g, ' ');
       alert(`Este pedido está en estado "${estadoLegible}" y no admite más cambios de estatus.`);
-      return; // No abrir el modal
+      return;
     }
 
     eMostrarPaso(1);
@@ -559,6 +628,7 @@ async function abrirEditarPedido(idPedido) {
     console.error(e);
   }
 }
+
 function eAgregarAlCarrito() {
   const id_producto = document.getElementById('ecp_id_producto').value;
   const u_venta     = document.getElementById('ecp_u_venta').value;
@@ -567,7 +637,22 @@ function eAgregarAlCarrito() {
 
   if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
 
-  carritoEditar.push({ id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
+  const disponible  = stockPorProducto[id_producto] ?? 0;
+  const yaEnCarrito = carritoEditar
+      .filter(i => i.id_producto === id_producto)
+      .reduce((sum, i) => sum + i.cant, 0);
+
+  if (yaEnCarrito + cant > disponible) {
+      const maxPosible = disponible - yaEnCarrito;
+      alert(maxPosible <= 0
+          ? `"${nombreProducto[id_producto]}" ya no tiene stock disponible.`
+          : `Stock insuficiente. Puedes agregar máximo ${maxPosible} más de "${nombreProducto[id_producto]}".`
+      );
+      return;
+  }
+
+  // Nuevo item: sin id (se asignará al insertar en BD)
+  carritoEditar.push({ id: null, id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
   eRenderCarrito();
   document.getElementById('ecp_cant').value    = '';
   document.getElementById('ecp_p_venta').value = '';
@@ -601,7 +686,7 @@ function eEnviarCarrito() {
   document.getElementById('efn_fecha').value         = document.getElementById('eped_fecha').value;
   document.getElementById('efn_id_cliente').value    = document.getElementById('eped_id_cliente').value;
   document.getElementById('efn_id_repartidor').value = document.getElementById('eped_id_repartidor').value;
-  document.getElementById('eInputItems').value       = JSON.stringify(carritoEditar);
+  document.getElementById('eInputItems').value       = JSON.stringify(carritoEditar); // ← incluye id por item
   document.getElementById('efn_estado').value        = estado;
   document.getElementById('efn_fecha_estatus').value = fechaEst;
   document.getElementById('eFormCarrito').submit();
@@ -618,15 +703,6 @@ function eCerrarModal() {
 window.onclick = function(event) {
   if (event.target === document.getElementById('modalCrearPpedido')) cerrarModal();
   if (event.target === document.getElementById('modalEditarPedido')) eCerrarModal();
-};
-</script>
-<script>
-const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
-
-const nombreProducto = {
-  <?php foreach ($productos as $pr): ?>
-    <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
-  <?php endforeach; ?>
 };
 </script>
 

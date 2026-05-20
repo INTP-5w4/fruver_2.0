@@ -41,7 +41,7 @@ public function guarda_entrada(){
     } else {
         $m_entrada->insert($datos);
         if($this->request->getPost('origen') === 'main_page'){
-            return redirect()->to('main_page3')->with('mensaje', 'Entrada registrada correctamente');
+            return redirect()->to('/')->with('mensaje', 'Entrada registrada correctamente');
         }
         return redirect()->to('lista_entrada')->with('mensaje', 'Entrada registrada correctamente');
     }
