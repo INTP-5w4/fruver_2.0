@@ -212,3 +212,12 @@ tbody tr:nth-child(even) {
     letter-spacing: 0.3px;
 }
 
+/* Alternativa global — afecta todas las tablas del body directo */
+body > div > table,
+.dashboard-main table:not(.w3-table),
+.contenedor-boton ~ table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}

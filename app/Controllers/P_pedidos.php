@@ -234,24 +234,42 @@ public function api_pedido($id = null) {
 
 
 public function lista_p_pedido() {
-    $m_p_pedido   = new Modelo_productopedidos();
-    $m_producto   = new Modelo_producto();
-    $m_pedido     = new Modelo_pedido();
-    $m_cliente    = new Modelo_cliente();
-    $m_repartidor = new Modelo_repartidor();
-    $m_existencia = new Modelo_existencia();   // ← modelo correcto
-
-    $datos = [
-        'productos'                 => $m_producto->findAll(),
-        'p_pedidos'                 => $m_p_pedido->obtenerInformacionCompleta(),
-        'pedidos'                   => $m_pedido->findAll(),
-        'clientes'                  => $m_cliente->findAll(),
-        'repartidores'              => $m_repartidor->findAll(),
-        'precioSugeridoPorProducto' => [],
-        'stockPorProducto'          => $m_existencia->stockDisponiblePorProducto(),
-    ];
-    return view('lista_p_pedido', $datos);
-}
+        $m_p_pedido   = new Modelo_productopedidos();
+        $m_producto   = new Modelo_producto();
+        $m_pedido     = new Modelo_pedido();
+        $m_cliente    = new Modelo_cliente();
+        $m_repartidor = new Modelo_repartidor();
+        $m_existencia = new Modelo_existencia();
+ 
+        $datos = [
+            'productos'                 => $m_producto->findAll(),
+            'pedidos_agrupados'         => $m_p_pedido->obtenerPedidosAgrupados(), // ← nuevo
+            'pedidos'                   => $m_pedido->findAll(),
+            'clientes'                  => $m_cliente->findAll(),
+            'repartidores'              => $m_repartidor->findAll(),
+            'precioSugeridoPorProducto' => [],
+            'stockPorProducto'          => $m_existencia->stockDisponiblePorProducto(),
+        ];
+        return view('lista_p_pedido', $datos);
+    }
+ 
+    // ── Agrega esta función nueva para eliminar pedido completo ────
+    public function borra_pedido_completo($id = null) {
+        if (!$id) {
+            return redirect()->to('lista_p_pedido')->with('error', 'ID de pedido no válido.');
+        }
+ 
+        $mPedido  = new Modelo_pedido();
+        $mPP      = new Modelo_productopedidos();
+        $mEstatus = new Modelo_estatus();
+ 
+        // Borrar en orden correcto para respetar FK
+        $mEstatus->where('id_pedido', $id)->delete();
+        $mPP->where('id_pedido', $id)->delete();
+        $mPedido->delete($id);
+ 
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido eliminado correctamente.');
+    }
 
     public function eliminar_datos($id = null) {
         $m_p_pedido = new Modelo_productopedidos();

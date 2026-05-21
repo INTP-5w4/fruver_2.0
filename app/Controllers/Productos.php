@@ -99,7 +99,7 @@ public function lista_producto($dato=null){
     $m_producto = new Modelo_producto();
     if (!empty($dato)){
         $datos=[
-            'productos'=>$m_producto->busqueda_compleja($dato)-> paginate(2,'default'),
+            'productos'=>$m_producto->busqueda_compleja($dato)-> paginate(15,'default'),
             'pager'=>$m_producto->pager
         ];
     }else{
