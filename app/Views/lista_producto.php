@@ -161,7 +161,6 @@
 <?php include 'Footer.php'; ?>
 </div><!-- /.lista-wrapper -->
 
-<?php include 'Footer.php'; ?>
 
     <script>
         function abrirModal(id, nombre, descripcion, categoria) {

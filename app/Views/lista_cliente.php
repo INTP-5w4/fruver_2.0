@@ -12,7 +12,7 @@
     <?php include 'Header.php'; ?>
     <?php include 'sidebar.php'; ?>
 
-<div class="lista-wrapper">
+<div class="lista-wrapper" style="padding-top: 55px;">
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
@@ -187,7 +187,6 @@
 
 </div>
 </div>
-<?php include 'Footer.php'; ?>
 </div><!-- /.lista-wrapper -->
 </body>
 </html>
