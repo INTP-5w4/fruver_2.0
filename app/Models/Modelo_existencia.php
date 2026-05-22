@@ -25,4 +25,8 @@ public function filtrar($buscar = null)
 
     return $this;
 }
-}
+    public function stockDisponiblePorProducto(): array {
+        $rows = $this->select('id_producto, e_venta')->findAll();
+        return array_column($rows, 'e_venta', 'id_producto');
+    }
+    }

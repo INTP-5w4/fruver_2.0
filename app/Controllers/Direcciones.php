@@ -78,13 +78,16 @@ public function recupera($id=null){
         return view('modifica_direccion',$datos);
     }
 }
-public function eliminar_datos($id=null){
+public function eliminar_datos($id = null){
     $m_direccion = new Modelo_direccion();
-    if (!$m_direccion->find($id)){
+    if(!$m_direccion->find($id)){
         return redirect()->to('lista_direccion');
-    } else{
+    }
+    try {
         $m_direccion->delete($id);
-        return redirect()->to('lista_direccion');
+        return redirect()->to('lista_direccion')->with('mensaje', 'Dirección eliminada correctamente.');
+    } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+        return redirect()->to('lista_direccion')->with('error', 'No se puede eliminar la dirección porque tiene registros relacionados.');
     }
 }
 public function modifica(){
@@ -99,7 +102,7 @@ public function modifica(){
         ];
         $m_direccion = new Modelo_direccion();
         if ($m_direccion->update($id,$datos)){
-            return redirect()->to('lista_direccion');
+            return redirect()->to('lista_direccion')->with('mensaje', 'Dirección actualizada correctamente');
         }
 }
 }

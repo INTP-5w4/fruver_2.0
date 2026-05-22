@@ -16,29 +16,27 @@ public function crea_existencia(){
 }
 public function guarda_existencia(){
     $m_existencia = new Modelo_existencia();
-    $datos=[
-        'e_total'=>$this->request->getPost('e_total'),
-        'e_bloqueado'=>$this->request->getPost('e_bloqueado'),
-        'e_venta'=>$this->request->getPost('e_venta'),
-        'fecha'=>$this->request->getPost('fecha'),
-        'id_producto'=>$this->request->getPost('id_producto')
+    $datos = [
+        'e_total'     => $this->request->getPost('e_total'),
+        'e_bloqueado' => $this->request->getPost('e_bloqueado'),
+        'e_venta'     => $this->request->getPost('e_venta'),
+        'fecha'       => $this->request->getPost('fecha'),
+        'id_producto' => $this->request->getPost('id_producto')
     ];
     if (
-        empty($datos['e_total'])||
-        empty($datos['e_bloqueado'])||
-        empty($datos['e_venta'])||
-        empty($datos['fecha'])||
+        $datos['e_total']     === null ||
+        $datos['e_bloqueado'] === null ||
+        $datos['e_venta']     === null ||
+        empty($datos['fecha']) ||
         empty($datos['id_producto'])
     ){
-        $m_producto = new Modelo_producto();
-        $datos['productos']=$m_producto->findAll();
-        return view('crea_existencia',$datos); 
+        return redirect()->to('lista_existencia')->with('error', 'Completa todos los campos.');
     }
     $m_existencia->insert($datos);
     if ($this->request->getPost('origen') === 'main_page') {
-        return redirect()->to('main_page3')->with('mensaje', 'Existencia registrada correctamente');
+        return redirect()->to('/')->with('mensaje', 'Existencia registrada correctamente');
     }
-    return redirect()->to('lista_existencia');
+    return redirect()->to('lista_existencia')->with('mensaje', 'Existencia registrada.');
 }
 
 public function lista_existencia(){
@@ -67,7 +65,7 @@ public function lista_existencia(){
 public function eliminar_datos($id=null){
     $m_existencia = new Modelo_existencia();
     $m_existencia->delete($id);
-    return redirect()->to('lista_existencia');
+    return redirect()->to('lista_existencia')->with('mensaje', 'Existencia eliminada correctamente');
 }
 public function recupera($id=null){
     $m_existencia = new Modelo_existencia();
@@ -80,28 +78,25 @@ public function recupera($id=null){
 }
 public function modifica(){
     $m_existencia = new Modelo_existencia();
-    $id=$this->request->getPost('id');
-    $datos=[
-        'id'=>$id,
-        'e_total'=>$this->request->getPost('e_total'),
-        'e_bloqueado'=>$this->request->getPost('e_bloqueado'),
-        'e_venta'=>$this->request->getPost('e_venta'),
-        'fecha'=>$this->request->getPost('fecha'),
-        'id_producto'=>$this->request->getPost('id_producto')
+    $id = $this->request->getPost('id');
+    $datos = [
+        'e_total'     => $this->request->getPost('e_total'),
+        'e_bloqueado' => $this->request->getPost('e_bloqueado'),
+        'e_venta'     => $this->request->getPost('e_venta'),
+        'fecha'       => $this->request->getPost('fecha'),
+        'id_producto' => $this->request->getPost('id_producto')
     ];
     if (
-        empty($datos['e_total'])||
-        empty($datos['e_bloqueado'])||
-        empty($datos['e_venta'])||
-        empty($datos['fecha'])||
+        $datos['e_total']     === null ||
+        $datos['e_bloqueado'] === null ||
+        $datos['e_venta']     === null ||
+        empty($datos['fecha']) ||
         empty($datos['id_producto'])
     ){
         $m_producto = new Modelo_producto();
-        $datos['productos']=$m_producto->findAll();
-        return view('modifica_existencia',$datos); 
+        return redirect()->to('lista_existencia')->with('error', 'Completa todos los campos.');
     }
-    $m_existencia->update($id,$datos);
-    return redirect()->to('lista_existencia');
-
+    $m_existencia->update($id, $datos);
+    return redirect()->to('lista_existencia')->with('mensaje', 'Existencia actualizada.');
 }
 }

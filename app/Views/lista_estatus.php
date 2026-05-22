@@ -94,9 +94,10 @@
                 <input type="date" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>ID Pedido*</b></label>
-                <input type="number" name="id_pedido" id="edit_id_pedido"
-                    class="w3-input w3-border w3-margin-bottom" required>
+               <label><b>ID Pedido*</b></label>
+               <input type="number" name="id_pedido" id="edit_id_pedido"
+                class="w3-input w3-border w3-margin-bottom"
+              readonly style="background-color:#f1f1f1; cursor:not-allowed;" required>
 
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
