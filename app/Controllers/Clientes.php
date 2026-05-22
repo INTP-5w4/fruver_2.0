@@ -56,7 +56,7 @@ public function modifica(){
     ];
     $m_cliente = new Modelo_cliente();
     if($m_cliente->update($id, $datos)){
-        return redirect()->to('/lista_cliente');
+        return redirect()->to('/lista_cliente')->with('mensaje', 'Cliente actualizado correctamente');
     }
 }
 public function recupera($id = null){

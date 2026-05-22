@@ -52,7 +52,7 @@ public function lista_existencia(){
 public function eliminar_datos($id=null){
     $m_existencia = new Modelo_existencia();
     $m_existencia->delete($id);
-    return redirect()->to('lista_existencia');
+    return redirect()->to('lista_existencia')->with('mensaje', 'Existencia eliminada correctamente');
 }
 public function recupera($id=null){
     $m_existencia = new Modelo_existencia();
