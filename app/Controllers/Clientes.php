@@ -41,9 +41,20 @@ public function guarda_cliente(){
         }
     } 
 }
-public function lista_cliente(){
+public function lista_cliente()
+{
+    $buscar = $this->request->getGet('buscar');
+    dd($buscar);
     $m_cliente = new Modelo_cliente();
-    $datos['clientes']= $m_cliente->findAll();
+
+    $datos['clientes'] = $m_cliente
+        ->filtrar($buscar)
+        ->orderBy('id', 'DESC')
+        ->paginate(20);
+
+    $datos['pager'] = $m_cliente->pager;
+    $datos['buscar'] = $buscar;
+
     return view('lista_cliente', $datos);
 }
 public function modifica(){

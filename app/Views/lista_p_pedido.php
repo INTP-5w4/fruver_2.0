@@ -38,6 +38,25 @@
     </button>
 </div>
 
+<form method="get" action="<?= base_url('lista_p_pedido') ?>" class="w3-margin-bottom">
+    <div style="display:flex; gap:8px;">
+        <input
+            type="text"
+            name="buscar"
+            value="<?= esc($buscar ?? '') ?>"
+            placeholder="Buscar por id..."
+            class="w3-input w3-border"
+            style="max-width:350px;"
+        >
+        <button type="submit" class="w3-button w3-green">
+            <i class="fa-solid fa-magnifying-glass"></i> Buscar
+        </button>
+        <?php if (!empty($buscar)): ?>
+            <a href="<?= base_url('lista_p_pedido') ?>" class="w3-button w3-red">✕ Limpiar</a>
+        <?php endif; ?>
+    </div>
+</form>
+
 <!-- ══ TABLA PRINCIPAL — una fila por pedido ══ -->
 <div class="tabla-wrapper">
 <table>
@@ -96,7 +115,7 @@
             </td>
         </tr>
 
-        <!-- Fila detalle expandible con los productos del pedido -->
+        <!-- ✅ CORRECCIÓN: Fila detalle DENTRO del foreach, justo después de la fila resumen -->
         <tr class="fila-detalle" id="detalle-<?= $pedido['id_pedido'] ?>">
             <td colspan="10">
                 <div class="detalle-inner">
@@ -130,8 +149,27 @@
     <?php endforeach; ?>
     </tbody>
 </table>
+<?php if ($total_paginas > 1): ?>
+<div style="display:flex; gap:8px; margin-top:16px; margin-bottom:16px;">
+
+    <?php if ($pagina_actual > 1): ?>
+        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual - 1 ?>"
+           class="w3-button w3-green">← Anterior</a>
+    <?php endif; ?>
 </div><!-- /tabla-wrapper -->
 
+    <span class="w3-button w3-white w3-border">
+        Página <?= $pagina_actual ?> de <?= $total_paginas ?>
+        (<?= $total_pedidos ?> pedidos)
+    </span>
+
+    <?php if ($pagina_actual < $total_paginas): ?>
+        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual + 1 ?>"
+           class="w3-button w3-green">Siguiente →</a>
+    <?php endif; ?>
+
+</div>
+<?php endif; ?>
 
 <!-- ══════════════════════════════════════════════════════════
      MODAL CREAR — Wizard 3 pasos

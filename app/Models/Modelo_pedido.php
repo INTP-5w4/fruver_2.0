@@ -33,20 +33,28 @@ class Modelo_pedido extends Model{
     public function pedidosPorMes()   { return $this->pedidosPorSemana(); }
     public function totalVentasPorMes(){ return $this->totalVentasPorSemana(); }
 
-    public function buscarPedidos(string $buscar = ''): array
-    {
-        $builder = $this->db->table('pedido p')
-        ->select('p.*, r.nombre, r.ape_pat, r.ape_mat')
-        ->join('repartidor r', 'r.id = p.id_repartidor', 'left');
+// En el modelo — retorna $this en vez de ejecutar la query
+public function buscarPedidos(string $buscar = ''): static
+{
+    $this->select('pedido.*, 
+                   cliente.nombre AS nombre_cliente,
+                   cliente.ape_pat AS ape_pat_cliente,
+                   repartidor.nombre AS nombre_repartidor,
+                   repartidor.ape_pat AS ape_pat_repartidor')
+         ->join('cliente',    'cliente.id    = pedido.id_cliente',    'left')
+         ->join('repartidor', 'repartidor.id = pedido.id_repartidor', 'left');
 
-        if ($buscar !== '') {
-            $builder->groupStart()
-                ->like('r.nombre',   $buscar)
-                ->orLike('r.ape_pat', $buscar)
-                ->orLike('r.ape_mat', $buscar)
-            ->groupEnd();
-        }
-
-        return $builder->get()->getResultArray();
+    if (!empty($buscar)) {
+        $this->groupStart()
+            ->like('pedido.id',          $buscar)
+            ->orLike('pedido.fecha',      $buscar)
+            ->orLike('cliente.nombre',    $buscar)
+            ->orLike('cliente.ape_pat',   $buscar)
+            ->orLike('repartidor.nombre', $buscar)
+            ->orLike('repartidor.ape_pat',$buscar)
+        ->groupEnd();
     }
+
+    return $this;
+}
 }
