@@ -72,7 +72,7 @@ public function eliminar_datos($id=null){
         return redirect()->to('lista_direccion');
     } else{
         $m_direccion->delete($id);
-        return redirect()->to('lista_direccion');
+        return redirect()->to('lista_direccion')->with('mensaje', 'Dirección eliminada correctamente');
     }
 }
 public function modifica(){
@@ -87,7 +87,7 @@ public function modifica(){
         ];
         $m_direccion = new Modelo_direccion();
         if ($m_direccion->update($id,$datos)){
-            return redirect()->to('lista_direccion');
+            return redirect()->to('lista_direccion')->with('mensaje', 'Dirección actualizada correctamente');
         }
 }
 }

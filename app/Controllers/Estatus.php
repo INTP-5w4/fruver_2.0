@@ -60,7 +60,7 @@ public function eliminar_datos($id = null){
         return redirect()->to('lista_estatus');
     }
     $m_estatus->delete($id);
-    return redirect()->to('lista_estatus');
+    return redirect()->to('lista_estatus')->with('mensaje', 'Estatus eliminado correctamente');
 }
 
 public function modifica(){

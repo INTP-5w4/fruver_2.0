@@ -122,6 +122,6 @@ public function modifica(){
 
     ];
     $m_pedido->update($id, $datos);
-    return redirect()->to('lista_pedido');
+    return redirect()->to('lista_pedido')->with('mensaje', 'Pedido actualizado correctamente');
 }
 }
