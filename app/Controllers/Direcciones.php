@@ -43,23 +43,27 @@ public function guarda_direccion(){
 
 public function lista_direccion()
 {
-    $buscar = $this->request->getGet('buscar') ?? '';
-
+    $buscar      = $this->request->getGet('buscar') ?? '';
     $m_direccion = new Modelo_direccion();
-    $m_cliente = new Modelo_cliente();
+    $m_cliente   = new Modelo_cliente();
+
     $clientes_lista = $m_cliente->findAll();
-    $clientes = array_column($clientes_lista, null, 'id');
+    $clientes       = array_column($clientes_lista, null, 'id');
 
-    $busqueda = $this->request->getGet('busqueda');
-
-    $direcciones = $m_direccion->busqueda($busqueda);
+    // busqueda() siempre hace el JOIN; si $buscar está vacío, solo omite el LIKE
+    $direcciones = $m_direccion
+        ->busqueda($buscar)
+        ->orderBy('d.id', 'DESC')
+        ->paginate(20, 'default');
 
     $datos = [
         'direcciones'    => $direcciones,
         'clientes'       => $clientes,
         'clientes_lista' => $clientes_lista,
-        'busqueda'       => $busqueda,
+        'buscar'         => $buscar,
+        'pager'          => $m_direccion->pager,
     ];
+
     return view('lista_direccion', $datos);
 }
 
