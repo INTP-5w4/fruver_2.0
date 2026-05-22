@@ -146,6 +146,7 @@
     </div>
 </div>
 
+<?php include 'Footer.php'; ?>
 
     <script>
         function abrirModal(id, estado, fecha, id_pedido) {

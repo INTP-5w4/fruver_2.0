@@ -221,3 +221,61 @@ body > div > table,
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
 }
+
+/* ── SIDEBAR FIXED ──────────────────────────────── */
+.sidebar {
+    position: fixed;
+    top: 55px;           /* igual a la altura del header */
+    left: 0;
+    width: 200px;
+    height: calc(100vh - 55px);
+    background: #ffffff;
+    border-right: 1px solid rgba(0, 117, 66, 0.15);
+    box-shadow: 2px 0 8px rgba(0, 117, 66, 0.08);
+    overflow-y: auto;
+    z-index: 90;         /* debajo del header (z-index:100) */
+}
+
+.sidebar-nav {
+    padding: 16px 0;
+}
+
+.nav-label {
+    padding: 8px 16px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #3AA346;
+    margin: 0;
+}
+
+.nav-item {
+    display: block;
+    padding: 10px 16px;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    border-left: 3px solid transparent;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.nav-item:hover {
+    background: #f0fff4;
+    border-left-color: #3AA346;
+    color: #007542;
+}
+
+.nav-item.activo {
+    background: #e6ffed;
+    border-left-color: #007542;
+    color: #007542;
+    font-weight: 600;
+}
+
+/* ── WRAPPER para vistas de lista ───────────────── */
+.lista-wrapper {
+    margin-left: 200px;  /* ancho de la sidebar */
+    padding: 0 16px 32px;
+    min-height: calc(100vh - 55px);
+}
