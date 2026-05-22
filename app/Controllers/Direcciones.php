@@ -44,12 +44,20 @@ public function guarda_direccion(){
 public function lista_direccion(){
     $m_direccion = new Modelo_direccion();
     $m_cliente = new Modelo_cliente();
-    $clientes = array_column($m_cliente->findAll(), null, 'id');
-    $datos=[
-        'direcciones'=>$m_direccion->findAll(),
-        'clientes'=>$clientes,
+    $clientes_lista = $m_cliente->findAll();
+    $clientes = array_column($clientes_lista, null, 'id');
+
+    $busqueda = $this->request->getGet('busqueda');
+
+    $direcciones = $m_direccion->busqueda($busqueda);
+
+    $datos = [
+        'direcciones'    => $direcciones,
+        'clientes'       => $clientes,
+        'clientes_lista' => $clientes_lista,
+        'busqueda'       => $busqueda,
     ];
-    return view('lista_direccion',$datos);
+    return view('lista_direccion', $datos);
 }
 
 public function recupera($id=null){
