@@ -48,7 +48,6 @@ public function lista_cliente()
     $m_cliente = new Modelo_cliente();
 
     $datos['clientes'] = $m_cliente
-        ->conCliente()
         ->filtrar($buscar)
         ->orderBy('id', 'DESC')
         ->paginate(20);
