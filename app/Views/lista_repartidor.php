@@ -51,6 +51,7 @@
     </div>
 </form>
 
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -101,6 +102,7 @@
         </tbody>
     </table>
     <?= $pager->links('default', 'w3_pager') ?>
+</div>
     <!-- MODAL CREAR REPARTIDOR -->
     <div id="modalCrearRepartidor" class="w3-modal" style="display:none;">
         <div class="modal-contenido w3-animate-zoom">
