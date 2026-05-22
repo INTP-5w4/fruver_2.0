@@ -92,6 +92,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    <?= $pager->links('default', 'w3_pager') ?>
 </div>
     <!-- MODAL CREAR DIRECCIÓN -->
     <div id="modalCrearDireccion" class="w3-modal" style="display:none;">

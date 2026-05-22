@@ -41,7 +41,10 @@ public function guarda_direccion(){
         }
 }
 
-public function lista_direccion(){
+public function lista_direccion()
+{
+    $buscar = $this->request->getGet('buscar') ?? '';
+
     $m_direccion = new Modelo_direccion();
     $m_cliente = new Modelo_cliente();
     $clientes_lista = $m_cliente->findAll();
