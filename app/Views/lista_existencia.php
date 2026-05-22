@@ -10,18 +10,20 @@
 </head>
 <body>
     <?php include 'Header.php'; ?>
+    
+<div class="flash-container">
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= session()->getFlashdata('error') ?></p>
+        </div>
+    <?php endif; ?>
 
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
-    </div>
-<?php endif; ?>
-
-<?php if (session()->getFlashdata('mensaje')): ?>
-    <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
-    </div>
-<?php endif; ?>
+    <?php if (session()->getFlashdata('mensaje')): ?>
+        <div class="w3-panel w3-green w3-animate-opacity">
+            <p><?= session()->getFlashdata('mensaje') ?></p>
+        </div>
+    <?php endif; ?>
+</div>
 <div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearExistencias').style.display='block'"
             class="btn-agregar">
@@ -82,15 +84,15 @@
 
                 <label><b>Existencias totales*</b></label>
                 <input type="number" name="e_total" id="edit_e_total"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" min="0" required>
 
                 <label><b>Existencias bloqueadas*</b></label>
                 <input type="number" name="e_bloqueado" id="edit_e_bloqueado"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" min="0" required>
 
                 <label><b>Existencias para venta*</b></label>
                 <input type="number" name="e_venta" id="edit_e_venta"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" min="0" required>
 
                 <label><b>Fecha*</b></label>
                 <input type="datetime-local" name="fecha" id="edit_fecha"
@@ -127,13 +129,13 @@
             </select>
 
             <label><b>Existencias totales*</b></label>
-            <input type="number" placeholder="Ej: 30" name="e_total" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej: 30" name="e_total" class="w3-input w3-border w3-margin-bottom" min="0">
 
             <label><b>Existencias bloqueadas*</b></label>
-            <input type="number" placeholder="Ej: 20" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej: 20" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom" min="0">
 
             <label><b>Existencias para venta*</b></label>
-            <input type="number" placeholder="Ej: 10" name="e_venta" class="w3-input w3-border w3-margin-bottom">
+            <input type="number" placeholder="Ej: 10" name="e_venta" class="w3-input w3-border w3-margin-bottom" min="0">
 
             <label><b>Fecha*</b></label>
             <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">

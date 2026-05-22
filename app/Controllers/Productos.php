@@ -7,6 +7,7 @@ use App\Models\Modelo_entrada;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_repartidor;
 use App\Models\Modelo_cliente;
+use App\Models\Modelo_existencia;
 
 
 class Productos extends BaseController
@@ -18,6 +19,8 @@ public function main_page()
     $m_repartidor = new Modelo_repartidor();
     $m_pedido     = new Modelo_pedido();
     $m_entrada    = new Modelo_entrada();
+    $m_existencia    = new Modelo_existencia();
+
     $m_merma      = new \App\Models\Modelo_merma();
     $datos = [
         'productosLowStock' => $m_producto->productosLowStock(),
@@ -34,6 +37,7 @@ public function main_page()
         'perdidasMerma'     => $m_merma->perdidasPorMes(),
 
         'precioSugeridoPorProducto' => $m_entrada->precioMaximoPorProducto(),
+        'stockPorProducto' => $m_existencia->stockDisponiblePorProducto(),
     ];
     return view('main_page3', $datos);
 }
@@ -95,13 +99,13 @@ public function lista_producto($dato=null){
     $m_producto = new Modelo_producto();
     if (!empty($dato)){
         $datos=[
-            'productos'=>$m_producto->busqueda_compleja($dato)-> paginate(2,'default'),
+            'productos'=>$m_producto->busqueda_compleja($dato)-> paginate(15,'default'),
             'pager'=>$m_producto->pager
         ];
     }else{
         
         $datos=[
-            'productos'=>$m_producto->orderBy('nombre','ASC')-> paginate(5,'default'),
+            'productos'=>$m_producto->orderBy('id','ASC')-> paginate(20,'default'),
             'pager'=>$m_producto->pager
         ];
         //$datos['productos']=$m_producto->findAll();
@@ -179,8 +183,11 @@ public function eliminar_datos($id = null){
     if(!$m_producto->find($id)){
         return redirect()->to('/lista_producto');
     }
-    $m_producto->delete($id);
-    return redirect()->to('/lista_producto')->with('mensaje', 'Producto eliminado correctamente');
+    try {
+        $m_producto->delete($id);
+        return redirect()->to('lista_producto')->with('mensaje', 'Producto eliminado correctamente.');
+    } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+        return redirect()->to('lista_producto')->with('error', 'No se puede eliminar este producto porque tiene registros relacionados (entradas, pedidos, etc.).');
+    }
 }
 }
-
