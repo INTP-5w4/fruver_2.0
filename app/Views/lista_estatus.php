@@ -12,18 +12,20 @@
 <body>
         <?php include 'Header.php'; ?>
 
+<div class="flash-container">
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= session()->getFlashdata('error') ?></p>
+        </div>
+    <?php endif; ?>
 
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
-    </div>
-<?php endif; ?>
+    <?php if (session()->getFlashdata('mensaje')): ?>
+        <div class="w3-panel w3-green w3-animate-opacity">
+            <p><?= session()->getFlashdata('mensaje') ?></p>
+        </div>
+    <?php endif; ?>
+</div>
 
-<?php if (session()->getFlashdata('mensaje')): ?>
-    <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
-    </div>
-<?php endif; ?>
 <div class="contenedor-boton" style="padding-top: 80px;">
     <button onclick="document.getElementById('modalCrearEstatus').style.display='block'"
             class="btn-agregar">
@@ -92,9 +94,10 @@
                 <input type="date" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>ID Pedido*</b></label>
-                <input type="number" name="id_pedido" id="edit_id_pedido"
-                    class="w3-input w3-border w3-margin-bottom" required>
+               <label><b>ID Pedido*</b></label>
+               <input type="number" name="id_pedido" id="edit_id_pedido"
+                class="w3-input w3-border w3-margin-bottom"
+              readonly style="background-color:#f1f1f1; cursor:not-allowed;" required>
 
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -158,6 +161,5 @@
             if (event.target === modal) modal.style.display = 'none';
         };
     </script>
-
 </body>
 </html>

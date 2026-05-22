@@ -105,7 +105,6 @@
 <div id="modalCrearMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
-            <input type="hidden" name="origen" value="main_page">
             <label><b>Entrada*</b></label>
             <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="">-- Selecciona una entrada --</option>
@@ -120,7 +119,7 @@
             <input type="text" id="u_venta_modal" name="u_venta" class="w3-input w3-border w3-margin-bottom" readonly placeholder="Se llena automáticamente">
 
             <label><b>Cantidad*</b></label>
-            <input type="number" placeholder="Ej: 45" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej: 45" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <label><b>Fecha*</b></label>
             <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d') ?>" required>
