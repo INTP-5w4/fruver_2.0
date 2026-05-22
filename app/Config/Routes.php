@@ -71,13 +71,13 @@ $routes->post('modifica_merma', 'Mermas::modifica');
 $routes->get('borra_id_merma/(:num)', 'Mermas::eliminar_datos/$1');
 $routes->get('pasa_id_merma/(:num)', 'Mermas::recupera/$1');
 //=============================P_PEDIDOS======================================
-$routes->get('crea_p_pedido', 'P_Pedidos::crea_p_pedido');
-$routes->get('lista_p_pedido', 'P_Pedidos::lista_p_pedido');
-$routes->post('guarda_p_pedido', 'P_Pedidos::guarda_p_pedido');
-$routes->post('modifica_p_pedido', 'P_Pedidos::modifica');
-$routes->get('borra_id_p_pedido/(:num)', 'P_Pedidos::eliminar_datos/$1');
-$routes->get('pasa_id_p_pedido/(:num)', 'P_Pedidos::recupera/$1');
-$routes->get('pasa_id_p_pedido/(:num)', 'P_Pedidos::recupera/$1');
-$routes->get('api_pedido/(:num)',        'P_pedidos::api_pedido/$1');
-$routes->post('guarda_pedido_completo',  'P_pedidos::guarda_pedido_completo');
-$routes->post('modifica_pedido_completo','P_pedidos::modifica_pedido_completo');
+$routes->get('crea_p_pedido',                'P_pedidos::crea_p_pedido');
+$routes->get('lista_p_pedido',               'P_pedidos::lista_p_pedido');
+$routes->post('guarda_p_pedido',             'P_pedidos::guarda_p_pedido');
+$routes->post('modifica_p_pedido',           'P_pedidos::modifica');
+$routes->get('borra_id_p_pedido/(:num)',     'P_pedidos::eliminar_datos/$1');
+$routes->get('pasa_id_p_pedido/(:num)',      'P_pedidos::recupera/$1');
+$routes->get('api_pedido/(:num)',            'P_pedidos::api_pedido/$1');
+$routes->post('guarda_pedido_completo',      'P_pedidos::guarda_pedido_completo');
+$routes->post('modifica_pedido_completo',    'P_pedidos::modifica_pedido_completo');
+$routes->get('borra_pedido_completo/(:num)', 'P_pedidos::borra_pedido_completo/$1'); // ← nueva

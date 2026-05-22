@@ -209,26 +209,41 @@ class P_pedidos extends Controller
 
     // ─────────────────────────────────────────────────────────────
     // API PEDIDO
-    // ─────────────────────────────────────────────────────────────
-    public function api_pedido($id = null)
-    {
+public function api_pedido($id = null)
+{
+    $mPedido  = new Modelo_pedido();
+    $mPP      = new Modelo_productopedidos();
+    $mEstatus = new Modelo_estatus();
 
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
+    $pedido  = $mPedido->find($id);
+    $items   = $mPP->where('id_pedido', $id)->findAll();
+    $estatus = $mEstatus->where('id_pedido', $id)
+        ->orderBy('fecha', 'DESC')
+        ->first();
 
-        $pedido  = $mPedido->find($id);
-        $items   = $mPP->where('id_pedido', $id)->findAll();
-        $estatus = $mEstatus->where('id_pedido', $id)
-            ->orderBy('fecha', 'DESC')
-            ->first();
+    // ── NUEVO ──────────────────────────────────────────────
+    $estadoActual = $estatus['estado'] ?? 'pedido_pendiente';
 
-        return $this->response->setJSON([
-            'pedido'  => $pedido,
-            'items'   => $items,
-            'estatus' => $estatus,
-        ]);
-    }
+    $transicionesValidas = [
+        'pedido_pendiente'   => ['pedido_realizado'],
+        'pedido_realizado'   => ['pedido_confirmado', 'pedido_cancelado'],
+        'pedido_confirmado'  => ['pedido_en_transito', 'pedido_cancelado'],
+        'pedido_en_transito' => ['pedido_entregado', 'pedido_a_credito'],
+        'pedido_entregado'   => ['pedido_pagado', 'pedido_a_credito'],
+        'pedido_a_credito'   => ['pedido_pagado'],
+        'pedido_pagado'      => [],
+        'pedido_cancelado'   => [],
+    ];
+    // ───────────────────────────────────────────────────────
+
+    return $this->response->setJSON([
+        'pedido'              => $pedido,
+        'items'               => $items,
+        'estatus'             => $estatus,
+        'estado_actual'       => $estadoActual,                              // ← nuevo
+        'transiciones_validas'=> $transicionesValidas[$estadoActual] ?? [],  // ← nuevo
+    ]);
+}
 
     // ─────────────────────────────────────────────────────────────
     // LISTA
@@ -300,24 +315,44 @@ public function lista_p_pedido()
             ->with('mensaje', 'Registro eliminado');
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // BORRAR PEDIDO COMPLETO
-    // ─────────────────────────────────────────────────────────────
-    public function borra_pedido_completo($id = null)
-    {
+// ─────────────────────────────────────────────────────────────
+// BORRAR PEDIDO COMPLETO
+// ─────────────────────────────────────────────────────────────
+public function borra_pedido_completo($id = null)
+{
+    $mPedido  = new Modelo_pedido();
+    $mPP      = new Modelo_productopedidos();
+    $mEstatus = new Modelo_estatus();
 
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
+    // ── GUARDIA: estados que ya no permiten borrar ──────────
+    $estadosProtegidos = [
+        'pedido_en_transito',
+        'pedido_entregado',
+        'pedido_a_credito',
+        'pedido_pagado',
+    ];
 
-        $mEstatus->where('id_pedido', $id)->delete();
-        $mPP->where('id_pedido', $id)->delete();
-        $mPedido->delete($id);
+    $estatusActual = $mEstatus
+        ->where('id_pedido', $id)
+        ->orderBy('fecha', 'DESC')
+        ->first();
 
+    $estadoActual = $estatusActual['estado'] ?? null;
+
+    if (in_array($estadoActual, $estadosProtegidos)) {
         return redirect()->to('lista_p_pedido')
-            ->with('mensaje', 'Pedido eliminado correctamente');
+            ->with('error', 'No se puede eliminar: el pedido ya está en "' 
+                . str_replace('_', ' ', $estadoActual) . '".');
     }
+    // ───────────────────────────────────────────────────────
 
+    $mEstatus->where('id_pedido', $id)->delete();
+    $mPP->where('id_pedido', $id)->delete();
+    $mPedido->delete($id);
+
+    return redirect()->to('lista_p_pedido')
+        ->with('mensaje', 'Pedido eliminado correctamente');
+}
     // ─────────────────────────────────────────────────────────────
     // MODIFICAR ITEM SIMPLE
     // ─────────────────────────────────────────────────────────────
