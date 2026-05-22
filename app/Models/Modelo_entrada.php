@@ -1,7 +1,7 @@
 <?php 
 namespace App\Models;
 
-use CodeIgniter\Model;
+use CodeIgniter\Model; 
 
 class Modelo_entrada extends Model{
     protected $table      = 'entrada';
@@ -38,18 +38,31 @@ public function conProducto(): static
 }
 public function filtrar(string $buscar = null): static
 {
-    if (!empty($buscar)) {
-
-        if (is_numeric($buscar)) {
-            $this->where('entrada.id', $buscar);
-        } else {
-            $this->groupStart()
-                ->like('entrada.fecha', $buscar)
-                ->orLike('entrada.cantidad', $buscar)
-                ->orLike('producto.nombre', $buscar)
-            ->groupEnd();
-        }
+    if (empty($buscar)) {
+        return $this;
     }
+
+    $this->groupStart();
+
+    // Buscar por ID exacto si es número
+    if (ctype_digit($buscar)) {
+        $this->orWhere('entrada.id', (int)$buscar);
+        $this->orWhere('entrada.id_producto', (int)$buscar);
+    }
+
+    // Buscar en todos los campos
+    $this->orLike('entrada.fecha', $buscar)
+        ->orLike('entrada.fecha_cad', $buscar)
+        ->orLike('entrada.cantidad', $buscar)
+        ->orLike('entrada.u_compra', $buscar)
+        ->orLike('entrada.u_venta', $buscar)
+        ->orLike('entrada.precio_compra_u', $buscar)
+        ->orLike('entrada.precio_venta_u', $buscar)
+        ->orLike('entrada.equivalente', $buscar)
+        ->orLike('entrada.conversion', $buscar)
+        ->orLike('producto.nombre', $buscar);
+
+    $this->groupEnd();
 
     return $this;
 }

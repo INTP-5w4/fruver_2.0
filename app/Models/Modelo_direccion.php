@@ -9,6 +9,12 @@ class Modelo_direccion extends Model{
     protected $primaryKey = 'id';
     protected $allowedFields = ['colonia','calle','numero','municipio','estado','id_cliente'];
 
+public function conCliente(): static
+{
+    return $this
+        ->select('direccion.*, cliente.nombre AS nombre_cliente')
+        ->join('cliente', 'cliente.id = direccion.id_cliente', 'left');
+}
 public function filtrar(string $buscar = null): static
 {
     if (empty($buscar)) {

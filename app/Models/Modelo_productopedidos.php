@@ -14,4 +14,19 @@ class Modelo_productopedidos extends Model{
             ->join('producto pr', 'pr.id = pp.id_producto')
             ->get()->getResultArray();
     }
+public function aplicarBusqueda(string $buscar): static
+{
+    $this->select('producto_pedido.*, producto.nombre AS nombre_producto')
+         ->join('producto', 'producto.id = producto_pedido.id_producto', 'left');
+
+    if (!empty($buscar)) {
+        $this->groupStart()
+                ->where('producto_pedido.id', $buscar)
+                ->orLike('producto_pedido.id_pedido', $buscar)
+                ->orLike('producto_pedido.id_producto', $buscar)
+             ->groupEnd();
+    }
+
+    return $this;
+}
     }

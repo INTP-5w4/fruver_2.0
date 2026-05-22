@@ -49,28 +49,17 @@ public function modifica(){
         return redirect()->to('lista_repartidor');
     }
 }   
-public function lista_repartidor(){
+public function lista_repartidor()
+{
     $buscar = $this->request->getGet('buscar') ?? '';
 
     $m_repartidor = new Modelo_repartidor();
 
-    if (!empty($buscar)) {
-
-        $m_repartidor->groupStart()
-            ->where('id', $buscar)
-            ->orLike('nombre', $buscar)
-            ->orLike('ape_pat', $buscar)
-            ->orLike('ape_mat', $buscar)
-        ->groupEnd();
-    }
-
-    $datos['repartidores'] = $m_repartidor
-        ->orderBy('id', 'DESC')
-        ->paginate(20);
-
-    $datos['pager'] = $m_repartidor->pager;
-
-    $datos['buscar'] = $buscar;
+    $datos = [
+        'repartidores' => $m_repartidor->filtrar($buscar)->orderBy('id', 'DESC')->paginate(20),
+        'pager'        => $m_repartidor->pager,
+        'buscar'       => $buscar,
+    ];
 
     return view('lista_repartidor', $datos);
 }

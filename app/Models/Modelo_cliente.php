@@ -15,16 +15,18 @@ public function filtrar(string $buscar = null): static
         return $this;
     }
 
-    if (is_numeric($buscar)) {
-        $this->where('id', (int)$buscar);
-    } else {
-        $this->groupStart()
-            ->orLike('nombre', $buscar)
-            ->orLike('ape_pat', $buscar)
-            ->orLike('ape_mat', $buscar)
-            ->orLike('telefono', $buscar)
-        ->groupEnd();
+    $this->groupStart();
+
+    if (ctype_digit($buscar)) {
+        $this->orWhere('id', (int)$buscar);
     }
+
+    $this->orLike('nombre', $buscar)
+        ->orLike('ape_pat', $buscar)
+        ->orLike('ape_mat', $buscar)
+        ->orLike('telefono', $buscar);
+
+    $this->groupEnd();
 
     return $this;
 }
