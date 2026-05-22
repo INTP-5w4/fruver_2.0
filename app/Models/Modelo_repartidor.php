@@ -17,6 +17,7 @@ public function filtrar(string $buscar): static
                 ->orLike('nombre', $buscar)
                 ->orLike('ape_pat', $buscar)
                 ->orLike('ape_mat', $buscar)
+                ->orLike('telefono', $buscar) 
              ->groupEnd();
     }
 

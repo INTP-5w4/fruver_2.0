@@ -233,38 +233,39 @@ class P_pedidos extends Controller
     // ─────────────────────────────────────────────────────────────
     // LISTA
     // ─────────────────────────────────────────────────────────────
-    public function lista_p_pedido()
-    {
+public function lista_p_pedido()
+{
+    $buscar   = $this->request->getGet('buscar') ?? '';
+    $pagina   = (int)($this->request->getGet('page') ?? 1);
+    $porPagina = 20;
 
-        $buscar = $this->request->getGet('buscar') ?? '';
+    $m_p_pedido   = new Modelo_productopedidos();
+    $m_producto   = new Modelo_producto();
+    $m_cliente    = new Modelo_cliente();
+    $m_repartidor = new Modelo_repartidor();
+    $m_existencia = new Modelo_existencia();
 
-        $m_p_pedido   = new Modelo_productopedidos();
-        $m_producto   = new Modelo_producto();
-        $m_pedido     = new Modelo_pedido();
-        $m_cliente    = new Modelo_cliente();
-        $m_repartidor = new Modelo_repartidor();
-        $m_existencia = new Modelo_existencia();
+    $todos  = $m_p_pedido->obtenerPedidosAgrupados($buscar);
+    $total  = count($todos);
+    $offset = ($pagina - 1) * $porPagina;
+    $pagina_actual = array_slice($todos, $offset, $porPagina);
 
-        $p_pedidos = $m_p_pedido
-            ->filtrar($buscar)
-            ->orderBy('id', 'DESC')
-            ->paginate(20);
+    $datos = [
+        'buscar'                    => $buscar,
+        'pedidos_agrupados'         => $pagina_actual,
+        'total_pedidos'             => $total,
+        'pagina_actual'             => $pagina,
+        'por_pagina'                => $porPagina,
+        'total_paginas'             => ceil($total / $porPagina),
+        'productos'                 => $m_producto->findAll(),
+        'clientes'                  => $m_cliente->findAll(),
+        'repartidores'              => $m_repartidor->findAll(),
+        'stockPorProducto'          => $m_existencia->stockDisponiblePorProducto(),
+        'precioSugeridoPorProducto' => [],
+    ];
 
-        $datos = [
-            'p_pedidos'                => $p_pedidos,
-            'pager'                    => $m_p_pedido->pager,
-            'buscar'                   => $buscar,
-            'productos'                => $m_producto->findAll(),
-            'pedidos'                  => $m_pedido->findAll(),
-            'clientes'                 => $m_cliente->findAll(),
-            'repartidores'             => $m_repartidor->findAll(),
-            'pedidos_agrupados'        => $m_p_pedido->obtenerPedidosAgrupados(),
-            'stockPorProducto'         => $m_existencia->stockDisponiblePorProducto(),
-            'precioSugeridoPorProducto'=> [],
-        ];
-
-        return view('lista_p_pedido', $datos);
-    }
+    return view('lista_p_pedido', $datos);
+}
 
     // ─────────────────────────────────────────────────────────────
     // RECUPERAR

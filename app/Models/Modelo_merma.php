@@ -63,27 +63,22 @@ class Modelo_merma extends Model
     // ─────────────────────────────────────────────────────────────
     // FILTRO / BUSCADOR
     // ─────────────────────────────────────────────────────────────
-    public function filtrar($buscar = null)
-    {
-
-        if (empty($buscar)) {
-            return $this;
-        }
-
-        // Búsqueda exacta para ID
-        if (is_numeric($buscar)) {
-
-            $this->where('id', (int)$buscar);
-
-        } else {
-
-            $this->groupStart()
-                ->like('cantidad', $buscar)
-                ->orLike('fecha', $buscar)
-                ->orLike('id_entrada', $buscar)
-                ->groupEnd();
-        }
-
+public function filtrar($buscar = null)
+{
+    if (empty($buscar)) {
         return $this;
     }
+
+    if (is_numeric($buscar)) {
+        $this->where('merma.id', (int)$buscar); // ← prefijo de tabla
+    } else {
+        $this->groupStart()
+            ->like('merma.cantidad',   $buscar)
+            ->orLike('merma.fecha',    $buscar)
+            ->orLike('merma.id_entrada', $buscar)
+        ->groupEnd();
+    }
+
+    return $this;
+}
 }

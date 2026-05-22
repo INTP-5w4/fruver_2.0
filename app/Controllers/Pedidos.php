@@ -86,18 +86,10 @@ class Pedidos extends Controller
         $m_repartidor = new Modelo_repartidor();
         $m_pps        = new Modelo_productopedidos();
 
-        // BUSCADOR
-        if (!empty($buscar)) {
-
-            $m_pedido->groupStart()
-                ->like('id', $buscar)
-                ->orLike('fecha', $buscar)
-                ->groupEnd();
-        }
-
         // PAGINACIÓN
         $pedidos = $m_pedido
             ->orderBy('id', 'DESC')
+            ->buscarPedidos($buscar)
             ->paginate(20);
 
         $datos = [

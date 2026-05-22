@@ -40,16 +40,16 @@ public function guarda_existencia(){
 }
 
 public function lista_existencia(){
-
     $buscar = $this->request->getGet('buscar');
 
     $m_existencia = new Modelo_existencia();
-    $m_producto = new Modelo_producto();
-    
+    $m_producto   = new Modelo_producto();
+
     $datos = [
+        'buscar'      => $buscar,
         'existencias' => $m_existencia
             ->filtrar($buscar)
-            ->orderBy('id', 'DESC')
+            ->orderBy('existencia.id', 'DESC')  // ← prefijo para evitar ambigüedad
             ->findAll(),
 
         'productos' => array_column(
@@ -57,7 +57,6 @@ public function lista_existencia(){
             null,
             'id'
         ),
-
     ];
 
     return view('lista_existencia', $datos);

@@ -3,30 +3,31 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class Modelo_existencia extends Model{
-    protected $table      = 'existencia';
-    // Uncomment below if you want add primary key
-    protected $primaryKey = 'id';
+class Modelo_existencia extends Model {
+    protected $table         = 'existencia';
+    protected $primaryKey    = 'id';
     protected $allowedFields = ['e_total','e_bloqueado','e_venta','fecha','id_producto'];
-public function filtrar($buscar = null)
-{
-    if (empty($buscar)) {
+
+    public function filtrar($buscar = null)
+    {
+        // JOIN siempre activo para poder ordenar y seleccionar nombre_producto
+        $this->select('existencia.*, producto.nombre AS nombre_producto')
+             ->join('producto', 'producto.id = existencia.id_producto', 'left');
+
+        if (!empty($buscar)) {
+            $this->groupStart()
+                ->like('existencia.id', $buscar)
+                ->orLike('existencia.fecha', $buscar)
+                ->orLike('existencia.id_producto', $buscar)
+                ->orLike('producto.nombre', $buscar)
+            ->groupEnd();
+        }
+
         return $this;
     }
 
-    $this->groupStart()
-        ->like('id', $buscar)
-        ->orLike('e_total', $buscar)
-        ->orLike('e_bloqueado', $buscar)
-        ->orLike('e_venta', $buscar)
-        ->orLike('fecha', $buscar)
-        ->orLike('id_producto', $buscar)
-    ->groupEnd();
-
-    return $this;
-}
     public function stockDisponiblePorProducto(): array {
         $rows = $this->select('id_producto, e_venta')->findAll();
         return array_column($rows, 'e_venta', 'id_producto');
     }
-    }
+}
