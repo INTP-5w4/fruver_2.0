@@ -51,6 +51,7 @@
     </div>
 </form>
 
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -96,6 +97,7 @@
         </tbody>
     </table>
     <?= $pager->links('default', 'w3_pager') ?>
+</div><!-- /tabla-wrapper -->
 
     <!-- MODAL EDITAR CLIENTE -->
     <div id="modalEditarCliente" class="w3-modal" style="padding-top:100px; z-index:9999;">

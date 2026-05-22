@@ -24,30 +24,23 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 80px;">
+<div class="contenedor-boton" style="padding-top: 80px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
     <button onclick="document.getElementById('modalCrearDireccion').style.display='block'"
             class="btn-agregar">
         + Nueva Dirección
     </button>
-</div>
-<form method="get" action="<?= base_url('lista_direccion') ?>" class="w3-margin-bottom">
-    <div style="display:flex; gap:8px;">
-        <input
-            type="text"
-            name="buscar"
-            value="<?= esc($buscar ?? '') ?>"
-            placeholder="Buscar por id..."
-            class="w3-input w3-border"
-            style="max-width:350px;"
-        >
-        <button type="submit" class="w3-button w3-green">
-            <i class="fa-solid fa-magnifying-glass"></i> Buscar
-        </button>
-        <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_direccion') ?>" class="w3-button w3-red">✕ Limpiar</a>
+
+    <form method="get" action="<?= base_url('lista_direccion') ?>" style="display:flex; gap:8px; align-items:center;">
+        <input type="text" name="busqueda" placeholder="Buscar por cliente, colonia, calle, municipio o estado..."
+               value="<?= esc($busqueda ?? '') ?>"
+               class="modal-input" style="margin:0; width:400px;">
+        <button type="submit" class="btn-agregar" style="margin:0;">Buscar</button>
+        <?php if (!empty($busqueda)): ?>
+            <a href="<?= base_url('lista_direccion') ?>" class="btn-agregar" style="margin:0; background:#888; text-decoration:none;">✕ Limpiar</a>
         <?php endif; ?>
-    </div>
-</form>
+    </form>
+</div>
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -72,8 +65,7 @@
                     <td><?= $d['municipio'] ?></td>
                     <td><?= $d['estado'] ?></td>
                     <td>
-                        <?php $c = $clientes[$d['id_cliente']] ?? null;
-                        echo $c ? "{$c['nombre']} {$c['ape_pat']} {$c['ape_mat']}" : 'Desconocido'; ?>
+                        <?= esc($d['nombre'].' '.$d['ape_pat'].' '.$d['ape_mat']) ?>
                     </td>
                     <td>
                         <button onclick="abrirModal(
@@ -101,6 +93,7 @@
         </tbody>
     </table>
     <?= $pager->links('default', 'w3_pager') ?>
+</div>
     <!-- MODAL CREAR DIRECCIÓN -->
     <div id="modalCrearDireccion" class="w3-modal" style="display:none;">
         <div class="modal-contenido w3-animate-zoom">

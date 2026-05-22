@@ -46,21 +46,20 @@ public function lista_direccion()
     $buscar = $this->request->getGet('buscar') ?? '';
 
     $m_direccion = new Modelo_direccion();
-    $m_cliente   = new Modelo_cliente();
+    $m_cliente = new Modelo_cliente();
+    $clientes_lista = $m_cliente->findAll();
+    $clientes = array_column($clientes_lista, null, 'id');
+
+    $busqueda = $this->request->getGet('busqueda');
+
+    $direcciones = $m_direccion->busqueda($busqueda);
 
     $datos = [
-        'direcciones' => $m_direccion
-            ->filtrar($buscar)
-            ->orderBy('id', 'DESC')
-            ->paginate(20),
-
-        'pager'    => $m_direccion->pager,
-
-        'clientes' => $m_cliente->findAll(), // o array_column si lo necesitas indexado
-
-        'buscar'   => $buscar,
+        'direcciones'    => $direcciones,
+        'clientes'       => $clientes,
+        'clientes_lista' => $clientes_lista,
+        'busqueda'       => $busqueda,
     ];
-
     return view('lista_direccion', $datos);
 }
 

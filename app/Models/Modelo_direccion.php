@@ -9,31 +9,21 @@ class Modelo_direccion extends Model{
     protected $primaryKey = 'id';
     protected $allowedFields = ['colonia','calle','numero','municipio','estado','id_cliente'];
 
-public function conCliente(): static
-{
-    return $this
-        ->select('direccion.*, cliente.nombre AS nombre_cliente')
-        ->join('cliente', 'cliente.id = direccion.id_cliente', 'left');
-}
-public function filtrar(string $buscar = null): static
-{
-    if (empty($buscar)) {
-        return $this;
-    }
+public function busqueda($texto){
+    $builder = $this->db->table('direccion d');
+    $builder->select('d.*, c.nombre, c.ape_pat, c.ape_mat');
+    $builder->join('cliente c', 'c.id = d.id_cliente');
 
-    if (is_numeric($buscar)) {
-        $this->where('id', (int)$buscar);
-    } else {
-        $this->groupStart()
-            ->like('id', $buscar)
-            ->orLike('colonia', $buscar)
-            ->orLike('calle', $buscar)
-            ->orLike('numero', $buscar)
-            ->orLike('municipio', $buscar)
-            ->orLike('estado', $buscar)
-
+    if (!empty($texto)){
+        $builder->groupStart()
+            ->like('c.nombre', $texto)
+            ->orLike('d.colonia', $texto)
+            ->orLike('d.calle', $texto)
+            ->orLike('d.municipio', $texto)
+            ->orLike('d.estado', $texto)
         ->groupEnd();
     }
-    return $this;
+
+    return $builder->get()->getResultArray();
 }
 }
