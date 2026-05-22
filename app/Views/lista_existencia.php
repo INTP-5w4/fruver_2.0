@@ -10,6 +10,9 @@
 </head>
 <body>
     <?php include 'Header.php'; ?>
+    <?php include 'sidebar.php'; ?>
+
+<div class="lista-wrapper">
     
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
@@ -24,7 +27,7 @@
         </div>
     <?php endif; ?>
 </div>
-<div class="contenedor-boton" style="padding-top: 80px;">
+<div class="contenedor-boton" style="padding-top: 20px;">
     <button onclick="document.getElementById('modalCrearExistencias').style.display='block'"
             class="btn-agregar">
         + Nueva Existencia
@@ -150,6 +153,9 @@
         </form>
     </div>
 </div>
+
+<?php include 'Footer.php'; ?>
+</div><!-- /.lista-wrapper -->
 
     <script>
         function abrirModal(id, e_total, e_bloqueado, e_venta, fecha, id_producto) {

@@ -10,7 +10,9 @@
 </head>
 <body>
     <?php include 'Header.php'; ?>
+    <?php include 'sidebar.php'; ?>
 
+<div class="lista-wrapper">
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
@@ -111,6 +113,8 @@
         </div>
     </div>
 
+<?php include 'Footer.php'; ?>
+
     <script>
         // Llena el modal con los datos del cliente y lo abre
         function abrirModal(id, nombre, ape_pat, ape_mat, telefono) {
@@ -162,5 +166,6 @@
 </div>
 </div>
 <?php include 'Footer.php'; ?>
+</div><!-- /.lista-wrapper -->
 </body>
 </html>

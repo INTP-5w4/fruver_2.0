@@ -11,6 +11,9 @@
 </head>
 <body>
     <?php include 'Header.php'; ?>
+    <?php include 'sidebar.php'; ?>
+
+<div class="lista-wrapper">
     
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
@@ -26,7 +29,7 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 80px;">
+<div class="contenedor-boton" style="padding-top: 20px;">
     <button onclick="document.getElementById('modalCrearRepartidor').style.display='block'"
             class="btn-agregar">
         + Nuevo Repartidor
@@ -166,6 +169,9 @@
             </form>
         </div>
     </div>
+
+<?php include 'Footer.php'; ?>
+</div><!-- /.lista-wrapper -->
 
     <script>
         function abrirModal(id, nombre, ape_pat, ape_mat, telefono, direccion, notas) {

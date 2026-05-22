@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="estilosPaginas.css">
 <aside class="sidebar">
     <nav class="sidebar-nav">
         <p class="nav-label">Módulos</p>

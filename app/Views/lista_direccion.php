@@ -10,6 +10,9 @@
 </head>
 <body>
         <?php include 'Header.php'; ?>
+    <?php include 'sidebar.php'; ?>
+
+<div class="lista-wrapper">
  <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
@@ -24,7 +27,7 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 80px;">
+<div class="contenedor-boton" style="padding-top: 20px;">
     <button onclick="document.getElementById('modalCrearDireccion').style.display='block'"
             class="btn-agregar">
         + Nueva Dirección
@@ -189,6 +192,9 @@
             </form>
         </div>
     </div>
+
+<?php include 'Footer.php'; ?>
+</div><!-- /.lista-wrapper -->
 
     <script>
         function abrirModal(id, colonia, calle, numero, municipio, estado, id_cliente) {
