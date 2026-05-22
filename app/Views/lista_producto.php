@@ -31,7 +31,7 @@
         + Nuevo Producto
     </button>
 </div>
-
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -74,7 +74,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-
+</div>
     <?= $pager->links('default', 'w3_pager') ?>
 
     <!-- MODAL EDITAR PRODUCTO -->

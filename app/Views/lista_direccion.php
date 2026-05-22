@@ -30,7 +30,7 @@
         + Nueva Dirección
     </button>
 </div>
-
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -83,7 +83,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-
+</div>
     <!-- MODAL CREAR DIRECCIÓN -->
     <div id="modalCrearDireccion" class="w3-modal" style="display:none;">
         <div class="modal-contenido w3-animate-zoom">
