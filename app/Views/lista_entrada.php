@@ -34,7 +34,25 @@
         + Nueva Entrada
     </button>
 </div>
-
+<form method="get" action="<?= base_url('lista_entrada') ?>" class="w3-margin-bottom">
+    <div style="display:flex; gap:8px;">
+        <input
+            type="text"
+            name="buscar"
+            value="<?= esc($buscar ?? '') ?>"
+            placeholder="Buscar por id..."
+            class="w3-input w3-border"
+            style="max-width:350px;"
+        >
+        <button type="submit" class="w3-button w3-green">
+            <i class="fa-solid fa-magnifying-glass"></i> Buscar
+        </button>
+        <?php if (!empty($buscar)): ?>
+            <a href="<?= base_url('lista_entrada') ?>" class="w3-button w3-red">✕ Limpiar</a>
+        <?php endif; ?>
+    </div>
+</form>
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -68,14 +86,25 @@
                 <td><?= $e['conversion'] ?></td>
                 <td><?= $e['u_venta'] ?></td>
                 <td><?= $e['precio_compra_u'] ?></td>
-                <td><?= $e['conv_pc'] ?></td>
+                <td><?= $e['cantidad'] * $e['precio_compra_u'] ?></td>
                 <td><?= $e['precio_venta_u'] ?></td>
-                <td>
-                    <?php $p = $productos[$e['id_producto']] ?? null;
-                    echo $p ? "{$p['nombre']}" : 'Desconocido'; ?>
+                <td><?= esc($e['nombre_producto']) ?></td>
                 </td>
                 <td>
                     <button onclick="abrirModal(
+                                '<?= $e['id'] ?>',
+                                '<?= $e['fecha'] ?>',
+                                '<?= $e['fecha_cad'] ?>',
+                                '<?= $e['cantidad'] ?>',
+                                '<?= $e['u_compra'] ?>',
+                                '<?= $e['u_venta'] ?>',
+                                '<?= $e['precio_compra_u'] ?>',
+                                '<?= $e['precio_venta_u'] ?>',
+                                '<?= $e['id_producto'] ?>'
+                            )"
+                            class="btn-icono">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
             '<?= $e['id'] ?>',
             '<?= $e['fecha'] ?>',
             '<?= $e['fecha_cad'] ?>',
@@ -102,7 +131,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-
+</div>
     <!-- MODAL CREAR ENTRADA -->
 <div id="modalCrearEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">

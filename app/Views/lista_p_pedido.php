@@ -11,58 +11,8 @@
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Pedidos</title>
     <style>
-        /* Fila detalle expandible */
-        .fila-detalle { display: none; background: #f0fff4; }
-        .fila-detalle td { padding: 0; border-top: none; }
-        .fila-detalle.abierto { display: table-row; }
-
-        .detalle-inner {
-            padding: 12px 24px 16px 40px;
-            border-left: 4px solid #3AA346;
-        }
-
-        .detalle-inner table {
-            margin-top: 8px;
-            box-shadow: none;
-            border-radius: 0;
-        }
-
-        .detalle-inner thead {
-            background: #3AA346;
-        }
-
-        .detalle-inner th, .detalle-inner td {
-            font-size: 12px;
-            padding: 7px 12px;
-        }
-
-        /* Botón expandir */
-        .btn-expandir {
-            border: none;
-            background: none;
-            cursor: pointer;
-            color: #007542;
-            font-size: 14px;
-            transition: transform 0.2s;
-        }
-
-        .btn-expandir.abierto { transform: rotate(90deg); }
-
-        /* Resumen de productos en la fila principal */
-        .resumen-productos {
-            font-size: 12px;
-            color: #555;
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Total del pedido en la fila principal */
-        .total-pedido {
-            font-weight: bold;
-            color: #007542;
-        }
+        /* Todos los estilos viven en estilosPaginas.css */
+        /* Sólo se añaden overrides mínimos para esta vista */
     </style>
 </head>
 <body>
@@ -91,7 +41,27 @@
     </button>
 </div>
 
+<form method="get" action="<?= base_url('lista_p_pedido') ?>" class="w3-margin-bottom">
+    <div style="display:flex; gap:8px;">
+        <input
+            type="text"
+            name="buscar"
+            value="<?= esc($buscar ?? '') ?>"
+            placeholder="Buscar por id..."
+            class="w3-input w3-border"
+            style="max-width:350px;"
+        >
+        <button type="submit" class="w3-button w3-green">
+            <i class="fa-solid fa-magnifying-glass"></i> Buscar
+        </button>
+        <?php if (!empty($buscar)): ?>
+            <a href="<?= base_url('lista_p_pedido') ?>" class="w3-button w3-red">✕ Limpiar</a>
+        <?php endif; ?>
+    </div>
+</form>
+
 <!-- ══ TABLA PRINCIPAL — una fila por pedido ══ -->
+<div class="tabla-wrapper">
 <table>
     <thead>
         <tr>
@@ -148,7 +118,7 @@
             </td>
         </tr>
 
-        <!-- Fila detalle expandible con los productos del pedido -->
+        <!-- ✅ CORRECCIÓN: Fila detalle DENTRO del foreach, justo después de la fila resumen -->
         <tr class="fila-detalle" id="detalle-<?= $pedido['id_pedido'] ?>">
             <td colspan="10">
                 <div class="detalle-inner">
@@ -182,7 +152,27 @@
     <?php endforeach; ?>
     </tbody>
 </table>
+<?php if ($total_paginas > 1): ?>
+<div style="display:flex; gap:8px; margin-top:16px; margin-bottom:16px;">
 
+    <?php if ($pagina_actual > 1): ?>
+        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual - 1 ?>"
+           class="w3-button w3-green">← Anterior</a>
+    <?php endif; ?>
+</div><!-- /tabla-wrapper -->
+
+    <span class="w3-button w3-white w3-border">
+        Página <?= $pagina_actual ?> de <?= $total_paginas ?>
+        (<?= $total_pedidos ?> pedidos)
+    </span>
+
+    <?php if ($pagina_actual < $total_paginas): ?>
+        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual + 1 ?>"
+           class="w3-button w3-green">Siguiente →</a>
+    <?php endif; ?>
+
+</div>
+<?php endif; ?>
 
 <!-- ══════════════════════════════════════════════════════════
      MODAL CREAR — Wizard 3 pasos

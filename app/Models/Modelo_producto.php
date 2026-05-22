@@ -54,5 +54,18 @@ public function topProductos()
         ->limit(5)
         ->get()->getResultArray();
 }
+public function aplicarBusqueda(string $buscar): static
+{
+    if (!empty($buscar)) {
+        $this->groupStart()
+                ->where('id', $buscar)
+                ->orLike('nombre', $buscar)
+                ->orLike('descripcion', $buscar)
+                ->orLike('categoria', $buscar)
+             ->groupEnd();
+    }
+
+    return $this;
+}
 
 }

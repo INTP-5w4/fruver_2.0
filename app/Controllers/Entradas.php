@@ -47,16 +47,26 @@ public function guarda_entrada(){
     }
 }
 public function lista_entrada(){
+
+    $buscar = $this->request->getGet('buscar') ?? '';
+
     $m_entrada = new Modelo_entrada();
     $m_producto = new Modelo_producto();
-    $producto= array_column($m_producto->findAll(), null, 'id');
-    $datos=[
-        'entradas'=>$m_entrada->findAll(),
-        'productos'=>$producto,  
-    ];
+
+    $datos['entradas'] = $m_entrada
+        ->filtrar($buscar)
+        ->conProducto()
+        ->orderBy('entrada.id', 'DESC')
+        ->paginate(20);
+
+    $datos['pager'] = $m_entrada->pager;
+
+    $datos['buscar'] = $buscar;
+
+    $datos['productos'] = $m_producto->findAll();
+
     return view('lista_entrada', $datos);
 }
-
 public function recupera($id=null){
     $m_entrada = new Modelo_entrada();
     $m_producto = new Modelo_producto();
