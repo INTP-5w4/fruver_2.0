@@ -11,58 +11,8 @@
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Pedidos</title>
     <style>
-        /* Fila detalle expandible */
-        .fila-detalle { display: none; background: #f0fff4; }
-        .fila-detalle td { padding: 0; border-top: none; }
-        .fila-detalle.abierto { display: table-row; }
-
-        .detalle-inner {
-            padding: 12px 24px 16px 40px;
-            border-left: 4px solid #3AA346;
-        }
-
-        .detalle-inner table {
-            margin-top: 8px;
-            box-shadow: none;
-            border-radius: 0;
-        }
-
-        .detalle-inner thead {
-            background: #3AA346;
-        }
-
-        .detalle-inner th, .detalle-inner td {
-            font-size: 12px;
-            padding: 7px 12px;
-        }
-
-        /* Botón expandir */
-        .btn-expandir {
-            border: none;
-            background: none;
-            cursor: pointer;
-            color: #007542;
-            font-size: 14px;
-            transition: transform 0.2s;
-        }
-
-        .btn-expandir.abierto { transform: rotate(90deg); }
-
-        /* Resumen de productos en la fila principal */
-        .resumen-productos {
-            font-size: 12px;
-            color: #555;
-            max-width: 200px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* Total del pedido en la fila principal */
-        .total-pedido {
-            font-weight: bold;
-            color: #007542;
-        }
+        /* Todos los estilos viven en estilosPaginas.css */
+        /* Sólo se añaden overrides mínimos para esta vista */
     </style>
 </head>
 <body>
@@ -89,6 +39,7 @@
 </div>
 
 <!-- ══ TABLA PRINCIPAL — una fila por pedido ══ -->
+<div class="tabla-wrapper">
 <table>
     <thead>
         <tr>
@@ -179,6 +130,7 @@
     <?php endforeach; ?>
     </tbody>
 </table>
+</div><!-- /tabla-wrapper -->
 
 
 <!-- ══════════════════════════════════════════════════════════

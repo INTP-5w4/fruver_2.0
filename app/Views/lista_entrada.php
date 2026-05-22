@@ -31,7 +31,7 @@
         + Nueva Entrada
     </button>
 </div>
-
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -99,7 +99,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-
+</div>
     <!-- MODAL CREAR ENTRADA -->
 <div id="modalCrearEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">

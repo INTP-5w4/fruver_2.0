@@ -32,7 +32,7 @@
         + Nuevo Repartidor
     </button>
 </div>
-
+<div class="tabla-wrapper">
     <table>
         <thead>
             <tr>
@@ -82,7 +82,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-
+</div>
     <!-- MODAL CREAR REPARTIDOR -->
     <div id="modalCrearRepartidor" class="w3-modal" style="display:none;">
         <div class="modal-contenido w3-animate-zoom">

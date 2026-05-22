@@ -39,7 +39,7 @@
        placeholder="Buscar por producto..."
        class="w3-input w3-border w3-margin-bottom"
        style="max-width:300px;">
-
+<div class="tabla-wrapper">
 <table>
     <thead>
         <tr>
@@ -101,6 +101,7 @@
         <?php endforeach; ?>
     </tbody>
 </table>
+</div> 
 
 <div id="modalCrearMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
