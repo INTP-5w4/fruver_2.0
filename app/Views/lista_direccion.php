@@ -31,11 +31,11 @@
     </button>
 
     <form method="get" action="<?= base_url('lista_direccion') ?>" style="display:flex; gap:8px; align-items:center;">
-        <input type="text" name="busqueda" placeholder="Buscar por cliente, colonia, calle, municipio o estado..."
-               value="<?= esc($busqueda ?? '') ?>"
+        <input type="text" name="buscar" placeholder="Buscar por cliente, colonia, calle, municipio o estado..."
+               value="<?= esc($buscar ?? '') ?>"
                class="modal-input" style="margin:0; width:400px;">
         <button type="submit" class="btn-agregar" style="margin:0;">Buscar</button>
-        <?php if (!empty($busqueda)): ?>
+        <?php if (!empty($buscar)): ?>
             <a href="<?= base_url('lista_direccion') ?>" class="btn-agregar" style="margin:0; background:#888; text-decoration:none;">✕ Limpiar</a>
         <?php endif; ?>
     </form>
