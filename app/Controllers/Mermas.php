@@ -76,7 +76,7 @@ public function recupera($id=null){
 public function eliminar_datos($id=null){
     $m_merma = new Modelo_merma();
     $m_merma->delete($id);
-    return redirect()->to('lista_merma');
+    return redirect()->to('lista_merma')->with('mensaje', 'Merma eliminada correctamente');
     
 }
 public function modifica(){
@@ -96,7 +96,7 @@ public function modifica(){
             return redirect()->to('lista_merma')->with('error', 'Por favor, complete todos los campos obligatorios.');
         }else{
             $m_merma->update($id, $datos);
-            return redirect()->to('lista_merma');
+            return redirect()->to('lista_merma')->with('mensaje', 'Merma actualizada correctamente');
         }
     }
 }

@@ -23,18 +23,6 @@
     </div>
 <?php endif; ?>
 
-
-<?php if (session()->getFlashdata('error')): ?>
-    <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
-    </div>
-<?php endif; ?>
-
-<?php if (session()->getFlashdata('mensaje')): ?>
-    <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
-    </div>
-<?php endif; ?>
 </div>
 
 <div class="contenedor-boton"style=" padding-top: 80px;">
@@ -113,6 +101,20 @@
                             class="btn-icono">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
+            '<?= $e['id'] ?>',
+            '<?= $e['fecha'] ?>',
+            '<?= $e['fecha_cad'] ?>',
+            '<?= $e['cantidad'] ?>',
+            '<?= $e['u_compra'] ?>',
+            '<?= $e['u_venta'] ?>',
+            '<?= $e['equivalente'] ?>',
+            '<?= $e['precio_compra_u'] ?>',
+            '<?= $e['precio_venta_u'] ?>',
+            '<?= $e['id_producto'] ?>'
+        )"
+        class="btn-icono">
+    <i class="fa-solid fa-pen-to-square"></i>
+</button>
                 </td>
                 <td>
                     <a href="<?= base_url('borra_id_entrada/'.$e['id']) ?>">
@@ -156,7 +158,7 @@
             </select>
 
             <label><b>Cantidad</b></label>
-            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" required>
+            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
             <label><b>Unidad de compra</b></label>
             <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
@@ -199,112 +201,145 @@
 
 
     <!-- MODAL EDITAR ENTRADA -->
-    <div id="modalEditarEntrada" class="w3-modal" style="display:none;">
-        <div class="modal-contenido w3-animate-zoom">
+<div id="modalEditarEntrada" class="w3-modal" style="display:none;">
+    <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
+        <form action="<?= base_url('modifica_entrada') ?>" method="post" class="w3-container w3-padding-16">
 
-            <header class="modal-header">
-                <span onclick="document.getElementById('modalEditarEntrada').style.display='none'"
-                    class="modal-cerrar">&times;</span>
-                <h2>Editar Entrada</h2>
-            </header>
+            <input type="hidden" name="id" id="edit_id">
 
-            <form action="<?= base_url('modifica_entrada') ?>" method="post" class="modal-form">
+            <label><b>Fecha de entrada*</b></label>
+            <input type="date" name="f_ent" id="edit_f_ent"
+                   class="w3-input w3-border w3-margin-bottom" required>
 
-                <input type="hidden" name="id" id="edit_id">
+            <label><b>Fecha de caducidad</b></label>
+            <input type="date" name="f_cad" id="edit_f_cad"
+                   class="w3-input w3-border w3-margin-bottom">
 
-                <label><b>Fecha de entrada*</b></label>
-                <input type="date" name="f_ent" id="edit_f_ent" class="modal-input" required>
+            <!-- Filtro de categoría (igual que en crear) -->
+            <label><b>Categoría</b></label>
+            <select id="filtroCategoriaEditar" class="w3-select w3-border w3-margin-bottom">
+                <option value="">— Todas —</option>
+                <option value="frutas">Frutas</option>
+                <option value="verduras">Verduras</option>
+                <option value="hierbas">Hierbas</option>
+            </select>
 
-                <label><b>Fecha de caducidad</b></label>
-                <input type="date" name="f_cad" id="edit_f_cad" class="modal-input">
+            <label><b>Producto*</b></label>
+            <select name="id_producto" id="edit_id_producto"
+                    class="w3-select w3-border w3-margin-bottom" required>
+                <?php foreach ($productos as $p): ?>
+                    <option value="<?= esc($p['id']) ?>"
+                            data-categoria="<?= esc($p['categoria']) ?>">
+                        <?= esc($p['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
 
-                <label><b>Cantidad*</b></label>
-                <input type="number" name="cant" id="edit_cant" class="modal-input" required>
+            <label><b>Cantidad*</b></label>
+            <input type="number" name="cant" id="edit_cant" placeholder="Ej: 50"
+                   class="w3-input w3-border w3-margin-bottom" min="1" required>
 
-                <label><b>Unidad de compra*</b></label>
-                <select name="u_com" id="edit_u_com" class="modal-input" required>
-                    <option value="Caja">Caja</option>
-                    <option value="Arpilla">Arpilla</option>
-                    <option value="Bulto">Bulto</option>
-                    <option value="Tonelada">Tonelada</option>
-                    <option value="Mazo">Mazo</option>
-                </select>
+            <label><b>Unidad de compra*</b></label>
+            <select name="u_com" id="edit_u_com"
+                    class="w3-select w3-border w3-margin-bottom" required>
+                <option value="Caja">Caja</option>
+                <option value="Arpilla">Arpilla</option>
+                <option value="Bulto">Bulto</option>
+                <option value="Tonelada">Tonelada</option>
+                <option value="Mazo">Mazo</option>
+            </select>
 
+            <label><b>Unidad de venta*</b></label>
+            <select name="u_ven" id="edit_u_ven"
+                    class="w3-select w3-border w3-margin-bottom" required>
+                <option value="Kilogramo">Kilogramo</option>
+                <option value="Litro">Litro</option>
+                <option value="Caja">Caja</option>
+                <option value="Pieza">Pieza</option>
+                <option value="Domo">Domo</option>
+                <option value="Ramo">Ramo</option>
+            </select>
 
-                <label><b>Unidad de venta*</b></label>
-                <select name="u_ven" id="edit_u_ven" class="modal-input" required>
-                    <option value="Kilogramo">Kilogramo</option>
-                    <option value="Litro">Litro</option>
-                    <option value="Caja">Caja</option>
-                    <option value="Pieza">Pieza</option>
-                    <option value="Domo">Domo</option>
-                    <option value="Ramo">Ramo</option>
-                </select>
-                <label for=""><b>Equivalente*</b></label>
-                <input type="number" name="equi" id="" class="modal-input">
+            <label><b>Equivalente</b></label>
+            <input type="number" name="equi" id="edit_equi" placeholder="Ej: 20"
+                   class="w3-input w3-border w3-margin-bottom">
 
-                <label><b>Precio de compra(Unitario)*</b></label>
-                <input type="number" name="p_compra" id="edit_precio_compra" class="modal-input" required>
-                
-                <label><b>Precio de venta(Unitario)*</b></label>
-                <input type="number" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            <label><b>Precio de compra (Unitario)*</b></label>
+            <input type="number" name="p_compra" id="edit_precio_compra" placeholder="Ej: 45"
+                   step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Producto*</b></label>
-                <select name="id_producto" id="edit_id_producto" class="modal-input" required>
-                    <?php foreach ($productos as $p): ?>
-                        <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
-                    <?php endforeach; ?>
-                </select>
+            <label><b>Precio de venta (Unitario)*</b></label>
+            <input type="number" name="p_venta" id="edit_precio_venta" placeholder="Ej: 50"
+                   step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
-                <footer class="modal-footer">
-                    <input type="submit" value="enviar" class="btn-guardar">
+            <footer class="w3-container w3-green w3-padding">
+                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="button"
+                        onclick="document.getElementById('modalEditarEntrada').style.display='none'"
+                        class="w3-button w3-white">Cancelar</button>
+            </footer>
 
-                    <button type="button"
-                            onclick="document.getElementById('modalEditarEntrada').style.display='none'"
-                            class="btn-cancelar">Cancelar</button>
-                </footer>
-
-            </form>
-        </div>
+        </form>
     </div>
+</div>
+    <?php include 'Footer.php'; ?>
+
 
 <script>
+// Filtro categoría — modal CREAR
 document.getElementById('filtroCategoriaEntrada').addEventListener('change', function () {
-    const categoriaElegida = this.value;
-    const selectProducto   = document.getElementById('selectProductoEntrada');
-    const opciones         = selectProducto.querySelectorAll('option');
-
-    opciones.forEach(function (opcion) {
-        const coincide = categoriaElegida === '' || opcion.dataset.categoria === categoriaElegida;
-        opcion.hidden   = !coincide;
-        opcion.disabled = !coincide;
-    });
-
-    // Seleccionar automáticamente la primera opción visible
-    const primeraVisible = selectProducto.querySelector('option:not([hidden])');
-    if (primeraVisible) primeraVisible.selected = true;
+    filtrarProductos('selectProductoEntrada', this.value);
 });
-</script>
 
-    <script>
-        function abrirModal(id, fecha, fecha_cad, cantidad, u_compra, u_venta, precio_compra, id_producto) {
-            document.getElementById('edit_id').value = id;
-            document.getElementById('edit_f_ent').value = fecha;
-            document.getElementById('edit_f_cad').value = fecha_cad;
-            document.getElementById('edit_cant').value = cantidad;
-            document.getElementById('edit_u_com').value = u_compra;
-            document.getElementById('edit_u_ven').value = u_venta;
-            document.getElementById('edit_precio_compra').value = precio_compra;
-            document.getElementById('edit_id_producto').value = id_producto;
-            document.getElementById('modalEditarEntrada').style.display = 'block';
-        }
+// Filtro categoría — modal EDITAR
+document.getElementById('filtroCategoriaEditar').addEventListener('change', function () {
+    filtrarProductos('edit_id_producto', this.value);
+});
 
-        window.onclick = function(event) {
-            const modalEditar = document.getElementById('modalEditarEntrada');
-            const modalCrear = document.getElementById('modalCrearEntrada');
-            if (event.target === modalEditar) modalEditar.style.display = 'none';
-            if (event.target === modalCrear) modalCrear.style.display = 'none';
-        };
+// Función compartida para ambos filtros
+function filtrarProductos(selectId, categoria) {
+    const select  = document.getElementById(selectId);
+    const opciones = select.querySelectorAll('option');
+    opciones.forEach(function(op) {
+        const coincide = categoria === '' || op.dataset.categoria === categoria;
+        op.hidden   = !coincide;
+        op.disabled = !coincide;
+    });
+    const primeraVisible = select.querySelector('option:not([hidden])');
+    if (primeraVisible) primeraVisible.selected = true;
+}
+
+// abrirModal con todos los campos
+function abrirModal(id, fecha, fecha_cad, cantidad, u_compra, u_venta, equivalente, precio_compra, precio_venta, id_producto) {
+    document.getElementById('edit_id').value            = id;
+    document.getElementById('edit_f_ent').value         = fecha;
+    document.getElementById('edit_f_cad').value         = fecha_cad;
+    document.getElementById('edit_cant').value          = cantidad;
+    document.getElementById('edit_u_com').value         = u_compra;
+    document.getElementById('edit_u_ven').value         = u_venta;
+    document.getElementById('edit_equi').value          = equivalente;
+    document.getElementById('edit_precio_compra').value = precio_compra;
+    document.getElementById('edit_precio_venta').value  = precio_venta;
+    document.getElementById('edit_id_producto').value   = id_producto;
+
+    // Sincronizar el filtro de categoría con el producto actual
+    const selectProducto = document.getElementById('edit_id_producto');
+    const opcionActual   = selectProducto.querySelector(`option[value="${id_producto}"]`);
+    if (opcionActual) {
+        document.getElementById('filtroCategoriaEditar').value = opcionActual.dataset.categoria;
+        filtrarProductos('edit_id_producto', opcionActual.dataset.categoria);
+        document.getElementById('edit_id_producto').value = id_producto; // re-seleccionar tras filtrar
+    }
+
+    document.getElementById('modalEditarEntrada').style.display = 'block';
+}
+
+window.onclick = function(event) {
+    if (event.target === document.getElementById('modalEditarEntrada'))
+        document.getElementById('modalEditarEntrada').style.display = 'none';
+    if (event.target === document.getElementById('modalCrearEntrada'))
+        document.getElementById('modalCrearEntrada').style.display = 'none';
+};
     </script>
 </body>
 </html>

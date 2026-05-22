@@ -46,7 +46,7 @@ public function modifica(){
     ];
     $m_repartidor = new Modelo_repartidor();
     if ($m_repartidor->update($id,$datos)){
-        return redirect()->to('lista_repartidor');
+        return redirect()->to('lista_repartidor')->with('mensaje', 'Repartidor actualizado correctamente');
     }
 }   
 public function lista_repartidor()
@@ -71,12 +71,16 @@ public function recupera($id=null){
     }
     return view('modifica_repartidor', $datos);
 }
-public function eliminar_datos($id=null){
+public function eliminar_datos($id = null){
     $m_repartidor = new Modelo_repartidor();
-    if (!$m_repartidor->find($id)){
-       return redirect()->to('lista_repartidor'); 
+    if(!$m_repartidor->find($id)){
+        return redirect()->to('lista_repartidor');
     }
-    $m_repartidor->delete($id);
-    return redirect()->to('lista_repartidor');
+    try {
+        $m_repartidor->delete($id);
+        return redirect()->to('lista_repartidor')->with('mensaje', 'Repartidor eliminado correctamente.');
+    } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
+        return redirect()->to('lista_repartidor')->with('error', 'No se puede eliminar el repartidor porque tiene pedidos');
+    }
 }
 }

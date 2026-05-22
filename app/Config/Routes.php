@@ -78,3 +78,6 @@ $routes->post('modifica_p_pedido', 'P_Pedidos::modifica');
 $routes->get('borra_id_p_pedido/(:num)', 'P_Pedidos::eliminar_datos/$1');
 $routes->get('pasa_id_p_pedido/(:num)', 'P_Pedidos::recupera/$1');
 $routes->get('pasa_id_p_pedido/(:num)', 'P_Pedidos::recupera/$1');
+$routes->get('api_pedido/(:num)',        'P_pedidos::api_pedido/$1');
+$routes->post('guarda_pedido_completo',  'P_pedidos::guarda_pedido_completo');
+$routes->post('modifica_pedido_completo','P_pedidos::modifica_pedido_completo');

@@ -1,57 +1,84 @@
-<?php 
+<?php
+
 namespace App\Controllers;
 
 use App\Models\Modelo_cliente;
 use App\Models\Modelo_pedido;
-use App\Models\Modelo_productopedidos;
 use App\Models\Modelo_repartidor;
+use App\Models\Modelo_productopedidos;
 use CodeIgniter\Controller;
 
-class Pedidos extends Controller{
+class Pedidos extends Controller
+{
 
-public function crea_pedido(){
-$m_cliente = new Modelo_cliente();
-    $m_repartidor = new Modelo_repartidor();
-    $m_pp = new Modelo_productopedidos();
-    $datos=[
-        'clientes'=>$m_cliente->findAll(),
-        'repartidores'=>$m_repartidor->findAll(),
-        'pps'=>$m_pp->findAll(),
-    ];
-    return view('crea_pedido',$datos);
-}
-public function guarda_pedido(){
-    $m_pedido = new Modelo_pedido();
-    $datos=[
-        'fecha'=>$this->request->getPost('fecha'),
-        'id_cliente'=>$this->request->getPost('id_cliente'),
-        'id_repartidor'=>$this->request->getPost('id_repartidor'),
-        'id_producto_pedido'=>$this->request->getPost('id_pp'),
-    ];
-    if (
-        empty($datos['fecha'])||
-        empty($datos['id_cliente'])||
-        empty($datos['id_repartidor'])
-        ){
-        $m_cliente = new Modelo_cliente();
-        $m_repartidor = new Modelo_repartidor();
-        $m_pps = new Modelo_productopedidos();
-        $datos_recuperados=[
-            'clientes'=>$m_cliente->findAll(),
-            'repartidores'=>$m_repartidor->findAll(),
-            'pps'=>$m_pps->findAll(),
-        ];
-        return view ('crea_pedido',$datos_recuperados);
-    }else{
-        $m_pedido->insert($datos);
-        if ($this->request->getPost('origen') == 'main_page') {
-            return redirect()->to('/')->with('Mensaje', 'Pedido creado exitosamente');
-        }
-        return redirect()->to('lista_pedido');
-    }
-}
-public function lista_pedido()
+    // ─────────────────────────────────────────────────────────────
+    // CREAR PEDIDO
+    // ─────────────────────────────────────────────────────────────
+    public function crea_pedido()
     {
+
+        $m_cliente    = new Modelo_cliente();
+        $m_repartidor = new Modelo_repartidor();
+
+        $datos = [
+            'clientes'     => $m_cliente->findAll(),
+            'repartidores' => $m_repartidor->findAll(),
+        ];
+
+        return view('crea_pedido', $datos);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // GUARDAR PEDIDO
+    // ─────────────────────────────────────────────────────────────
+    public function guarda_pedido()
+    {
+
+        $m_pedido = new Modelo_pedido();
+
+        $datos = [
+            'fecha'         => $this->request->getPost('fecha'),
+            'id_cliente'    => $this->request->getPost('id_cliente'),
+            'id_repartidor' => $this->request->getPost('id_repartidor'),
+        ];
+
+        // VALIDAR CAMPOS
+        if (
+            empty($datos['fecha']) ||
+            empty($datos['id_cliente']) ||
+            empty($datos['id_repartidor'])
+        ) {
+
+            $m_cliente    = new Modelo_cliente();
+            $m_repartidor = new Modelo_repartidor();
+
+            $datos_recuperados = [
+                'clientes'     => $m_cliente->findAll(),
+                'repartidores' => $m_repartidor->findAll(),
+            ];
+
+            return view('crea_pedido', $datos_recuperados);
+        }
+
+        $m_pedido->insert($datos);
+
+        // REDIRECCIÓN SEGÚN ORIGEN
+        if ($this->request->getPost('origen') == 'main_page') {
+
+            return redirect()->to('/')
+                ->with('mensaje', 'Pedido creado exitosamente');
+        }
+
+        return redirect()->to('lista_pedido')
+            ->with('mensaje', 'Pedido creado exitosamente');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // LISTA PEDIDOS
+    // ─────────────────────────────────────────────────────────────
+    public function lista_pedido()
+    {
+
         $buscar = $this->request->getGet('buscar') ?? '';
 
         $m_pedido     = new Modelo_pedido();
@@ -59,90 +86,126 @@ public function lista_pedido()
         $m_repartidor = new Modelo_repartidor();
         $m_pps        = new Modelo_productopedidos();
 
-        // BUSQUEDA
+        // BUSCADOR
         if (!empty($buscar)) {
 
             $m_pedido->groupStart()
                 ->like('id', $buscar)
                 ->orLike('fecha', $buscar)
-            ->groupEnd();
+                ->groupEnd();
         }
 
-        // PAGINACION
-        $datos['pedidos'] = $m_pedido
+        // PAGINACIÓN
+        $pedidos = $m_pedido
             ->orderBy('id', 'DESC')
             ->paginate(20);
 
-        $datos['pager'] = $m_pedido->pager;
+        $datos = [
+            'pedidos'      => $pedidos,
+            'pager'        => $m_pedido->pager,
+            'buscar'       => $buscar,
 
-        $datos['clientes'] = array_column(
-            $m_cliente->findAll(),
-            null,
-            'id'
-        );
+            // CLIENTES INDEXADOS POR ID
+            'clientes' => array_column(
+                $m_cliente->findAll(),
+                null,
+                'id'
+            ),
 
-        $datos['repartidores'] = array_column(
-            $m_repartidor->findAll(),
-            null,
-            'id'
-        );
+            // REPARTIDORES INDEXADOS POR ID
+            'repartidores' => array_column(
+                $m_repartidor->findAll(),
+                null,
+                'id'
+            ),
 
-        $datos['pps'] = $m_pps->findAll();
-
-        $datos['buscar'] = $buscar;
+            // PRODUCTOS PEDIDOS
+            'pps' => $m_pps->findAll(),
+        ];
 
         return view('lista_pedido', $datos);
     }
 
-public function recupera($id=null){
-    $m_pedido = new Modelo_pedido();
-    $m_cliente = new Modelo_cliente();
-    $m_pp = new Modelo_productopedidos();
-    $m_repartidor = new Modelo_repartidor();
-    $datos=[
-        'pedidos'=>$m_pedido->find($id),
-        'clientes'=>$m_cliente->findAll(),
-        'repartidores'=>$m_repartidor->findAll(),
-        'pps'=>$m_pp->findAll(),
-    ];
-    return view('modifica_pedido',$datos);
-}
-public function eliminar_datos($id = null)
-{
-    $m_pedido = new Modelo_pedido();
+    // ─────────────────────────────────────────────────────────────
+    // RECUPERAR
+    // ─────────────────────────────────────────────────────────────
+    public function recupera($id = null)
+    {
 
-    try {
-        $m_pedido->delete($id);
-        return redirect()->to('lista_pedido')
-                         ->with('mensaje', 'Pedido eliminado correctamente.');
+        $m_pedido     = new Modelo_pedido();
+        $m_cliente    = new Modelo_cliente();
+        $m_repartidor = new Modelo_repartidor();
 
-    } catch (\Exception $e) {
-        $codigo = $e->getPrevious() ? $e->getPrevious()->getCode() : $e->getCode();
+        $datos = [
+            'pedidos'      => $m_pedido->find($id),
+            'clientes'     => $m_cliente->findAll(),
+            'repartidores' => $m_repartidor->findAll(),
+        ];
 
-        if ($codigo == 1451) {
+        return view('modifica_pedido', $datos);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // ELIMINAR
+    // ─────────────────────────────────────────────────────────────
+    public function eliminar_datos($id = null)
+    {
+
+        $m_pedido = new Modelo_pedido();
+
+        try {
+
+            $m_pedido->delete($id);
+
             return redirect()->to('lista_pedido')
-                             ->with('error', 'No se puede eliminar este pedido porque tiene registros relacionados. Elimina primero su estatus o productos asociados.');
+                ->with('mensaje', 'Pedido eliminado correctamente.');
+
+        } catch (\Exception $e) {
+
+            $codigo = $e->getPrevious()
+                ? $e->getPrevious()->getCode()
+                : $e->getCode();
+
+            // ERROR DE FOREIGN KEY
+            if ($codigo == 1451) {
+
+                return redirect()->to('lista_pedido')
+                    ->with(
+                        'error',
+                        'No se puede eliminar este pedido porque tiene registros relacionados.'
+                    );
+            }
+
+            return redirect()->to('lista_pedido')
+                ->with('error', 'Error inesperado al eliminar.');
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // MODIFICAR
+    // ─────────────────────────────────────────────────────────────
+    public function modifica()
+    {
+
+        $m_pedido = new Modelo_pedido();
+
+        $id = $this->request->getPost('id');
+
+        if (empty($id)) {
+
+            return redirect()->to('lista_pedido')
+                ->with('error', 'ID inválido');
         }
 
+        $datos = [
+            'fecha'         => $this->request->getPost('fecha'),
+            'id_cliente'    => $this->request->getPost('id_cliente'),
+            'id_repartidor' => $this->request->getPost('id_repartidor'),
+        ];
+
+        $m_pedido->update($id, $datos);
+
         return redirect()->to('lista_pedido')
-                         ->with('error', 'Error inesperado al eliminar.');
+            ->with('mensaje', 'Pedido actualizado exitosamente');
     }
-}
-
-public function modifica(){
-    $m_pedido = new Modelo_pedido();
-    $id = $this->request->getPost('id');
-    if (empty($id)) {
-        return redirect()->to('lista_pedido')->with('error', 'ID inválido');
-}
-    $datos=[
-        'fecha'=>$this->request->getPost('fecha'),
-        'id_cliente'=>$this->request->getPost('id_cliente'),
-        'id_repartidor'=>$this->request->getPost('id_repartidor'),
-        'id_producto_pedido'=>$this->request->getPost('id_pp'),
-
-    ];
-    $m_pedido->update($id, $datos);
-    return redirect()->to('lista_pedido');
-}
 }

@@ -17,18 +17,18 @@ body {
 }
 .header_container{
     display: flex;
-    background-color: rgb(9, 78, 0);
+    background-color: #00910a;
     align-items: center;
     justify-content: flex-start;
 }
 .logo{
     margin: 0.2em 0.4em;
-    color: rgb(241, 241, 241);
+    color: #ffffff;
     font-size: 2em;
     font-weight: 600;
 }
 .logo a {
     text-decoration: none !important;
-    color: rgb(241, 241, 241) !important;
+    color: #ffffff !important;
 }
 
