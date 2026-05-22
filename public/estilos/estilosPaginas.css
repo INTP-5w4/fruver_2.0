@@ -1,10 +1,64 @@
+/* ═══════════════════════════════════════════════════
+   FRUVER — estilosPaginas.css
+   ═══════════════════════════════════════════════════ */
+
+/* ── RESET BASE ── */
+html {
+    height: 100%;
+    box-sizing: border-box;
+}
+
+*, *::before, *::after {
+    box-sizing: inherit;
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: #f7f7f7;
+    font-family: sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════
+   CONTENEDOR DE TABLA — scrollbar horizontal siempre
+   ═══════════════════════════════════════════════════ */
+.tabla-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar visible y estilizada (Webkit) */
+.tabla-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+.tabla-wrapper::-webkit-scrollbar-track {
+    background: #e8f5e9;
+    border-radius: 4px;
+}
+.tabla-wrapper::-webkit-scrollbar-thumb {
+    background: #3AA346;
+    border-radius: 4px;
+}
+.tabla-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #007542;
+}
+
+/* ═══════════════════════════════════════════════════
+   TABLAS — estilos base
+   ═══════════════════════════════════════════════════ */
 table {
     width: 100%;
+    min-width: max-content;      /* Nunca se comprime; activa la scrollbar */
     border-collapse: collapse;
-    margin-top: 20px;
+    margin-top: 0;
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 2px 8px rgba(0, 117, 66, 0.15);
+    table-layout: auto;
 }
 
 thead {
@@ -19,27 +73,122 @@ th {
     letter-spacing: 0.8px;
     text-transform: uppercase;
     font-size: 13px;
-    border-right: 1px solid rgba(0, 117, 66, 0.2);
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
 }
+
+th:last-child { border-right: none; }
 
 td {
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
     color: #333;
-    border-right: 1px solid rgba(0, 117, 66, 0.2);
+    border-right: 1px solid rgba(0, 117, 66, 0.1);
+    white-space: nowrap;
 }
 
-tr:hover td {
-    background-color: #f0fff4;
-    border-left: 3px solid #9BE931;
-}
+td:last-child { border-right: none; }
 
 tbody tr:nth-child(even) {
     background-color: #f9fff9;
 }
+
+/* Hover sólo en filas "normales" (no en la fila de detalle) */
+tbody tr.fila-pedido:hover td,
+tbody tr:not(.fila-detalle):hover td {
+    background-color: #f0fff4;
+    border-left: 3px solid #9BE931;
+}
+
+/* ═══════════════════════════════════════════════════
+   FILA DETALLE EXPANDIBLE (lista_p_pedido)
+   ═══════════════════════════════════════════════════ */
+.fila-detalle {
+    display: none;
+    background: #f0fff4;
+}
+
+.fila-detalle.abierto {
+    display: table-row;
+}
+
+.fila-detalle > td {
+    padding: 0;
+    border-top: none;
+    white-space: normal;        /* El detalle sí puede envolver texto */
+}
+
+.detalle-inner {
+    padding: 12px 24px 16px 40px;
+    border-left: 4px solid #3AA346;
+    overflow-x: auto;           /* Scrollbar propia del detalle si es muy ancho */
+}
+
+/* Tabla interior del detalle */
+.detalle-inner table {
+    margin-top: 8px;
+    box-shadow: none;
+    border-radius: 0;
+    min-width: 400px;           /* Ancho mínimo razonable para la sub-tabla */
+}
+
+.detalle-inner thead {
+    background: linear-gradient(135deg, #3AA346, #58BB43);
+}
+
+.detalle-inner th,
+.detalle-inner td {
+    font-size: 12px;
+    padding: 7px 12px;
+}
+
+/* Botón chevron expandir */
+.btn-expandir {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #007542;
+    font-size: 14px;
+    padding: 0 4px;
+    transition: transform 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-expandir.abierto {
+    transform: rotate(90deg);
+}
+
+/* Resumen de productos (celda recortada) */
+.resumen-productos {
+    font-size: 12px;
+    color: #555;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* Total del pedido */
+.total-pedido {
+    font-weight: bold;
+    color: #007542;
+    white-space: nowrap;
+}
+
+/* Cursor pointer en filas expandibles */
+.fila-pedido {
+    cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════
+   CONTENEDOR BOTÓN Y BOTÓN AGREGAR
+   ═══════════════════════════════════════════════════ */
 .contenedor-boton {
-    padding: 10px;
+    padding: 10px 16px;
 }
 
 .btn-agregar {
@@ -51,11 +200,22 @@ tbody tr:nth-child(even) {
     border-radius: 4px;
     font-size: 14px;
     letter-spacing: 0.5px;
+    transition: background 0.2s;
 }
 
 .btn-agregar:hover {
     background: linear-gradient(135deg, #3AA346, #58BB43);
 }
+
+.btn-icono {
+    border: none;
+    cursor: pointer;
+    background: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   MODALES PROPIOS (.modal-*)
+   ═══════════════════════════════════════════════════ */
 .modal-contenido {
     max-width: 500px;
     margin: auto;
@@ -81,13 +241,23 @@ tbody tr:nth-child(even) {
     right: 16px;
     top: 12px;
     cursor: pointer;
-    font-size: 20px;
+    font-size: 22px;
     color: white;
     background: none;
     border: none;
+    line-height: 1;
 }
+
 .modal-form {
     padding: 16px;
+    background: white;
+}
+
+.modal-form label {
+    color: #007542;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 4px;
 }
 
 .modal-input {
@@ -97,25 +267,18 @@ tbody tr:nth-child(even) {
     border: 1px solid #3AA346;
     border-radius: 4px;
     font-size: 14px;
-    box-sizing: border-box;
 }
 
-.modal-form {
-    padding: 16px;
-    background: white;
+.modal-footer {
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    background: #f9fff9;
+    border-top: 1px solid #e0efe0;
 }
 
-.btn-guardar, .btn-cancelar {
-    border: none;
-    padding: 8px 18px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #007542;
-    background: white;
-}
-
-.btn-guardar, .btn-cancelar {
+.btn-guardar,
+.btn-cancelar {
     border: none;
     padding: 8px 18px;
     cursor: pointer;
@@ -124,28 +287,32 @@ tbody tr:nth-child(even) {
     color: #007542;
     background: white;
     font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transition: background 0.15s;
 }
-.modal-form label {
-    color: #007542;
-    font-weight: bold;
-    display: block;
-    margin-bottom: 4px;
-}
-.btn-guardar:hover, .btn-cancelar:hover {
+
+.btn-guardar:hover,
+.btn-cancelar:hover {
     background: #C1FF1C;
     color: #007542;
 }
-.formulario-pagina {
-    max-width: 500px;
-    margin: 40px auto;
+
+/* ═══════════════════════════════════════════════════
+   PROTECCIÓN — tablas dentro de modales w3.css
+   ═══════════════════════════════════════════════════ */
+.w3-modal table {
+    min-width: unset !important;
+    width: 100% !important;
 }
 
-.btn-icono {
-    border: none;
-    cursor: pointer;
-    background: none;
+.w3-modal th,
+.w3-modal td {
+    white-space: normal !important;
 }
+
+/* ═══════════════════════════════════════════════════
+   ALERTAS FLASH
+   ═══════════════════════════════════════════════════ */
 .flash-container {
     position: fixed;
     top: 70px;
@@ -153,6 +320,7 @@ tbody tr:nth-child(even) {
     transform: translateX(-50%);
     z-index: 9998;
     width: 60vw;
+    pointer-events: none;
 }
 
 .flash-container .w3-panel {
@@ -161,20 +329,33 @@ tbody tr:nth-child(even) {
     margin: 0;
     text-align: center;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    pointer-events: auto;
 }
 
 .flash-container .w3-panel p {
     color: white;
     font-weight: bold;
-    font-size: 24px;
+    font-size: 20px;
     margin: 0;
 }
 
-/* ── FOOTER ─────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════
+   FORMULARIO DE PÁGINA COMPLETA
+   ═══════════════════════════════════════════════════ */
+.formulario-pagina {
+    max-width: 500px;
+    margin: 40px auto;
+    padding: 0 16px;
+}
+
+/* ═══════════════════════════════════════════════════
+   FOOTER STICKY AL FONDO
+   ═══════════════════════════════════════════════════ */
 .footer {
     background: #00910a;
-    margin-top: 40px;
-    padding: 0;
+    margin-top: auto;
+    flex-shrink: 0;
+    width: 100%;
     box-shadow: 0 -2px 8px rgba(0, 117, 66, 0.2);
 }
 

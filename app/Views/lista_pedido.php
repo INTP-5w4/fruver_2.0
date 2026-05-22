@@ -53,7 +53,7 @@
         <?php endif; ?>
     </div>
 </form>
-
+<div class="tabla-wrapper">
     <table>
         <thead>
             <th>ID</th>
@@ -96,7 +96,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-
+</div>
     <!-- MODAL EDITAR PEDIDO -->
     <div id="modalEditarPedido" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">

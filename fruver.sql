@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 01-05-2026 a las 03:37:10
+-- Tiempo de generación: 21-05-2026 a las 18:30:14
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,59 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `fruver`
 --
+
+DELIMITER $$
+--
+-- Procedimientos
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE `registrar_mermas_caducadas` ()   BEGIN
+    DECLARE v_id_entrada    INT;
+    DECLARE v_id_producto   INT;
+    DECLARE v_cantidad      DECIMAL(10,2);
+    DECLARE v_fecha_cad     DATE;
+    DECLARE v_u_venta       VARCHAR(50);
+    DECLARE v_done          INT DEFAULT 0;
+
+    DECLARE cur_caducadas CURSOR FOR
+        SELECT e.id, e.id_producto, e.conversion, e.fecha_cad, e.u_venta
+        FROM   entrada e
+        WHERE  e.fecha_cad <= CURDATE()
+          AND  e.fecha_cad != '0000-00-00'   -- ← corrección
+          AND  e.cantidad   > 0
+          AND  NOT EXISTS (
+              SELECT 1 FROM merma m
+              WHERE  m.id_entrada = e.id
+                AND  m.notas LIKE '(Automático)%'
+          );
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;
+
+    OPEN cur_caducadas;
+    loop_cad: LOOP
+        FETCH cur_caducadas INTO v_id_entrada, v_id_producto, v_cantidad, v_fecha_cad, v_u_venta;
+        IF v_done THEN LEAVE loop_cad; END IF;
+
+        INSERT INTO merma (cantidad, fecha, notas, id_entrada, u_venta)
+        VALUES (
+            v_cantidad,
+            CURDATE(),
+            CONCAT('(Automático) Caducado el: ', DATE_FORMAT(v_fecha_cad, '%d/%m/%Y')),
+            v_id_entrada,
+            v_u_venta
+        );
+
+        -- conversion=0 para que after_update_entrada no descuente de existencia
+        UPDATE entrada
+        SET cantidad   = 0,
+            conversion = 0,
+            conv_pc    = 0
+        WHERE id = v_id_entrada;
+
+    END LOOP;
+    CLOSE cur_caducadas;
+END$$
+
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -43,7 +96,20 @@ INSERT INTO `cliente` (`id`, `nombre`, `ape_pat`, `ape_mat`, `telefono`) VALUES
 (7, 'Joaquin', 'Flores', 'Cadena', '1234567892'),
 (8, 'Joaquin ', 'Lopez', 'Cadena ', '1234567890 '),
 (9, 'Salazar Rafae', 'Salaza', 'Rafae', '234567890987'),
-(10, 'Salazar Rafael', 'Salazar', 'Rafae', '123456789');
+(10, 'Salazar Rafael', 'Salazar', 'Rafae', '123456789'),
+(12, 'Concha', 'Pancracia', 'Palomar', '123578078'),
+(14, 'Polar', 'Corazón', 'De León', '2354617808'),
+(16, 'Diego', 'Pérez', 'De León', '4213567825'),
+(17, 'Luis Roberto', 'García', 'Márquez', '2415362537'),
+(18, 'Julio', 'Profe', 'Gamer', '1234524361'),
+(19, 'Elizabeth', 'Liones', 'De Danafor', '2134132452'),
+(20, 'Mario', 'Cuitlahuac', 'Castañeda', '5463728192'),
+(21, 'Alejandro', 'Tercero', 'De Macedonia', '1000000000'),
+(22, 'Luis', 'Pérez', 'Peláez', '2514367108'),
+(23, 'Tlaloc', 'Quetzalcoatl', 'Tenochtitlán', '2131234253'),
+(24, 'Benito', 'Juarez', 'Gonzalez', '2435167289'),
+(25, 'Maximiliano', 'Primero', 'De Habsburgo', '21349587162'),
+(26, 'Tzilacatzin', 'Huitzilopoxtli', 'Mictlanctecutli', '1524367352');
 
 --
 -- Disparadores `cliente`
@@ -107,6 +173,7 @@ CREATE TABLE `entrada` (
   `equivalente` decimal(10,0) NOT NULL,
   `conversion` decimal(10,0) DEFAULT NULL,
   `precio_compra_u` decimal(10,2) NOT NULL,
+  `conv_pc` decimal(10,0) DEFAULT NULL,
   `precio_venta_u` decimal(10,0) NOT NULL,
   `id_producto` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -115,14 +182,25 @@ CREATE TABLE `entrada` (
 -- Volcado de datos para la tabla `entrada`
 --
 
-INSERT INTO `entrada` (`id`, `fecha`, `fecha_cad`, `cantidad`, `u_compra`, `u_venta`, `equivalente`, `conversion`, `precio_compra_u`, `precio_venta_u`, `id_producto`) VALUES
-(2, '2026-03-23', '2026-03-28', 10.00, 'Caja', 'Kilogramo', 3, 30, 100.00, 0, 5),
-(3, '1997-03-21', '1997-03-26', 15.00, 'Caja', 'Kilogramo', 10, 150, 150.00, 0, 5),
-(7, '2026-04-28', '2026-05-03', 3.00, 'Caja', 'Kilogramo', 5, 15, 15.00, 0, 5),
-(8, '2026-04-28', '2026-05-03', 20.00, 'Caja', 'Kilogramo', 20, 400, 400.00, 0, 5),
-(9, '2026-04-28', '2026-05-03', 50.00, 'Caja', 'Kilogramo', 2, 100, 100.00, 0, 10),
-(10, '2026-04-28', '2026-05-03', 50.00, 'Caja', 'Kilogramo', 57, 2850, 1000.00, 0, 5),
-(11, '2026-04-28', '2026-05-03', 20.00, 'Caja', 'Kilogramo', 10, 200, 200.00, 0, 13);
+INSERT INTO `entrada` (`id`, `fecha`, `fecha_cad`, `cantidad`, `u_compra`, `u_venta`, `equivalente`, `conversion`, `precio_compra_u`, `conv_pc`, `precio_venta_u`, `id_producto`) VALUES
+(2, '2026-03-23', '2026-03-28', 0.00, 'Tonelada', 'Kilogramo', 120, 0, 10.00, 0, 0, 5),
+(3, '1997-03-21', '1997-03-26', 0.00, 'Caja', 'Kilogramo', 10, 0, 150.00, 0, 0, 5),
+(7, '2026-04-28', '2026-05-03', 0.00, 'Caja', 'Kilogramo', 5, 0, 15.00, 0, 0, 5),
+(8, '2026-04-28', '2026-05-03', 0.00, 'Caja', 'Kilogramo', 20, 0, 400.00, 0, 0, 5),
+(9, '2026-04-28', '2026-05-03', 0.00, 'Caja', 'Kilogramo', 2, 0, 100.00, 0, 0, 10),
+(10, '2026-04-28', '2026-05-03', 0.00, 'Caja', 'Kilogramo', 57, 0, 1000.00, 0, 0, 5),
+(11, '2026-04-28', '2026-05-03', 0.00, 'Caja', 'Kilogramo', 10, 0, 200.00, 0, 0, 13),
+(14, '2026-05-12', '2026-05-17', 0.00, 'Mazo', 'Kilogramo', 5, 0, 10.00, 0, 10, 24),
+(15, '2026-05-13', '2026-05-18', 0.00, 'Mazo', 'Ramo', 40, 0, 200.00, 0, 40, 26),
+(16, '2026-05-18', '2026-05-23', 20.00, 'Caja', 'Kilogramo', 50, 1000, 10.00, NULL, 30, 22),
+(17, '2026-05-19', '2026-05-24', 99.00, 'Mazo', 'Ramo', 10, 990, 50.00, 4950, 20, 27),
+(18, '2026-05-14', '2026-05-19', 0.00, 'Caja', 'Kilogramo', 20, 0, 25.00, 0, 35, 5),
+(19, '2026-05-13', '2026-05-18', 0.00, 'Caja', 'Kilogramo', 20, 0, 30.00, 0, 50, 17),
+(22, '2026-05-19', '2026-05-24', 10.00, 'Caja', 'Kilogramo', 5, 50, 5.00, 50, 8, 5),
+(23, '2026-05-13', '0000-00-00', 0.00, 'Caja', 'Kilogramo', 20, 0, 20.00, 0, 40, 26),
+(24, '2026-05-04', '2026-05-09', 0.00, 'Mazo', 'Ramo', 20, 0, 20.00, 0, 40, 27),
+(26, '2026-05-05', '2026-05-10', 10.00, 'Caja', 'Kilogramo', 20, 200, 30.00, 6000, 50, 22),
+(27, '2026-05-13', '2026-05-18', 10.00, 'Caja', 'Kilogramo', 15, 150, 20.00, 3000, 30, 16);
 
 --
 -- Disparadores `entrada`
@@ -130,54 +208,104 @@ INSERT INTO `entrada` (`id`, `fecha`, `fecha_cad`, `cantidad`, `u_compra`, `u_ve
 DELIMITER $$
 CREATE TRIGGER `Elimina_existencia` AFTER DELETE ON `entrada` FOR EACH ROW BEGIN
     UPDATE existencia
-    SET e_total = e_total - OLD.conversion,
-        e_venta = e_venta - OLD.conversion
+    SET e_total = GREATEST(0, e_total - OLD.conversion),
+        e_venta = GREATEST(0, e_venta - OLD.conversion)
     WHERE id_producto = OLD.id_producto;
 END
 $$
 DELIMITER ;
 DELIMITER $$
+CREATE TRIGGER `actualiza_total_compra` BEFORE UPDATE ON `entrada` FOR EACH ROW BEGIN
+set new.conv_pc=new.cantidad*new.precio_compra_u;
+END
+$$
+DELIMITER ;
+DELIMITER $$
 CREATE TRIGGER `after_insert_entrada` AFTER INSERT ON `entrada` FOR EACH ROW BEGIN
-    INSERT INTO existencia (e_total, e_bloqueado, e_venta, id_producto)
-    VALUES (NEW.conversion, 0, NEW.conversion, NEW.id_producto)
-    ON DUPLICATE KEY UPDATE
-        e_total = e_total + NEW.conversion,
-        e_venta = e_venta + NEW.conversion;
+    -- Si la entrada NO está caducada, suma normalmente a existencia
+    IF NEW.fecha_cad IS NULL
+       OR NEW.fecha_cad = '0000-00-00'
+       OR NEW.fecha_cad > CURDATE()
+    THEN
+        INSERT INTO existencia (e_total, e_bloqueado, e_venta, id_producto)
+        VALUES (NEW.conversion, 0, NEW.conversion, NEW.id_producto)
+        ON DUPLICATE KEY UPDATE
+            e_total = e_total + NEW.conversion,
+            e_venta = e_venta + NEW.conversion;
+
+    -- Si YA está caducada al momento de insertar: no toca existencia,
+    -- genera merma automática inmediatamente.
+    ELSE
+        -- Asegurar fila de existencia sin sumar nada
+        INSERT INTO existencia (e_total, e_bloqueado, e_venta, id_producto)
+        VALUES (0, 0, 0, NEW.id_producto)
+        ON DUPLICATE KEY UPDATE id_producto = id_producto; -- no-op
+
+        INSERT INTO merma (cantidad, fecha, notas, id_entrada, u_venta)
+        VALUES (
+            NEW.conversion,
+            CURDATE(),
+            CONCAT('(Automático) Caducado al ingresar: ',
+                   DATE_FORMAT(NEW.fecha_cad, '%d/%m/%Y')),
+            NEW.id,
+            NEW.u_venta
+        );
+    END IF;
 END
 $$
 DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER `after_update_entrada` AFTER UPDATE ON `entrada` FOR EACH ROW BEGIN
     DECLARE diff DECIMAL(10,2);
-    SET diff = NEW.conversion - OLD.conversion;
- 
-    UPDATE existencia
-    SET e_total = e_total + diff,
-        e_venta = e_venta + diff
-    WHERE id_producto = NEW.id_producto;
+    IF NEW.cantidad = 0 AND OLD.cantidad > 0 AND NEW.conversion = 0 THEN
+        SET diff = 0;
+    ELSE
+        SET diff = NEW.conversion - OLD.conversion;
+        IF diff != 0 THEN
+            UPDATE existencia
+            SET e_total = GREATEST(0, e_total + diff),
+                e_venta = GREATEST(0, e_venta + diff)
+            WHERE id_producto = NEW.id_producto;
+        END IF;
+    END IF;
 END
 $$
 DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER `caducidad_actualizada` BEFORE UPDATE ON `entrada` FOR EACH ROW BEGIN
-    IF OLD.fecha != NEW.fecha THEN
+    IF NEW.cantidad = 0 AND OLD.cantidad > 0 THEN
+        SET NEW.fecha_cad  = OLD.fecha_cad;
+        SET NEW.conversion = 0;
+        SET NEW.conv_pc    = 0;
+    ELSEIF OLD.fecha != NEW.fecha AND NEW.fecha != '0000-00-00' THEN
         SET NEW.fecha_cad = ADDDATE(NEW.fecha, 5);
+        IF NEW.equivalente IS NOT NULL AND NEW.equivalente > 0 THEN
+            SET NEW.conversion = NEW.cantidad * NEW.equivalente;
+            SET NEW.conv_pc    = NEW.conversion * NEW.precio_compra_u;
+        END IF;
     ELSE
-        SET NEW.fecha_cad = OLD.fecha_cad;   -- mantener el valor actual
-    END IF;
- 
-    IF OLD.cantidad != NEW.cantidad OR OLD.equivalente != NEW.equivalente THEN
-        SET NEW.conversion = NEW.cantidad * NEW.equivalente;
+        SET NEW.fecha_cad = OLD.fecha_cad;
+        IF NEW.equivalente IS NOT NULL AND NEW.equivalente > 0 THEN
+            SET NEW.conversion = NEW.cantidad * NEW.equivalente;
+            SET NEW.conv_pc    = NEW.conversion * NEW.precio_compra_u;
+        ELSE
+            SET NEW.conversion = OLD.conversion;
+            SET NEW.conv_pc    = OLD.conv_pc;
+        END IF;
     END IF;
 END
 $$
 DELIMITER ;
 DELIMITER $$
 CREATE TRIGGER `calculos_insercion_caducidad` BEFORE INSERT ON `entrada` FOR EACH ROW BEGIN
-DECLARE fecha_c date;
-set fecha_c= ADDDATE(new.fecha,5);
-set new.fecha_cad=fecha_c;
-set new.conversion=new.cantidad*new.equivalente;
+    IF NEW.fecha_cad IS NULL OR NEW.fecha_cad = '0000-00-00' THEN
+        SET NEW.fecha_cad = ADDDATE(NEW.fecha, 5);
+    END IF;
+
+    IF NEW.equivalente IS NOT NULL AND NEW.equivalente > 0 THEN
+        SET NEW.conversion = NEW.cantidad * NEW.equivalente;
+        SET NEW.conv_pc    = NEW.conversion * NEW.precio_compra_u;
+    END IF;
 END
 $$
 DELIMITER ;
@@ -200,27 +328,105 @@ CREATE TABLE `estatus` (
 --
 
 INSERT INTO `estatus` (`id`, `estado`, `fecha`, `id_pedido`) VALUES
-(1, 'pedido_en_transito', '2026-03-03 06:00:00', 1);
+(10, 'pedido_realizado', '2026-05-16 19:05:00', 11),
+(11, 'pedido_realizado', '2026-05-19 01:50:00', 15),
+(12, 'pedido_confirmado', '2026-05-19 01:52:00', 15),
+(13, 'pedido_realizado', '2026-05-19 01:54:00', 16),
+(14, 'pedido_confirmado', '2026-05-19 01:57:00', 1),
+(15, 'pedido_entregado', '2026-05-19 01:58:00', 1),
+(16, 'pedido_pagado', '2026-05-19 02:08:00', 1),
+(17, 'pedido_realizado', '2026-05-20 01:14:00', 17),
+(18, 'pedido_realizado', '2026-05-20 01:24:00', 18),
+(19, 'pedido_confirmado', '2026-05-20 01:51:00', 18),
+(20, 'pedido_en_transito', '2026-05-20 02:00:00', 18),
+(21, 'pedido_realizado', '2026-05-20 02:21:00', 19),
+(22, 'pedido_confirmado', '2026-05-20 02:22:00', 19),
+(23, 'pedido_en_transito', '2026-05-20 02:23:00', 19),
+(24, 'pedido_realizado', '2026-05-20 03:51:00', 5),
+(25, 'pedido_realizado', '2026-05-20 03:51:00', 3),
+(26, 'pedido_realizado', '2026-05-20 03:52:00', 6),
+(27, 'pedido_confirmado', '2026-05-20 04:02:00', 5),
+(28, 'pedido_confirmado', '2026-05-20 04:04:00', 3),
+(29, 'pedido_realizado', '2026-05-20 04:05:00', 10),
+(30, 'pedido_realizado', '2026-05-20 04:06:00', 8),
+(31, 'pedido_entregado', '2026-05-20 04:06:00', 19),
+(32, 'pedido_a_credito', '2026-05-20 04:07:00', 19),
+(33, 'pedido_pagado', '2026-05-20 04:07:00', 19),
+(34, 'pedido_realizado', '2026-05-20 15:20:00', 20),
+(35, 'pedido_confirmado', '2026-05-20 15:24:00', 20),
+(36, 'pedido_en_transito', '2026-05-20 15:27:00', 20),
+(37, 'pedido_en_transito', '2026-05-21 19:20:00', 3),
+(38, 'pedido_entregado', '2026-05-21 19:22:00', 3);
 
 --
 -- Disparadores `estatus`
 --
 DELIMITER $$
 CREATE TRIGGER `actualiza_existencia` AFTER INSERT ON `estatus` FOR EACH ROW BEGIN
-    DECLARE cant_p  DOUBLE;
-    DECLARE prod_id INT;
- 
-    -- Obtiene cantidad y producto del primer item del pedido
-    SELECT cantidad, id_producto
-    INTO   cant_p, prod_id
-    FROM   producto_pedido
+    DECLARE v_cant       DECIMAL(10,2);
+    DECLARE v_id_prod    INT;
+    DECLARE v_done       INT DEFAULT 0;
+    DECLARE v_estado_ant VARCHAR(50) DEFAULT NULL;
+
+    SELECT estado
+    INTO   v_estado_ant
+    FROM   estatus
     WHERE  id_pedido = NEW.id_pedido
+      AND  id < NEW.id
+    ORDER BY id DESC
     LIMIT 1;
- 
+
     IF NEW.estado = 'pedido_confirmado' THEN
-        UPDATE existencia
-        SET e_bloqueado = e_bloqueado + cant_p
-        WHERE id_producto = prod_id;
+        BEGIN
+            DECLARE cur1 CURSOR FOR
+                SELECT cant, id_producto FROM producto_pedido WHERE id_pedido = NEW.id_pedido;
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;
+            OPEN cur1;
+            l1: LOOP
+                FETCH cur1 INTO v_cant, v_id_prod;
+                IF v_done THEN LEAVE l1; END IF;
+                UPDATE existencia
+                SET e_bloqueado = e_bloqueado + v_cant,
+                    e_venta     = GREATEST(0, e_venta - v_cant)
+                WHERE id_producto = v_id_prod;
+            END LOOP;
+            CLOSE cur1;
+        END;
+
+    ELSEIF NEW.estado = 'pedido_en_transito' AND v_estado_ant = 'pedido_confirmado' THEN
+        BEGIN
+            DECLARE cur2 CURSOR FOR
+                SELECT cant, id_producto FROM producto_pedido WHERE id_pedido = NEW.id_pedido;
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;
+            OPEN cur2;
+            l2: LOOP
+                FETCH cur2 INTO v_cant, v_id_prod;
+                IF v_done THEN LEAVE l2; END IF;
+                UPDATE existencia
+                SET e_bloqueado = GREATEST(0, e_bloqueado - v_cant),
+                    e_total     = GREATEST(0, e_total     - v_cant)
+                WHERE id_producto = v_id_prod;
+            END LOOP;
+            CLOSE cur2;
+        END;
+
+    ELSEIF NEW.estado = 'pedido_cancelado' AND v_estado_ant = 'pedido_confirmado' THEN
+        BEGIN
+            DECLARE cur3 CURSOR FOR
+                SELECT cant, id_producto FROM producto_pedido WHERE id_pedido = NEW.id_pedido;
+            DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_done = 1;
+            OPEN cur3;
+            l3: LOOP
+                FETCH cur3 INTO v_cant, v_id_prod;
+                IF v_done THEN LEAVE l3; END IF;
+                UPDATE existencia
+                SET e_bloqueado = GREATEST(0, e_bloqueado - v_cant),
+                    e_venta     = LEAST(e_total, e_venta + v_cant)
+                WHERE id_producto = v_id_prod;
+            END LOOP;
+            CLOSE cur3;
+        END;
+
     END IF;
 END
 $$
@@ -246,13 +452,25 @@ CREATE TABLE `existencia` (
 --
 
 INSERT INTO `existencia` (`id`, `e_total`, `e_bloqueado`, `e_venta`, `fecha`, `id_producto`) VALUES
-(2, 123, 43, 180, '2026-03-31 03:06:38', 7),
-(3, 29, 100, 29, '2026-04-30 04:31:46', 5),
-(4, 428, 100, 428, '2026-04-30 04:31:46', 5),
-(5, 96, 0, 96, '2026-04-30 04:29:51', 10),
-(6, 2848, 100, 2848, '2026-04-30 04:31:46', 5),
-(7, 197, 0, 197, '2026-04-29 04:54:34', 13),
-(8, 0, 0, 0, '2026-04-30 04:27:03', 12);
+(2, 10, 10, 10, '2026-02-27 03:06:00', 7),
+(3, 200, 200, 0, '2026-05-20 02:37:00', 5),
+(4, 200, 200, 0, '2026-05-20 02:37:00', 5),
+(5, 58, 32, 26, '2026-05-21 19:21:08', 10),
+(6, 250, 200, 50, '2026-05-20 02:37:00', 5),
+(7, 0, 0, 0, '2026-05-21 19:21:08', 13),
+(8, 15, 0, 15, '2026-05-21 19:21:08', 12),
+(9, 0, 0, 0, '2026-05-13 01:33:44', 23),
+(10, 300, 0, 300, '2026-05-21 19:21:08', 24),
+(11, 197, 0, 197, '2026-05-20 03:18:43', 26),
+(12, -1, 0, -1, '2026-05-19 01:36:51', 22),
+(13, 0, 0, NULL, '2026-05-19 02:36:33', 27),
+(14, 20, 0, 20, '2026-05-20 02:37:00', 5),
+(15, 14, 0, 14, '2026-05-20 15:27:47', 17),
+(16, 50, 0, 50, '2026-05-20 02:49:27', 5),
+(17, 1200, 0, 1200, '2026-05-20 03:18:43', 26),
+(18, 0, 0, 0, '2026-05-20 03:38:05', 27),
+(20, 0, 0, 0, '2026-05-20 03:47:47', 22),
+(21, 0, 0, 0, '2026-05-20 15:29:20', 16);
 
 -- --------------------------------------------------------
 
@@ -278,7 +496,33 @@ INSERT INTO `merma` (`id`, `cantidad`, `fecha`, `notas`, `id_entrada`, `u_venta`
 (3, 2.00, '2026-04-28', 'perdida', 2, NULL),
 (4, 2.00, '2026-04-28', 'nose', 9, NULL),
 (5, 2.00, '2026-04-28', 'nose', 3, NULL),
-(6, 3.00, '2026-04-28', 'perdida', 11, NULL);
+(6, 3.00, '2026-04-28', 'perdida', 11, NULL),
+(8, 20.00, '2026-05-01', '', 7, NULL),
+(9, 10.00, '2026-05-12', 'Huele feo', 11, NULL),
+(10, 300.00, '2026-05-12', 'Huele mas feo', 14, NULL),
+(11, 50.00, '2026-05-12', '', 3, NULL),
+(12, 1.00, '2026-05-13', 'Se cayó en agua sucia', 15, NULL),
+(13, 20.00, '2026-05-13', 'notas', 7, NULL),
+(14, 15.00, '2026-05-13', 'huele feo 4ta parte', 7, NULL),
+(15, 23.00, '2026-05-13', 'Huele feo la franquicia', 10, NULL),
+(16, 32.00, '2026-05-13', 'Huele mal vs Huele Bien', 9, NULL),
+(17, 20.00, '2026-05-18', 'hola', 16, NULL),
+(18, 981.00, '2026-05-18', 'hola 2', 16, NULL),
+(19, 17.00, '2026-05-19', 'Huele feo Last Blood', 11, NULL),
+(20, 37.00, '2026-05-19', '(Automático) Caducado el: 28/03/2026', 2, 'Kilogramo'),
+(21, 15.00, '2026-05-19', '(Automático) Caducado el: 26/03/1997', 3, 'Kilogramo'),
+(22, 3.00, '2026-05-19', '(Automático) Caducado el: 03/05/2026', 7, 'Kilogramo'),
+(23, 20.00, '2026-05-19', '(Automático) Caducado el: 03/05/2026', 8, 'Kilogramo'),
+(24, 50.00, '2026-05-19', '(Automático) Caducado el: 03/05/2026', 9, 'Kilogramo'),
+(25, 50.00, '2026-05-19', '(Automático) Caducado el: 03/05/2026', 10, 'Kilogramo'),
+(26, 20.00, '2026-05-19', '(Automático) Caducado el: 03/05/2026', 11, 'Kilogramo'),
+(27, 50.00, '2026-05-19', '(Automático) Caducado el: 17/05/2026', 14, 'Kilogramo'),
+(28, 2.00, '2026-05-19', '(Automático) Caducado el: 18/05/2026', 15, 'Ramo'),
+(29, 10.00, '2026-05-19', '(Automático) Caducado el: 19/05/2026', 18, 'Kilogramo'),
+(30, 24.00, '2026-05-19', '(Automático) Caducado el: 18/05/2026', 19, 'Kilogramo'),
+(33, 400.00, '2026-05-19', '(Automático) Caducado al ingresar: 09/05/2026', 24, 'Ramo'),
+(35, 200.00, '2026-05-19', '(Automático) Caducado al ingresar: 10/05/2026', 26, 'Kilogramo'),
+(36, 150.00, '2026-05-20', '(Automático) Caducado al ingresar: 18/05/2026', 27, 'Kilogramo');
 
 --
 -- Disparadores `merma`
@@ -286,17 +530,14 @@ INSERT INTO `merma` (`id`, `cantidad`, `fecha`, `notas`, `id_entrada`, `u_venta`
 DELIMITER $$
 CREATE TRIGGER `after_insert_merma` AFTER INSERT ON `merma` FOR EACH ROW BEGIN
     DECLARE id_prod INT;
-
-    -- Obtiene el id_producto a través de la entrada
-    SELECT id_producto INTO id_prod
-    FROM entrada
-    WHERE id = NEW.id_entrada;
-
-    -- Descuenta de existencia
-    UPDATE existencia
-    SET e_total  = e_total  - NEW.cantidad,
-        e_venta  = e_venta  - NEW.cantidad
-    WHERE id_producto = id_prod;
+    IF NEW.notas NOT LIKE '(Automático)%' THEN
+        SELECT id_producto INTO id_prod
+        FROM entrada WHERE id = NEW.id_entrada;
+        UPDATE existencia
+        SET e_total = GREATEST(0, e_total - NEW.cantidad),
+            e_venta = GREATEST(0, e_venta - NEW.cantidad)
+        WHERE id_producto = id_prod;
+    END IF;
 END
 $$
 DELIMITER ;
@@ -311,18 +552,34 @@ CREATE TABLE `pedido` (
   `id` int(11) NOT NULL,
   `fecha` date NOT NULL,
   `id_cliente` int(11) NOT NULL,
-  `id_repartidor` int(11) NOT NULL,
-  `id_producto_pedido` int(11) DEFAULT NULL
+  `id_repartidor` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `pedido`
 --
 
-INSERT INTO `pedido` (`id`, `fecha`, `id_cliente`, `id_repartidor`, `id_producto_pedido`) VALUES
-(1, '2026-03-03', 8, 2, NULL),
-(2, '2026-04-28', 9, 2, NULL),
-(3, '2026-04-28', 7, 3, NULL);
+INSERT INTO `pedido` (`id`, `fecha`, `id_cliente`, `id_repartidor`) VALUES
+(1, '2026-03-03', 8, 2),
+(2, '2026-04-28', 9, 2),
+(3, '2026-04-28', 7, 3),
+(5, '2026-05-21', 7, 2),
+(6, '2026-05-13', 12, 5),
+(7, '2026-05-29', 19, 5),
+(8, '2026-05-18', 20, 3),
+(9, '2026-05-18', 20, 5),
+(10, '2026-05-15', 7, 5),
+(11, '2026-05-15', 7, 2),
+(12, '2026-05-18', 22, 5),
+(13, '2026-05-18', 17, 3),
+(14, '2026-05-06', 16, 5),
+(15, '2026-05-18', 14, 2),
+(16, '2026-05-21', 12, 5),
+(17, '2026-05-19', 7, 2),
+(18, '2026-05-19', 7, 2),
+(19, '2026-05-28', 12, 5),
+(20, '2026-05-10', 23, 6),
+(21, '2026-05-22', 21, 5);
 
 -- --------------------------------------------------------
 
@@ -357,7 +614,13 @@ INSERT INTO `producto` (`id`, `nombre`, `descripcion`, `img`, `categoria`) VALUE
 (16, 'Xonegui', 'un quelite trepador con forma de corazón, Ipomoea dumosa', '1777424218_270d1b63c72c5c085019.jpeg', ''),
 (17, 'Xoxogo', 'Bolita Negra', '1777424431_d396674dfd011bc9eb93.jpeg', 'frutas'),
 (18, 'Durazno', 'Naranja', '1777434990_c3028123e9df6464dca9.jpg', 'frutas'),
-(19, 'Berenjena', 'Morao', '1777438264_586969ea4471c3729903.jpg', 'frutas');
+(19, 'Berenjena morada', 'Moradisima', '1777438264_586969ea4471c3729903.jpg', 'frutas'),
+(22, 'Papa', 'alfa', '1778098540_91b9d6fcbd90ce515a18.jpeg', 'verduras'),
+(23, 'Mango', 'Amarillo', '1778633490_ec105811797d8ce1127a.jpeg', 'frutas'),
+(24, 'Orégano', 'Verde', '1778633784_979479a5abd0dd46fc0a.jpeg', 'hierbas'),
+(25, 'Pitahaya', 'Fruta del guerrero Dragón', '1778635829_c5b4889492ccfb213dfd.jpeg', 'frutas'),
+(26, 'Apio', 'Verde', '1778700238_6c7565d3bfdf7a5c68a0.jpeg', 'hierbas'),
+(27, 'Hierbabuena', 'Huele rico', '1779157407_97b525efbd0045038170.jpeg', 'hierbas');
 
 --
 -- Disparadores `producto`
@@ -396,8 +659,48 @@ CREATE TABLE `producto_pedido` (
 --
 
 INSERT INTO `producto_pedido` (`id`, `cant`, `precio_venta`, `unidad_venta`, `total`, `id_pedido`, `id_producto`) VALUES
-(1, 100.00, 30.00, 'Kilogramo', 250.00, 1, 5),
-(2, 2.00, 10.00, 'Kilogramo', 20.00, 1, 5);
+(22, 45.00, 34.00, 'Kilogramo', 1530.00, 7, 5),
+(28, 5.00, 90.00, 'Kilogramo', 450.00, 9, 13),
+(29, 10.00, 50.00, 'Kilogramo', 500.00, 9, 11),
+(32, 23.00, 56.00, 'Kilogramo', 1288.00, 11, 8),
+(33, 10.00, 45.00, 'Kilogramo', 450.00, 11, 9),
+(36, 20.00, 45.00, 'Kilogramo', 900.00, 15, 9),
+(37, 20.00, 25.00, 'Ramos', 500.00, 15, 15),
+(38, 20.00, 15.00, 'Kilogramo', 300.00, 15, 5),
+(39, 10.00, 50.00, 'Kilogramo', 500.00, 16, 22),
+(60, 100.00, 30.00, 'Kilogramo', 3000.00, 1, 5),
+(61, 2.00, 10.00, 'Kilogramo', 20.00, 1, 5),
+(62, 1.00, 28.00, 'Kilogramo', 28.00, 1, 22),
+(63, 1.00, 15.00, 'Kilogramo', 15.00, 1, 7),
+(64, 1.00, 12.00, 'Kilogramo', 12.00, 1, 9),
+(65, 1.00, 59.99, 'Kilogramo', 60.00, 1, 19),
+(66, 50.00, 9000.00, 'Kilogramo', 450000.00, 1, 11),
+(67, 10.00, 200.00, 'Caja', 2000.00, 1, 6),
+(68, 10.00, 35.00, 'Caja', 350.00, 1, 8),
+(69, 23.00, 23.00, 'Kilogramo', 529.00, 1, 5),
+(70, 5.00, 25.00, 'Kilogramo', 125.00, 17, 13),
+(73, 150.00, 90.00, 'Kilogramo', 13500.00, 18, 13),
+(85, 2.00, 35.00, 'Ramos', 70.00, 6, 26),
+(86, 3.00, 60.00, 'Kilogramo', 180.00, 6, 5),
+(87, 3.00, 10.00, 'Kilogramo', 30.00, 6, 8),
+(88, 23.00, 34.00, 'Kilogramo', 782.00, 6, 5),
+(89, 32.00, 32.00, 'Caja', 1024.00, 5, 10),
+(90, 10.00, 30.00, 'Kilogramo', 300.00, 5, 6),
+(91, 10.00, 15.00, 'Kilogramo', 150.00, 3, 6),
+(92, 405.00, 100.00, 'Kilogramo', 40500.00, 3, 13),
+(93, 50.00, 15.00, 'Kilogramo', 750.00, 3, 24),
+(94, 10.00, 15.00, '', 150.00, 3, 18),
+(95, 14.00, -15.00, 'Ramos', -210.00, 3, 18),
+(96, -15.00, 50.00, 'Ramos', -750.00, 3, 12),
+(97, 32.00, 21.00, 'Caja', 672.00, 3, 10),
+(98, 5.00, 30.00, 'Kilogramo', 150.00, 3, 18),
+(99, 23.00, 56.00, 'Kilogramo', 1288.00, 10, 8),
+(100, 10.00, 45.00, 'Kilogramo', 450.00, 10, 9),
+(101, 23.00, 25.00, 'Kilogramo', 575.00, 8, 15),
+(102, 47.00, 45.00, 'Kilogramo', 2115.00, 8, 9),
+(103, 50.00, 90.00, 'Kilogramo', 4500.00, 8, 13),
+(106, 5.00, 45.00, 'Kilogramo', 225.00, 19, 13),
+(107, 10.00, 50.00, 'Kilogramo', 500.00, 20, 17);
 
 --
 -- Disparadores `producto_pedido`
@@ -424,7 +727,7 @@ CREATE TABLE `repartidor` (
   `ape_mat` varchar(100) DEFAULT NULL,
   `telefono` varchar(12) NOT NULL,
   `direccion` varchar(500) NOT NULL,
-  `notas` varchar(500) NOT NULL
+  `notas` varchar(500) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -433,7 +736,9 @@ CREATE TABLE `repartidor` (
 
 INSERT INTO `repartidor` (`id`, `nombre`, `ape_pat`, `ape_mat`, `telefono`, `direccion`, `notas`) VALUES
 (2, 'Joaquin', 'Flores', 'Cadena', '1234567890', 'CERRADA 1 SN, 401', 'alo'),
-(3, 'Salazar Rafael', 'Salazar', 'Rafael', '65467', 'CERRADA 1 SN, 401', 'nose');
+(3, 'Salazar Rafael', 'Salazar', 'Rafael', '65467', 'CERRADA 1 SN, 401', 'nose'),
+(5, 'Julio', 'César', 'Chávez', '0983256743', 'CERRADA 1 SN, 401', 'Conquistador y dictador'),
+(6, 'Napoleón', 'Primero', 'De Francia', '21312342746', 'CERRADA 1 SN, 401', 'Bien loquillo');
 
 --
 -- Índices para tablas volcadas
@@ -486,8 +791,7 @@ ALTER TABLE `merma`
 ALTER TABLE `pedido`
   ADD PRIMARY KEY (`id`),
   ADD KEY `pedido_ibfk_1` (`id_cliente`),
-  ADD KEY `pedido_ibfk_2` (`id_repartidor`),
-  ADD KEY `id_producto_pedido` (`id_producto_pedido`);
+  ADD KEY `pedido_ibfk_2` (`id_repartidor`);
 
 --
 -- Indices de la tabla `producto`
@@ -517,7 +821,7 @@ ALTER TABLE `repartidor`
 -- AUTO_INCREMENT de la tabla `cliente`
 --
 ALTER TABLE `cliente`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT de la tabla `direccion`
@@ -529,49 +833,49 @@ ALTER TABLE `direccion`
 -- AUTO_INCREMENT de la tabla `entrada`
 --
 ALTER TABLE `entrada`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT de la tabla `estatus`
 --
 ALTER TABLE `estatus`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `existencia`
 --
 ALTER TABLE `existencia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `merma`
 --
 ALTER TABLE `merma`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT de la tabla `pedido`
 --
 ALTER TABLE `pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT de la tabla `producto_pedido`
 --
 ALTER TABLE `producto_pedido`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
 
 --
 -- AUTO_INCREMENT de la tabla `repartidor`
 --
 ALTER TABLE `repartidor`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Restricciones para tablas volcadas
@@ -611,7 +915,6 @@ ALTER TABLE `merma`
 -- Filtros para la tabla `pedido`
 --
 ALTER TABLE `pedido`
-  ADD CONSTRAINT `id_pp` FOREIGN KEY (`id_producto_pedido`) REFERENCES `producto_pedido` (`id`),
   ADD CONSTRAINT `pedido_ibfk_1` FOREIGN KEY (`id_cliente`) REFERENCES `cliente` (`id`),
   ADD CONSTRAINT `pedido_ibfk_2` FOREIGN KEY (`id_repartidor`) REFERENCES `repartidor` (`id`);
 
@@ -621,6 +924,14 @@ ALTER TABLE `pedido`
 ALTER TABLE `producto_pedido`
   ADD CONSTRAINT `pedido_id` FOREIGN KEY (`id_pedido`) REFERENCES `pedido` (`id`),
   ADD CONSTRAINT `producto_id` FOREIGN KEY (`id_producto`) REFERENCES `producto` (`id`);
+
+DELIMITER $$
+--
+-- Eventos
+--
+CREATE DEFINER=`root`@`localhost` EVENT `evt_mermas_caducidad` ON SCHEDULE EVERY 5 MINUTE STARTS '2026-05-19 21:46:05' ON COMPLETION PRESERVE ENABLE DO CALL registrar_mermas_caducadas()$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
