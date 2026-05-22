@@ -44,7 +44,6 @@ public function guarda_cliente(){
 public function lista_cliente()
 {
     $buscar = $this->request->getGet('buscar');
-    dd($buscar);
     $m_cliente = new Modelo_cliente();
 
     $datos['clientes'] = $m_cliente
