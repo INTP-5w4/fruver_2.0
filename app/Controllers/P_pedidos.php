@@ -54,44 +54,28 @@ public function guarda_p_pedido(){
     return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
 }
 
-public function lista_p_pedido(){
-
+public function lista_p_pedido()
+{
     $buscar = $this->request->getGet('buscar') ?? '';
 
     $m_p_pedido = new Modelo_productopedidos();
     $m_producto = new Modelo_producto();
     $m_pedido   = new Modelo_pedido();
 
-    if (!empty($buscar)) {
-
-        $m_p_pedido->groupStart()
-            ->where('id', $buscar)
-            ->orLike('id_pedido', $buscar)
-            ->orLike('id_producto', $buscar)
-        ->groupEnd();
-    }
-
-    $datos['p_pedidos'] = $m_p_pedido
+    // Aplica búsqueda y paginación
+    $p_pedidos = $m_p_pedido
+        ->filtrar($buscar)
         ->orderBy('id', 'DESC')
         ->paginate(20);
 
-    $datos['pager'] = $m_p_pedido->pager;
-
-    $datos['buscar'] = $buscar;
-
-    $datos['productos'] = array_column(
-        $m_producto->findAll(),
-        null,
-        'id'
-    );
-
-    $datos['pedidos'] = $m_pedido->findAll();
-
     $datos = [
-        'productos' => $m_producto->findAll(),
-        'p_pedidos' => $m_p_pedido->conNombreProducto(),
-        'pedidos'   => $m_pedido->findAll() 
+        'p_pedidos' => $p_pedidos,
+        'pager'     => $m_p_pedido->pager,
+        'buscar'    => $buscar,
+        'productos' => array_column($m_producto->findAll(), null, 'id'),
+        'pedidos'   => $m_pedido->findAll(),
     ];
+
     return view('lista_p_pedido', $datos);
 }
 public function recupera($id=null){

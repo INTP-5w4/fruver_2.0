@@ -44,36 +44,22 @@ public function guarda_merma(){
     }
 }
 
-public function lista_merma(){
-
+public function lista_merma()
+{
     $buscar = $this->request->getGet('buscar') ?? '';
 
     $m_merma = new Modelo_merma();
     $m_entrada = new Modelo_entrada();
 
-    // BUSCADOR
-    if (!empty($buscar)) {
-
-        $m_merma->groupStart()
-            ->where('id', $buscar)
-            ->orLike('cantidad', $buscar)
-            ->orLike('fecha', $buscar)
-            ->orLike('id_entrada', $buscar)
-        ->groupEnd();
-    }
-
-    // PAGINACIÓN
     $datos['mermas'] = $m_merma
+        ->filtrar($buscar)
         ->orderBy('id', 'DESC')
         ->paginate(20);
 
-    // ENTRADAS
     $datos['entradas'] = $m_entrada->getEntradasConProducto();
 
-    // PAGER
     $datos['pager'] = $m_merma->pager;
 
-    // TEXTO BUSQUEDA
     $datos['buscar'] = $buscar;
 
     return view('lista_merma', $datos);

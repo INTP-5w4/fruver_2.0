@@ -23,4 +23,26 @@ public function perdidasPorMes()
     ", [date('Y-m-d', strtotime('-6 months'))])
     ->getResultArray();
 }
+
+public function filtrar($buscar = null)
+{
+    if (empty($buscar)) {
+        return $this;
+    }
+
+    if (is_numeric($buscar)) {
+
+        $this->where('id', (int)$buscar);
+
+    } else {
+
+        $this->groupStart()
+            ->like('cantidad', $buscar)
+            ->orLike('fecha', $buscar)
+            ->orLike('id_entrada', $buscar)
+        ->groupEnd();
+    }
+
+    return $this;
+}
 }

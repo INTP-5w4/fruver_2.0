@@ -48,13 +48,9 @@ public function lista_existencia(){
     $m_existencia = new Modelo_existencia();
     $m_producto = new Modelo_producto();
     
-    if ($buscar) {
-        $existencias = $m_existencia->buscar($buscar);
-    } else {
-        $existencias = $m_existencia->orderBy('id', 'DESC')->findAll();
-    }
     $datos = [
         'existencias' => $m_existencia
+            ->filtrar($buscar)
             ->orderBy('id', 'DESC')
             ->findAll(),
 

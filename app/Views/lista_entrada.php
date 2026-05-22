@@ -94,9 +94,9 @@
                 <td><?= $e['conversion'] ?></td>
                 <td><?= $e['u_venta'] ?></td>
                 <td><?= $e['precio_compra_u'] ?></td>
+                <td><?= $e['cantidad'] * $e['precio_compra_u'] ?></td>
                 <td><?= $e['precio_venta_u'] ?></td>
-                <td>
-                <?= esc($e['nombre_producto']) ?>
+                <td><?= esc($e['nombre_producto']) ?></td>
                 </td>
                 <td>
                     <button onclick="abrirModal(
@@ -107,6 +107,7 @@
                                 '<?= $e['u_compra'] ?>',
                                 '<?= $e['u_venta'] ?>',
                                 '<?= $e['precio_compra_u'] ?>',
+                                '<?= $e['precio_venta_u'] ?>',
                                 '<?= $e['id_producto'] ?>'
                             )"
                             class="btn-icono">

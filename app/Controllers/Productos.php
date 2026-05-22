@@ -97,26 +97,11 @@ public function lista_producto()
 
     $m_producto = new Modelo_producto();
 
-    if (!empty($buscar)) {
-
-        $m_producto->groupStart()
-
-            ->where('id', $buscar)
-
-            ->orLike('nombre', $buscar)
-            ->orLike('descripcion', $buscar)
-            ->orLike('categoria', $buscar)
-
-        ->groupEnd();
-    }
-
-    $datos['productos'] = $m_producto
-        ->orderBy('id', 'DESC')
-        ->paginate(20, 'default');
-
-    $datos['pager'] = $m_producto->pager;
-
-    $datos['buscar'] = $buscar;
+    $datos = [
+        'productos' => $m_producto->aplicarBusqueda($buscar)->orderBy('id', 'DESC')->paginate(20, 'default'),
+        'pager'     => $m_producto->pager,
+        'buscar'    => $buscar,
+    ];
 
     return view('lista_producto', $datos);
 }
