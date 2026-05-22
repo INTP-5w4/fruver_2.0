@@ -90,7 +90,7 @@ public function modifica(){
         ];
         $m_direccion = new Modelo_direccion();
         if ($m_direccion->update($id,$datos)){
-            return redirect()->to('lista_direccion');
+            return redirect()->to('lista_direccion')->with('mensaje', 'Dirección actualizada correctamente');
         }
 }
 }

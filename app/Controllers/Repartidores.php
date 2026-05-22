@@ -46,7 +46,7 @@ public function modifica(){
     ];
     $m_repartidor = new Modelo_repartidor();
     if ($m_repartidor->update($id,$datos)){
-        return redirect()->to('lista_repartidor');
+        return redirect()->to('lista_repartidor')->with('mensaje', 'Repartidor actualizado correctamente');
     }
 }
 public function lista_repartidor(){
