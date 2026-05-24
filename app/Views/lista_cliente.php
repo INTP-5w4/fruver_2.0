@@ -19,6 +19,11 @@
             <p><?= session()->getFlashdata('error') ?></p>
         </div>
     <?php endif; ?>
+        <?php if (session()->getFlashdata('error2')): ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= session()->getFlashdata('error2') ?></p>
+        </div>
+    <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
@@ -110,19 +115,19 @@
 
                 <label><b>Nombre*</b></label>
                 <input type="text" name="nom" id="edit_nom"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required value="<?= old('nom') ?>">
 
                 <label><b>Apellido Paterno*</b></label>
                 <input type="text" name="ape_pat" id="edit_ape_pat"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required value="<?= old('ape_pat') ?>">
 
                 <label><b>Apellido Materno*</b></label>
                 <input type="text" name="ape_mat" id="edit_ape_mat"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required value="<?= old('ape_mat') ?>"?>
 
                 <label><b>Teléfono*</b></label>
                 <input type="text" placeholder="Formato:1234567890" name="tel" id="edit_tel"
-                    class="w3-input w3-border w3-margin-bottom" required>
+                    class="w3-input w3-border w3-margin-bottom" required value="<?= old('tel') ?>">
 
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -136,9 +141,42 @@
     </div>
 
 <?php include 'Footer.php'; ?>
+<!-- MODAL CREAR CLIENTE -->
+<div id="modalCrearCliente" class="w3-modal">
+    <div class="modal-contenido w3-animate-zoom">
 
-    <script>
-        // Llena el modal con los datos del cliente y lo abre
+        <header class="modal-header">
+            <span onclick="document.getElementById('modalCrearCliente').style.display='none'"
+                class="modal-cerrar">&times;</span>
+            <h2>Registrar Cliente</h2>
+            <form action="<?= base_url('guarda_cliente') ?>" method="post" class="modal-form">
+
+    <label><b>Nombre*</b></label>
+    <input type="text" placeholder="Ej: Mario" name="nom" class="modal-input" required value="<?= old('nom') ?>">
+
+    <label><b>Apellido Paterno*</b></label>
+    <input type="text" placeholder="Ej: Pérez"name="ape_pat" class="modal-input" required value="<?= old('ape_pat') ?>">
+
+    <label><b>Apellido Materno*</b></label>
+    <input type="text" placeholder="Ej: González" name="ape_mat" class="modal-input" required value="<?= old('ape_mat') ?>">
+
+    <label><b>Teléfono*</b></label>
+    <input type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required value="<?= old('tel') ?>">
+
+        <footer class="modal-footer">
+            <button type="submit" class="btn-guardar">Guardar</button>
+            <button type="button"
+                onclick="document.getElementById('modalCrearCliente').style.display='none'"
+                class="btn-cancelar">Cancelar</button>
+        </footer>
+    </header>
+</form>
+
+</div>
+</div>
+</div><!-- /.lista-wrapper -->
+<script>
+    // Llena el modal con los datos del cliente y lo abre
         function abrirModal(id, nombre, ape_pat, ape_mat, telefono) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nom').value = nombre;
@@ -153,40 +191,14 @@
             const modal = document.getElementById('modalEditarCliente');
             if (event.target === modal) modal.style.display = 'none';
         };
-    </script>
-<!-- MODAL CREAR CLIENTE -->
-<div id="modalCrearCliente" class="w3-modal">
-    <div class="modal-contenido w3-animate-zoom">
-
-        <header class="modal-header">
-            <span onclick="document.getElementById('modalCrearCliente').style.display='none'"
-                class="modal-cerrar">&times;</span>
-            <h2>Registrar Cliente</h2>
-            <form action="<?= base_url('guarda_cliente') ?>" method="post" class="modal-form">
-
-    <label><b>Nombre*</b></label>
-    <input type="text" placeholder="Ej: Mario" name="nom" class="modal-input" required>
-
-    <label><b>Apellido Paterno*</b></label>
-    <input type="text" placeholder="Ej: Pérez"name="ape_pat" class="modal-input" required>
-
-    <label><b>Apellido Materno*</b></label>
-    <input type="text" placeholder="Ej: González" name="ape_mat" class="modal-input" required>
-
-    <label><b>Teléfono*</b></label>
-    <input type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required>
-
-        <footer class="modal-footer">
-            <button type="submit" class="btn-guardar">Guardar</button>
-            <button type="button"
-                onclick="document.getElementById('modalCrearCliente').style.display='none'"
-                class="btn-cancelar">Cancelar</button>
-        </footer>
-    </header>
-</form>
-
-</div>
-</div>
-</div><!-- /.lista-wrapper -->
+    // Si hay un error, abrimos el modal de crear cliente automáticamente
+    <?php if (session()->has('error')): ?>
+        document.getElementById('modalCrearCliente').style.display = 'block';
+    <?php endif; ?>
+        // Si hay un error, abrimos el modal de crear cliente automáticamente
+    <?php if (session()->has('error2')): ?>
+        document.getElementById('modalEditarCliente').style.display = 'block';
+    <?php endif; ?>
+</script>
 </body>
 </html>

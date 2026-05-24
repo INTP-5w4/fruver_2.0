@@ -5,11 +5,45 @@ use App\Models\Modelo_repartidor;
 use CodeIgniter\Controller;
 
 class Repartidores extends Controller{
+    private $configuracion= [
+        'reglas' => [
+            'nom'     => 'required',
+            'ape_pat' => 'required',
+            'ape_mat' => 'required',
+            'tel'     => 'required|numeric|max_length[12]',
+            'dir'=> 'required'
+        ],
+        'errores' => [
+            'nom' => [
+                'required' => 'El campo Nombre es obligatorio.'
+            ],
+            'ape_pat' => [
+                'required' => 'El Apellido Paterno es obligatorio.'
+            ],
+            'ape_mat' => [
+                'required' => 'El Apellido Materno es obligatorio.'
+            ],
+            'tel' => [
+                'required'    => 'El Teléfono es obligatorio.',
+                'numeric'     => 'El Teléfono debe contener solo números.',
+                'max_length'  => 'El Teléfono debe tener máximo 12 dígitos.' // Nota: sin los corchetes
+            ],
+            'dir' => [
+                'required' => 'El campo Nombre es obligatorio.'
+            ],
+        ]
+    ];
 public function crea_repartidor(){
     return view('crea_repartidor');
 }
 public function guarda_repartidor(){
     $m_repartidor = new Modelo_repartidor();
+    
+    if (!$this->validate($this->configuracion['reglas'], $this->configuracion['errores'])){
+    $l_error = $this->validator->getErrors();
+    // El withInput() es lo que "guarda" los datos en la sesión para la siguiente petición
+    return redirect()->back()->withInput()->with('error', reset($l_error));
+    }
     $datos=[
         'nombre'=>$this->request->getPost('nom'),
         'ape_pat'=>$this->request->getPost('ape_pat'),
@@ -18,19 +52,20 @@ public function guarda_repartidor(){
         'direccion'=>$this->request->getPost('dir'),
         'notas'=>$this->request->getPost('not'),
     ];
-    if (
-        empty($datos['nombre'])||
-        empty($datos['ape_pat'])||
-        empty($datos['ape_mat'])||
-        empty($datos['telefono'])||
-        empty($datos['direccion'])
-    )return view('crea_repartidor');
-    else{
-        $m_repartidor->insert($datos);
-        if ($this->request->getPost('origen') === 'main_page') {
-            return redirect()->to('/')->with('mensaje', 'Repartidor creado exitosamente');
+
+    try {
+        // a veces lanza DatabaseException. Capturarla aquí evita la pantalla de error.
+        if (!$m_repartidor->insert($datos)) {
+            // Si el modelo falla por reglas de validación internas o DB
+            return redirect()->back()->withInput()->with('error', 'Error al guardar en base de datos');
         }
-        return redirect()->to('lista_repartidor');
+
+        $destino = ($this->request->getPost('origen') === 'main_page') ? '/' : 'lista_repartidor';
+        return redirect()->to($destino)->with('mensaje', 'Repartidor registrado correctamente');
+
+    } catch (\Exception $r) {
+        // 4. Captura de errores inesperados (ej. problemas de conexión, campos duplicados)
+        return redirect()->to('lista_repartidor')->with('error', 'Ocurrió un error inesperado al procesar la solicitud.');
     }
 }
 

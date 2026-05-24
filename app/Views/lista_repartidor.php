@@ -22,6 +22,12 @@
         </div>
     <?php endif; ?>
 
+    <?php if (session()->getFlashdata('error2')): ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= session()->getFlashdata('error2') ?></p>
+        </div>
+    <?php endif; ?>
+
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
             <p><?= session()->getFlashdata('mensaje') ?></p>
@@ -119,22 +125,22 @@
             <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="modal-form">
 
                 <label><b>Nombre*</b></label>
-                <input type="text" name="nom" class="modal-input" required>
+                <input type="text" name="nom" class="modal-input" required value="<?= old('nom') ?>">
 
                 <label><b>Apellido Paterno*</b></label>
-                <input type="text" name="ape_pat" class="modal-input" required>
+                <input type="text" name="ape_pat" class="modal-input" required value="<?= old('ape_pat') ?>">
 
                 <label><b>Apellido Materno*</b></label>
-                <input type="text" name="ape_mat" class="modal-input" required>
+                <input type="text" name="ape_mat" class="modal-input" required value="<?= old('ape_mat') ?>">
 
                 <label><b>Teléfono*</b></label>
-                <input type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required>
+                <input type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required value="<?= old('tel') ?>">
 
                 <label><b>Dirección*</b></label>
-                <input type="text" name="dir" class="modal-input" required>
+                <input type="text" name="dir" class="modal-input" required value="<?= old('dir') ?>">
 
                 <label><b>Notas</b></label>
-                <textarea name="not" class="modal-input" rows="4"></textarea>
+                <textarea name="not" class="modal-input" rows="4" value="<?= old('not') ?>"></textarea>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
@@ -177,7 +183,7 @@
                 <input type="text" name="dir" id="edit_dir" class="modal-input" required>
 
                 <label><b>Notas</b></label>
-                <textarea name="not" id="edit_not" rows="4" class="modal-input" required></textarea>
+                <textarea name="not" id="edit_not" rows="4" class="modal-input"></textarea>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
@@ -211,6 +217,14 @@
             if (event.target === modalEditar) modalEditar.style.display = 'none';
             if (event.target === modalCrear) modalCrear.style.display = 'none';
         };
+        // Si hay un error, abrimos el modal de crear cliente automáticamente
+    <?php if (session()->has('error')): ?>
+        document.getElementById('modalCrearRepartidor').style.display = 'block';
+    <?php endif; ?>
+        // Si hay un error, abrimos el modal de crear cliente automáticamente
+    <?php if (session()->has('error2')): ?>
+        document.getElementById('modalEditarRepartidor').style.display = 'block';
+    <?php endif; ?>
     </script>
 
 </body>
