@@ -104,21 +104,6 @@
                             )"
                             class="btn-icono">
                         <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-            '<?= $e['id'] ?>',
-            '<?= $e['fecha'] ?>',
-            '<?= $e['fecha_cad'] ?>',
-            '<?= $e['cantidad'] ?>',
-            '<?= $e['u_compra'] ?>',
-            '<?= $e['u_venta'] ?>',
-            '<?= $e['equivalente'] ?>',
-            '<?= $e['precio_compra_u'] ?>',
-            '<?= $e['precio_venta_u'] ?>',
-            '<?= $e['id_producto'] ?>'
-        )"
-        class="btn-icono">
-    <i class="fa-solid fa-pen-to-square"></i>
-</button>
                 </td>
                 <td>
                     <a href="<?= base_url('borra_id_entrada/'.$e['id']) ?>">
@@ -138,10 +123,6 @@
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
             <label><b>Fecha de entrada</b></label>
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
-
-            <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" class="w3-input w3-border w3-margin-bottom">
-
             <!-- NUEVO: Filtro de categoría -->
             <label><b>Categoría</b></label>
             <select id="filtroCategoriaEntrada" class="w3-select w3-border w3-margin-bottom">
@@ -214,10 +195,6 @@
             <label><b>Fecha de entrada*</b></label>
             <input type="date" name="f_ent" id="edit_f_ent"
                    class="w3-input w3-border w3-margin-bottom" required>
-
-            <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" id="edit_f_cad"
-                   class="w3-input w3-border w3-margin-bottom">
 
             <!-- Filtro de categoría (igual que en crear) -->
             <label><b>Categoría</b></label>

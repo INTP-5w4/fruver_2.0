@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FRUVER — Panel de Control</title>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/dashboard.css') ?>">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
@@ -28,7 +30,6 @@
 
     <div class="dashboard-wrapper">
 
-        <!-- SIDEBAR -->
         <aside class="sidebar">
             <nav class="sidebar-nav">
                 <p class="nav-label">Módulos</p>
@@ -43,10 +44,8 @@
             </nav>
         </aside>
 
-        <!-- MAIN CONTENT -->
         <main class="dashboard-main">
 
-            <!-- KPI CARDS -->
             <section class="kpi-grid">
                 <div class="kpi-card kpi--green">
                     <div class="kpi-icon">📦</div>
@@ -82,9 +81,8 @@
                 </div>
             </section>
 
-            <!-- CHARTS -->
             <section class="charts-row">
-                <div class="chart-card chart-card--wide">
+                <div class="chart-card">
                     <div class="chart-header">
                         <h2 class="chart-title">Pedidos por semana</h2>
                         <span class="chart-badge">Últimas 8 semanas</span>
@@ -98,7 +96,10 @@
                     </div>
                     <div class="chart-area"><canvas id="ventasChart"></canvas></div>
                 </div>
-                <div class="chart-card chart-card--wide">
+            </section>
+
+            <section class="charts-row">
+                <div class="chart-card">
                     <div class="chart-header">
                         <h2 class="chart-title">Top 5 productos más vendidos</h2>
                         <span class="chart-badge">Histórico</span>
@@ -114,27 +115,36 @@
                 </div>
             </section>
 
-            <!-- BOTTOM ROW -->
             <section class="bottom-row">
                 <div class="table-card">
                     <div class="chart-header">
-                        <h2 class="chart-title">Productos con menos entradas</h2>
+                        <h2 class="chart-title">Productos con bajas existencias</h2>
                         <span class="chart-badge">Top 5</span>
                     </div>
+                    <?php
+                    // Ordenar productos por existencia (de menor a mayor)
+                    $bajos_stock = [];
+                    foreach ($productos as $p) {
+                        $stock = $stockPorProducto[$p['id']] ?? 0;
+                        $bajos_stock[] = ['nombre' => $p['nombre'], 'stock' => $stock];
+                    }
+                    usort($bajos_stock, fn($a, $b) => $a['stock'] <=> $b['stock']);
+                    $top5_bajos = array_slice($bajos_stock, 0, 5);
+                    ?>
                     <table class="data-table">
                         <thead>
-                            <tr><th>#</th><th>Producto</th><th>Entradas</th><th>Estado</th></tr>
+                            <tr><th>#</th><th>Producto</th><th>Stock</th><th>Estado</th></tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($productosLowStock as $i => $p): ?>
+                            <?php foreach ($top5_bajos as $i => $p): ?>
                                 <tr>
                                     <td><?= $i + 1 ?></td>
                                     <td><?= esc($p['nombre']) ?></td>
-                                    <td><?= $p['total'] ?? 0 ?></td>
+                                    <td><?= $p['stock'] ?></td>
                                     <td>
-                                        <?php if (($p['total'] ?? 0) <= 5): ?>
+                                        <?php if ($p['stock'] <= 5): ?>
                                             <span class="badge badge--red">Bajo</span>
-                                        <?php elseif ($p['total'] <= 10): ?>
+                                        <?php elseif ($p['stock'] <= 15): ?>
                                             <span class="badge badge--yellow">Medio</span>
                                         <?php else: ?>
                                             <span class="badge badge--green">OK</span>
@@ -146,7 +156,6 @@
                     </table>
                 </div>
 
-                <!-- Acciones rápidas -->
                 <div class="actions-card">
                     <h2 class="chart-title" style="margin-bottom:1rem;">Acciones rápidas</h2>
                     <div class="actions-grid">
@@ -165,11 +174,6 @@
         </main>
     </div>
 
-    <!-- ══════════════════════════════════════════════════════════
-         MODALES
-         ══════════════════════════════════════════════════════════ -->
-
-    <!-- MODAL CLIENTE -->
     <div id="modalCliente" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_cliente') ?>" method="post" class="w3-container w3-padding-16">
@@ -190,7 +194,6 @@
         </div>
     </div>
 
-    <!-- MODAL DIRECCIÓN -->
     <div id="modalDireccion" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_direccion') ?>" method="post" class="w3-container w3-padding-16">
@@ -252,7 +255,6 @@
         </div>
     </div>
 
-    <!-- MODAL ENTRADA -->
     <div id="modalEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
@@ -310,7 +312,6 @@
         </div>
     </div>
 
-    <!-- MODAL PRODUCTO -->
     <div id="modalProducto" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
@@ -335,7 +336,6 @@
         </div>
     </div>
 
-    <!-- MODAL REPARTIDOR -->
     <div id="modalRepartidor" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="w3-container w3-padding-16">
@@ -360,12 +360,10 @@
         </div>
     </div>
 
-    <!-- MODAL CARRITO (wizard 3 pasos) -->
     <div id="modalPpedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:580px;max-height:90vh;overflow-y:auto;">
             <div class="w3-container w3-padding-16">
 
-                <!-- Indicador de pasos -->
                 <div class="w3-bar w3-margin-bottom" style="border-bottom:1px solid #ddd;">
                     <div id="tab1" class="w3-bar-item w3-center w3-padding-small"
                          style="width:33%;border-bottom:3px solid green;font-weight:bold;cursor:default">1. Pedido</div>
@@ -375,7 +373,6 @@
                          style="width:33%;border-bottom:3px solid #ccc;cursor:default">3. Estatus</div>
                 </div>
 
-                <!-- PASO 1 -->
                 <div id="paso1">
                     <label><b>Fecha*</b></label>
                     <input type="date" id="ped_fecha" class="w3-input w3-border w3-margin-bottom">
@@ -397,8 +394,8 @@
                     </select>
                 </div>
 
-                <!-- PASO 2 -->
                 <div id="paso2" style="display:none;">
+ 
                     <label><b>Categoría</b></label>
                     <select id="filtroCategoriaCrear" class="w3-select w3-border w3-margin-bottom">
                         <option value="">— Todas —</option>
@@ -406,17 +403,32 @@
                         <option value="verduras">Verduras</option>
                         <option value="hierbas">Hierbas</option>
                     </select>
+ 
                     <label><b>Producto*</b></label>
-                    <select id="cp_id_producto" class="w3-select w3-border w3-margin-bottom">
-                        <?php foreach ($productos as $pr): ?>
-                            <option value="<?= esc($pr['id']) ?>"
-                                    data-categoria="<?= esc($pr['categoria']) ?>"
-                                    data-precio="<?= esc($precioSugeridoPorProducto[$pr['id']] ?? '') ?>">
-                                <?= esc($pr['nombre']) ?>
-                                (stock: <?= $stockPorProducto[$pr['id']] ?? 0 ?>)
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <p class="search-hint">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Escribe al menos 3 caracteres para buscar
+                    </p>
+ 
+                    <div class="prod-search-wrap">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text"
+                               id="cp_buscar"
+                               class="prod-search-input"
+                               placeholder="Buscar producto..."
+                               autocomplete="off">
+                        <div id="cp_resultados" class="prod-resultados"></div>
+                    </div>
+ 
+                    <div id="cp_badge" class="prod-badge" style="display:none;">
+                        <span class="badge-nombre" id="cp_badge_nombre"></span>
+                        <span class="badge-stock"  id="cp_badge_stock"></span>
+                        <button type="button" class="badge-limpiar"
+                                onclick="cpLimpiarSeleccion()" title="Cambiar producto">✕</button>
+                    </div>
+ 
+                    <input type="hidden" id="cp_id_producto">
+ 
                     <label><b>Unidad de venta*</b></label>
                     <select id="cp_u_venta" class="w3-select w3-border w3-margin-bottom">
                         <option value="Kilogramo">Kilogramo</option>
@@ -425,24 +437,30 @@
                         <option value="Caja">Caja</option>
                     </select>
                     <label><b>Cantidad*</b></label>
-                    <input type="number" id="cp_cant" placeholder="Ej: 5" class="w3-input w3-border w3-margin-bottom">
+                    <input type="number" id="cp_cant" placeholder="Ej: 5"
+                           class="w3-input w3-border w3-margin-bottom">
                     <label><b>Precio de venta (unitario)*</b></label>
-                    <input type="number" id="cp_p_venta" placeholder="Ej: 45.00" step="0.01" class="w3-input w3-border w3-margin-bottom">
-                    <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
+                    <input type="number" id="cp_p_venta" placeholder="Ej: 45.00" step="0.01"
+                           class="w3-input w3-border w3-margin-bottom">
+                    <button type="button" onclick="agregarAlCarrito()"
+                            class="w3-button w3-blue w3-margin-bottom">
                         + Agregar producto
                     </button>
+ 
                     <div id="carritoContainer" style="display:none;">
                         <hr><b>Carrito:</b>
                         <table class="w3-table w3-bordered w3-small w3-margin-top">
                             <thead class="w3-green">
-                                <tr><th>Producto</th><th>Unidad</th><th>Cant</th><th>Precio</th><th>Total</th><th></th></tr>
+                                <tr>
+                                    <th>Producto</th><th>Unidad</th><th>Cant</th>
+                                    <th>Precio</th><th>Total</th><th></th>
+                                </tr>
                             </thead>
                             <tbody id="carritoBody"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- PASO 3 -->
                 <div id="paso3" style="display:none;">
                     <label><b>Estado inicial*</b></label>
                     <select id="est_estado" class="w3-select w3-border w3-margin-bottom">
@@ -458,7 +476,6 @@
                     <input type="datetime-local" id="est_fecha" class="w3-input w3-border w3-margin-bottom">
                 </div>
 
-                <!-- Form oculto -->
                 <form id="formCarrito" action="<?= base_url('guarda_pedido_completo') ?>" method="post">
                     <?= csrf_field() ?>
                     <input type="hidden" name="origen"        value="main_page">
@@ -485,7 +502,6 @@
         </div>
     </div>
 
-    <!-- MODAL EXISTENCIAS -->
     <div id="modalExistencias" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_existencia') ?>" method="post" class="w3-container w3-padding-16">
@@ -513,7 +529,6 @@
         </div>
     </div>
 
-    <!-- MODAL MERMA -->
     <div id="modalMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
@@ -546,34 +561,33 @@
 
     <?php include 'Footer.php'; ?>
 
-    <!-- ══════════════════════════════════════════════════════════
-         SCRIPTS
-         ══════════════════════════════════════════════════════════ -->
-
-    <!-- Datos del servidor → JS -->
     <script>
     const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
-    const nombreProducto   = {
+ 
+    const nombreProducto = {
         <?php foreach ($productos as $pr): ?>
             <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
         <?php endforeach; ?>
     };
+ 
+    // Catálogo con unidad y precio sugeridos por producto
+    const catalogoProductos = <?= json_encode(array_map(fn($p) => [
+        'id'        => (int)$p['id'],
+        'nombre'    => $p['nombre'],
+        'categoria' => $p['categoria'] ?? '',
+        'u_venta'   => $uVentaSugeridaPorProducto[$p['id']] ?? '',
+        'precio'    => $precioSugeridoPorProducto[$p['id']] ?? '',
+    ], $productos)) ?>;
     </script>
-
-    <!-- Lógica -->
+ 
     <script>
-    // ── Pool de opciones para filtros ─────────────────────────────
-    const opcionesProductoCrear   = [];
+ 
+    // ── Filtro para modal entrada (se conserva tal cual) ──────────
     const opcionesProductoEntrada = [];
-
-    document.querySelectorAll('#cp_id_producto option').forEach(op => {
-        opcionesProductoCrear.push(op.cloneNode(true));
-    });
     document.querySelectorAll('#selectProductoEntrada option').forEach(op => {
         opcionesProductoEntrada.push(op.cloneNode(true));
     });
-
-    // ── Filtro de categorías (pool-based, funciona en Chrome) ─────
+ 
     function filtrarProductos(selectId, categoria, pool) {
         const select = document.getElementById(selectId);
         select.innerHTML = '';
@@ -588,35 +602,191 @@
             select.appendChild(vacia);
         }
     }
-
-    // Filtro para el wizard carrito
-    const filtroCategoriaCrear = document.getElementById('filtroCategoriaCrear');
-    if (filtroCategoriaCrear) {
-        filtroCategoriaCrear.addEventListener('change', function () {
-            filtrarProductos('cp_id_producto', this.value, opcionesProductoCrear);
-        });
-    }
-
-    // Filtro para modal entrada
+ 
     const filtroCategoriaEntrada = document.getElementById('filtroCategoriaEntrada');
     if (filtroCategoriaEntrada) {
         filtroCategoriaEntrada.addEventListener('change', function () {
             filtrarProductos('selectProductoEntrada', this.value, opcionesProductoEntrada);
         });
     }
-
+ 
     // ── Unidad de venta automática en modal merma ─────────────────
     document.getElementById('id_entrada_modal').addEventListener('change', function () {
         const entradas = <?= json_encode(array_column($entradas, 'u_venta', 'id')) ?>;
         document.getElementById('u_venta_modal').value = entradas[this.value] ?? '';
     });
-
-    // ════════════════════════════════════════════════════════════
-    //  WIZARD CREAR
-    // ════════════════════════════════════════════════════════════
+ 
+ 
+    // ═══════════════════════════════════════════════════════════
+    //  UTILIDADES
+    // ═══════════════════════════════════════════════════════════
+ 
+    /** Debounce genérico */
+    function debounce(fn, ms) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), ms);
+        };
+    }
+ 
+    /**
+     * Intenta seleccionar en un <select> la opción más parecida
+     * a `sugerida`. Si no hay coincidencia, deja la selección actual.
+     */
+    function matchearUnidad(selectEl, sugerida) {
+        if (!sugerida) return;
+        const s = sugerida.toLowerCase();
+        for (const opt of selectEl.options) {
+            const v = opt.value.toLowerCase();
+            if (v === s || v.startsWith(s) || s.startsWith(v)) {
+                opt.selected = true;
+                return;
+            }
+        }
+    }
+ 
+ 
+    // ═══════════════════════════════════════════════════════════
+    //  BUSCADOR GENÉRICO DE PRODUCTOS
+    //
+    //   prefijo     → 'cp_'
+    //   onSeleccion → callback(id, nombre, stock, producto)
+    //                 Auto-rellena unidad y precio al seleccionar.
+    // ═══════════════════════════════════════════════════════════
+    function crearBuscadorProducto(prefijo, onSeleccion) {
+ 
+        const inputBuscar   = document.getElementById(prefijo + 'buscar');
+        const divResultados = document.getElementById(prefijo + 'resultados');
+        const divBadge      = document.getElementById(prefijo + 'badge');
+        const spanNombre    = document.getElementById(prefijo + 'badge_nombre');
+        const spanStock     = document.getElementById(prefijo + 'badge_stock');
+        const inputHidden   = document.getElementById(prefijo + 'id_producto');
+ 
+        // El filtro de categoría está en el mismo modal
+        const selectCat = document.getElementById('filtroCategoriaCrear');
+ 
+        function buscar(texto) {
+            const query     = texto.trim().toLowerCase();
+            const categoria = selectCat ? selectCat.value : '';
+ 
+            if (query.length < 3) {
+                divResultados.style.display = 'none';
+                divResultados.innerHTML = '';
+                return;
+            }
+ 
+            let candidatos = catalogoProductos.filter(p => {
+                const coincideNombre    = p.nombre.toLowerCase().includes(query);
+                const coincideCategoria = !categoria || p.categoria === categoria;
+                return coincideNombre && coincideCategoria;
+            });
+ 
+            if (candidatos.length === 0) {
+                divResultados.innerHTML =
+                    '<div class="sin-resultados">Sin resultados para "' + texto + '"</div>';
+                divResultados.style.display = 'block';
+                return;
+            }
+ 
+            // Ordenar: primero con stock
+            candidatos.sort((a, b) =>
+                (stockPorProducto[b.id] ?? 0) - (stockPorProducto[a.id] ?? 0)
+            );
+ 
+            divResultados.innerHTML = candidatos.map(p => {
+                const stock     = stockPorProducto[p.id] ?? 0;
+                const pillClass = stock > 0 ? 'con-stock' : 'sin-stock';
+                const pillText  = stock > 0 ? 'Stock: ' + stock : 'Sin stock';
+                return `<div class="prod-item"
+                             data-id="${p.id}"
+                             data-nombre="${p.nombre.replace(/"/g,'&quot;')}"
+                             data-stock="${stock}">
+                          <span>${p.nombre}</span>
+                          <span class="stock-pill ${pillClass}">${pillText}</span>
+                        </div>`;
+            }).join('');
+ 
+            divResultados.querySelectorAll('.prod-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const id       = el.dataset.id;
+                    const nombre   = el.dataset.nombre;
+                    const stock    = parseInt(el.dataset.stock, 10);
+                    // Objeto completo del catálogo con u_venta y precio
+                    const producto = catalogoProductos.find(p => p.id == id) ?? {};
+ 
+                    seleccionar(id, nombre, stock);
+                    if (onSeleccion) onSeleccion(id, nombre, stock, producto);
+                });
+            });
+ 
+            divResultados.style.display = 'block';
+        }
+ 
+        function seleccionar(id, nombre, stock) {
+            inputHidden.value      = id;
+            spanNombre.textContent = nombre;
+ 
+            const sinStock = stock <= 0;
+            spanStock.textContent  = sinStock
+                ? '⚠ Sin stock disponible'
+                : '✓ Stock disponible: ' + stock;
+            divBadge.className     = 'prod-badge' + (sinStock ? ' sin-stock' : '');
+            divBadge.style.display = 'flex';
+ 
+            inputBuscar.value           = '';
+            divResultados.style.display = 'none';
+            divResultados.innerHTML     = '';
+            inputBuscar.style.display   = 'none';
+        }
+ 
+        // Función global de limpieza: cpLimpiarSeleccion()
+        window[prefijo.replace('_','') + 'LimpiarSeleccion'] = function () {
+            inputHidden.value           = '';
+            divBadge.style.display      = 'none';
+            inputBuscar.style.display   = '';
+            inputBuscar.value           = '';
+            inputBuscar.focus();
+        };
+ 
+        inputBuscar.addEventListener('input', debounce(function () {
+            buscar(this.value);
+        }, 600));
+ 
+        document.addEventListener('click', function (e) {
+            if (!inputBuscar.contains(e.target) && !divResultados.contains(e.target)) {
+                divResultados.style.display = 'none';
+            }
+        });
+ 
+        if (selectCat) {
+            selectCat.addEventListener('change', () => {
+                if (inputBuscar.style.display !== 'none' && inputBuscar.value.length >= 3) {
+                    buscar(inputBuscar.value);
+                }
+            });
+        }
+    }
+ 
+    // ── Inicializar buscador con callback de auto-relleno ─────────
+    crearBuscadorProducto('cp_', function(id, nombre, stock, producto) {
+        // Auto-rellenar unidad de venta (editable)
+        matchearUnidad(document.getElementById('cp_u_venta'), producto.u_venta);
+ 
+        // Auto-rellenar precio sugerido (editable)
+        if (producto.precio) {
+            document.getElementById('cp_p_venta').value =
+                parseFloat(producto.precio).toFixed(2);
+        }
+    });
+ 
+ 
+    // ═══════════════════════════════════════════════════════════
+    //  WIZARD CREAR  (igual que antes, con correcciones)
+    // ═══════════════════════════════════════════════════════════
     let carrito    = [];
     let pasoActual = 1;
-
+ 
     function mostrarPaso(n) {
         [1, 2, 3].forEach(i => {
             document.getElementById('paso' + i).style.display = i === n ? 'block' : 'none';
@@ -629,7 +799,7 @@
         document.getElementById('btnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
         pasoActual = n;
     }
-
+ 
     function siguientePaso() {
         if (pasoActual === 1 && !validarPaso1()) return;
         if (pasoActual === 2 && !validarPaso2()) return;
@@ -640,11 +810,11 @@
             document.getElementById('est_fecha').value = local;
         }
     }
-
+ 
     function anteriorPaso() {
         if (pasoActual > 1) mostrarPaso(pasoActual - 1);
     }
-
+ 
     function validarPaso1() {
         if (!document.getElementById('ped_fecha').value ||
             !document.getElementById('ped_id_cliente').value ||
@@ -654,7 +824,7 @@
         }
         return true;
     }
-
+ 
     function validarPaso2() {
         if (carrito.length === 0) {
             alert('Agrega al menos un producto al carrito.');
@@ -662,20 +832,22 @@
         }
         return true;
     }
-
+ 
     function agregarAlCarrito() {
         const id_producto = document.getElementById('cp_id_producto').value;
         const u_venta     = document.getElementById('cp_u_venta').value;
         const cant        = parseFloat(document.getElementById('cp_cant').value);
         const p_venta     = parseFloat(document.getElementById('cp_p_venta').value);
-
+ 
+        // ← Validación de producto corregida (antes faltaba)
+        if (!id_producto) { alert('Selecciona un producto primero.'); return; }
         if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
-
+ 
         const disponible  = stockPorProducto[id_producto] ?? 0;
         const yaEnCarrito = carrito
             .filter(i => i.id_producto === id_producto)
             .reduce((sum, i) => sum + i.cant, 0);
-
+ 
         if (yaEnCarrito + cant > disponible) {
             const maxPosible = disponible - yaEnCarrito;
             alert(maxPosible <= 0
@@ -684,13 +856,16 @@
             );
             return;
         }
-
+ 
         carrito.push({ id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
         renderCarrito();
+ 
+        // ← Limpiar buscador y campos al agregar
+        cpLimpiarSeleccion();
         document.getElementById('cp_cant').value    = '';
         document.getElementById('cp_p_venta').value = '';
     }
-
+ 
     function renderCarrito() {
         const tbody = document.getElementById('carritoBody');
         tbody.innerHTML = '';
@@ -708,14 +883,14 @@
         });
         document.getElementById('carritoContainer').style.display = carrito.length ? 'block' : 'none';
     }
-
+ 
     function quitarItem(i) { carrito.splice(i, 1); renderCarrito(); }
-
+ 
     function enviarCarrito() {
         const estado   = document.getElementById('est_estado').value;
         const fechaEst = document.getElementById('est_fecha').value;
         if (!estado || !fechaEst) { alert('Completa estado y fecha.'); return; }
-
+ 
         document.getElementById('fn_fecha').value         = document.getElementById('ped_fecha').value;
         document.getElementById('fn_id_cliente').value    = document.getElementById('ped_id_cliente').value;
         document.getElementById('fn_id_repartidor').value = document.getElementById('ped_id_repartidor').value;
@@ -724,101 +899,152 @@
         document.getElementById('fn_fecha_estatus').value = fechaEst;
         document.getElementById('formCarrito').submit();
     }
-
-    // ── cerrarModal usa el ID correcto: modalPpedido ──────────────
+ 
+    // ← cerrarModal ahora limpia el buscador y los campos
     function cerrarModal() {
         carrito = [];
         renderCarrito();
         mostrarPaso(1);
-        document.getElementById('ped_fecha').value = '';
+        cpLimpiarSeleccion();
+        document.getElementById('ped_fecha').value   = '';
+        document.getElementById('cp_cant').value     = '';
+        document.getElementById('cp_p_venta').value  = '';
         document.getElementById('modalPpedido').style.display = 'none';
     }
-
+ 
     // ── Cierre por click fuera de cualquier modal ─────────────────
     window.onclick = function(event) {
         const modales = [
             'modalCliente', 'modalDireccion', 'modalEntrada',
             'modalProducto', 'modalRepartidor', 'modalExistencias',
-            'modalMerma', 'modalPpedido'
+            'modalMerma'
         ];
         modales.forEach(id => {
             const m = document.getElementById(id);
             if (m && event.target === m) m.style.display = 'none';
         });
-        // Para modalPpedido limpiar también el carrito
         if (event.target === document.getElementById('modalPpedido')) {
             cerrarModal();
         }
     };
     </script>
 
-    <!-- Charts -->
+    <?php
+    // Extraemos limpiamente los datos que el controlador ya agrupó desde SQL
+    
+    // 1. Pedidos por semana
+    $pedidos_labels = array_column($pedidosPorMes, 'semana');
+    $semanas_count  = array_column($pedidosPorMes, 'total');
+
+    // 2. Ventas por semana
+    $ventas_labels  = array_column($ventasPorMes, 'semana');
+    $semanas_ventas = array_column($ventasPorMes, 'ventas');
+
+    // 3. Top 5 productos
+    $top5_labels    = array_column($topProductos, 'nombre');
+    $top5_data      = array_column($topProductos, 'total_vendido');
+
+    // 4. Mermas por mes
+    $mermas_labels  = array_column($perdidasMerma, 'mes');
+    $mermas_data    = array_column($perdidasMerma, 'perdida');
+    ?>
+
     <script>
-    // ── Pedidos por semana ────────────────────────────────────────
-    new Chart(document.getElementById('pedidosChart'), {
-        type: 'bar',
-        data: {
-            labels: <?= json_encode(array_column($pedidosPorMes, 'semana')) ?>,
-            datasets: [{
-                label: 'Pedidos',
-                data:  <?= json_encode(array_column($pedidosPorMes, 'total')) ?>,
-                backgroundColor: 'rgba(34,197,94,0.7)',
-                borderRadius: 6,
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-    });
+    (function () {
+        const colVerde  = 'rgba(0, 145, 10, 0.75)';
+        const colVerdeB = 'rgba(0, 145, 10, 1)';
+        const colLima   = 'rgba(155, 233, 49, 0.6)';
+        const colRojo   = 'rgba(246, 78, 96, 0.75)';
+        const colRojoB  = 'rgba(246, 78, 96, 1)';
 
-    // ── Ventas por semana ─────────────────────────────────────────
-    new Chart(document.getElementById('ventasChart'), {
-        type: 'line',
-        data: {
-            labels: <?= json_encode(array_column($ventasPorMes, 'semana')) ?>,
-            datasets: [{
-                label: 'Total ventas ($)',
-                data:  <?= json_encode(array_column($ventasPorMes, 'ventas')) ?>,
-                borderColor: '#16a34a',
-                backgroundColor: 'rgba(22,163,74,0.1)',
-                tension: 0.4,
-                fill: true,
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-    });
-
-    // ── Top productos ─────────────────────────────────────────────
-    new Chart(document.getElementById('topProductosChart'), {
-        type: 'bar',
-        data: {
-            labels: <?= json_encode(array_column($topProductos, 'nombre')) ?>,
-            datasets: [{
-                label: 'Total vendido ($)',
-                data:  <?= json_encode(array_column($topProductos, 'total_vendido')) ?>,
-                backgroundColor: 'rgba(20,184,166,0.7)',
-                borderRadius: 6,
-            }]
-        },
-        options: {
-            indexAxis: 'y',
+        const defOpts = {
             responsive: true,
-            plugins: { legend: { display: false } }
-        }
-    });
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, grid: { color: '#f0f0f0' } }
+            }
+        };
 
-    // ── Pérdidas por merma (semana) ───────────────────────────────
-    new Chart(document.getElementById('mermaChart'), {
-        type: 'bar',
-        data: {
-            labels: <?= json_encode(array_column($perdidasMerma, 'semana')) ?>,
-            datasets: [{
-                label: 'Pérdidas ($)',
-                data:  <?= json_encode(array_column($perdidasMerma, 'perdida')) ?>,
-                backgroundColor: 'rgba(239,68,68,0.7)',
-                borderRadius: 6,
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { display: false } } }
-    });
+        // 1. Pedidos por semana
+        new Chart(document.getElementById('pedidosChart'), {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode($pedidos_labels) ?>,
+                datasets: [{
+                    label: 'Pedidos',
+                    data: <?= json_encode($semanas_count) ?>,
+                    backgroundColor: colVerde,
+                    borderColor: colVerdeB,
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: defOpts
+        });
+
+        // 2. Total en ventas
+        new Chart(document.getElementById('ventasChart'), {
+            type: 'line',
+            data: {
+                labels: <?= json_encode($ventas_labels) ?>,
+                datasets: [{
+                    label: 'Ventas ($)',
+                    data: <?= json_encode($semanas_ventas) ?>,
+                    backgroundColor: colLima,
+                    borderColor: colVerdeB,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: colVerdeB,
+                    pointRadius: 4,
+                }]
+            },
+            options: defOpts
+        });
+
+        // 3. Top 5 productos más vendidos (horizontal)
+        new Chart(document.getElementById('topProductosChart'), {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode($top5_labels) ?>,
+                datasets: [{
+                    label: 'Unidades',
+                    data: <?= json_encode($top5_data) ?>,
+                    backgroundColor: colVerde,
+                    borderColor: colVerdeB,
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                ...defOpts,
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, grid: { color: '#f0f0f0' } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 4. Pérdidas por merma
+        new Chart(document.getElementById('mermaChart'), {
+            type: 'bar',
+            data: {
+                labels: <?= json_encode($mermas_labels) ?>,
+                datasets: [{
+                    label: 'Merma',
+                    data: <?= json_encode($mermas_data) ?>,
+                    backgroundColor: colRojo,
+                    borderColor: colRojoB,
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }]
+            },
+            options: defOpts
+        });
+    })();
     </script>
 
 </body>

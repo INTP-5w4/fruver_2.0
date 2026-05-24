@@ -17,7 +17,6 @@ class Productos extends BaseController
     // ─────────────────────────────────────────────────────────────
     public function main_page()
     {
-
         $m_producto   = new Modelo_producto();
         $m_cliente    = new Modelo_cliente();
         $m_repartidor = new Modelo_repartidor();
@@ -26,8 +25,16 @@ class Productos extends BaseController
         $m_existencia = new Modelo_existencia();
         $m_merma      = new \App\Models\Modelo_merma();
 
-        $datos = [
+        // Obtener última entrada para autocompletar precio y unidad de venta
+        $ultimasEntradas = $m_entrada->ultimaEntradaPorProducto();
+        $uVentaSugerida = [];
+        $precioSugerido = [];
+        foreach ($ultimasEntradas as $id => $datos_ent) {
+            $uVentaSugerida[$id] = $datos_ent['u_venta'];
+            $precioSugerido[$id] = $datos_ent['precio_venta_u'];
+        }
 
+        $datos = [
             // Datos generales
             'productosLowStock' => $m_producto->productosLowStock(),
             'productos'         => $m_producto->findAll(),
@@ -43,7 +50,8 @@ class Productos extends BaseController
             'perdidasMerma' => $m_merma->perdidasPorMes(),
 
             // Inventario
-            'precioSugeridoPorProducto' => $m_entrada->precioMaximoPorProducto(),
+            'uVentaSugeridaPorProducto' => $uVentaSugerida,
+            'precioSugeridoPorProducto' => $precioSugerido,
             'stockPorProducto'          => $m_existencia->stockDisponiblePorProducto(),
         ];
 

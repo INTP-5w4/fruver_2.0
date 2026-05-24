@@ -1,19 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-          integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Pedidos</title>
-    <style>
-        /* Todos los estilos viven en estilosPaginas.css */
-        /* Sólo se añaden overrides mínimos para esta vista */
-    </style>
 </head>
 <body>
 <?php include 'Header.php'; ?>
@@ -60,12 +55,12 @@
     </div>
 </form>
 
-<!-- ══ TABLA PRINCIPAL — una fila por pedido ══ -->
+<!-- ══ TABLA PRINCIPAL ══ -->
 <div class="tabla-wrapper">
 <table>
     <thead>
         <tr>
-            <th></th><!-- expandir -->
+            <th></th>
             <th>ID Pedido</th>
             <th>Fecha</th>
             <th>Cliente</th>
@@ -80,7 +75,6 @@
     <tbody>
     <?php foreach ($pedidos_agrupados as $pedido): ?>
 
-        <!-- Fila resumen del pedido -->
         <tr class="fila-pedido" style="cursor:pointer;" onclick="toggleDetalle(<?= $pedido['id_pedido'] ?>)">
             <td>
                 <button class="btn-expandir" id="btn-<?= $pedido['id_pedido'] ?>">
@@ -118,7 +112,6 @@
             </td>
         </tr>
 
-        <!-- ✅ CORRECCIÓN: Fila detalle DENTRO del foreach, justo después de la fila resumen -->
         <tr class="fila-detalle" id="detalle-<?= $pedido['id_pedido'] ?>">
             <td colspan="10">
                 <div class="detalle-inner">
@@ -152,14 +145,13 @@
     <?php endforeach; ?>
     </tbody>
 </table>
+
 <?php if ($total_paginas > 1): ?>
 <div style="display:flex; gap:8px; margin-top:16px; margin-bottom:16px;">
-
     <?php if ($pagina_actual > 1): ?>
         <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual - 1 ?>"
            class="w3-button w3-green">← Anterior</a>
     <?php endif; ?>
-</div><!-- /tabla-wrapper -->
 
     <span class="w3-button w3-white w3-border">
         Página <?= $pagina_actual ?> de <?= $total_paginas ?>
@@ -170,9 +162,11 @@
         <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual + 1 ?>"
            class="w3-button w3-green">Siguiente →</a>
     <?php endif; ?>
-
 </div>
 <?php endif; ?>
+
+</div><!-- /tabla-wrapper -->
+
 
 <!-- ══════════════════════════════════════════════════════════
      MODAL CREAR — Wizard 3 pasos
@@ -214,24 +208,31 @@
 
       <!-- PASO 2 -->
       <div id="paso2" style="display:none;">
-        <label><b>Categoría</b></label>
-        <select id="filtroCategoriaCrear" class="w3-select w3-border w3-margin-bottom">
-          <option value="">— Todas —</option>
-          <option value="frutas">Frutas</option>
-          <option value="verduras">Verduras</option>
-          <option value="hierbas">Hierbas</option>
-        </select>
+
         <label><b>Producto*</b></label>
-        <select id="cp_id_producto" class="w3-select w3-border w3-margin-bottom">
-          <?php foreach ($productos as $pr): ?>
-            <option value="<?= esc($pr['id']) ?>"
-                    data-categoria="<?= esc($pr['categoria']) ?>"
-                    data-precio="<?= esc($precioSugeridoPorProducto[$pr['id']] ?? '') ?>">
-              <?= esc($pr['nombre']) ?>
-              (stock: <?= $stockPorProducto[$pr['id']] ?? 0 ?>)
-            </option>
-          <?php endforeach; ?>
-        </select>
+        <p class="search-hint"><i class="fa-solid fa-circle-info"></i> Escribe al menos 3 caracteres para buscar</p>
+
+        <!-- Buscador -->
+        <div class="prod-search-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text"
+                 id="cp_buscar"
+                 class="prod-search-input"
+                 placeholder="Buscar producto..."
+                 autocomplete="off">
+          <div id="cp_resultados" class="prod-resultados"></div>
+        </div>
+
+        <!-- Badge del producto seleccionado -->
+        <div id="cp_badge" class="prod-badge" style="display:none;">
+          <span class="badge-nombre" id="cp_badge_nombre"></span>
+          <span class="badge-stock"  id="cp_badge_stock"></span>
+          <button type="button" class="badge-limpiar" onclick="cpLimpiarSeleccion()" title="Cambiar producto">✕</button>
+        </div>
+
+        <!-- ID del producto seleccionado (hidden) -->
+        <input type="hidden" id="cp_id_producto">
+
         <label><b>Unidad de venta*</b></label>
         <select id="cp_u_venta" class="w3-select w3-border w3-margin-bottom">
           <option value="Kilogramo">Kilogramo</option>
@@ -246,6 +247,7 @@
         <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
           + Agregar producto
         </button>
+
         <div id="carritoContainer" style="display:none;">
           <hr><b>Carrito:</b>
           <table class="w3-table w3-bordered w3-small w3-margin-top">
@@ -339,22 +341,31 @@
 
       <!-- PASO 2 -->
       <div id="epaso2" style="display:none;">
-        <label><b>Categoría</b></label>
-        <select id="filtroCategoriaEditar" class="w3-select w3-border w3-margin-bottom">
-          <option value="">— Todas —</option>
-          <option value="frutas">Frutas</option>
-          <option value="verduras">Verduras</option>
-          <option value="hierbas">Hierbas</option>
-        </select>
+
         <label><b>Producto*</b></label>
-        <select id="ecp_id_producto" class="w3-select w3-border w3-margin-bottom">
-          <?php foreach ($productos as $pr): ?>
-            <option value="<?= esc($pr['id']) ?>"
-                    data-categoria="<?= esc($pr['categoria']) ?>">
-              <?= esc($pr['nombre']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+        <p class="search-hint"><i class="fa-solid fa-circle-info"></i> Escribe al menos 3 caracteres para buscar</p>
+
+        <!-- Buscador -->
+        <div class="prod-search-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text"
+                 id="ecp_buscar"
+                 class="prod-search-input"
+                 placeholder="Buscar producto..."
+                 autocomplete="off">
+          <div id="ecp_resultados" class="prod-resultados"></div>
+        </div>
+
+        <!-- Badge del producto seleccionado -->
+        <div id="ecp_badge" class="prod-badge" style="display:none;">
+          <span class="badge-nombre" id="ecp_badge_nombre"></span>
+          <span class="badge-stock"  id="ecp_badge_stock"></span>
+          <button type="button" class="badge-limpiar" onclick="ecpLimpiarSeleccion()" title="Cambiar producto">✕</button>
+        </div>
+
+        <!-- ID del producto seleccionado (hidden) -->
+        <input type="hidden" id="ecp_id_producto">
+
         <label><b>Unidad de venta*</b></label>
         <select id="ecp_u_venta" class="w3-select w3-border w3-margin-bottom">
           <option value="Kilogramo">Kilogramo</option>
@@ -369,6 +380,7 @@
         <button type="button" onclick="eAgregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
           + Agregar producto
         </button>
+
         <div id="eCarritoContainer" style="display:none;">
           <hr><b>Carrito:</b>
           <table class="w3-table w3-bordered w3-small w3-margin-top">
@@ -424,71 +436,231 @@
 
 <?php include 'Footer.php'; ?>
 
-<!-- Datos del servidor -->
+<!-- ══════════════════════════════════════════════════════════
+     DATOS DEL SERVIDOR
+     ══════════════════════════════════════════════════════════ -->
 <script>
 const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
-const nombreProducto   = {
+ 
+const nombreProducto = {
   <?php foreach ($productos as $pr): ?>
     <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
   <?php endforeach; ?>
 };
+ 
+// Catálogo completo para el buscador
+// Ahora incluye u_venta y precio sugeridos desde la última entrada
+const catalogoProductos = <?= json_encode(array_map(fn($p) => [
+    'id'        => (int)$p['id'],
+    'nombre'    => $p['nombre'],
+    'categoria' => $p['categoria'] ?? '',
+    'u_venta'   => $uVentaSugeridaPorProducto[$p['id']] ?? '',
+    'precio'    => $precioSugeridoPorProducto[$p['id']] ?? '',
+], $productos)) ?>;
 </script>
-
+ 
+ 
+<!-- ══════════════════════════════════════════════════════════
+     BLOQUE 2 — JAVASCRIPT PRINCIPAL  (reemplaza el bloque original)
+     ══════════════════════════════════════════════════════════ -->
 <script>
-// ── Expandir/colapsar detalle ─────────────────────────────────
+ 
+// ─────────────────────────────────────────────────────────────
+// UTILIDADES
+// ─────────────────────────────────────────────────────────────
+ 
+/** Debounce genérico */
+function debounce(fn, ms) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), ms);
+    };
+}
+ 
+/** Expandir / colapsar detalle de la tabla */
 function toggleDetalle(idPedido) {
     const fila = document.getElementById('detalle-' + idPedido);
     const btn  = document.getElementById('btn-' + idPedido);
     fila.classList.toggle('abierto');
     btn.classList.toggle('abierto');
 }
-
-// ── Pool de opciones para filtros ─────────────────────────────
-const opcionesProductoCrear  = [];
-const opcionesProductoEditar = [];
-
-document.querySelectorAll('#cp_id_producto option').forEach(op => {
-    opcionesProductoCrear.push(op.cloneNode(true));
-});
-document.querySelectorAll('#ecp_id_producto option').forEach(op => {
-    opcionesProductoEditar.push(op.cloneNode(true));
-});
-
-function filtrarProductos(selectId, categoria, pool) {
-    const select = document.getElementById(selectId);
-    select.innerHTML = '';
-    const filtradas = categoria === ''
-        ? pool
-        : pool.filter(op => op.dataset.categoria === categoria);
-    filtradas.forEach(op => select.appendChild(op.cloneNode(true)));
-    if (select.options.length === 0) {
-        const vacia = document.createElement('option');
-        vacia.text = '— Sin resultados —';
-        vacia.disabled = true;
-        select.appendChild(vacia);
+ 
+ 
+// ─────────────────────────────────────────────────────────────
+// BUSCADOR GENÉRICO DE PRODUCTOS
+//
+//   prefijo     → 'cp_'  (crear) | 'ecp_' (editar)
+//   onSeleccion → callback(id, nombre, stock, producto)
+//                 Se llama al elegir un producto. Úsalo para
+//                 auto-rellenar unidad y precio.
+// ─────────────────────────────────────────────────────────────
+function crearBuscadorProducto(prefijo, onSeleccion) {
+ 
+    const inputBuscar   = document.getElementById(prefijo + 'buscar');
+    const divResultados = document.getElementById(prefijo + 'resultados');
+    const divBadge      = document.getElementById(prefijo + 'badge');
+    const spanNombre    = document.getElementById(prefijo + 'badge_nombre');
+    const spanStock     = document.getElementById(prefijo + 'badge_stock');
+    const inputHidden   = document.getElementById(prefijo + 'id_producto');
+ 
+    const selectCat = prefijo === 'cp_'
+        ? document.getElementById('filtroCategoriaCrear')
+        : document.getElementById('filtroCategoriaEditar');
+ 
+    /** Filtra el catálogo y renderiza resultados */
+    function buscar(texto) {
+        const query     = texto.trim().toLowerCase();
+        const categoria = selectCat ? selectCat.value : '';
+ 
+        if (query.length < 3) {
+            divResultados.style.display = 'none';
+            divResultados.innerHTML = '';
+            return;
+        }
+ 
+        let candidatos = catalogoProductos.filter(p => {
+            const coincideNombre    = p.nombre.toLowerCase().includes(query);
+            const coincideCategoria = !categoria || p.categoria === categoria;
+            return coincideNombre && coincideCategoria;
+        });
+ 
+        if (candidatos.length === 0) {
+            divResultados.innerHTML = '<div class="sin-resultados">Sin resultados para "' + texto + '"</div>';
+            divResultados.style.display = 'block';
+            return;
+        }
+ 
+        // Ordenar: primero los que tienen stock
+        candidatos.sort((a, b) => {
+            const sa = stockPorProducto[a.id] ?? 0;
+            const sb = stockPorProducto[b.id] ?? 0;
+            return sb - sa;
+        });
+ 
+        divResultados.innerHTML = candidatos.map(p => {
+            const stock     = stockPorProducto[p.id] ?? 0;
+            const pillClass = stock > 0 ? 'con-stock' : 'sin-stock';
+            const pillText  = stock > 0 ? 'Stock: ' + stock : 'Sin stock';
+            return `<div class="prod-item"
+                         data-id="${p.id}"
+                         data-nombre="${p.nombre.replace(/"/g,'&quot;')}"
+                         data-stock="${stock}">
+                      <span>${p.nombre}</span>
+                      <span class="stock-pill ${pillClass}">${pillText}</span>
+                    </div>`;
+        }).join('');
+ 
+        // ── Click en cada ítem ──────────────────────────────────
+        divResultados.querySelectorAll('.prod-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const id       = el.dataset.id;
+                const nombre   = el.dataset.nombre;
+                const stock    = parseInt(el.dataset.stock, 10);
+                // Recuperar el objeto completo del catálogo para obtener
+                // u_venta y precio sugeridos
+                const producto = catalogoProductos.find(p => p.id == id) ?? {};
+ 
+                seleccionar(id, nombre, stock);
+ 
+                // Disparar callback con datos completos del producto
+                if (onSeleccion) onSeleccion(id, nombre, stock, producto);
+            });
+        });
+ 
+        divResultados.style.display = 'block';
+    }
+ 
+    /** Muestra badge y oculta el input de búsqueda */
+    function seleccionar(id, nombre, stock) {
+        inputHidden.value      = id;
+        spanNombre.textContent = nombre;
+ 
+        const sinStock = stock <= 0;
+        spanStock.textContent = sinStock ? '⚠ Sin stock disponible' : '✓ Stock disponible: ' + stock;
+        divBadge.className    = 'prod-badge' + (sinStock ? ' sin-stock' : '');
+        divBadge.style.display = 'flex';
+ 
+        inputBuscar.value           = '';
+        divResultados.style.display = 'none';
+        divResultados.innerHTML     = '';
+        inputBuscar.style.display   = 'none';
+    }
+ 
+    /** Limpia la selección para volver a buscar */
+    window[prefijo.replace('_','') + 'LimpiarSeleccion'] = function () {
+        inputHidden.value           = '';
+        divBadge.style.display      = 'none';
+        inputBuscar.style.display   = '';
+        inputBuscar.value           = '';
+        inputBuscar.focus();
+    };
+ 
+    // Escuchar escritura con debounce de 600 ms
+    inputBuscar.addEventListener('input', debounce(function () {
+        buscar(this.value);
+    }, 600));
+ 
+    // Cerrar resultados al hacer clic fuera
+    document.addEventListener('click', function (e) {
+        if (!inputBuscar.contains(e.target) && !divResultados.contains(e.target)) {
+            divResultados.style.display = 'none';
+        }
+    });
+ 
+    // Reactivar búsqueda si cambia la categoría
+    if (selectCat) {
+        selectCat.addEventListener('change', () => {
+            if (inputBuscar.style.display !== 'none' && inputBuscar.value.length >= 3) {
+                buscar(inputBuscar.value);
+            }
+        });
     }
 }
-
-const filtroCategoriaCrear  = document.getElementById('filtroCategoriaCrear');
-const filtroCategoriaEditar = document.getElementById('filtroCategoriaEditar');
-
-if (filtroCategoriaCrear) {
-    filtroCategoriaCrear.addEventListener('change', function () {
-        filtrarProductos('cp_id_producto', this.value, opcionesProductoCrear);
-    });
+ 
+// ── Helper: intenta seleccionar la opción más cercana en un <select> ──
+function matchearUnidad(selectEl, sugerida) {
+    if (!sugerida) return;
+    const s = sugerida.toLowerCase();
+    for (const opt of selectEl.options) {
+        const v = opt.value.toLowerCase();
+        if (v === s || v.startsWith(s) || s.startsWith(v)) {
+            opt.selected = true;
+            return;
+        }
+    }
+    // Si no hay match exacto, dejar la primera opción (el usuario puede cambiar)
 }
-if (filtroCategoriaEditar) {
-    filtroCategoriaEditar.addEventListener('change', function () {
-        filtrarProductos('ecp_id_producto', this.value, opcionesProductoEditar);
-    });
-}
-
+ 
+// ── Inicializar buscador CREAR con callback de auto-relleno ──────────
+crearBuscadorProducto('cp_', function(id, nombre, stock, producto) {
+    // Auto-rellenar unidad de venta
+    matchearUnidad(document.getElementById('cp_u_venta'), producto.u_venta);
+ 
+    // Auto-rellenar precio (editable por el usuario)
+    if (producto.precio) {
+        document.getElementById('cp_p_venta').value = parseFloat(producto.precio).toFixed(2);
+    }
+});
+ 
+// ── Inicializar buscador EDITAR con callback de auto-relleno ─────────
+crearBuscadorProducto('ecp_', function(id, nombre, stock, producto) {
+    // Auto-rellenar unidad de venta
+    matchearUnidad(document.getElementById('ecp_u_venta'), producto.u_venta);
+ 
+    // Auto-rellenar precio (editable por el usuario)
+    if (producto.precio) {
+        document.getElementById('ecp_p_venta').value = parseFloat(producto.precio).toFixed(2);
+    }
+});
+ 
+ 
 // ════════════════════════════════════════════════════════════
 //  WIZARD CREAR
 // ════════════════════════════════════════════════════════════
 let carrito    = [];
 let pasoActual = 1;
-
+ 
 function mostrarPaso(n) {
     [1, 2, 3].forEach(i => {
         document.getElementById('paso' + i).style.display = i === n ? 'block' : 'none';
@@ -501,7 +673,7 @@ function mostrarPaso(n) {
     document.getElementById('btnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
     pasoActual = n;
 }
-
+ 
 function siguientePaso() {
     if (pasoActual === 1 && !validarPaso1()) return;
     if (pasoActual === 2 && !validarPaso2()) return;
@@ -512,11 +684,11 @@ function siguientePaso() {
         document.getElementById('est_fecha').value = local;
     }
 }
-
+ 
 function anteriorPaso() {
     if (pasoActual > 1) mostrarPaso(pasoActual - 1);
 }
-
+ 
 function validarPaso1() {
     if (!document.getElementById('ped_fecha').value ||
         !document.getElementById('ped_id_cliente').value ||
@@ -526,7 +698,7 @@ function validarPaso1() {
     }
     return true;
 }
-
+ 
 function validarPaso2() {
     if (carrito.length === 0) {
         alert('Agrega al menos un producto al carrito.');
@@ -534,20 +706,21 @@ function validarPaso2() {
     }
     return true;
 }
-
+ 
 function agregarAlCarrito() {
     const id_producto = document.getElementById('cp_id_producto').value;
     const u_venta     = document.getElementById('cp_u_venta').value;
     const cant        = parseFloat(document.getElementById('cp_cant').value);
     const p_venta     = parseFloat(document.getElementById('cp_p_venta').value);
-
+ 
+    if (!id_producto) { alert('Selecciona un producto primero.'); return; }
     if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
-
+ 
     const disponible  = stockPorProducto[id_producto] ?? 0;
     const yaEnCarrito = carrito
         .filter(i => i.id_producto === id_producto)
         .reduce((sum, i) => sum + i.cant, 0);
-
+ 
     if (yaEnCarrito + cant > disponible) {
         const maxPosible = disponible - yaEnCarrito;
         alert(maxPosible <= 0
@@ -556,13 +729,15 @@ function agregarAlCarrito() {
         );
         return;
     }
-
+ 
     carrito.push({ id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
     renderCarrito();
+ 
+    cpLimpiarSeleccion();
     document.getElementById('cp_cant').value    = '';
     document.getElementById('cp_p_venta').value = '';
 }
-
+ 
 function renderCarrito() {
     const tbody = document.getElementById('carritoBody');
     tbody.innerHTML = '';
@@ -580,14 +755,14 @@ function renderCarrito() {
     });
     document.getElementById('carritoContainer').style.display = carrito.length ? 'block' : 'none';
 }
-
+ 
 function quitarItem(i) { carrito.splice(i, 1); renderCarrito(); }
-
+ 
 function enviarCarrito() {
     const estado   = document.getElementById('est_estado').value;
     const fechaEst = document.getElementById('est_fecha').value;
     if (!estado || !fechaEst) { alert('Completa estado y fecha.'); return; }
-
+ 
     document.getElementById('fn_fecha').value         = document.getElementById('ped_fecha').value;
     document.getElementById('fn_id_cliente').value    = document.getElementById('ped_id_cliente').value;
     document.getElementById('fn_id_repartidor').value = document.getElementById('ped_id_repartidor').value;
@@ -596,21 +771,25 @@ function enviarCarrito() {
     document.getElementById('fn_fecha_estatus').value = fechaEst;
     document.getElementById('formCarrito').submit();
 }
-
+ 
 function cerrarModal() {
     carrito = [];
     renderCarrito();
     mostrarPaso(1);
-    document.getElementById('ped_fecha').value = '';
+    cpLimpiarSeleccion();
+    document.getElementById('ped_fecha').value          = '';
+    document.getElementById('cp_cant').value    = '';
+    document.getElementById('cp_p_venta').value = '';
     document.getElementById('modalCrearPpedido').style.display = 'none';
 }
-
+ 
+ 
 // ════════════════════════════════════════════════════════════
 //  WIZARD EDITAR
 // ════════════════════════════════════════════════════════════
 let carritoEditar = [];
 let ePasoActual   = 1;
-
+ 
 function eMostrarPaso(n) {
     [1, 2, 3].forEach(i => {
         document.getElementById('epaso' + i).style.display = i === n ? 'block' : 'none';
@@ -623,7 +802,7 @@ function eMostrarPaso(n) {
     document.getElementById('eBtnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
     ePasoActual = n;
 }
-
+ 
 function eSiguientePaso() {
     if (ePasoActual === 1 && !eValidarPaso1()) return;
     if (ePasoActual === 2 && !eValidarPaso2()) return;
@@ -634,11 +813,11 @@ function eSiguientePaso() {
         document.getElementById('eest_fecha').value = local;
     }
 }
-
+ 
 function eAnteriorPaso() {
     if (ePasoActual > 1) eMostrarPaso(ePasoActual - 1);
 }
-
+ 
 function eValidarPaso1() {
     if (!document.getElementById('eped_fecha').value ||
         !document.getElementById('eped_id_cliente').value ||
@@ -648,7 +827,7 @@ function eValidarPaso1() {
     }
     return true;
 }
-
+ 
 function eValidarPaso2() {
     if (carritoEditar.length === 0) {
         alert('El carrito no puede quedar vacío.');
@@ -656,17 +835,17 @@ function eValidarPaso2() {
     }
     return true;
 }
-
+ 
 async function abrirEditarPedido(idPedido) {
     try {
         const res  = await fetch(`<?= base_url('api_pedido/') ?>${idPedido}`);
         const data = await res.json();
-
+ 
         document.getElementById('efn_id_pedido').value      = idPedido;
         document.getElementById('eped_fecha').value         = data.pedido.fecha;
         document.getElementById('eped_id_cliente').value    = data.pedido.id_cliente;
         document.getElementById('eped_id_repartidor').value = data.pedido.id_repartidor;
-
+ 
         carritoEditar = data.items.map(item => ({
             id:          item.id,
             id_producto: item.id_producto,
@@ -676,7 +855,7 @@ async function abrirEditarPedido(idPedido) {
             total:       parseFloat(item.total).toFixed(2),
         }));
         eRenderCarrito();
-
+ 
         const select     = document.getElementById('eest_estado');
         const permitidos = data.transiciones_validas;
         Array.from(select.options).forEach(opt => {
@@ -686,34 +865,36 @@ async function abrirEditarPedido(idPedido) {
         });
         const primeraValida = select.querySelector('option:not([disabled])');
         if (primeraValida) primeraValida.selected = true;
-
+ 
         if (permitidos.length === 0) {
             alert(`Este pedido está en "${data.estado_actual.replace(/_/g,' ')}" y no admite más cambios.`);
             return;
         }
-
+ 
+        ecpLimpiarSeleccion();
         eMostrarPaso(1);
         document.getElementById('modalEditarPedido').style.display = 'block';
-
+ 
     } catch (e) {
         alert('Error al cargar los datos del pedido.');
         console.error(e);
     }
 }
-
+ 
 function eAgregarAlCarrito() {
     const id_producto = document.getElementById('ecp_id_producto').value;
     const u_venta     = document.getElementById('ecp_u_venta').value;
     const cant        = parseFloat(document.getElementById('ecp_cant').value);
     const p_venta     = parseFloat(document.getElementById('ecp_p_venta').value);
-
+ 
+    if (!id_producto) { alert('Selecciona un producto primero.'); return; }
     if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
-
+ 
     const disponible  = stockPorProducto[id_producto] ?? 0;
     const yaEnCarrito = carritoEditar
         .filter(i => i.id_producto === id_producto)
         .reduce((sum, i) => sum + i.cant, 0);
-
+ 
     if (yaEnCarrito + cant > disponible) {
         const maxPosible = disponible - yaEnCarrito;
         alert(maxPosible <= 0
@@ -722,13 +903,15 @@ function eAgregarAlCarrito() {
         );
         return;
     }
-
+ 
     carritoEditar.push({ id: null, id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
     eRenderCarrito();
+ 
+    ecpLimpiarSeleccion();
     document.getElementById('ecp_cant').value    = '';
     document.getElementById('ecp_p_venta').value = '';
 }
-
+ 
 function eRenderCarrito() {
     const tbody = document.getElementById('eCarritoBody');
     tbody.innerHTML = '';
@@ -746,14 +929,14 @@ function eRenderCarrito() {
     });
     document.getElementById('eCarritoContainer').style.display = carritoEditar.length ? 'block' : 'none';
 }
-
+ 
 function eQuitarItem(i) { carritoEditar.splice(i, 1); eRenderCarrito(); }
-
+ 
 function eEnviarCarrito() {
     const estado   = document.getElementById('eest_estado').value;
     const fechaEst = document.getElementById('eest_fecha').value;
     if (!estado || !fechaEst) { alert('Completa estado y fecha.'); return; }
-
+ 
     document.getElementById('efn_fecha').value         = document.getElementById('eped_fecha').value;
     document.getElementById('efn_id_cliente').value    = document.getElementById('eped_id_cliente').value;
     document.getElementById('efn_id_repartidor').value = document.getElementById('eped_id_repartidor').value;
@@ -762,18 +945,23 @@ function eEnviarCarrito() {
     document.getElementById('efn_fecha_estatus').value = fechaEst;
     document.getElementById('eFormCarrito').submit();
 }
-
+ 
 function eCerrarModal() {
     carritoEditar = [];
     eRenderCarrito();
     eMostrarPaso(1);
+    ecpLimpiarSeleccion();
+    document.getElementById('ecp_cant').value    = '';
+    document.getElementById('ecp_p_venta').value = '';
     document.getElementById('modalEditarPedido').style.display = 'none';
 }
-
-window.onclick = function(event) {
-    if (event.target === document.getElementById('modalCrearPpedido')) cerrarModal();
+ 
+// Cerrar modales al hacer clic fuera
+window.onclick = function (event) {
+    if (event.target === document.getElementById('modalCrearPpedido'))  cerrarModal();
     if (event.target === document.getElementById('modalEditarPedido')) eCerrarModal();
 };
+ 
 </script>
 
 </div><!-- /.lista-wrapper -->
