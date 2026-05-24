@@ -2,14 +2,14 @@
    VARIABLES DE COLOR Y ESTILO (Basado en la UI)
    ========================================= */
 :root {
-    --bg-main: #F4F7FE;          /* Fondo gris muy claro/azulado */
-    --bg-sidebar: #00910a;       /* Negro/Azul muy oscuro para el menú */
-    --bg-card: #FFFFFF;          /* Blanco puro para tarjetas */
-    --accent-green: #72F03B;     /* Verde brillante neón */
+    --bg-main: #F4F7FE;
+    --bg-sidebar: #00910a;
+    --bg-card: #FFFFFF;
+    --accent-green: #72F03B;
     --accent-green-hover: #5bd42a;
-    --text-dark: #2B3674;        /* Azul oscuro para títulos */
-    --text-muted: #ffffff;       /* Gris para subtítulos y menú */
-    --text-muted2: #005420;       /* Gris para subtítulos y menú */
+    --text-dark: #2B3674;
+    --text-muted: #ffffff;
+    --text-muted2: #005420;
     --shadow-soft: 0px 18px 40px rgba(112, 144, 176, 0.12);
     --btn-hov: #baff75;
     --radius-card: 20px;
@@ -29,35 +29,49 @@ body {
    ========================================= */
 .dashboard-wrapper {
     display: flex;
-    min-height: 100vh;
-    padding: 20px; /* Margen exterior como en la imagen */
+    min-height: calc(100vh - 55px);
+    margin-top: 55px;   /* altura del header fijo */
+    padding: 20px;
     box-sizing: border-box;
     gap: 20px;
 }
 
 /* =========================================
-   SIDEBAR (Menú Lateral Oscuro)
+   SIDEBAR — solo para el dashboard (main_page)
+   En estilosPaginas.css ya hay un .sidebar para las vistas de lista.
+   Aquí lo tratamos como sticky dentro del flex.
    ========================================= */
-.sidebar {
+.dashboard-wrapper .sidebar {
+    /* Resetear el fixed de estilosPaginas cuando estamos en dashboard */
+    position: sticky;
+    top: 75px;               /* debajo del header */
+    align-self: flex-start;
+    width: 220px;
+    min-width: 220px;
+    max-height: calc(100vh - 95px);
+    overflow-y: auto;
     background-color: var(--bg-sidebar);
-    width: 260px;
     border-radius: var(--radius-card);
     padding: 30px 15px;
-    display: flex;
-    flex-direction: column;
     box-shadow: var(--shadow-soft);
+    /* Sobrescribir estilosPaginas.css que lo pone fixed */
+    left: unset;
+    border-right: none;
+    z-index: 10;
 }
 
-.nav-label {
+.dashboard-wrapper .nav-label {
     color: var(--text-muted);
     font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
     margin: 20px 0 10px 15px;
+    padding: 0;
+    background: none;
 }
 
-.nav-item {
+.dashboard-wrapper .nav-item {
     display: flex;
     align-items: center;
     padding: 12px 20px;
@@ -67,14 +81,17 @@ body {
     border-radius: var(--radius-pill);
     margin-bottom: 5px;
     transition: all 0.3s ease;
+    border-left: none;
+    font-size: 14px;
 }
 
-/* Efecto Hover y Activo estilo Píldora Verde */
-.nav-item:hover, .nav-item:focus {
+.dashboard-wrapper .nav-item:hover,
+.dashboard-wrapper .nav-item:focus {
     background-color: var(--btn-hov);
     color: var(--text-muted2);
     box-shadow: 0 4px 15px rgba(114, 240, 59, 0.4);
     transform: translateX(5px);
+    border-left: none;
 }
 
 /* =========================================
@@ -86,10 +103,11 @@ body {
     flex-direction: column;
     gap: 20px;
     overflow-y: auto;
+    min-width: 0;  /* evita overflow en flex */
 }
 
 /* =========================================
-   HEADER (Barra superior Verde Brillante)
+   HEADER
    ========================================= */
 .page-header {
     background-color: var(--accent-green);
@@ -117,11 +135,11 @@ body {
 }
 
 /* =========================================
-   TARJETAS KPI (Métricas)
+   TARJETAS KPI
    ========================================= */
 .kpi-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 20px;
 }
 
@@ -141,12 +159,18 @@ body {
     transform: translateY(-5px);
 }
 
-/* Tarjeta destacada completamente verde (como en el diseño) */
-.kpi-card.kpi--dark {
+/* Variantes de color — todas usan fondo blanco */
+.kpi-card.kpi--dark,
+.kpi-card.kpi--green,
+.kpi-card.kpi--teal,
+.kpi-card.kpi--olive {
     background-color: var(--bg-card);
     color: var(--text-dark);
 }
-.kpi-card.kpi--dark .kpi-label { color: var(--text-muted2); }
+.kpi-card.kpi--dark .kpi-label,
+.kpi-card.kpi--green .kpi-label,
+.kpi-card.kpi--teal .kpi-label,
+.kpi-card.kpi--olive .kpi-label { color: var(--text-muted2); }
 
 .kpi-icon {
     font-size: 2rem;
@@ -157,28 +181,44 @@ body {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
+    flex-shrink: 0;
 }
-.kpi-card.kpi--dark .kpi-icon { background: rgba(255,255,255,0.3); }
 
 .kpi-info { display: flex; flex-direction: column; }
 .kpi-value { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
 .kpi-label { font-size: 0.85rem; color: var(--text-muted2); font-weight: 500; }
-.kpi-link { display: none; } /* Ocultamos el link para un diseño más limpio */
+.kpi-link { display: none; }
 
 /* =========================================
-   GRÁFICOS Y TABLAS
+   GRÁFICOS — 4 cards en 2 columnas (2fr 1fr)
    ========================================= */
-.charts-row, .bottom-row {
+.charts-row {
     display: grid;
     grid-template-columns: 2fr 1fr;
     gap: 20px;
 }
 
-.chart-card, .table-card, .actions-card {
+.bottom-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+.chart-card,
+.chart-card--wide,
+.table-card,
+.actions-card {
     background: var(--bg-card);
     border-radius: var(--radius-card);
     padding: 25px;
     box-shadow: var(--shadow-soft);
+}
+
+/* El canvas de Chart.js necesita un contenedor con altura definida */
+.chart-area {
+    position: relative;
+    height: 220px;
+    width: 100%;
 }
 
 .chart-header {
@@ -204,11 +244,11 @@ body {
 }
 
 /* =========================================
-   BOTONES DE ACCIÓN (Pastillas)
+   BOTONES DE ACCIÓN
    ========================================= */
 .actions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 10px;
 }
 
@@ -229,7 +269,7 @@ body {
 }
 
 /* =========================================
-   TABLAS MODERNAS
+   TABLAS MODERNAS (dentro del dashboard)
    ========================================= */
 .data-table {
     width: 100%;
@@ -238,7 +278,7 @@ body {
 
 .data-table th {
     text-align: left;
-    color: var(--text-muted);
+    color: var(--text-muted2);
     font-weight: 500;
     padding-bottom: 15px;
     border-bottom: 1px solid #edf2f7;
@@ -256,21 +296,13 @@ body {
     font-size: 0.75rem;
     font-weight: 700;
 }
-.badge--red { background: #ffe2e5; color: #f64e60; }
+.badge--red    { background: #ffe2e5; color: #f64e60; }
 .badge--yellow { background: #fff4de; color: #ffa800; }
-.badge--green { background: #c9f7f5; color: #1bc5bd; }
-/* Empuja todo el dashboard hacia abajo para dejar espacio a la barra superior */
-.dashboard-wrapper {
-    margin-top: 60px; /* Ajusta este número según el alto de tu barra verde oscuro */
-    min-height: calc(100vh - 60px);
-}
+.badge--green  { background: #c9f7f5; color: #1bc5bd; }
 
-/* Evita que el menú lateral se suba por debajo de la barra superior */
-.sidebar {
-    height: calc(100vh - 100px); /* Ajusta la altura */
-    position: sticky;
-    top: 80px; /* Lo mantiene pegado pero debajo de la barra */
-}
+/* =========================================
+   FOOTER
+   ========================================= */
 .footer {
     background: #00910a;
     margin-top: 40px;
@@ -287,10 +319,7 @@ body {
     gap: 8px;
 }
 
-.footer_brand {
-    display: flex;
-    flex-direction: column;
-}
+.footer_brand { display: flex; flex-direction: column; }
 
 .footer_logo {
     color: #ffffff;
@@ -312,6 +341,9 @@ body {
     letter-spacing: 0.3px;
 }
 
+/* =========================================
+   FLASH MESSAGES
+   ========================================= */
 .flash-container {
     position: fixed;
     top: 70px;
@@ -319,6 +351,7 @@ body {
     transform: translateX(-50%);
     z-index: 9998;
     width: 60vw;
+    pointer-events: none;
 }
 
 .flash-container .w3-panel {
@@ -327,6 +360,7 @@ body {
     margin: 0;
     text-align: center;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    pointer-events: auto;
 }
 
 .flash-container .w3-panel p {
@@ -335,3 +369,94 @@ body {
     font-size: 24px;
     margin: 0;
 }
+
+/* =========================================
+   BUSCADOR AUTOCOMPLETE (modales)
+   ========================================= */
+.prod-search-wrap {
+    position: relative;
+    margin-bottom: 8px;
+}
+.prod-search-wrap .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+}
+.prod-search-input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    font-size: 14px;
+    border-radius: 4px;
+}
+.prod-search-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76,175,80,.2);
+}
+.prod-resultados {
+    position: absolute;
+    z-index: 10000;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-top: none;
+    max-height: 220px;
+    overflow-y: auto;
+    width: 100%;
+    display: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+}
+.prod-resultados .prod-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+}
+.prod-resultados .prod-item:hover,
+.prod-resultados .prod-item.activo { background: #e8f5e9; }
+.prod-resultados .prod-item .stock-pill {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.prod-resultados .prod-item .stock-pill.con-stock { background:#d4edda; color:#155724; }
+.prod-resultados .prod-item .stock-pill.sin-stock  { background:#f8d7da; color:#721c24; }
+.prod-resultados .sin-resultados {
+    padding: 10px 12px;
+    color: #888;
+    font-size: 13px;
+}
+.prod-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f1f8f1;
+    border: 1px solid #a5d6a7;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+.prod-badge .badge-nombre { font-weight: 600; flex: 1; }
+.prod-badge .badge-stock  { font-size: 12px; color: #2e7d32; font-weight: 600; }
+.prod-badge .badge-limpiar {
+    cursor: pointer;
+    color: #c62828;
+    font-size: 16px;
+    line-height: 1;
+    background: none;
+    border: none;
+    padding: 0;
+}
+.prod-badge.sin-stock { border-color:#ef9a9a; background:#fff5f5; }
+.prod-badge.sin-stock .badge-stock { color:#c62828; }
+.search-hint { font-size: 12px; color: #999; margin-bottom: 8px; }
