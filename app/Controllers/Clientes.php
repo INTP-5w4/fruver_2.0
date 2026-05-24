@@ -5,41 +5,69 @@ use App\Models\Modelo_cliente;
 use CodeIgniter\Controller;
 
 class Clientes extends Controller{
+    private $configuracion = [
+        'reglas' => [
+            'nom'     => 'required',
+            'ape_pat' => 'required',
+            'ape_mat' => 'required',
+            'tel'     => 'required|numeric|max_length[12]',
+        ],
+        'errores' => [
+            'nom' => [
+                'required' => 'El campo Nombre es obligatorio.'
+            ],
+            'ape_pat' => [
+                'required' => 'El Apellido Paterno es obligatorio.'
+            ],
+            'ape_mat' => [
+                'required' => 'El Apellido Materno es obligatorio.'
+            ],
+            'tel' => [
+                'required'    => 'El Teléfono es obligatorio.',
+                'numeric'     => 'El Teléfono debe contener solo números.',
+                'max_length'  => 'El Teléfono debe tener máximo 12 dígitos.' // Nota: sin los corchetes
+            ]
+        ]
+    ];
 public function crea_cliente(){
     return view('crea_cliente');
 }
-public function guarda_cliente(){
+public function guarda_cliente()
+{
     $m_cliente = new Modelo_cliente();
-    $datos=[
-        'nombre'=>$this->request->getPost('nom'),
-        'ape_pat'=>$this->request->getPost('ape_pat'),
-        'ape_mat'=>$this->request->getPost('ape_mat'),
-        'telefono'=>$this->request->getPost('tel'),
-    ];
-    if(
-        empty($datos['nombre'])||
-        empty($datos['ape_pat'])||
-        empty($datos['ape_mat'])||
-        empty($datos['telefono'])
-    ){
-        return redirect()->to('lista_cliente')->with('error', 'Todos los campos son obligatorios');
-    } else {
-        try {
-            $m_cliente->insert($datos);
-            if ($this->request->getPost('origen') === 'main_page') {
-                return redirect()->to('/')->with('mensaje', 'Cliente registrado correctamente');
-            }
-            return redirect()->to('lista_cliente')->with('mensaje', 'Cliente registrado correctamente');
 
-        } catch (\CodeIgniter\Database\Exceptions\DatabaseException $e) {
-            $mensaje = $e->getMessage();
-            if (str_contains($mensaje, 'Error:')) {
-                $mensaje = substr($mensaje, strpos($mensaje, 'Error:'));
-            }
-            return redirect()->to('lista_cliente')
-                ->with('error', $mensaje);
+
+
+// BIEN: Accedes a la propiedad de la clase usando $this->
+if (!$this->validate($this->configuracion['reglas'], $this->configuracion['errores'])) {
+    $l_error = $this->validator->getErrors();
+    // El withInput() es lo que "guarda" los datos en la sesión para la siguiente petición
+    return redirect()->back()->withInput()->with('error', reset($l_error));
+}
+
+    // 3. Procesamiento
+    $datos = [
+        'nombre'   => $this->request->getPost('nom'),
+        'ape_pat'  => $this->request->getPost('ape_pat'),
+        'ape_mat'  => $this->request->getPost('ape_mat'),
+        'telefono' => $this->request->getPost('tel'),
+    ];
+
+    try {
+        // En CodeIgniter, si el modelo tiene validaciones internas, 
+        // a veces lanza DatabaseException. Capturarla aquí evita la pantalla de error.
+        if (!$m_cliente->insert($datos)) {
+            // Si el modelo falla por reglas de validación internas o DB
+            return redirect()->back()->withInput()->with('error', 'Error al guardar en base de datos');
         }
-    } 
+
+        $destino = ($this->request->getPost('origen') === 'main_page') ? '/' : 'lista_cliente';
+        return redirect()->to($destino)->with('mensaje', 'Cliente registrado correctamente');
+
+    } catch (\Exception $e) {
+        // 4. Captura de errores inesperados (ej. problemas de conexión, campos duplicados)
+        return redirect()->to('lista_cliente')->with('error', 'Ocurrió un error inesperado al procesar la solicitud.');
+    }
 }
 public function lista_cliente()
 {
@@ -56,17 +84,38 @@ public function lista_cliente()
 
     return view('lista_cliente', $datos);
 }
-public function modifica(){
+public function modifica()
+{
     $id = $this->request->getPost('id');
+    
+    // 1. Validación de campos
+    if (!$this->validate($this->configuracion['reglas'], $this->configuracion['errores'])) {
+        $l_error = $this->validator->getErrors();
+        // Retornamos con 'error2' como solicitaste
+        return redirect()->back()->withInput()->with('error2', reset($l_error));
+    }
+
+    $m_cliente = new Modelo_cliente();
+
+    // 2. Datos a actualizar
     $datos = [
         'nombre'   => $this->request->getPost('nom'),
         'ape_pat'  => $this->request->getPost('ape_pat'),
         'ape_mat'  => $this->request->getPost('ape_mat'),
         'telefono' => $this->request->getPost('tel'),
     ];
-    $m_cliente = new Modelo_cliente();
-    if($m_cliente->update($id, $datos)){
+
+    try {
+        // 3. Intento de actualización
+        if (!$m_cliente->update($id, $datos)) {
+            return redirect()->back()->withInput()->with('error2', 'Error al actualizar en base de datos');
+        }
+
         return redirect()->to('/lista_cliente')->with('mensaje', 'Cliente actualizado correctamente');
+
+    } catch (\Exception $e) {
+        // 4. Captura de errores inesperados (ej. problemas de conexión)
+        return redirect()->to('lista_cliente')->with('error2', 'Ocurrió un error inesperado al procesar la actualización.');
     }
 }
 public function recupera($id = null){
