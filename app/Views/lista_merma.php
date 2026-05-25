@@ -79,14 +79,12 @@
                 <td><?= $m['fecha'] ?></td>
                 <td><?= esc($m['notas']) ?></td>
 
-                <!-- Entrada con nombre del producto -->
                 <td>
                     <?= $entradaEncontrada
                         ? '#'.$entradaEncontrada['id'].' — '.esc($entradaEncontrada['nombre_producto']).' ('.$entradaEncontrada['fecha'].')'
                         : 'N/A' ?>
                 </td>
 
-                <!-- Unidad de venta -->
                 <td>
                     <?= $entradaEncontrada ? esc($entradaEncontrada['u_venta']) : 'N/A' ?>
                 </td>
@@ -125,9 +123,11 @@
             <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="">-- Selecciona una entrada --</option>
                 <?php foreach ($entradas as $entrada): ?>
-                    <option value="<?= $entrada['id'] ?>">
-                        #<?= $entrada['id'] ?> — <?= esc($entrada['nombre_producto']) ?> (<?= $entrada['fecha'] ?>)
-                    </option>
+                    <?php if (($stockPorProducto[$entrada['id_producto']] ?? 0) > 0): ?>
+                        <option value="<?= $entrada['id'] ?>">
+                            #<?= $entrada['id'] ?> — <?= esc($entrada['nombre_producto']) ?> (<?= $entrada['fecha'] ?>)
+                        </option>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </select>
 
@@ -143,19 +143,16 @@
             <label><b>Notas</b></label>
             <textarea name="notas" placeholder="Ej: Caducó durante el transporte" rows="3" class="w3-input w3-border w3-margin-bottom"></textarea>
 
-            
-
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalCrearMerma').style.display='none'"
                         class="w3-button w3-white">Cancelar</button>
             </footer>
-
         </form>
     </div>
 </div>
-<!-- MODAL EDITAR MERMA -->
+
 <div id="modalEditarMerma" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('modifica_merma') ?>" method="post" class="w3-container w3-padding-16">
@@ -178,7 +175,8 @@
             <select name="id_entrada" id="edit_id_entrada"
                     class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($entradas as $e): ?>
-                    <option value="<?= $e['id'] ?>">
+                    <?php $tieneStock = ($stockPorProducto[$e['id_producto']] ?? 0) > 0; ?>
+                    <option value="<?= $e['id'] ?>" <?= !$tieneStock ? 'data-sin-stock="true" style="display:none;"' : '' ?>>
                         #<?= $e['id'] ?> — <?= esc($e['nombre_producto']) ?> (<?= $e['fecha'] ?>)
                     </option>
                 <?php endforeach; ?>
@@ -195,7 +193,6 @@
     </div>
 </div>
 <?php include 'Footer.php'; ?>
-</div><!-- /.lista-wrapper -->
 
 <script>
     function abrirModal(id, cantidad, fecha, notas, id_entrada) {
@@ -203,22 +200,51 @@
         document.getElementById('edit_cantidad').value = cantidad;
         document.getElementById('edit_fecha').value = fecha;
         document.getElementById('edit_notas').value = notas;
-        document.getElementById('edit_id_entrada').value = id_entrada;
+        
+        const selectEdit = document.getElementById('edit_id_entrada');
+        
+        // 1. Ocultar todas las opciones sin stock por defecto
+        Array.from(selectEdit.options).forEach(opt => {
+            if (opt.getAttribute('data-sin-stock') === 'true') {
+                opt.style.display = 'none';
+            }
+        });
+
+        // 2. Asignar el valor que tiene la merma en la base de datos
+        selectEdit.value = id_entrada;
+        
+        // 3. Asegurar que la entrada histórica sea visible (aunque su stock actual sea 0)
+        if (selectEdit.options[selectEdit.selectedIndex]) {
+            selectEdit.options[selectEdit.selectedIndex].style.display = '';
+        }
+
         document.getElementById('modalEditarMerma').style.display = 'block';
     }
 
+    // Cerrar modal al hacer click fuera
     window.onclick = function(event) {
         const modal = document.getElementById('modalEditarMerma');
+        const modalCrear = document.getElementById('modalCrearMerma');
         if (event.target === modal) modal.style.display = 'none';
+        if (event.target === modalCrear) modalCrear.style.display = 'none';
     };
 
-    // Buscador por nombre de producto en columna Entrada (índice 4)
+    // Buscador
     function filtrar() {
         const texto = document.getElementById('buscador').value.toLowerCase();
         const filas = document.querySelectorAll('tbody tr');
         filas.forEach(function(fila) {
             const celdaEntrada = fila.cells[4].textContent.toLowerCase();
             fila.style.display = celdaEntrada.includes(texto) ? '' : 'none';
+        });
+    }
+
+    // Auto-rellenar Unidad de Venta en el Modal de Crear Merma
+    const selectEntrada = document.getElementById('id_entrada_modal');
+    if (selectEntrada) {
+        selectEntrada.addEventListener('change', function () {
+            const unidadesVenta = <?= json_encode(array_column($entradas, 'u_venta', 'id'), JSON_FORCE_OBJECT) ?>;
+            document.getElementById('u_venta_modal').value = unidadesVenta[this.value] || '';
         });
     }
 </script>

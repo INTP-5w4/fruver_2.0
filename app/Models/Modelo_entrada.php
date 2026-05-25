@@ -11,7 +11,8 @@ class Modelo_entrada extends Model{
 public function getEntradasConProducto()
 {
     return $this->db->table('entrada')
-        ->select('entrada.id, entrada.fecha, entrada.u_venta, entrada.cantidad, entrada.u_compra, producto.nombre AS nombre_producto')
+        // AÑADIDO: entrada.id_producto
+        ->select('entrada.id, entrada.id_producto, entrada.fecha, entrada.u_venta, entrada.cantidad, entrada.u_compra, producto.nombre AS nombre_producto')
         ->join('producto', 'producto.id = entrada.id_producto')
         ->get()
         ->getResultArray();
