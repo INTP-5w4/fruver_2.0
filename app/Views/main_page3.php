@@ -537,9 +537,11 @@
                 <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                     <option value="">-- Selecciona una entrada --</option>
                     <?php foreach ($entradas as $entrada): ?>
-                        <option value="<?= $entrada['id'] ?>">
-                            #<?= $entrada['id'] ?> — <?= esc($entrada['nombre_producto']) ?> (<?= $entrada['fecha'] ?>)
-                        </option>
+                        <?php if (($stockPorProducto[$entrada['id_producto']] ?? 0) > 0): ?>
+                            <option value="<?= $entrada['id'] ?>">
+                                #<?= $entrada['id'] ?> — <?= esc($entrada['nombre_producto']) ?> (<?= $entrada['fecha'] ?>)
+                            </option>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </select>
                 <label><b>Unidad de venta*</b></label>
@@ -610,11 +612,14 @@
         });
     }
  
-    // ── Unidad de venta automática en modal merma ─────────────────
-    document.getElementById('id_entrada_modal').addEventListener('change', function () {
-        const entradas = <?= json_encode(array_column($entradas, 'u_venta', 'id')) ?>;
-        document.getElementById('u_venta_modal').value = entradas[this.value] ?? '';
-    });
+// ── Unidad de venta automática en modal merma ─────────────────
+    const selectEntrada = document.getElementById('id_entrada_modal');
+    if (selectEntrada) {
+        selectEntrada.addEventListener('change', function () {
+            const entradas = <?= json_encode(array_column($entradas, 'u_venta', 'id'), JSON_FORCE_OBJECT) ?>;
+            document.getElementById('u_venta_modal').value = entradas[this.value] || '';
+        });
+    }
  
  
     // ═══════════════════════════════════════════════════════════
