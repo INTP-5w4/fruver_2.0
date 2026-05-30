@@ -61,6 +61,7 @@
             <th>Existencias para venta</th>
             <th>Fecha</th>
             <th>Producto</th>
+            <th>Unidad Venta</th>
             <th>Editar</th>
             <th>Eliminar</th>
         </thead>
@@ -73,6 +74,7 @@
                     <td><?= $e['e_venta'] ?></td>
                     <td><?= $e['fecha'] ?></td>
                     <td><?= $productos[$e['id_producto']]['nombre'] ?></td>
+                    <td><?= $e['u_venta']?></td>
                     <td>
                         <button onclick="abrirModal(
                                     '<?= $e['id'] ?>',
