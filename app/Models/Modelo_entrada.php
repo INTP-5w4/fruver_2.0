@@ -46,8 +46,8 @@ public function ultimaEntradaPorProducto(): array
 
     $rows = $this->db->query(
         "SELECT e.id_producto, e.u_venta, e.precio_venta_u
-         FROM entrada e
-         INNER JOIN ($sub) last ON last.max_id = e.id"
+        FROM entrada e
+        INNER JOIN ($sub) last ON last.max_id = e.id"
     )->getResultArray();
 
     $mapa = [];

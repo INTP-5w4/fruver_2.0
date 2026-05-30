@@ -91,18 +91,18 @@
                 <td><?= esc($e['nombre_producto']) ?></td>
                 </td>
                 <td>
-                    <button onclick="abrirModal(
-                                '<?= $e['id'] ?>',
-                                '<?= $e['fecha'] ?>',
-                                '<?= $e['fecha_cad'] ?>',
-                                '<?= $e['cantidad'] ?>',
-                                '<?= $e['u_compra'] ?>',
-                                '<?= $e['u_venta'] ?>',
-                                '<?= $e['precio_compra_u'] ?>',
-                                '<?= $e['precio_venta_u'] ?>',
-                                '<?= $e['id_producto'] ?>'
-                            )"
-                            class="btn-icono">
+                <button onclick="abrirModal(
+                    '<?= $e['id'] ?>',
+                    '<?= $e['fecha'] ?>',
+                    '<?= $e['fecha_cad'] ?>',
+                    '<?= $e['cantidad'] ?>',
+                    '<?= $e['u_compra'] ?>',
+                    '<?= $e['u_venta'] ?>',
+                    '<?= $e['equivalente'] ?>',
+                    '<?= $e['precio_compra_u'] ?>',
+                    '<?= $e['precio_venta_u'] ?>',
+                    '<?= $e['id_producto'] ?>'
+                )" class="btn-icono">
                         <i class="fa-solid fa-pen-to-square"></i>
                 </td>
                 <td>
@@ -124,6 +124,7 @@
             <label><b>Fecha de entrada</b></label>
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
             <!-- NUEVO: Filtro de categoría -->
+
             <label><b>Categoría</b></label>
             <select id="filtroCategoriaEntrada" class="w3-select w3-border w3-margin-bottom">
                 <option value="">— Todas —</option>
@@ -194,8 +195,10 @@
 
             <label><b>Fecha de entrada*</b></label>
             <input type="date" name="f_ent" id="edit_f_ent"
-                   class="w3-input w3-border w3-margin-bottom" required>
-
+                class="w3-input w3-border w3-margin-bottom" required>
+            <label><b>Fecha de caducidad</b></label>
+            <input type="date" name="f_cad" id="edit_f_cad"
+            class="w3-input w3-border w3-margin-bottom"> 
             <!-- Filtro de categoría (igual que en crear) -->
             <label><b>Categoría</b></label>
             <select id="filtroCategoriaEditar" class="w3-select w3-border w3-margin-bottom">

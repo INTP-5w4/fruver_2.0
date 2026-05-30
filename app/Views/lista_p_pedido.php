@@ -104,7 +104,7 @@
             </td>
             <td onclick="event.stopPropagation()">
                 <a href="<?= base_url('borra_pedido_completo/'.$pedido['id_pedido']) ?>"
-                   onclick="return confirm('¿Eliminar este pedido y todos sus productos?')">
+                onclick="return confirm('¿Eliminar este pedido y todos sus productos?')">
                     <button style="border:none; cursor:pointer; background:none;">
                         <i class="fa-solid fa-trash-can"></i>
                     </button>
@@ -150,7 +150,7 @@
 <div style="display:flex; gap:8px; margin-top:16px; margin-bottom:16px;">
     <?php if ($pagina_actual > 1): ?>
         <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual - 1 ?>"
-           class="w3-button w3-green">← Anterior</a>
+        class="w3-button w3-green">← Anterior</a>
     <?php endif; ?>
 
     <span class="w3-button w3-white w3-border">
@@ -263,13 +263,7 @@
       <div id="paso3" style="display:none;">
         <label><b>Estado inicial*</b></label>
         <select id="est_estado" class="w3-select w3-border w3-margin-bottom">
-          <option value="pedido_realizado">Pedido realizado</option>
-          <option value="pedido_confirmado">Pedido confirmado</option>
-          <option value="pedido_en_transito">Pedido en tránsito</option>
-          <option value="pedido_entregado">Pedido entregado</option>
-          <option value="pedido_a_credito">Pedido a crédito</option>
-          <option value="pedido_pagado">Pedido pagado</option>
-          <option value="pedido_cancelado">Pedido cancelado</option>
+        <option value="pedido_realizado">Pedido realizado</option>
         </select>
         <label><b>Fecha y hora*</b></label>
         <input type="datetime-local" id="est_fecha" class="w3-input w3-border w3-margin-bottom">
@@ -331,15 +325,15 @@
         </select>
         <label><b>Repartidor*</b></label>
         <select id="eped_id_repartidor" class="w3-select w3-border w3-margin-bottom">
-          <?php foreach ($repartidores as $r): ?>
+        <?php foreach ($repartidores as $r): ?>
             <option value="<?= esc($r['id']) ?>">
-              <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?>
+            <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?>
             </option>
-          <?php endforeach; ?>
+        <?php endforeach; ?>
         </select>
-      </div>
+    </div>
 
-      <!-- PASO 2 -->
+    <!-- PASO 2 -->
       <div id="epaso2" style="display:none;">
 
         <label><b>Producto*</b></label>
