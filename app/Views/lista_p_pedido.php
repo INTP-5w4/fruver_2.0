@@ -9,6 +9,13 @@
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Pedidos</title>
+    <style>
+        /* Fix lupa — W3.CSS sobreescribe el padding del input */
+        .prod-search-input {
+            padding: 8px 12px 8px 34px !important;
+            box-sizing: border-box !important;
+        }
+    </style>
 </head>
 <body>
 <?php include 'Header.php'; ?>
@@ -506,18 +513,25 @@ function crearBuscadorProducto(prefijo, onSeleccion) {
     function buscar(texto) {
         const query     = texto.trim().toLowerCase();
         const categoria = selectCat ? selectCat.value : '';
- 
-        if (query.length < 3) {
-            divResultados.style.display = 'none';
-            divResultados.innerHTML = '';
+
+        // Con menos de 3 caracteres mostramos todos (o filtrados por categoría)
+        let candidatos;
+        if (query.length > 0 && query.length < 3) {
+            // Está escribiendo pero aún no llega a 3 — no hacer nada
             return;
+        } else if (query.length === 0) {
+            // Sin texto — mostrar todos
+            candidatos = catalogoProductos.filter(p =>
+                !categoria || p.categoria === categoria
+            );
+        } else {
+            // 3+ caracteres — filtrar por nombre y categoría
+            candidatos = catalogoProductos.filter(p => {
+                const coincideNombre    = p.nombre.toLowerCase().includes(query);
+                const coincideCategoria = !categoria || p.categoria === categoria;
+                return coincideNombre && coincideCategoria;
+            });
         }
- 
-        let candidatos = catalogoProductos.filter(p => {
-            const coincideNombre    = p.nombre.toLowerCase().includes(query);
-            const coincideCategoria = !categoria || p.categoria === categoria;
-            return coincideNombre && coincideCategoria;
-        });
  
         if (candidatos.length === 0) {
             divResultados.innerHTML = '<div class="sin-resultados">Sin resultados para "' + texto + '"</div>';
@@ -594,6 +608,13 @@ function crearBuscadorProducto(prefijo, onSeleccion) {
     inputBuscar.addEventListener('input', debounce(function () {
         buscar(this.value);
     }, 600));
+
+    // Mostrar todos los productos al hacer focus en el campo
+    inputBuscar.addEventListener('focus', function () {
+        if (this.value.trim().length < 3) {
+            buscar('');
+        }
+    });
  
     // Cerrar resultados al hacer clic fuera
     document.addEventListener('click', function (e) {
@@ -735,18 +756,27 @@ function agregarAlCarrito() {
 function renderCarrito() {
     const tbody = document.getElementById('carritoBody');
     tbody.innerHTML = '';
+    let total = 0;
     carrito.forEach((item, i) => {
+        total += parseFloat(item.total);
         tbody.innerHTML += `
           <tr>
             <td>${nombreProducto[item.id_producto]}</td>
             <td>${item.u_venta}</td>
             <td>${item.cant}</td>
-            <td>$${item.p_venta}</td>
-            <td>$${item.total}</td>
+            <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+            <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
             <td><button type="button" onclick="quitarItem(${i})"
                 class="w3-button w3-red w3-small">✕</button></td>
           </tr>`;
     });
+    tbody.innerHTML += `
+      <tr>
+        <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
+        <td><strong>${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</strong></td>
+        <td></td>
+      </tr>`;
+
     document.getElementById('carritoContainer').style.display = carrito.length ? 'block' : 'none';
 }
  
@@ -909,18 +939,26 @@ function eAgregarAlCarrito() {
 function eRenderCarrito() {
     const tbody = document.getElementById('eCarritoBody');
     tbody.innerHTML = '';
+    let total = 0;
     carritoEditar.forEach((item, i) => {
+        total += parseFloat(item.total);
         tbody.innerHTML += `
-          <tr>
+        <tr>
             <td>${nombreProducto[item.id_producto]}</td>
             <td>${item.u_venta}</td>
             <td>${item.cant}</td>
-            <td>$${item.p_venta}</td>
-            <td>$${item.total}</td>
+            <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+            <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
             <td><button type="button" onclick="eQuitarItem(${i})"
                 class="w3-button w3-red w3-small">✕</button></td>
-          </tr>`;
+        </tr>`;
     });
+    tbody.innerHTML += `
+      <tr>
+        <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
+        <td><strong>${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</strong></td>
+        <td></td>
+      </tr>`;
     document.getElementById('eCarritoContainer').style.display = carritoEditar.length ? 'block' : 'none';
 }
  

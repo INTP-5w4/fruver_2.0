@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FRUVER — Panel de Control</title>
+    <style>
+        /* Fix lupa — W3.CSS sobreescribe el padding del input */
+        .prod-search-input {
+            padding: 8px 12px 8px 34px !important;
+            box-sizing: border-box !important;
+        }
+    </style>
     <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
           crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -674,18 +681,24 @@
         function buscar(texto) {
             const query     = texto.trim().toLowerCase();
             const categoria = selectCat ? selectCat.value : '';
- 
-            if (query.length < 3) {
-                divResultados.style.display = 'none';
-                divResultados.innerHTML = '';
-                return;
+
+            // Con 1-2 caracteres no hacer nada
+            if (query.length > 0 && query.length < 3) return;
+
+            let candidatos;
+            if (query.length === 0) {
+                // Sin texto — mostrar todos (filtrados por categoría si aplica)
+                candidatos = catalogoProductos.filter(p =>
+                    !categoria || p.categoria === categoria
+                );
+            } else {
+                // 3+ caracteres — filtrar por nombre y categoría
+                candidatos = catalogoProductos.filter(p => {
+                    const coincideNombre    = p.nombre.toLowerCase().includes(query);
+                    const coincideCategoria = !categoria || p.categoria === categoria;
+                    return coincideNombre && coincideCategoria;
+                });
             }
- 
-            let candidatos = catalogoProductos.filter(p => {
-                const coincideNombre    = p.nombre.toLowerCase().includes(query);
-                const coincideCategoria = !categoria || p.categoria === categoria;
-                return coincideNombre && coincideCategoria;
-            });
  
             if (candidatos.length === 0) {
                 divResultados.innerHTML =
@@ -757,6 +770,13 @@
         inputBuscar.addEventListener('input', debounce(function () {
             buscar(this.value);
         }, 600));
+
+        // Mostrar todos los productos al hacer focus en el campo
+        inputBuscar.addEventListener('focus', function () {
+            if (this.value.trim().length < 3) {
+                buscar('');
+            }
+        });
  
         document.addEventListener('click', function (e) {
             if (!inputBuscar.contains(e.target) && !divResultados.contains(e.target)) {
@@ -874,18 +894,26 @@
     function renderCarrito() {
         const tbody = document.getElementById('carritoBody');
         tbody.innerHTML = '';
+        let total = 0;
         carrito.forEach((item, i) => {
+            total += parseFloat(item.total);
             tbody.innerHTML += `
               <tr>
                 <td>${nombreProducto[item.id_producto]}</td>
                 <td>${item.u_venta}</td>
                 <td>${item.cant}</td>
-                <td>$${item.p_venta}</td>
-                <td>$${item.total}</td>
+                <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+                <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                 <td><button type="button" onclick="quitarItem(${i})"
                     class="w3-button w3-red w3-small">✕</button></td>
               </tr>`;
         });
+        tbody.innerHTML += `
+          <tr>
+            <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
+            <td><strong>${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</strong></td>
+            <td></td>
+          </tr>`;
         document.getElementById('carritoContainer').style.display = carrito.length ? 'block' : 'none';
     }
  
