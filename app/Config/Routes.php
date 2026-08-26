@@ -6,6 +6,7 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 $routes->get('/', 'Productos::main_page');
+$routes->get('main_page_4', 'Productos::main_page_user');
 service('auth')->routes($routes);
 //==========================PRODUCTO=================================
 $routes->get('crea_producto', 'Productos::crea_producto');

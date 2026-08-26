@@ -13,10 +13,18 @@ class Productos extends BaseController
 {
 
     // ─────────────────────────────────────────────────────────────
-    // MAIN PAGE
+    // MAIN PAGE (rol admin / superadmin / developer)
     // ─────────────────────────────────────────────────────────────
     public function main_page()
     {
+        $user = auth()->user();
+
+        // Si el usuario autenticado pertenece al grupo 'user',
+        // lo mandamos a su propio dashboard
+        if ($user->inGroup('user')) {
+            return redirect()->to('main_page_4');
+        }
+
         $m_producto   = new Modelo_producto();
         $m_cliente    = new Modelo_cliente();
         $m_repartidor = new Modelo_repartidor();
@@ -56,6 +64,46 @@ class Productos extends BaseController
         ];
 
         return view('main_page3', $datos);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // MAIN PAGE (rol user)
+    // ─────────────────────────────────────────────────────────────
+    public function main_page_user()
+    {
+        $m_producto   = new Modelo_producto();
+        $m_cliente    = new Modelo_cliente();
+        $m_repartidor = new Modelo_repartidor();
+        $m_pedido     = new Modelo_pedido();
+        $m_entrada    = new Modelo_entrada();
+        $m_existencia = new Modelo_existencia();
+        $m_merma      = new \App\Models\Modelo_merma();
+
+        $ultimasEntradas = $m_entrada->ultimaEntradaPorProducto();
+        $uVentaSugerida = [];
+        $precioSugerido = [];
+        foreach ($ultimasEntradas as $id => $datos_ent) {
+            $uVentaSugerida[$id] = $datos_ent['u_venta'];
+            $precioSugerido[$id] = $datos_ent['precio_venta_u'];
+        }
+
+        $datos = [
+            'productosLowStock' => $m_producto->productosLowStock(),
+            'productos'         => $m_producto->findAll(),
+            'clientes'          => $m_cliente->findAll(),
+            'repartidores'      => $m_repartidor->findAll(),
+            'pedidos'           => $m_pedido->findAll(),
+            'entradas'          => $m_entrada->getEntradasConProducto(),
+            'pedidosPorMes'     => $m_pedido->pedidosPorMes(),
+            'ventasPorMes'      => $m_pedido->totalVentasPorMes(),
+            'topProductos'      => $m_producto->topProductos(),
+            'perdidasMerma'     => $m_merma->perdidasPorMes(),
+            'uVentaSugeridaPorProducto' => $uVentaSugerida,
+            'precioSugeridoPorProducto' => $precioSugerido,
+            'stockPorProducto'          => $m_existencia->stockDisponiblePorProducto(),
+        ];
+
+        return view('main_page_4', $datos);
     }
 
     // ─────────────────────────────────────────────────────────────
