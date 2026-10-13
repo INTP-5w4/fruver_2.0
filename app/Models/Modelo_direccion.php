@@ -1,32 +1,39 @@
-<?php 
+<?php
+
 namespace App\Models;
 
-use CodeIgniter\Model;
-
-class Modelo_direccion extends Model{
-    protected $table      = 'direccion';
-    // Uncomment below if you want add primary key
-    protected $primaryKey = 'id';
-    protected $allowedFields = ['colonia','calle','numero','municipio','estado','id_cliente'];
-
-public function busqueda($texto = '')
+class Modelo_direccion extends PdoModelo
 {
-    $this->select('d.*, c.nombre, c.ape_pat, c.ape_mat')
-         ->from('direccion d', true)   // reemplaza la tabla base
-         ->join('cliente c', 'c.id = d.id_cliente');
+    protected string $tabla         = 'direccion';
+    protected string $llavePrimaria = 'id';
 
-    if (!empty($texto)) {
-        $this->groupStart()
-                ->like('c.nombre',   $texto)
-                ->orLike('d.id', $texto)
-                ->orLike('c.ape_pat', $texto)
-                ->orLike('d.colonia', $texto)
-                ->orLike('d.calle',   $texto)
-                ->orLike('d.municipio', $texto)
-                ->orLike('d.estado',  $texto)
-             ->groupEnd();
+    protected array $camposPermitidos = ['colonia', 'calle', 'numero', 'municipio', 'estado', 'id_cliente'];
+
+    /**
+     * Lista paginada de direcciones junto con el nombre de su cliente.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function listar(?string $buscar = '', int $porPagina = 20): array
+    {
+        $buscar = trim((string) $buscar);
+        $where  = '';
+        $params = [];
+
+        if ($buscar !== '') {
+            $like  = $this->patronLike($buscar);
+            $where = ' WHERE (c.nombre LIKE ? OR d.id LIKE ? OR c.ape_pat LIKE ? OR d.colonia LIKE ?'
+                   . ' OR d.calle LIKE ? OR d.municipio LIKE ? OR d.estado LIKE ?)';
+            $params = array_fill(0, 7, $like);
+        }
+
+        return $this->paginarSql(
+            'SELECT d.*, c.nombre, c.ape_pat, c.ape_mat
+               FROM direccion d
+               JOIN cliente c ON c.id = d.id_cliente' . $where . '
+              ORDER BY d.id DESC',
+            $params,
+            $porPagina
+        );
     }
-
-    return $this; // devuelve el builder del modelo para encadenar
-}
 }

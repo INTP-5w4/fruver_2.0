@@ -65,6 +65,7 @@
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
            
             <form action="<?= base_url('guarda_cliente') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
                 <label><b>Nombre</b></label>
                 <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom" required>
@@ -92,6 +93,7 @@
     <div id="modalDireccion" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
             <form action="<?= base_url('guarda_direccion') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <label><b>Colonia</b></label>
                 <input type="text" name="col" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Calle</b></label>
@@ -155,6 +157,7 @@
     <div id="modalEntrada" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Fecha de entrada</b></label>
             <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
@@ -205,6 +208,7 @@
 <div id="modalPedido" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_pedido') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Fecha</b></label>
             <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" required>
@@ -241,6 +245,7 @@
 <div id="modalProducto" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Nombre</b></label>
             <input type="text" name="nom" placeholder="Ej: Tomate Saladet"
@@ -274,6 +279,7 @@
 <div id="modalRepartidor" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Nombre</b></label>
             <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom" required>
@@ -308,6 +314,7 @@
 <div id="modalEstatus" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Estado</b></label>
             <select name="edo" class="w3-select w3-border w3-margin-bottom" required>
@@ -327,7 +334,7 @@
             <label><b>Pedido</b></label>
             <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($pedidos as $p): ?>
-                    <option value="<?= $p['id'] ?>"><?= $p['id'] ?></option>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
                 <?php endforeach; ?>
             </select>
 
@@ -345,6 +352,7 @@
 <div id="modalExistencia" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_existencia') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Existencias totales</b></label>
             <input type="number" name="e_total"
@@ -365,7 +373,7 @@
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($frutas as $p): ?>
-                    <option value="<?= $p['id'] ?>"><?= esc($p['nombre']) ?></option>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
 
@@ -383,6 +391,7 @@
 <div id="modalMerma" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Cantidad</b></label>
             <input type="number" name="cant"
@@ -399,7 +408,7 @@
             <label><b>Entrada</b></label>
             <select name="id_entrada" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($entradas as $e): ?>
-                    <option value="<?= $e['id'] ?>"><?= $e['id'] ?></option>
+                    <option value="<?= esc($e['id']) ?>"><?= esc($e['id']) ?></option>
                 <?php endforeach; ?>
             </select>
 
@@ -417,6 +426,7 @@
 <div id="modalPPedido" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('guarda_p_pedido') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Cantidad</b></label>
             <input type="number" name="cant"
@@ -443,14 +453,14 @@
             <label><b>Pedido</b></label>
             <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($pedidos as $p): ?>
-                    <option value="<?= $p['id'] ?>"><?= $p['id'] ?></option>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
                 <?php endforeach; ?>
             </select>
 
             <label><b>Producto</b></label>
             <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($frutas as $pr): ?>
-                    <option value="<?= $pr['id'] ?>"><?= esc($pr['nombre']) ?></option>
+                    <option value="<?= esc($pr['id']) ?>"><?= esc($pr['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
 

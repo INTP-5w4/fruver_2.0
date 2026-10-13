@@ -7,6 +7,7 @@
 </head>
 <body>
     <form action="<?= base_url('guarda_estatus')?>" method="post">
+<?= csrf_field() ?>
         <label for="estado">Estado:</label><br>
         <select name="edo" id="">
             <option value="pedido_realizado">Pedido realizado</option>
@@ -18,12 +19,12 @@
             <option value="pedido_cancelado">Pedido cancelado</option>
         </select><br>
         <label for="fecha">Fecha:</label><br>
-        <input type="timestamp" name="fecha" id="" value="<?= $timestamp ?>"><br>
+        <input type="timestamp" name="fecha" id="" value="<?= esc($timestamp) ?>"><br>
         
         <label for="id_pedido">ID Pedido:</label><br>
         <select name="id_pedido" id="">
             <?php foreach($pedidos as $p): ?>
-                <option value="<?= $p['id'] ?>"><?= $p['id'] ?></option>
+                <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
             <?php endforeach; ?>
         </select><br>
         <input type="submit" value="Enviar">

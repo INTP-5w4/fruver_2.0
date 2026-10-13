@@ -7,12 +7,13 @@
 </head>
 <body>
     <form action="<?php echo base_url('modifica_p_pedido'); ?>" method="post">
-    <input type="hidden" name="id" value="<?= $p_pedidos['id'] ?>">
+<?= csrf_field() ?>
+    <input type="hidden" name="id" value="<?= esc($p_pedidos['id']) ?>">
     <label for="cantidad">Cantidad:</label><br>
-    <input type="number" id="cantidad" name="cant" required value="<?= $p_pedidos['cantidad'] ?>"><br>
+    <input type="number" id="cantidad" name="cant" required value="<?= esc($p_pedidos['cant']) ?>"><br>
 
     <label for="p_venta">Precio de venta:</label><br>
-    <input type="number" id="p_venta" name="p_venta" step="0.01" required value="<?= $p_pedidos['precio_venta'] ?>"><br>
+    <input type="number" id="p_venta" name="p_venta" step="0.01" required value="<?= esc($p_pedidos['precio_venta']) ?>"><br>
 
     <label for="u_venta">Unidad de venta:</label><br>
     <select name="u_venta" id="">
@@ -23,19 +24,19 @@
     </select><br>
 
     <label for="tot">Total:</label><br>
-    <input type="number" id="tot" name="tot" step="0.01" required value="<?= $p_pedidos['total'] ?>"><br>
+    <input type="number" id="tot" name="tot" step="0.01" required value="<?= esc($p_pedidos['total']) ?>"><br>
 
     <label for="id_pedido">ID Pedido:</label><br>
     <select name="id_pedido" id="">
         <?php foreach($pedidos as $p): ?>
-            <option value="<?php echo $p['id']; ?>" <?php echo ($p_pedidos['id_pedido'] == $p['id']) ? 'selected' : ''; ?>><?= $p['id'] ?></option>
+            <option value="<?= esc($p['id']) ?>" <?php echo ($p_pedidos['id_pedido'] == $p['id']) ? 'selected' : ''; ?>><?= esc($p['id']) ?></option>
         <?php endforeach; ?>
     </select><br>
 
     <label for="id_producto">Producto:</label><br>
     <select name="id_producto" id="">
         <?php foreach($productos as $pr): ?>
-            <option value="<?php echo $pr['id']; ?>" <?php echo ($p_pedidos['id_producto'] == $pr['id']) ? 'selected' : ''; ?>><?= $pr['nombre'] ?></option>
+            <option value="<?= esc($pr['id']) ?>" <?php echo ($p_pedidos['id_producto'] == $pr['id']) ? 'selected' : ''; ?>><?= esc($pr['nombre']) ?></option>
         <?php endforeach; ?>
     </select><br>
     <input type="submit" value="Enviar">

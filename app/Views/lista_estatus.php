@@ -15,13 +15,13 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
@@ -45,27 +45,26 @@
         <tbody>
             <?php foreach($estatus as $e): ?>
                 <tr>
-                    <td><?= $e['id'] ?></td>
-                    <td><?= $e['estado'] ?></td>
-                    <td><?= $e['fecha'] ?></td>
-                    <td><?= $e['id_pedido'] ?></td>
+                    <td><?= esc($e['id']) ?></td>
+                    <td><?= esc($e['estado']) ?></td>
+                    <td><?= esc($e['fecha']) ?></td>
+                    <td><?= esc($e['id_pedido']) ?></td>
                     <td>
                         <button onclick="abrirModal(
-                                    '<?= $e['id'] ?>',
-                                    '<?= $e['estado'] ?>',
-                                    '<?= $e['fecha'] ?>',
-                                    '<?= $e['id_pedido'] ?>'
+                                    '<?= esc($e['id'], 'js') ?>',
+                                    '<?= esc($e['estado'], 'js') ?>',
+                                    '<?= esc($e['fecha'], 'js') ?>',
+                                    '<?= esc($e['id_pedido'], 'js') ?>'
                                 )"
                                 style="border:none; cursor:pointer; background:none;">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     </td>
                     <td>
-                        <a href="<?= base_url('borra_id_estatus/'.$e['id']) ?>">
-                            <button style="border:none; cursor:pointer; background:none;">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </a>
+                        <form method="post" action="<?= base_url('borra_id_estatus/' . (int) $e['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+</form>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -76,6 +75,7 @@
     <div id="modalEditarEstatus" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
             <form action="<?= base_url('modifica_estatus') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
                 <input type="hidden" name="id" id="edit_id">
 
@@ -113,6 +113,7 @@
 <div id="modalCrearEstatus" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Pedido*</b></label>
             <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>

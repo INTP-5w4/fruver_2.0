@@ -14,6 +14,7 @@
         </header>
 
         <form action="<?= base_url('guarda_direccion') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
             <label><b>Colonia</b></label>
             <input type="text" name="col" class="modal-input" required>

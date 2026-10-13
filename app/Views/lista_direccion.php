@@ -16,13 +16,13 @@
  <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
@@ -62,35 +62,34 @@
         <tbody>
             <?php foreach ($direcciones as $d): ?>
                 <tr>
-                    <td><?= $d['id'] ?></td>
-                    <td><?= $d['colonia'] ?></td>
-                    <td><?= $d['calle'] ?></td>
-                    <td><?= $d['numero'] ?></td>
-                    <td><?= $d['municipio'] ?></td>
-                    <td><?= $d['estado'] ?></td>
+                    <td><?= esc($d['id']) ?></td>
+                    <td><?= esc($d['colonia']) ?></td>
+                    <td><?= esc($d['calle']) ?></td>
+                    <td><?= esc($d['numero']) ?></td>
+                    <td><?= esc($d['municipio']) ?></td>
+                    <td><?= esc($d['estado']) ?></td>
                     <td>
                         <?= esc($d['nombre'].' '.$d['ape_pat'].' '.$d['ape_mat']) ?>
                     </td>
                     <td>
                         <button onclick="abrirModal(
-                                    '<?= $d['id'] ?>',
-                                    '<?= esc($d['colonia']) ?>',
-                                    '<?= esc($d['calle']) ?>',
-                                    '<?= esc($d['numero']) ?>',
-                                    '<?= esc($d['municipio']) ?>',
-                                    '<?= esc($d['estado']) ?>',
-                                    '<?= $d['id_cliente'] ?>'
+                                    '<?= esc($d['id'], 'js') ?>',
+                                    '<?= esc($d['colonia'], 'js') ?>',
+                                    '<?= esc($d['calle'], 'js') ?>',
+                                    '<?= esc($d['numero'], 'js') ?>',
+                                    '<?= esc($d['municipio'], 'js') ?>',
+                                    '<?= esc($d['estado'], 'js') ?>',
+                                    '<?= esc($d['id_cliente'], 'js') ?>'
                                 )"
                                 class="btn-icono">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     </td>
                     <td>
-                        <a href="<?= base_url('borra_id_direccion/'.$d['id']) ?>">
-                            <button class="btn-icono">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </a>
+                        <form method="post" action="<?= base_url('borra_id_direccion/' . (int) $d['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" class="btn-icono"><i class="fa-solid fa-trash-can"></i></button>
+</form>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -109,6 +108,7 @@
             </header>
 
             <form action="<?= base_url('guarda_direccion') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
                 <label><b>Colonia*</b></label>
                 <input type="text" placeholder="Ej: Centro" name="col" class="modal-input" required>
@@ -127,15 +127,15 @@
                     <?php
                     $estados = ["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de Mexico","Coahuila","Colima","Durango","Estado de Mexico","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla","Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatan","Zacatecas"];
                     foreach ($estados as $e): ?>
-                        <option value="<?= $e ?>"><?= $e ?></option>
+                        <option value="<?= esc($e) ?>"><?= esc($e) ?></option>
                     <?php endforeach; ?>
                 </select>
 
                 <label><b>Cliente*</b></label>
                 <select name="id_cliente" class="modal-input" required>
                     <?php foreach ($clientes as $cliente): ?>
-                        <option value="<?= $cliente['id'] ?>">
-                            <?= $cliente['nombre'].' '.$cliente['ape_pat'].' '.$cliente['ape_mat'] ?>
+                        <option value="<?= esc($cliente['id']) ?>">
+                            <?= esc($cliente['nombre'].' '.$cliente['ape_pat'].' '.$cliente['ape_mat']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -162,6 +162,7 @@
             </header>
 
             <form action="<?= base_url('modifica_direccion') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
                 <input type="hidden" name="id" id="edit_id">
 
@@ -180,15 +181,15 @@
                 <label><b>Estado*</b></label>
                 <select name="edo" id="edit_edo" class="modal-input" required>
                     <?php foreach ($estados as $e): ?>
-                        <option value="<?= $e ?>"><?= $e ?></option>
+                        <option value="<?= esc($e) ?>"><?= esc($e) ?></option>
                     <?php endforeach; ?>
                 </select>
 
                 <label><b>Cliente*</b></label>
                 <select name="id_cliente" id="edit_id_cliente" class="modal-input" required>
                     <?php foreach ($clientes as $cliente): ?>
-                        <option value="<?= $cliente['id'] ?>">
-                            <?= $cliente['nombre'].' '.$cliente['ape_pat'].' '.$cliente['ape_mat'] ?>
+                        <option value="<?= esc($cliente['id']) ?>">
+                            <?= esc($cliente['nombre'].' '.$cliente['ape_pat'].' '.$cliente['ape_mat']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

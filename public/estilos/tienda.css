@@ -1,0 +1,330 @@
+/* ============================================================
+   FRUVER · Landing de la tienda (main_page_4)
+   Estructura tipo tienda en línea (barra, filas por categoría, carrito),
+   estética de puesto de mercado: papel, tinta verde y etiquetas de precio.
+   ============================================================ */
+
+:root {
+    --hoja: #0b7d2e;
+    --hoja-oscura: #08481d;
+    --papel: #f4f6ee;
+    --tinta: #1d2a1f;
+    --tinta-suave: #4f5d53;
+    --linea: #d8dfcc;
+    --blanco: #ffffff;
+    --mango: #f0b323;
+    --alerta: #a8231b;
+    --alerta-fondo: #fdecea;
+    --ok-fondo: #e3f3df;
+    --foco: #0b57d0;
+
+    --f-titulo: 'Bricolage Grotesque', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    --f-texto: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+    --gutter: 16px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 130px; }
+
+body {
+    margin: 0;
+    background: var(--papel);
+    color: var(--tinta);
+    font-family: var(--f-texto);
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+img { max-width: 100%; display: block; }
+a { color: var(--hoja); }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+:focus-visible {
+    outline: 3px solid var(--foco);
+    outline-offset: 2px;
+}
+
+.solo-lector {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+.saltar {
+    position: absolute; left: 8px; top: -60px; z-index: 100;
+    background: var(--blanco); color: var(--tinta); padding: 10px 14px; border-radius: 8px;
+}
+.saltar:focus { top: 8px; }
+
+/* ---------- Barra superior ---------- */
+.barra {
+    position: sticky; top: 0; z-index: 50;
+    background: var(--hoja-oscura); color: var(--blanco);
+}
+
+.barra-fila {
+    display: flex; align-items: center; gap: 14px;
+    max-width: 1320px; margin: 0 auto; padding: 10px var(--gutter);
+}
+
+.logo {
+    font-family: var(--f-titulo); font-weight: 800; font-size: 1.9rem; letter-spacing: -0.02em;
+    color: var(--blanco); text-decoration: none; line-height: 1;
+}
+
+.buscador {
+    flex: 1 1 auto; display: flex; min-width: 0;
+    background: var(--blanco); border-radius: 10px; overflow: hidden;
+}
+.buscador input {
+    flex: 1 1 auto; min-width: 0; border: 0; padding: 11px 14px; background: transparent; color: var(--tinta);
+}
+.buscador input:focus-visible { outline-offset: -3px; }
+.buscador button {
+    border: 0; background: var(--mango); color: var(--tinta); width: 52px;
+    display: grid; place-items: center;
+}
+.buscador button:hover { background: #f6c23f; }
+
+.cuenta { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; white-space: nowrap; }
+.cuenta-saludo { color: #d6e8d9; }
+.cuenta-saludo strong { color: var(--blanco); }
+.cuenta-enlace { color: var(--blanco); text-decoration: underline; text-underline-offset: 3px; }
+.cuenta-enlace:hover { color: var(--mango); }
+
+.btn-carrito {
+    position: relative; display: flex; align-items: center; gap: 8px;
+    background: transparent; border: 2px solid rgba(255, 255, 255, 0.35); color: var(--blanco);
+    border-radius: 10px; padding: 6px 12px;
+}
+.btn-carrito:hover { border-color: var(--mango); }
+.btn-carrito-cuenta {
+    min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px;
+    background: var(--mango); color: var(--tinta); font-weight: 700; font-size: 0.85rem;
+    display: grid; place-items: center;
+}
+.btn-carrito-texto { font-weight: 600; }
+
+.categorias {
+    background: var(--hoja); display: flex; gap: 4px; overflow-x: auto;
+    padding: 0 var(--gutter);
+}
+.categorias a {
+    color: var(--blanco); text-decoration: none; padding: 9px 16px; font-weight: 600; white-space: nowrap;
+}
+.categorias a:hover { background: rgba(0, 0, 0, 0.18); }
+
+/* ---------- Avisos ---------- */
+.avisos { max-width: 1320px; margin: 0 auto; padding: 0 var(--gutter); }
+.aviso { margin: 14px 0 0; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--linea); background: var(--blanco); }
+.aviso-ok { background: var(--ok-fondo); border-color: #b6dcae; }
+.aviso-error { background: var(--alerta-fondo); border-color: #f0b9b4; color: var(--alerta); font-weight: 600; }
+
+/* ---------- Catálogo ---------- */
+.catalogo { max-width: 1320px; margin: 0 auto; padding: 8px var(--gutter) 40px; }
+
+.resultado-busqueda { margin: 18px 0 0; color: var(--tinta-suave); }
+
+.fila {
+    --acento: var(--hoja); --acento-texto: var(--blanco);
+    margin-top: 28px; padding: 18px 0 8px;
+}
+.fila-frutas   { --acento: #e8a010; --acento-texto: #1d2a1f; }
+.fila-hierbas  { --acento: #2bb5a0; --acento-texto: #10241f; }
+.fila-verduras { --acento: #2f7a1e; --acento-texto: #ffffff; }
+
+.fila-cabeza { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; }
+.fila-cabeza h2 {
+    margin: 0; font-family: var(--f-titulo); font-weight: 800; font-size: clamp(1.7rem, 3vw, 2.3rem);
+    letter-spacing: -0.02em; line-height: 1.1;
+    padding-left: 14px; border-left: 8px solid var(--acento);
+}
+.fila-conteo { margin: 0; color: var(--tinta-suave); font-size: 0.95rem; }
+
+.fila-flechas { margin-left: auto; display: flex; gap: 8px; align-self: center; }
+.fila-flechas button {
+    width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--tinta);
+    background: var(--blanco); font-size: 1.5rem; line-height: 1; display: grid; place-items: center; padding: 0 0 3px;
+}
+.fila-flechas button:hover { background: var(--tinta); color: var(--blanco); }
+
+.fila-vacia {
+    margin: 0; padding: 22px; border: 2px dashed var(--linea); border-radius: 14px;
+    color: var(--tinta-suave); background: rgba(255, 255, 255, 0.5);
+}
+
+.pista {
+    list-style: none; margin: 0; padding: 4px 2px 14px;
+    display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+}
+
+/* ---------- Tarjeta de producto ---------- */
+.producto {
+    flex: 0 0 232px; scroll-snap-align: start;
+    background: var(--blanco); border: 1px solid var(--linea); border-radius: 16px; overflow: hidden;
+    display: flex; flex-direction: column;
+}
+
+.foto {
+    position: relative; aspect-ratio: 13 / 10; overflow: hidden;
+    background: color-mix(in srgb, var(--acento) 16%, var(--papel));
+    display: grid; place-items: center;
+}
+.foto img { width: 100%; height: 100%; object-fit: cover; }
+.inicial {
+    font-family: var(--f-titulo); font-weight: 800; font-size: 4.5rem; line-height: 1;
+    color: color-mix(in srgb, var(--acento) 70%, var(--tinta));
+}
+.agotado .foto img { filter: grayscale(1); opacity: 0.55; }
+.sello {
+    position: absolute; left: 10px; top: 10px; padding: 3px 10px; border-radius: 6px;
+    background: var(--tinta); color: var(--blanco); font-weight: 700; font-size: 0.85rem;
+}
+
+.cuerpo { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.nombre { margin: 0; font-family: var(--f-titulo); font-weight: 700; font-size: 1.15rem; line-height: 1.2; }
+.desc {
+    margin: 0; color: var(--tinta-suave); font-size: 0.9rem; line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    height: 2.7em;
+}
+
+/* La etiqueta de precio: la pieza memorable de la página. */
+.etiqueta {
+    position: relative; align-self: flex-start; margin: 4px 0 0;
+    display: inline-flex; align-items: baseline; gap: 6px;
+    padding: 5px 14px 5px 28px;
+    background: var(--acento); color: var(--acento-texto);
+    clip-path: polygon(16px 0, 100% 0, 100% 100%, 16px 100%, 0 50%);
+}
+.etiqueta::before {
+    content: ''; position: absolute; left: 13px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px;
+    border-radius: 50%; background: var(--blanco);
+}
+.precio { font-family: var(--f-titulo); font-weight: 800; font-size: 1.35rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.unidad { font-size: 0.85rem; font-weight: 600; }
+
+.stock-bajo { margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--alerta); }
+
+.agregar { margin-top: auto; padding-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.cuerpo > .btn { margin-top: auto; }
+
+.cantidad {
+    display: flex; align-items: stretch; border: 2px solid var(--tinta); border-radius: 10px; overflow: hidden; width: 100%;
+}
+.cantidad .paso { width: 42px; border: 0; background: var(--papel); font-size: 1.25rem; font-weight: 700; }
+.cantidad .paso:hover { background: var(--linea); }
+.cantidad input {
+    flex: 1; min-width: 0; text-align: center; border: 0; font-weight: 700; background: var(--blanco);
+    -moz-appearance: textfield; appearance: textfield;
+}
+.cantidad input::-webkit-outer-spin-button,
+.cantidad input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* ---------- Botones ---------- */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none;
+    padding: 10px 14px; border-radius: 10px; border: 2px solid transparent; font-weight: 700; line-height: 1.2;
+}
+.btn-primario { background: var(--hoja); color: var(--blanco); }
+.btn-primario:hover:not(:disabled) { background: var(--hoja-oscura); }
+.btn-borde { background: var(--blanco); color: var(--tinta); border-color: var(--tinta); }
+.btn-borde:hover:not(:disabled) { background: var(--tinta); color: var(--blanco); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-grande { width: 100%; padding: 14px; font-size: 1.05rem; }
+.btn-texto { background: none; border: 0; color: var(--tinta-suave); text-decoration: underline; padding: 6px; align-self: center; }
+.btn-texto:hover { color: var(--alerta); }
+
+/* ---------- Panel del carrito (<dialog>) ---------- */
+.panel-carrito {
+    position: fixed; inset: 0 0 0 auto; margin: 0; padding: 0; border: 0;
+    width: min(440px, 100vw); height: 100dvh; max-height: none;
+    background: var(--papel); color: var(--tinta);
+    box-shadow: -12px 0 40px rgba(8, 40, 18, 0.25);
+}
+.panel-carrito[open] { display: flex; flex-direction: column; animation: panel-entra 0.22s ease-out; }
+.panel-carrito::backdrop { background: rgba(8, 40, 18, 0.5); }
+
+@keyframes panel-entra { from { transform: translateX(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.panel-cabeza {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; background: var(--hoja-oscura); color: var(--blanco);
+}
+.panel-cabeza h2 { margin: 0; font-family: var(--f-titulo); font-size: 1.4rem; }
+.panel-cerrar { background: none; border: 0; color: inherit; font-size: 2rem; line-height: 1; padding: 0 6px; }
+
+.panel-cuerpo { flex: 1 1 auto; overflow-y: auto; padding: 8px 18px; }
+.panel-vacio { color: var(--tinta-suave); padding: 24px 0; margin: 0; }
+
+.lineas { list-style: none; margin: 0; padding: 0; }
+.linea {
+    display: grid; grid-template-columns: 56px 1fr auto; gap: 4px 12px; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--linea);
+}
+.linea-foto {
+    width: 56px; height: 56px; border-radius: 10px; background: var(--linea); object-fit: cover;
+    display: grid; place-items: center; font-family: var(--f-titulo); font-weight: 800; font-size: 1.5rem; color: var(--tinta-suave);
+}
+.linea-nombre { margin: 0; font-weight: 700; line-height: 1.25; }
+.linea-precio { margin: 0; font-size: 0.85rem; color: var(--tinta-suave); }
+.linea-subtotal { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.linea-controles { grid-column: 2 / 4; display: flex; align-items: center; gap: 12px; }
+.linea .cantidad { width: 124px; }
+.linea .cantidad .paso { width: 34px; }
+.linea-quitar { background: none; border: 0; color: var(--tinta-suave); text-decoration: underline; padding: 4px; }
+.linea-quitar:hover { color: var(--alerta); }
+.linea-exceso { grid-column: 1 / 4; margin: 0; color: var(--alerta); font-size: 0.85rem; font-weight: 700; }
+
+.panel-pie {
+    flex: 0 0 auto; padding: 14px 18px 18px; background: var(--blanco); border-top: 2px solid var(--tinta);
+    display: flex; flex-direction: column; gap: 10px; max-height: 62vh; overflow-y: auto;
+}
+.panel-error { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--alerta-fondo); color: var(--alerta); font-weight: 600; }
+
+.contacto {
+    border: 1px solid var(--linea); border-radius: 12px; padding: 10px 14px 14px; margin: 0;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.contacto-ayuda { grid-column: 1 / -1; }
+.contacto legend { font-weight: 700; padding: 0 6px; }
+.contacto-ayuda { margin: 0; font-size: 0.85rem; color: var(--tinta-suave); }
+.contacto .rotulo { display: block; }
+.contacto label { display: grid; gap: 4px; font-weight: 600; font-size: 0.9rem; align-content: start; min-width: 0; }
+.contacto input { width: 100%; min-width: 0; padding: 9px 11px; border: 2px solid var(--linea); border-radius: 8px; background: var(--blanco); font-weight: 400; }
+.contacto input:focus-visible { border-color: var(--foco); }
+.opcional { font-weight: 400; color: var(--tinta-suave); }
+
+.total { display: flex; align-items: baseline; justify-content: space-between; font-size: 1.1rem; }
+.total strong { font-family: var(--f-titulo); font-size: 1.8rem; font-variant-numeric: tabular-nums; }
+
+/* ---------- Pie ---------- */
+.pie { background: var(--hoja-oscura); color: #cfe3d3; text-align: center; padding: 22px var(--gutter); }
+.pie p { margin: 0; }
+
+/* ---------- Móvil ---------- */
+@media (max-width: 860px) {
+    html { scroll-padding-top: 160px; }
+    .barra-fila { flex-wrap: wrap; row-gap: 8px; }
+    .logo { order: 1; }
+    .cuenta { order: 2; margin-left: auto; }
+    .btn-carrito { order: 3; }
+    .buscador { order: 4; flex: 1 1 100%; }
+    .cuenta-saludo { display: none; }
+    .btn-carrito-texto { display: none; }
+}
+
+@media (max-width: 520px) {
+    .producto { flex-basis: 196px; }
+    .fila-flechas { display: none; }
+    .fila-conteo { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .panel-carrito[open] { animation: none; }
+}

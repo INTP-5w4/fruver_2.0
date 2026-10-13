@@ -18,13 +18,13 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
@@ -74,40 +74,38 @@
                 $entradaEncontrada = reset($entradaEncontrada);
             ?>
             <tr>
-                <td><?= $m['id'] ?></td>
-                <td><?= $m['cantidad'] ?></td>
-                <td><?= $m['fecha'] ?></td>
+                <td><?= esc($m['id']) ?></td>
+                <td><?= esc($m['cantidad']) ?></td>
+                <td><?= esc($m['fecha']) ?></td>
                 <td><?= esc($m['notas']) ?></td>
 
                 <td>
-                    <?= $entradaEncontrada
+                    <?= esc($entradaEncontrada
                         ? '#'.$entradaEncontrada['id'].' — '.esc($entradaEncontrada['nombre_producto']).' ('.$entradaEncontrada['fecha'].')'
-                        : 'N/A' ?>
+                        : 'N/A') ?>
                 </td>
 
                 <td>
-                    <?= $entradaEncontrada ? esc($entradaEncontrada['u_venta']) : 'N/A' ?>
+                    <?= esc($entradaEncontrada ? esc($entradaEncontrada['u_venta']) : 'N/A') ?>
                 </td>
 
                 <td>
                     <button onclick="abrirModal(
-                                '<?= esc($m['id']) ?>',
-                                '<?= esc($m['cantidad']) ?>',
-                                '<?= esc($m['fecha']) ?>',
-                                '<?= esc($m['notas']) ?>',
-                                '<?= esc($m['id_entrada']) ?>'
+                                '<?= esc($m['id'], 'js') ?>',
+                                '<?= esc($m['cantidad'], 'js') ?>',
+                                '<?= esc($m['fecha'], 'js') ?>',
+                                '<?= esc($m['notas'], 'js') ?>',
+                                '<?= esc($m['id_entrada'], 'js') ?>'
                             )"
                             style="border:none; cursor:pointer; background:none;">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                 </td>
                 <td>
-                    <a href="<?= base_url('borra_id_merma/'.$m['id']) ?>"
-                       onclick="return confirm('¿Estás seguro de que quieres eliminar esta merma?')">
-                        <button style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </a>
+                    <form method="post" action="<?= base_url('borra_id_merma/' . (int) $m['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta merma?');">
+<?= csrf_field() ?>
+<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+</form>
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -119,13 +117,14 @@
 <div id="modalCrearMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
             <label><b>Entrada*</b></label>
             <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="">-- Selecciona una entrada --</option>
                 <?php foreach ($entradas as $entrada): ?>
                     <?php if (($stockPorProducto[$entrada['id_producto']] ?? 0) > 0): ?>
-                        <option value="<?= $entrada['id'] ?>">
-                            #<?= $entrada['id'] ?> — <?= esc($entrada['nombre_producto']) ?> (<?= $entrada['fecha'] ?>)
+                        <option value="<?= esc($entrada['id']) ?>">
+                            #<?= esc($entrada['id']) ?> — <?= esc($entrada['nombre_producto']) ?> (<?= esc($entrada['fecha']) ?>)
                         </option>
                     <?php endif; ?>
                 <?php endforeach; ?>
@@ -156,6 +155,7 @@
 <div id="modalEditarMerma" class="w3-modal" style="padding-top:100px; z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
         <form action="<?= base_url('modifica_merma') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <input type="hidden" name="id" id="edit_id">
 
@@ -176,8 +176,8 @@
                     class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($entradas as $e): ?>
                     <?php $tieneStock = ($stockPorProducto[$e['id_producto']] ?? 0) > 0; ?>
-                    <option value="<?= $e['id'] ?>" <?= !$tieneStock ? 'data-sin-stock="true" style="display:none;"' : '' ?>>
-                        #<?= $e['id'] ?> — <?= esc($e['nombre_producto']) ?> (<?= $e['fecha'] ?>)
+                    <option value="<?= esc($e['id']) ?>" <?= !$tieneStock ? 'data-sin-stock="true" style="display:none;"' : '' ?>>
+                        #<?= esc($e['id']) ?> — <?= esc($e['nombre_producto']) ?> (<?= esc($e['fecha']) ?>)
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -243,7 +243,7 @@
     const selectEntrada = document.getElementById('id_entrada_modal');
     if (selectEntrada) {
         selectEntrada.addEventListener('change', function () {
-            const unidadesVenta = <?= json_encode(array_column($entradas, 'u_venta', 'id'), JSON_FORCE_OBJECT) ?>;
+            const unidadesVenta = <?= json_seguro(array_column($entradas, 'u_venta', 'id'), JSON_FORCE_OBJECT) ?>;
             document.getElementById('u_venta_modal').value = unidadesVenta[this.value] || '';
         });
     }

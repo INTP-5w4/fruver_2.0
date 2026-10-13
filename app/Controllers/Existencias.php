@@ -1,101 +1,132 @@
-<?php 
+<?php
+
 namespace App\Controllers;
 
 use App\Models\Modelo_existencia;
 use App\Models\Modelo_producto;
-use CodeIgniter\Controller;
+use App\Models\PdoModelo;
+use Throwable;
 
-class Existencias extends Controller{
-public function crea_existencia(){
-    $m_producto = new Modelo_producto();
-    $datos=[
-        'productos'=>$m_producto->findAll(),
-        'timestamp'=>date('Y-m-d H:i:s')
+class Existencias extends BaseController
+{
+    private array $reglas = [
+        'e_total'     => 'required|integer|greater_than_equal_to[0]|less_than[2000000000]',
+        'e_bloqueado' => 'required|integer|greater_than_equal_to[0]|less_than[2000000000]',
+        'e_venta'     => 'required|integer|greater_than_equal_to[0]|less_than[2000000000]',
+        'id_producto' => 'required|is_natural_no_zero',
     ];
-    return view('crea_existencia',$datos);
-}
-public function guarda_existencia(){
-    $m_existencia = new Modelo_existencia();
-    $datos = [
-        'e_total'     => $this->request->getPost('e_total'),
-        'e_bloqueado' => $this->request->getPost('e_bloqueado'),
-        'e_venta'     => $this->request->getPost('e_venta'),
-        'fecha'       => $this->request->getPost('fecha'),
-        'id_producto' => $this->request->getPost('id_producto')
+
+    private array $mensajes = [
+        'e_total'     => ['required' => 'Completa todos los campos.', 'integer' => 'La existencia total debe ser un número entero.', 'greater_than_equal_to' => 'La existencia total no puede ser negativa.'],
+        'e_bloqueado' => ['required' => 'Completa todos los campos.', 'integer' => 'La existencia bloqueada debe ser un número entero.', 'greater_than_equal_to' => 'La existencia bloqueada no puede ser negativa.'],
+        'e_venta'     => ['required' => 'Completa todos los campos.', 'integer' => 'La existencia para venta debe ser un número entero.', 'greater_than_equal_to' => 'La existencia para venta no puede ser negativa.'],
+        'id_producto' => ['required' => 'Completa todos los campos.', 'is_natural_no_zero' => 'Producto no válido.'],
     ];
-    if (
-        $datos['e_total']     === null ||
-        $datos['e_bloqueado'] === null ||
-        $datos['e_venta']     === null ||
-        empty($datos['fecha']) ||
-        empty($datos['id_producto'])
-    ){
-        return redirect()->to('lista_existencia')->with('error', 'Completa todos los campos.');
+
+    /** @return array<string,mixed>|null null si la fecha/hora no es válida */
+    private function datosDelFormulario(): ?array
+    {
+        $fecha = $this->fechaHoraSql($this->post('fecha'));
+
+        if ($fecha === null) {
+            return null;
+        }
+
+        return [
+            'e_total'     => (int) $this->request->getPost('e_total'),
+            'e_bloqueado' => (int) $this->request->getPost('e_bloqueado'),
+            'e_venta'     => (int) $this->request->getPost('e_venta'),
+            'fecha'       => $fecha,
+            'id_producto' => (int) $this->request->getPost('id_producto'),
+        ];
     }
-    $m_existencia->insert($datos);
-    if ($this->request->getPost('origen') === 'main_page') {
-        return redirect()->to('/')->with('mensaje', 'Existencia registrada correctamente');
+
+    public function crea_existencia()
+    {
+        $datos = [
+            'productos' => (new Modelo_producto())->findAll(),
+            'timestamp' => date('Y-m-d H:i:s'),
+        ];
+
+        return view('crea_existencia', $datos);
     }
-    return redirect()->to('lista_existencia')->with('mensaje', 'Existencia registrada.');
-}
 
-public function lista_existencia(){
-    $buscar = $this->request->getGet('buscar');
+    public function guarda_existencia()
+    {
+        $datos = $this->validate($this->reglas, $this->mensajes) ? $this->datosDelFormulario() : null;
 
-    $m_existencia = new Modelo_existencia();
-    $m_producto   = new Modelo_producto();
+        if ($datos === null) {
+            return redirect()->to('lista_existencia')->with('error', $this->validator && $this->validator->getErrors() ? $this->primerError() : 'Completa todos los campos.');
+        }
 
-    $datos = [
-        'buscar'      => $buscar,
-        'existencias' => $m_existencia
-            ->filtrar($buscar)
-            ->orderBy('existencia.id', 'DESC')  // ← prefijo para evitar ambigüedad
-            ->findAll(),
+        try {
+            (new Modelo_existencia())->insert($datos);
 
-        'productos' => array_column(
-            $m_producto->findAll(),
-            null,
-            'id'
-        ),
-    ];
-
-    return view('lista_existencia', $datos);
-}
-public function eliminar_datos($id=null){
-    $m_existencia = new Modelo_existencia();
-    $m_existencia->delete($id);
-    return redirect()->to('lista_existencia')->with('mensaje', 'Existencia eliminada correctamente');
-}
-public function recupera($id=null){
-    $m_existencia = new Modelo_existencia();
-    $m_producto = new Modelo_producto();
-    $datos=[
-        'existencias' => $m_existencia->find($id),
-        'productos'   => array_column($m_producto->findAll(), null, 'id') // ← fix
-    ];
-    return view('modifica_existencia',$datos);
-}
-public function modifica(){
-    $m_existencia = new Modelo_existencia();
-    $id = $this->request->getPost('id');
-    $datos = [
-        'e_total'     => $this->request->getPost('e_total'),
-        'e_bloqueado' => $this->request->getPost('e_bloqueado'),
-        'e_venta'     => $this->request->getPost('e_venta'),
-        'fecha'       => $this->request->getPost('fecha'),
-        'id_producto' => $this->request->getPost('id_producto')
-    ];
-    if (
-        $datos['e_total']     === null ||
-        $datos['e_bloqueado'] === null ||
-        $datos['e_venta']     === null ||
-        empty($datos['fecha']) ||
-        empty($datos['id_producto'])
-    ){
-        $m_producto = new Modelo_producto();
-        return redirect()->to('lista_existencia')->with('error', 'Completa todos los campos.');
+            return redirect()->to($this->destino('lista_existencia'))
+                ->with('mensaje', $this->request->getPost('origen') === 'main_page' ? 'Existencia registrada correctamente' : 'Existencia registrada.');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_existencia')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo registrar la existencia.'));
+        }
     }
-    $m_existencia->update($id, $datos);
-    return redirect()->to('lista_existencia')->with('mensaje', 'Existencia actualizada.');
-}
+
+    public function lista_existencia()
+    {
+        $buscar = $this->textoBusqueda();
+
+        $datos = [
+            'buscar'      => $buscar,
+            'existencias' => (new Modelo_existencia())->listarFiltrado($buscar),
+            'productos'   => array_column((new Modelo_producto())->findAll(), null, 'id'),
+        ];
+
+        return view('lista_existencia', $datos);
+    }
+
+    public function eliminar_datos($id = null)
+    {
+        try {
+            (new Modelo_existencia())->delete($id);
+
+            return redirect()->to('lista_existencia')->with('mensaje', 'Existencia eliminada correctamente');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_existencia')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo eliminar la existencia.'));
+        }
+    }
+
+    public function recupera($id = null)
+    {
+        $existencia = (new Modelo_existencia())->find($id);
+
+        if (! $existencia) {
+            return redirect()->to('lista_existencia');
+        }
+
+        return view('modifica_existencia', [
+            'existencias' => $existencia,
+            'productos'   => array_column((new Modelo_producto())->findAll(), null, 'id'),
+        ]);
+    }
+
+    public function modifica()
+    {
+        $id = $this->request->getPost('id');
+
+        if (! ctype_digit((string) $id)) {
+            return redirect()->to('lista_existencia')->with('error', 'ID inválido');
+        }
+
+        $datos = $this->validate($this->reglas, $this->mensajes) ? $this->datosDelFormulario() : null;
+
+        if ($datos === null) {
+            return redirect()->to('lista_existencia')->with('error', 'Completa todos los campos.');
+        }
+
+        try {
+            (new Modelo_existencia())->update($id, $datos);
+
+            return redirect()->to('lista_existencia')->with('mensaje', 'Existencia actualizada.');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_existencia')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo actualizar la existencia.'));
+        }
+    }
 }

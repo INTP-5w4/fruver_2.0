@@ -18,19 +18,19 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('error2')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error2') ?></p>
+            <p><?= esc(session()->getFlashdata('error2')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
@@ -78,7 +78,7 @@
         <tbody>
             <?php foreach ($repartidores as $r): ?>
                 <tr>
-                    <td><?= $r['id'] ?></td>
+                    <td><?= esc($r['id']) ?></td>
                     <td><?= esc($r['nombre']) ?></td>
                     <td><?= esc($r['ape_pat']) ?></td>
                     <td><?= esc($r['ape_mat']) ?></td>
@@ -87,24 +87,23 @@
                     <td><?= esc($r['notas']) ?></td>
                     <td>
                         <button onclick="abrirModal(
-                                    '<?= $r['id'] ?>',
-                                    '<?= esc($r['nombre']) ?>',
-                                    '<?= esc($r['ape_pat']) ?>',
-                                    '<?= esc($r['ape_mat']) ?>',
-                                    '<?= esc($r['telefono']) ?>',
-                                    '<?= esc($r['direccion']) ?>',
-                                    '<?= esc($r['notas']) ?>'
+                                    '<?= esc($r['id'], 'js') ?>',
+                                    '<?= esc($r['nombre'], 'js') ?>',
+                                    '<?= esc($r['ape_pat'], 'js') ?>',
+                                    '<?= esc($r['ape_mat'], 'js') ?>',
+                                    '<?= esc($r['telefono'], 'js') ?>',
+                                    '<?= esc($r['direccion'], 'js') ?>',
+                                    '<?= esc($r['notas'], 'js') ?>'
                                 )"
                                 class="btn-icono">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     </td>
                     <td>
-                        <a href="<?= base_url('borra_id_repartidor/'.$r['id']) ?>">
-                            <button class="btn-icono">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </a>
+                        <form method="post" action="<?= base_url('borra_id_repartidor/' . (int) $r['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" class="btn-icono"><i class="fa-solid fa-trash-can"></i></button>
+</form>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -123,6 +122,7 @@
             </header>
 
             <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
                 <label><b>Nombre*</b></label>
                 <input type="text" name="nom" class="modal-input" required value="<?= old('nom') ?>">
@@ -164,6 +164,7 @@
             </header>
 
             <form action="<?= base_url('modifica_repartidor') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
                 <input type="hidden" name="id" id="edit_id">
 

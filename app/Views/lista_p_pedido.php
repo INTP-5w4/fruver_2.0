@@ -26,12 +26,12 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
@@ -82,9 +82,9 @@
     <tbody>
     <?php foreach ($pedidos_agrupados as $pedido): ?>
 
-        <tr class="fila-pedido" style="cursor:pointer;" onclick="toggleDetalle(<?= $pedido['id_pedido'] ?>)">
+        <tr class="fila-pedido" style="cursor:pointer;" onclick="toggleDetalle(<?= esc($pedido['id_pedido'], 'js') ?>)">
             <td>
-                <button class="btn-expandir" id="btn-<?= $pedido['id_pedido'] ?>">
+                <button class="btn-expandir" id="btn-<?= esc($pedido['id_pedido']) ?>">
                     <i class="fa-solid fa-chevron-right"></i>
                 </button>
             </td>
@@ -104,25 +104,23 @@
                 </span>
             </td>
             <td onclick="event.stopPropagation()">
-                <button onclick="abrirEditarPedido('<?= esc($pedido['id_pedido']) ?>')"
+                <button onclick="abrirEditarPedido('<?= esc($pedido['id_pedido'], 'js') ?>')"
                         style="border:none; cursor:pointer; background:none;">
                     <i class="fa-solid fa-pen-to-square"></i>
                 </button>
             </td>
             <td onclick="event.stopPropagation()">
-                <a href="<?= base_url('borra_pedido_completo/'.$pedido['id_pedido']) ?>"
-                onclick="return confirm('¿Eliminar este pedido y todos sus productos?')">
-                    <button style="border:none; cursor:pointer; background:none;">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </a>
+                <form method="post" action="<?= base_url('borra_pedido_completo/' . (int) $pedido['id_pedido']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este pedido y todos sus productos?');">
+<?= csrf_field() ?>
+<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+</form>
             </td>
         </tr>
 
-        <tr class="fila-detalle" id="detalle-<?= $pedido['id_pedido'] ?>">
+        <tr class="fila-detalle" id="detalle-<?= esc($pedido['id_pedido']) ?>">
             <td colspan="10">
                 <div class="detalle-inner">
-                    <b>Productos del pedido #<?= $pedido['id_pedido'] ?>:</b>
+                    <b>Productos del pedido #<?= esc($pedido['id_pedido']) ?>:</b>
                     <table class="w3-table w3-bordered w3-small">
                         <thead>
                             <tr>
@@ -156,17 +154,17 @@
 <?php if ($total_paginas > 1): ?>
 <div style="display:flex; gap:8px; margin-top:16px; margin-bottom:16px;">
     <?php if ($pagina_actual > 1): ?>
-        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual - 1 ?>"
+        <a href="?buscar=<?= esc($buscar) ?>&page=<?= esc($pagina_actual - 1) ?>"
         class="w3-button w3-green">← Anterior</a>
     <?php endif; ?>
 
     <span class="w3-button w3-white w3-border">
-        Página <?= $pagina_actual ?> de <?= $total_paginas ?>
-        (<?= $total_pedidos ?> pedidos)
+        Página <?= esc($pagina_actual) ?> de <?= esc($total_paginas) ?>
+        (<?= esc($total_pedidos) ?> pedidos)
     </span>
 
     <?php if ($pagina_actual < $total_paginas): ?>
-        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual + 1 ?>"
+        <a href="?buscar=<?= esc($buscar) ?>&page=<?= esc($pagina_actual + 1) ?>"
            class="w3-button w3-green">Siguiente →</a>
     <?php endif; ?>
 </div>
@@ -441,17 +439,15 @@
      DATOS DEL SERVIDOR
      ══════════════════════════════════════════════════════════ -->
 <script>
-const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
+// Escapa texto antes de insertarlo con innerHTML (anti XSS)
+function escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const stockPorProducto = <?= json_seguro($stockPorProducto) ?>;
  
-const nombreProducto = {
-  <?php foreach ($productos as $pr): ?>
-    <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
-  <?php endforeach; ?>
-};
+const nombreProducto = <?= json_seguro(array_column($productos, 'nombre', 'id')) ?>;
  
 // Catálogo completo para el buscador
 // Ahora incluye u_venta y precio sugeridos desde la última entrada
-const catalogoProductos = <?= json_encode(array_map(fn($p) => [
+const catalogoProductos = <?= json_seguro(array_map(fn($p) => [
     'id'        => (int)$p['id'],
     'nombre'    => $p['nombre'],
     'categoria' => $p['categoria'] ?? '',
@@ -552,9 +548,9 @@ function crearBuscadorProducto(prefijo, onSeleccion) {
             const pillText  = stock > 0 ? 'Stock: ' + stock : 'Sin stock';
             return `<div class="prod-item"
                          data-id="${p.id}"
-                         data-nombre="${p.nombre.replace(/"/g,'&quot;')}"
+                         data-nombre="${escHtml(p.nombre)}"
                          data-stock="${stock}">
-                      <span>${p.nombre}</span>
+                      <span>${escHtml(p.nombre)}</span>
                       <span class="stock-pill ${pillClass}">${pillText}</span>
                     </div>`;
         }).join('');
@@ -761,9 +757,9 @@ function renderCarrito() {
         total += parseFloat(item.total);
         tbody.innerHTML += `
           <tr>
-            <td>${nombreProducto[item.id_producto]}</td>
-            <td>${item.u_venta}</td>
-            <td>${item.cant}</td>
+            <td>${escHtml(nombreProducto[item.id_producto])}</td>
+            <td>${escHtml(item.u_venta)}</td>
+            <td>${escHtml(item.cant)}</td>
             <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
             <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
             <td><button type="button" onclick="quitarItem(${i})"
@@ -944,9 +940,9 @@ function eRenderCarrito() {
         total += parseFloat(item.total);
         tbody.innerHTML += `
         <tr>
-            <td>${nombreProducto[item.id_producto]}</td>
-            <td>${item.u_venta}</td>
-            <td>${item.cant}</td>
+            <td>${escHtml(nombreProducto[item.id_producto])}</td>
+            <td>${escHtml(item.u_venta)}</td>
+            <td>${escHtml(item.cant)}</td>
             <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
             <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
             <td><button type="button" onclick="eQuitarItem(${i})"
