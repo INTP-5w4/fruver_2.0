@@ -2,182 +2,195 @@
 
 namespace App\Models;
 
-use CodeIgniter\Model;
+use DomainException;
 
-class Modelo_productopedidos extends Model
+class Modelo_productopedidos extends PdoModelo
 {
+    protected string $tabla         = 'producto_pedido';
+    protected string $llavePrimaria = 'id';
 
-    protected $table      = 'producto_pedido';
-    protected $primaryKey = 'id';
-
-    protected $allowedFields = [
-        'id',
-        'cant',
-        'precio_venta',
-        'unidad_venta',
-        'total',
-        'id_pedido',
-        'id_producto'
+    protected array $camposPermitidos = [
+        'cant', 'precio_venta', 'unidad_venta', 'total', 'id_pedido', 'id_producto',
     ];
 
-    // ─────────────────────────────────────────────────────────────
-    // INFORMACIÓN COMPLETA (LEGACY)
-    // ─────────────────────────────────────────────────────────────
-    public function obtenerInformacionCompleta(): array
+    /**
+     * Unidades de venta aceptadas. Las claves son lo que puede llegar (entrada.u_venta)
+     * y el valor es lo que se guarda en producto_pedido.unidad_venta.
+     */
+    public const UNIDADES = [
+        'Kilogramo' => 'Kilogramo',
+        'Litro'     => 'Litro',
+        'Caja'      => 'Caja',
+        'Pieza'     => 'Pieza',
+        'Domo'      => 'Domo',
+        'Ramo'      => 'Ramos',
+        'Ramos'     => 'Ramos',
+    ];
+
+    /** Convierte una unidad a su valor de almacenamiento; lanza DomainException si no es válida. */
+    public static function normalizarUnidad(string $unidad): string
     {
+        $unidad = trim($unidad);
 
-        return $this->db->table('producto_pedido pp')
-            ->select('
-                pp.*,
-                pr.nombre AS nombre_producto,
-
-                rep.nombre AS nombre_repartidor,
-                rep.ape_pat AS ape_pat_repartidor,
-                rep.ape_mat AS ape_mat_repartidor,
-
-                ped.fecha AS fecha_pedido,
-
-                cli.nombre AS nombre_cliente,
-                cli.ape_pat AS ape_pat_cliente,
-                cli.ape_mat AS ape_mat_cliente,
-
-                (
-                    SELECT estado
-                    FROM estatus
-                    WHERE id_pedido = pp.id_pedido
-                    ORDER BY id DESC
-                    LIMIT 1
-                ) AS estado_actual
-            ')
-            ->join('producto pr', 'pr.id = pp.id_producto')
-            ->join('pedido ped', 'ped.id = pp.id_pedido')
-            ->join('repartidor rep', 'rep.id = ped.id_repartidor')
-            ->join('cliente cli', 'cli.id = ped.id_cliente')
-            ->get()
-            ->getResultArray();
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // BUSCADOR / FILTRO
-    // ─────────────────────────────────────────────────────────────
-public function filtrar($buscar = null)
-    {
-        $this->select('
-                producto_pedido.*,
-                producto.nombre              AS nombre_producto,
-                pedido.fecha                 AS fecha_pedido,
-                cliente.nombre               AS nombre_cliente,
-                cliente.ape_pat              AS ape_pat_cliente,
-                cliente.ape_mat              AS ape_mat_cliente,
-                estatus_sub.estado           AS estado_actual
-            ')
-            ->join('producto',  'producto.id = producto_pedido.id_producto',       'left')
-            ->join('pedido',    'pedido.id   = producto_pedido.id_pedido',          'left')
-            ->join('cliente',   'cliente.id  = pedido.id_cliente',                 'left')
-            ->join(
-                '(SELECT id_pedido, estado FROM estatus ORDER BY fecha DESC) estatus_sub',
-                'estatus_sub.id_pedido = pedido.id',
-                'left'
-            );
-
-        if (!empty($buscar)) {
-            $this->groupStart()
-                ->like('producto_pedido.id_pedido', $buscar)
-                ->orLike('producto.nombre',          $buscar)
-                ->orLike('cliente.nombre',           $buscar)
-                ->orLike('cliente.ape_pat',          $buscar)
-                ->orLike('pedido.fecha',             $buscar)
-                ->orLike('estatus_sub.estado',       $buscar)
-            ->groupEnd();
+        if (! isset(self::UNIDADES[$unidad])) {
+            throw new DomainException('Unidad de venta no válida.');
         }
 
-        return $this;
+        return self::UNIDADES[$unidad];
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // PEDIDOS AGRUPADOS
-    // ─────────────────────────────────────────────────────────────
-   public function obtenerPedidosAgrupados(string $buscar = ''): array
-{
-    $query = $this->db->table('producto_pedido pp')
-        ->select('
-            pp.id,
-            pp.cant,
-            pp.precio_venta,
-            pp.unidad_venta,
-            pp.total,
-            pp.id_pedido,
-            pp.id_producto,
-            pr.nombre AS nombre_producto,
-            rep.nombre AS nombre_repartidor,
-            rep.ape_pat AS ape_pat_repartidor,
-            rep.ape_mat AS ape_mat_repartidor,
-            ped.fecha AS fecha_pedido,
-            cli.nombre AS nombre_cliente,
-            cli.ape_pat AS ape_pat_cliente,
-            cli.ape_mat AS ape_mat_cliente,
-            (
-                SELECT estado
-                FROM estatus
-                WHERE id_pedido = pp.id_pedido
-                ORDER BY id DESC
-                LIMIT 1
-            ) AS estado_actual
-        ')
-        ->join('producto pr',    'pr.id = pp.id_producto')
-        ->join('pedido ped',     'ped.id = pp.id_pedido')
-        ->join('repartidor rep', 'rep.id = ped.id_repartidor')
-        ->join('cliente cli',    'cli.id = ped.id_cliente')
-        ->orderBy('pp.id_pedido', 'DESC');
+    /**
+     * Valida y normaliza las líneas de un pedido que llegan del navegador (JSON).
+     * Devuelve líneas limpias con: id (opcional), id_producto, cant, precio_venta,
+     * unidad_venta y total (recalculado aquí: no se confía en el total del cliente).
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function limpiarItems(mixed $crudos): array
+    {
+        if (! is_array($crudos) || $crudos === []) {
+            throw new DomainException('El carrito está vacío.');
+        }
 
-    // ← AQUÍ estaba el problema, faltaba aplicar $buscar
-    if (!empty($buscar)) {
-        $query->groupStart()
-            ->like('pp.id_pedido',  $buscar)
-            ->orLike('pr.nombre',   $buscar)
-            ->orLike('cli.nombre',  $buscar)
-            ->orLike('cli.ape_pat', $buscar)
-            ->orLike('ped.fecha',   $buscar)
-        ->groupEnd();
-    }
+        if (count($crudos) > 100) {
+            throw new DomainException('Demasiados productos en un mismo pedido.');
+        }
 
-    $filas = $query->get()->getResultArray();
+        $limpios = [];
 
-    // AGRUPAR EN PHP
-    $agrupados = [];
+        foreach ($crudos as $item) {
+            if (! is_array($item)) {
+                throw new DomainException('Datos del carrito no válidos.');
+            }
 
-    foreach ($filas as $fila) {
-        $idPedido = $fila['id_pedido'];
+            $idProducto = $item['id_producto'] ?? null;
+            $cant       = $item['cant'] ?? null;
+            $precio     = $item['p_venta'] ?? ($item['precio_venta'] ?? null);
 
-        if (!isset($agrupados[$idPedido])) {
-            $agrupados[$idPedido] = [
-                'id_pedido'          => $idPedido,
-                'fecha_pedido'       => $fila['fecha_pedido'],
-                'nombre_cliente'     => $fila['nombre_cliente'],
-                'ape_pat_cliente'    => $fila['ape_pat_cliente'],
-                'ape_mat_cliente'    => $fila['ape_mat_cliente'],
-                'nombre_repartidor'  => $fila['nombre_repartidor'],
-                'ape_pat_repartidor' => $fila['ape_pat_repartidor'],
-                'ape_mat_repartidor' => $fila['ape_mat_repartidor'],
-                'estado_actual'      => $fila['estado_actual'],
-                'total_pedido'       => 0,
-                'items'              => [],
+            if (! is_numeric($idProducto) || (int) $idProducto < 1
+                || ! is_numeric($cant)    || (float) $cant <= 0 || (float) $cant > 99999999
+                || ! is_numeric($precio)  || (float) $precio < 0 || (float) $precio > 99999999) {
+                throw new DomainException('Hay datos no válidos en el carrito (producto, cantidad o precio).');
+            }
+
+            $limpios[] = [
+                'id'           => isset($item['id']) && is_numeric($item['id']) ? (int) $item['id'] : null,
+                'id_producto'  => (int) $idProducto,
+                'cant'         => round((float) $cant, 2),
+                'precio_venta' => round((float) $precio, 2),
+                'unidad_venta' => self::normalizarUnidad((string) ($item['u_venta'] ?? $item['unidad_venta'] ?? '')),
+                'total'        => round((float) $cant * (float) $precio, 2),
             ];
         }
 
-        $agrupados[$idPedido]['items'][] = [
-            'id'              => $fila['id'],
-            'id_producto'     => $fila['id_producto'],
-            'nombre_producto' => $fila['nombre_producto'],
-            'cant'            => $fila['cant'],
-            'precio_venta'    => $fila['precio_venta'],
-            'unidad_venta'    => $fila['unidad_venta'],
-            'total'           => $fila['total'],
-        ];
-
-        $agrupados[$idPedido]['total_pedido'] += (float)$fila['total'];
+        return $limpios;
     }
 
-    return array_values($agrupados);
-}
+    /** @return list<array<string,mixed>> */
+    public function itemsDePedido(int|string $idPedido): array
+    {
+        return $this->buscarPor('id_pedido', $idPedido, 'id ASC');
+    }
+
+    public function eliminarPorPedido(int|string $idPedido): int
+    {
+        return $this->eliminarPor('id_pedido', $idPedido);
+    }
+
+    /** Actualiza una línea SOLO si pertenece a ese pedido (evita tocar líneas de otros pedidos). */
+    public function actualizarDePedido(int|string $id, int|string $idPedido, array $datos): bool
+    {
+        $datos = array_intersect_key($datos, array_flip($this->camposPermitidos));
+        unset($datos['id_pedido']);
+
+        $set = implode(', ', array_map(fn ($c) => "`{$c}` = ?", array_keys($datos)));
+
+        return $this->afectar(
+            "UPDATE producto_pedido SET {$set} WHERE id = ? AND id_pedido = ?",
+            [...array_values($datos), $id, $idPedido]
+        ) >= 0;
+    }
+
+    /** Elimina una línea SOLO si pertenece a ese pedido. */
+    public function eliminarDePedido(int|string $id, int|string $idPedido): int
+    {
+        return $this->afectar('DELETE FROM producto_pedido WHERE id = ? AND id_pedido = ?', [$id, $idPedido]);
+    }
+
+    /**
+     * Pedidos con sus líneas agrupadas (vista lista_p_pedido).
+     * LEFT JOIN con repartidor: un pedido hecho desde la tienda aún no tiene repartidor.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function obtenerPedidosAgrupados(string $buscar = ''): array
+    {
+        $sql = 'SELECT pp.id, pp.cant, pp.precio_venta, pp.unidad_venta, pp.total,
+                       pp.id_pedido, pp.id_producto,
+                       pr.nombre  AS nombre_producto,
+                       rep.nombre AS nombre_repartidor,
+                       rep.ape_pat AS ape_pat_repartidor,
+                       rep.ape_mat AS ape_mat_repartidor,
+                       ped.fecha  AS fecha_pedido,
+                       cli.nombre AS nombre_cliente,
+                       cli.ape_pat AS ape_pat_cliente,
+                       cli.ape_mat AS ape_mat_cliente,
+                       (SELECT estado FROM estatus
+                         WHERE id_pedido = pp.id_pedido
+                         ORDER BY id DESC LIMIT 1) AS estado_actual
+                  FROM producto_pedido pp
+                  JOIN producto pr          ON pr.id  = pp.id_producto
+                  JOIN pedido ped           ON ped.id = pp.id_pedido
+             LEFT JOIN repartidor rep       ON rep.id = ped.id_repartidor
+                  JOIN cliente cli          ON cli.id = ped.id_cliente';
+
+        $params = [];
+        $buscar = trim($buscar);
+
+        if ($buscar !== '') {
+            $like    = $this->patronLike($buscar);
+            $sql    .= ' WHERE (pp.id_pedido LIKE ? OR pr.nombre LIKE ? OR cli.nombre LIKE ?
+                            OR cli.ape_pat LIKE ? OR ped.fecha LIKE ?)';
+            $params  = array_fill(0, 5, $like);
+        }
+
+        $filas = $this->filas($sql . ' ORDER BY pp.id_pedido DESC, pp.id ASC', $params);
+
+        // Agrupar en PHP
+        $agrupados = [];
+
+        foreach ($filas as $fila) {
+            $idPedido = $fila['id_pedido'];
+
+            if (! isset($agrupados[$idPedido])) {
+                $agrupados[$idPedido] = [
+                    'id_pedido'          => $idPedido,
+                    'fecha_pedido'       => $fila['fecha_pedido'],
+                    'nombre_cliente'     => $fila['nombre_cliente'],
+                    'ape_pat_cliente'    => $fila['ape_pat_cliente'],
+                    'ape_mat_cliente'    => $fila['ape_mat_cliente'],
+                    'nombre_repartidor'  => $fila['nombre_repartidor'],
+                    'ape_pat_repartidor' => $fila['ape_pat_repartidor'],
+                    'ape_mat_repartidor' => $fila['ape_mat_repartidor'],
+                    'estado_actual'      => $fila['estado_actual'],
+                    'total_pedido'       => 0,
+                    'items'              => [],
+                ];
+            }
+
+            $agrupados[$idPedido]['items'][] = [
+                'id'              => $fila['id'],
+                'id_producto'     => $fila['id_producto'],
+                'nombre_producto' => $fila['nombre_producto'],
+                'cant'            => $fila['cant'],
+                'precio_venta'    => $fila['precio_venta'],
+                'unidad_venta'    => $fila['unidad_venta'],
+                'total'           => $fila['total'],
+            ];
+
+            $agrupados[$idPedido]['total_pedido'] += (float) $fila['total'];
+        }
+
+        return array_values($agrupados);
+    }
 }

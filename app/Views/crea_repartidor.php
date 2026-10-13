@@ -14,6 +14,7 @@
         </header>
 
         <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
             <label><b>Nombre</b></label>
             <input type="text" name="nom" class="modal-input" required>

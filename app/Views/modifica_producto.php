@@ -7,6 +7,7 @@
 </head>
 <body>
     <form action="<?= base_url('modifica_producto') ?>" method="post" enctype="multipart/form-data">
+<?= csrf_field() ?>
         <input type="hidden" name="id" value="<?= esc($productos['id']) ?>">
         <label for="nombre">Nombre</label><br>
         <input type="text" name="nom" value="<?= esc($productos['nombre']) ?>"><br>
@@ -15,7 +16,7 @@
         
         <label for="categoria">Categoria</label><br>
         <select name="cat" id="">
-            <option value="<?=$productos['categoria'] ?>" selected><?= $productos['categoria'] ?></option>
+            <option value="<?= esc($productos['categoria']) ?>" selected><?= esc($productos['categoria']) ?></option>
             <option value="frutas">Frutas</option>
             <option value="verduras">Verdura</option>
             <option value="yerbas">Yerba</option>

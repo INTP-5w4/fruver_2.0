@@ -7,25 +7,26 @@
 </head>
 <body>
     <form action="<?= base_url('modifica_repartidor')?>" method="post">
-        <input type="hidden" name="id" value="<?= $repartidores['id'] ?>">
+<?= csrf_field() ?>
+        <input type="hidden" name="id" value="<?= esc($repartidores['id']) ?>">
 
         <label for="nom">Nombre</label><br>
-        <input type="text" name="nom" id="" value="<?= $repartidores['nombre']  ?>"><br>
+        <input type="text" name="nom" id="" value="<?= esc($repartidores['nombre']) ?>"><br>
 
         <label for="ape_pat">Apellido Paterno</label><br>
-        <input type="text" name="ape_pat" id="" value="<?= $repartidores['ape_pat']  ?>"><br>
+        <input type="text" name="ape_pat" id="" value="<?= esc($repartidores['ape_pat']) ?>"><br>
 
         <label for="ape_mat">Apellido materno</label><br>
-        <input type="text" name="ape_mat" id="" value="<?= $repartidores['ape_mat']  ?>"><br>
+        <input type="text" name="ape_mat" id="" value="<?= esc($repartidores['ape_mat']) ?>"><br>
 
         <label for="tel">Telefono</label><br>
-        <input type="text" name="tel" id="" value="<?= $repartidores['telefono']  ?>"><br>
+        <input type="text" name="tel" id="" value="<?= esc($repartidores['telefono']) ?>"><br>
 
         <label for="dir">Dirección</label><br>
-        <input type="text" name="dir" id="" value="<?= $repartidores['direccion']  ?>"><br>
+        <input type="text" name="dir" id="" value="<?= esc($repartidores['direccion']) ?>"><br>
 
         <label for="not">Notas</label><br>
-        <textarea name="not" id=""><?= $repartidores['notas'] ?></textarea><br>
+        <textarea name="not" id=""><?= esc($repartidores['notas']) ?></textarea><br>
 
         <input type="submit" value="Enviar">
     </form>

@@ -7,6 +7,7 @@
 </head>
 <body>
     <form action="<?=base_url('guarda_p_pedido') ?>" method="post">
+<?= csrf_field() ?>
     <label for="cantidad">Cantidad:</label><br>
     <input type="number" id="cantidad" name="cant" required><br>
 
@@ -27,14 +28,14 @@
     <label for="id_pedido">ID Pedido:</label><br>
     <select name="id_pedido" id="">
         <?php foreach($pedidos as $p): ?>
-            <option value="<?php echo $p['id']; ?>"><?php echo $p['id']; ?></option>
+            <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
         <?php endforeach; ?>
     </select><br>
 
     <label for="id_producto">Producto:</label><br>
     <select name="id_producto" id="">
         <?php foreach($productos as $pr): ?>
-            <option value="<?php echo $pr['id']; ?>"><?php echo $pr['nombre']; ?></option>
+            <option value="<?= esc($pr['id']) ?>"><?= esc($pr['nombre']) ?></option>
         <?php endforeach; ?>
     </select><br>
     <input type="submit" value="Enviar">

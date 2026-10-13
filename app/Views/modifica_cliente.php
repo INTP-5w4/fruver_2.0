@@ -14,20 +14,21 @@
         </header>
 
         <form action="<?= base_url('guarda_cliente') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
-            <input type="hidden" name="id" value="<?= $clientes['id'] ?>">
+            <input type="hidden" name="id" value="<?= esc($clientes['id']) ?>">
 
             <label><b>Nombre</b></label>
-            <input type="text" name="nom" class="modal-input" value="<?= $clientes['nombre'] ?>" required>
+            <input type="text" name="nom" class="modal-input" value="<?= esc($clientes['nombre']) ?>" required>
 
             <label><b>Apellido Paterno</b></label>
-            <input type="text" name="ape_pat" class="modal-input" value="<?= $clientes['ape_pat'] ?>" required>
+            <input type="text" name="ape_pat" class="modal-input" value="<?= esc($clientes['ape_pat']) ?>" required>
 
             <label><b>Apellido Materno</b></label>
-            <input type="text" name="ape_mat" class="modal-input" value="<?= $clientes['ape_mat'] ?>" required>
+            <input type="text" name="ape_mat" class="modal-input" value="<?= esc($clientes['ape_mat']) ?>" required>
 
             <label><b>Teléfono</b></label>
-            <input type="text" name="tel" class="modal-input" value="<?= $clientes['telefono'] ?>" required>
+            <input type="text" name="tel" class="modal-input" value="<?= esc($clientes['telefono']) ?>" required>
 
             <footer class="modal-footer">
                 <button type="submit" class="btn-guardar">Guardar</button>

@@ -14,27 +14,28 @@
         </header>
 
         <form action="<?= base_url('modifica_direccion') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
-            <input type="hidden" name="id" value="<?= $direcciones['id'] ?>">
+            <input type="hidden" name="id" value="<?= esc($direcciones['id']) ?>">
 
             <label><b>Colonia</b></label>
-            <input type="text" name="col" class="modal-input" value="<?= $direcciones['colonia'] ?>" required>
+            <input type="text" name="col" class="modal-input" value="<?= esc($direcciones['colonia']) ?>" required>
 
             <label><b>Calle</b></label>
-            <input type="text" name="calle" class="modal-input" value="<?= $direcciones['calle'] ?>" required>
+            <input type="text" name="calle" class="modal-input" value="<?= esc($direcciones['calle']) ?>" required>
 
             <label><b>Número</b></label>
-            <input type="text" name="num" class="modal-input" value="<?= $direcciones['numero'] ?>" required>
+            <input type="text" name="num" class="modal-input" value="<?= esc($direcciones['numero']) ?>" required>
 
             <label><b>Municipio</b></label>
-            <input type="text" name="mun" class="modal-input" value="<?= $direcciones['municipio'] ?>" required>
+            <input type="text" name="mun" class="modal-input" value="<?= esc($direcciones['municipio']) ?>" required>
 
             <label><b>Estado</b></label>
             <?php $estados = ["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de Mexico","Coahuila","Colima","Durango","Estado de Mexico","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla","Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatan","Zacatecas"]; ?>
             <select name="edo" class="modal-input">
                 <?php foreach ($estados as $e): ?>
-                    <option value="<?= $e ?>" <?= ($direcciones['estado'] == $e) ? 'selected' : '' ?>>
-                        <?= $e ?>
+                    <option value="<?= esc($e) ?>" <?= ($direcciones['estado'] == $e) ? 'selected' : '' ?>>
+                        <?= esc($e) ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -42,8 +43,8 @@
             <label><b>Cliente</b></label>
             <select name="id_cliente" class="modal-input">
                 <?php foreach ($clientes as $cliente): ?>
-                    <option value="<?= $cliente['id'] ?>" <?= ($cliente['id'] == $direcciones['id_cliente']) ? 'selected' : '' ?>>
-                        <?= $cliente['nombre'] ?>
+                    <option value="<?= esc($cliente['id']) ?>" <?= ($cliente['id'] == $direcciones['id_cliente']) ? 'selected' : '' ?>>
+                        <?= esc($cliente['nombre']) ?>
                     </option>
                 <?php endforeach; ?>
             </select>

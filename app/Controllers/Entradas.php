@@ -1,124 +1,156 @@
-<?php 
+<?php
+
 namespace App\Controllers;
 
 use App\Models\Modelo_entrada;
-use App\Models\Modelo_existencia;
 use App\Models\Modelo_producto;
-use CodeIgniter\Controller;
+use App\Models\PdoModelo;
+use Throwable;
 
-class Entradas extends Controller{
-public function crea_entrada(){
-    $m_producto = new Modelo_producto();
-    $datos['frutas']= $m_producto->findAll();
-    return view('crea_entrada',$datos);
-}
-public function guarda_entrada(){
-    $m_entrada = new Modelo_entrada();
-    $datos = [
-        'fecha'           => $this->request->getPost('f_ent'),
-        'fecha_cad'       => $this->request->getPost('f_cad'),
-        'cantidad'        => $this->request->getPost('cant'),
-        'u_compra'        => $this->request->getPost('u_com'),
-        'u_venta'         => $this->request->getPost('u_ven'),
-        'precio_compra_u' => $this->request->getPost('p_compra'),
-        'precio_venta_u'  => $this->request->getPost('p_venta'),
-        'equivalente'     => $this->request->getPost('equi'),
-        'id_producto'     => $this->request->getPost('id_producto'),
-    ];
+class Entradas extends BaseController
+{
+    private function reglas(): array
+    {
+        return [
+            'f_ent'       => 'required|valid_date[Y-m-d]',
+            'f_cad'       => 'permit_empty|valid_date[Y-m-d]',
+            'cant'        => 'required|numeric|greater_than[0]|less_than[100000000]',
+            'u_com'       => 'required|in_list[Caja,Arpilla,Bulto,Tonelada,Mazo]',
+            'u_ven'       => 'required|in_list[Kilogramo,Litro,Caja,Pieza,Domo,Ramo]',
+            'equi'        => 'required|numeric|greater_than[0]|less_than[10000000000]',
+            'p_compra'    => 'required|numeric|greater_than_equal_to[0]|less_than[100000000]',
+            'p_venta'     => 'permit_empty|numeric|greater_than_equal_to[0]|less_than[10000000000]',
+            'id_producto' => 'required|is_natural_no_zero',
+        ];
+    }
 
+    private function mensajes(): array
+    {
+        return [
+            'f_ent'       => ['required' => 'La Fecha de entrada es obligatoria.', 'valid_date' => 'La Fecha de entrada no es válida.'],
+            'f_cad'       => ['valid_date' => 'La Fecha de caducidad no es válida.'],
+            'cant'        => ['required' => 'La Cantidad es obligatoria.', 'numeric' => 'La Cantidad debe ser un número.', 'greater_than' => 'La Cantidad debe ser mayor que 0.'],
+            'u_com'       => ['required' => 'Selecciona la unidad de compra.', 'in_list' => 'Unidad de compra no válida.'],
+            'u_ven'       => ['required' => 'Selecciona la unidad de venta.', 'in_list' => 'Unidad de venta no válida.'],
+            'equi'        => ['required' => 'La Equivalencia es obligatoria.', 'numeric' => 'La Equivalencia debe ser un número.', 'greater_than' => 'La Equivalencia debe ser mayor que 0.'],
+            'p_compra'    => ['required' => 'El Precio de compra es obligatorio.', 'numeric' => 'El Precio de compra debe ser un número.'],
+            'p_venta'     => ['numeric' => 'El Precio de venta debe ser un número.'],
+            'id_producto' => ['required' => 'Selecciona un producto.', 'is_natural_no_zero' => 'Producto no válido.'],
+        ];
+    }
 
-    if (
-        empty($datos['fecha'])       ||
-        empty($datos['cantidad'])    ||
-        empty($datos['u_compra'])    ||
-        empty($datos['u_venta'])     ||
-        empty($datos['id_producto'])
-    ){
-        $m_producto = new Modelo_producto();
-        $datos=['productos' => $m_producto->findAll()];
+    private function datosDelFormulario(): array
+    {
+        $f_cad = $this->post('f_cad') ?: $this->post('fecha_cad');
+
+        return [
+            'fecha'           => $this->post('f_ent'),
+            'fecha_cad'       => $f_cad === '' ? null : $f_cad,
+            'cantidad'        => $this->post('cant'),
+            'u_compra'        => $this->post('u_com'),
+            'u_venta'         => $this->post('u_ven'),
+            'precio_compra_u' => $this->post('p_compra'),
+            'precio_venta_u'  => $this->post('p_venta') === '' ? 0 : $this->post('p_venta'),
+            'equivalente'     => $this->post('equi'),
+            'id_producto'     => (int) $this->request->getPost('id_producto'),
+        ];
+    }
+
+    public function crea_entrada()
+    {
+        $datos['frutas']    = (new Modelo_producto())->findAll();
+        $datos['productos'] = $datos['frutas'];
+
         return view('crea_entrada', $datos);
+    }
 
-    } else {
-        $m_entrada->insert($datos);
-        if($this->request->getPost('origen') === 'main_page'){
-            return redirect()->to('/')->with('mensaje', 'Entrada registrada correctamente');
+    public function guarda_entrada()
+    {
+        if (! $this->validate($this->reglas(), $this->mensajes())) {
+            return $this->volverConErrores('error');
         }
-        return redirect()->to('lista_entrada')->with('mensaje', 'Entrada registrada correctamente');
+
+        try {
+            (new Modelo_entrada())->insert($this->datosDelFormulario());
+
+            return redirect()->to($this->destino('lista_entrada'))
+                ->with('mensaje', 'Entrada registrada correctamente');
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo registrar la entrada.'));
+        }
     }
-}
-public function lista_entrada(){
 
-    $buscar = $this->request->getGet('buscar') ?? '';
+    public function lista_entrada()
+    {
+        $buscar     = $this->textoBusqueda();
+        $m_entrada  = new Modelo_entrada();
 
-    $m_entrada = new Modelo_entrada();
-    $m_producto = new Modelo_producto();
+        $datos = [
+            'entradas'  => $m_entrada->listar($buscar),
+            'pager'     => $m_entrada->pager,
+            'buscar'    => $buscar,
+            'productos' => (new Modelo_producto())->findAll(),
+        ];
 
-    $datos['entradas'] = $m_entrada
-        ->filtrar($buscar)
-        ->conProducto()
-        ->orderBy('entrada.id', 'DESC')
-        ->paginate(20);
-
-    $datos['pager'] = $m_entrada->pager;
-
-    $datos['buscar'] = $buscar;
-
-    $datos['productos'] = $m_producto->findAll();
-
-    return view('lista_entrada', $datos);
-}
-public function recupera($id=null){
-    $m_entrada = new Modelo_entrada();
-    $m_producto = new Modelo_producto();
-    $datos=[
-        'entradas'=>$m_entrada->find($id),
-        'productos'=>$m_producto->findAll(),
-    ];
-    if (!$datos['entradas']){
-        return redirect()->to('lista_entrada');
+        return view('lista_entrada', $datos);
     }
-    return view('modifica_entrada',$datos);
-}
-public function eliminar_datos($id=null){
-    $m_entrada = new Modelo_entrada();
-    if(!$m_entrada->find($id)){
-        return redirect()->to('/lista_entrada');
+
+    public function recupera($id = null)
+    {
+        $entrada = (new Modelo_entrada())->find($id);
+
+        if (! $entrada) {
+            return redirect()->to('lista_entrada');
+        }
+
+        return view('modifica_entrada', [
+            'entradas'  => $entrada,
+            'productos' => (new Modelo_producto())->findAll(),
+        ]);
     }
-    $m_entrada->delete($id);
-    return redirect()->to('/lista_entrada');
-}
-public function modifica_entrada(){
-    $m_entrada = new Modelo_entrada();
-    $id = $this->request->getPost('id');
 
-    $datos = [
-        'fecha'           => $this->request->getPost('f_ent'),
-        'fecha_cad'       => $this->request->getPost('fecha_cad'),
-        'cantidad'        => $this->request->getPost('cant'),
-        'u_compra'        => $this->request->getPost('u_com'),
-        'u_venta'         => $this->request->getPost('u_ven'),
-        'equivalente'     => $this->request->getPost('equi'),
-        'precio_compra_u' => $this->request->getPost('p_compra'),
-        'precio_venta_u'  => $this->request->getPost('p_venta'),
-        'id_producto'     => $this->request->getPost('id_producto'),
-    ];
+    public function eliminar_datos($id = null)
+    {
+        $m_entrada = new Modelo_entrada();
 
+        if (! $m_entrada->find($id)) {
+            return redirect()->to('lista_entrada');
+        }
 
-    if (
-        empty($datos['fecha'])          ||
-        empty($datos['cantidad'])       ||
-        empty($datos['u_compra'])       ||
-        empty($datos['u_venta'])        ||
-        empty($datos['equivalente'])    ||
-        empty($datos['precio_compra_u'])||
-        empty($datos['id_producto'])
-    ){
-        // ✅ Redirige en lugar de cargar la vista directamente
-        return redirect()->to('lista_entrada')->with('error', 'Por favor, complete todos los campos obligatorios.');
+        try {
+            $m_entrada->delete($id);
 
-    } else {
-        $m_entrada->update($id, $datos);
-        return redirect()->to('lista_entrada')->with('mensaje', 'Entrada actualizada correctamente');
+            return redirect()->to('lista_entrada')->with('mensaje', 'Entrada eliminada correctamente');
+        } catch (Throwable $e) {
+            $mensaje = PdoModelo::esErrorForaneo($e)
+                ? 'No se puede eliminar la entrada porque tiene mermas registradas.'
+                : PdoModelo::mensajeSeguro($e, 'No se pudo eliminar la entrada.');
+
+            return redirect()->to('lista_entrada')->with('error', $mensaje);
+        }
     }
-}
+
+    public function modifica_entrada()
+    {
+        $id = $this->request->getPost('id');
+
+        if (! ctype_digit((string) $id)) {
+            return redirect()->to('lista_entrada')->with('error', 'ID inválido');
+        }
+
+        if (! $this->validate($this->reglas(), $this->mensajes())) {
+            return redirect()->to('lista_entrada')
+                ->with('error', 'Por favor, complete todos los campos obligatorios: ' . $this->primerError());
+        }
+
+        try {
+            (new Modelo_entrada())->update($id, $this->datosDelFormulario());
+
+            return redirect()->to('lista_entrada')->with('mensaje', 'Entrada actualizada correctamente');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_entrada')
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo actualizar la entrada.'));
+        }
+    }
 }
