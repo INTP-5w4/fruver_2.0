@@ -11,13 +11,13 @@
 <!-- ✅ Mensajes de error y éxito -->
 <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
+        <p><?= esc(session()->getFlashdata('error')) ?></p>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('mensaje')): ?>
     <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
+        <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
     </div>
 <?php endif; ?>
 
@@ -40,11 +40,12 @@
         <!-- ✅ Error dentro del modal también -->
         <?php if (session()->getFlashdata('error')): ?>
             <div class="w3-panel w3-red w3-margin">
-                <p><?= session()->getFlashdata('error') ?></p>
+                <p><?= esc(session()->getFlashdata('error')) ?></p>
             </div>
         <?php endif; ?>
 
         <form action="<?= base_url('guarda_cliente') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <label><b>Nombre</b></label>
             <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom" required>

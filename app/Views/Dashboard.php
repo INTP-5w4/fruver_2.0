@@ -78,12 +78,12 @@
         <!-- Mensajes flash -->
         <?php if (session()->getFlashdata('error')): ?>
             <div class="fv-flash fv-flash--error">
-                <?= session()->getFlashdata('error') ?>
+                <?= esc(session()->getFlashdata('error')) ?>
             </div>
         <?php endif; ?>
         <?php if (session()->getFlashdata('mensaje')): ?>
             <div class="fv-flash fv-flash--ok">
-                <?= session()->getFlashdata('mensaje') ?>
+                <?= esc(session()->getFlashdata('mensaje')) ?>
             </div>
         <?php endif; ?>
 
@@ -179,7 +179,7 @@
                 <?php if (!empty($topProducto)): ?>
                 <div class="fv-insight-item">
                     <i class="fa-solid fa-arrow-trend-up fv-insight-icon"></i>
-                    <p>El producto más vendido es <strong><?= esc($topProducto['nombre']) ?></strong> con <?= $topProducto['total_cant'] ?> unidades despachadas.</p>
+                    <p>El producto más vendido es <strong><?= esc($topProducto['nombre']) ?></strong> con <?= esc($topProducto['total_cant']) ?> unidades despachadas.</p>
                 </div>
                 <?php endif; ?>
                 <?php if (!empty($productosLowStock)): ?>
@@ -223,7 +223,7 @@
                         <?php foreach ($productosLowStock as $p): ?>
                         <tr>
                             <td><?= esc($p['nombre']) ?></td>
-                            <td><?= $p['total'] ?? 0 ?></td>
+                            <td><?= esc($p['total'] ?? 0) ?></td>
                             <td><?= ucfirst(esc($p['categoria'])) ?></td>
                             <td>
                                 <?php $total = $p['total'] ?? 0; ?>
@@ -250,12 +250,12 @@
                 <div class="fv-pedidos">
                     <?php foreach (array_slice($pedidosRecientes ?? [], 0, 5) as $ped): ?>
                     <div class="fv-pedido-item">
-                        <div class="fv-pedido-num">#<?= $ped['id'] ?></div>
+                        <div class="fv-pedido-num">#<?= esc($ped['id']) ?></div>
                         <div class="fv-pedido-info">
                             <div class="fv-pedido-name">
                                 <?= esc($ped['nombre'] . ' ' . $ped['ape_pat']) ?>
                             </div>
-                            <div class="fv-pedido-date"><?= $ped['fecha'] ?></div>
+                            <div class="fv-pedido-date"><?= esc($ped['fecha']) ?></div>
                         </div>
                         <?php
                             $edo = $ped['ultimo_estado'] ?? 'pedido_pendiente';
@@ -271,7 +271,7 @@
                             ];
                             $info = $estadoMap[$edo] ?? ['lbl' => ucfirst($edo), 'cls' => 'fv-status--info'];
                         ?>
-                        <span class="fv-status <?= $info['cls'] ?>"><?= $info['lbl'] ?></span>
+                        <span class="fv-status <?= esc($info['cls']) ?>"><?= esc($info['lbl']) ?></span>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -285,7 +285,7 @@
 
 <!-- Datos para Chart.js inyectados desde PHP -->
 <script id="chart-data" type="application/json">
-<?= json_encode([
+<?= json_seguro([
     'pedidosPorMes' => $pedidosPorMes ?? [],
     'ventasPorMes'  => $ventasPorMes  ?? [],
 ]) ?>

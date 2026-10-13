@@ -7,15 +7,16 @@
 </head>
 <body>
     <form action="<?= base_url('modifica_pedido') ?>" method="post">
-        <input type="hidden" name="id" value="<?= $pedidos['id'] ?>">
+<?= csrf_field() ?>
+        <input type="hidden" name="id" value="<?= esc($pedidos['id']) ?>">
         <label for="fecha">Fecha</label><br>
-        <input type="date" name="fecha" id="" value="<?= $pedidos['fecha']?>"><br>
+        <input type="date" name="fecha" id="" value="<?= esc($pedidos['fecha']) ?>"><br>
 
         <label for="id_cliente">Cliente</label><br>
         <select name="id_cliente">
             <?php foreach ($clientes as $c): ?>
-                <option value="<?= $c['id'] ?>" <?= ($c['id'] == $pedidos['id_cliente']) ? 'selected' : '' ?>>
-        <?= $c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat'] ?>
+                <option value="<?= esc($c['id']) ?>" <?= ($c['id'] == $pedidos['id_cliente']) ? 'selected' : '' ?>>
+        <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
     </option>
 <?php endforeach; ?>
 </select><br>
@@ -24,8 +25,8 @@
         <select name="id_repartidor" id="">
 
             <?php foreach ($repartidores as $r): ?>
-                <option value="<?= $r['id'] ?>" <?= ($r['id'] == $pedidos['id_cliente']) ? 'selected' :'' ?>>
-                    <?= $r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat'] ?></option>
+                <option value="<?= esc($r['id']) ?>" <?= ($r['id'] == $pedidos['id_repartidor']) ? 'selected' : '' ?>>
+                    <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?></option>
                 <?php endforeach; ?>
         </select><br>
         <input type="submit" value="Enviar">

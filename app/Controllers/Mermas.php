@@ -1,58 +1,80 @@
-<?php 
+<?php
+
 namespace App\Controllers;
 
 use App\Models\Modelo_entrada;
+use App\Models\Modelo_existencia;
 use App\Models\Modelo_merma;
-use App\Models\Modelo_existencia; // ← Añadido
-use CodeIgniter\Controller;
+use App\Models\PdoModelo;
+use Throwable;
 
-class Mermas extends Controller{
+class Mermas extends BaseController
+{
+    private function reglas(string $campoCantidad): array
+    {
+        return [
+            $campoCantidad => 'required|numeric|greater_than[0]|less_than[100000000]',
+            'fecha'        => 'required|valid_date[Y-m-d]',
+            'notas'        => 'permit_empty|max_length[500]',
+            'id_entrada'   => 'required|is_natural_no_zero',
+        ];
+    }
+
+    private function mensajes(string $campoCantidad): array
+    {
+        return [
+            $campoCantidad => ['required' => 'Por favor, complete todos los campos obligatorios.', 'numeric' => 'La cantidad debe ser un número.', 'greater_than' => 'La cantidad debe ser mayor que 0.'],
+            'fecha'        => ['required' => 'Por favor, complete todos los campos obligatorios.', 'valid_date' => 'La fecha no es válida.'],
+            'notas'        => ['max_length' => 'Las notas admiten máximo 500 caracteres.'],
+            'id_entrada'   => ['required' => 'Por favor, complete todos los campos obligatorios.', 'is_natural_no_zero' => 'Entrada no válida.'],
+        ];
+    }
+
+    private function datosDelFormulario(string $campoCantidad): array
+    {
+        return [
+            'cantidad'   => $this->post($campoCantidad),
+            'fecha'      => $this->post('fecha'),
+            'notas'      => $this->post('notas'),
+            'id_entrada' => (int) $this->request->getPost('id_entrada'),
+        ];
+    }
 
     public function crea_merma()
     {
-        $m_entrada = new Modelo_entrada();
-        $m_existencia = new Modelo_existencia();
-        $date = date('Y-m-d');
-
         $datos = [
-            'entradas'         => $m_entrada->getEntradasConProducto(),
-            'stockPorProducto' => $m_existencia->stockDisponiblePorProducto(), // ← Añadido
-            'date'             => $date,
+            'entradas'         => (new Modelo_entrada())->getEntradasConProducto(),
+            'stockPorProducto' => (new Modelo_existencia())->stockDisponiblePorProducto(),
+            'date'             => date('Y-m-d'),
         ];
 
         return view('crea_merma', $datos);
     }
 
-    public function guarda_merma(){
-        $m_merma = new Modelo_merma();
-        $datos = [
-            'cantidad'   => $this->request->getPost('cant'),
-            'fecha'      => $this->request->getPost('fecha'),
-            'notas'      => $this->request->getPost('notas'),
-            'id_entrada' => $this->request->getPost('id_entrada')
-        ];
-        if (empty($datos['cantidad']) || empty($datos['fecha']) || empty($datos['id_entrada'])){
-            return redirect()->to('crea_merma')->with('error', 'Por favor, complete todos los campos obligatorios.');
-        } else {
-            $m_merma->insert($datos);
-            if($this->request->getPost('origen') === 'main_page'){
-                return redirect()->to('/')->with('mensaje', 'Merma registrada exitosamente.');
-            }
-            return redirect()->to('lista_merma')->with('mensaje', 'Merma registrada exitosamente.');
+    public function guarda_merma()
+    {
+        if (! $this->validate($this->reglas('cant'), $this->mensajes('cant'))) {
+            return redirect()->to('crea_merma')->with('error', $this->primerError());
+        }
+
+        try {
+            (new Modelo_merma())->insert($this->datosDelFormulario('cant'));
+
+            return redirect()->to($this->destino('lista_merma'))->with('mensaje', 'Merma registrada exitosamente.');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_merma')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo registrar la merma.'));
         }
     }
 
     public function lista_merma()
     {
-        $buscar       = $this->request->getGet('buscar') ?? '';
-        $m_merma      = new Modelo_merma();
-        $m_entrada    = new Modelo_entrada();
-        $m_existencia = new Modelo_existencia(); // ← Añadido
+        $buscar   = $this->textoBusqueda();
+        $m_merma  = new Modelo_merma();
 
         $datos = [
-            'mermas'           => $m_merma->filtrar($buscar)->orderBy('merma.id', 'DESC')->paginate(20),
-            'entradas'         => $m_entrada->getEntradasConProducto(),
-            'stockPorProducto' => $m_existencia->stockDisponiblePorProducto(), // ← Añadido
+            'mermas'           => $m_merma->listar($buscar),
+            'entradas'         => (new Modelo_entrada())->getEntradasConProducto(),
+            'stockPorProducto' => (new Modelo_existencia())->stockDisponiblePorProducto(),
             'pager'            => $m_merma->pager,
             'buscar'           => $buscar,
         ];
@@ -60,36 +82,49 @@ class Mermas extends Controller{
         return view('lista_merma', $datos);
     }
 
-    public function recupera($id=null){
-        $m_merma = new Modelo_merma();
-        $m_entrada = new Modelo_entrada();
-        $datos=[
-            'mermas'   => $m_merma->find($id),
-            'entradas' => $m_entrada->getEntradasConProducto(),
-        ];
-        return view('modifica_merma', $datos);
+    public function recupera($id = null)
+    {
+        $merma = (new Modelo_merma())->find($id);
+
+        if (! $merma) {
+            return redirect()->to('lista_merma');
+        }
+
+        return view('modifica_merma', [
+            'mermas'   => $merma,
+            'entradas' => (new Modelo_entrada())->getEntradasConProducto(),
+        ]);
     }
 
-    public function eliminar_datos($id=null){
-        $m_merma = new Modelo_merma();
-        $m_merma->delete($id);
-        return redirect()->to('lista_merma')->with('mensaje', 'Merma eliminada correctamente');
+    public function eliminar_datos($id = null)
+    {
+        try {
+            (new Modelo_merma())->delete($id);
+
+            return redirect()->to('lista_merma')->with('mensaje', 'Merma eliminada correctamente');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_merma')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo eliminar la merma.'));
+        }
     }
 
-    public function modifica(){
-        $m_merma = new Modelo_merma();
+    public function modifica()
+    {
         $id = $this->request->getPost('id');
-        $datos = [
-            'cantidad'   => $this->request->getPost('cantidad'),
-            'fecha'      => $this->request->getPost('fecha'),
-            'notas'      => $this->request->getPost('notas'),
-            'id_entrada' => $this->request->getPost('id_entrada')
-        ];
-        if (empty($datos['cantidad']) || empty($datos['fecha']) || empty($datos['id_entrada'])){
-            return redirect()->to('lista_merma')->with('error', 'Por favor, complete todos los campos obligatorios.');
-        } else {
-            $m_merma->update($id, $datos);
+
+        if (! ctype_digit((string) $id)) {
+            return redirect()->to('lista_merma')->with('error', 'ID inválido');
+        }
+
+        if (! $this->validate($this->reglas('cantidad'), $this->mensajes('cantidad'))) {
+            return redirect()->to('lista_merma')->with('error', $this->primerError());
+        }
+
+        try {
+            (new Modelo_merma())->update($id, $this->datosDelFormulario('cantidad'));
+
             return redirect()->to('lista_merma')->with('mensaje', 'Merma actualizada correctamente');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_merma')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo actualizar la merma.'));
         }
     }
 }

@@ -1,26 +1,47 @@
-<?php 
+<?php
+
 namespace App\Models;
 
-use CodeIgniter\Model;
-
-class Modelo_repartidor extends Model{
-    protected $table      = 'repartidor';
-    // Uncomment below if you want add primary key
-    protected $primaryKey = 'id';
-    protected $allowedFields = ['nombre','ape_pat','ape_mat','telefono','direccion','notas'];
-
-public function filtrar(string $buscar): static
+class Modelo_repartidor extends PdoModelo
 {
-    if (!empty($buscar)) {
-        $this->groupStart()
-                ->where('id', $buscar)
-                ->orLike('nombre', $buscar)
-                ->orLike('ape_pat', $buscar)
-                ->orLike('ape_mat', $buscar)
-                ->orLike('telefono', $buscar) 
-             ->groupEnd();
-    }
+    protected string $tabla         = 'repartidor';
+    protected string $llavePrimaria = 'id';
 
-    return $this;
-}
+    protected array $camposPermitidos = ['nombre', 'ape_pat', 'ape_mat', 'telefono', 'direccion', 'notas'];
+
+    /**
+     * Lista paginada de repartidores con búsqueda opcional.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function listar(?string $buscar = '', int $porPagina = 20): array
+    {
+        $buscar = trim((string) $buscar);
+        $where  = '';
+        $params = [];
+
+        if ($buscar !== '') {
+            $like  = $this->patronLike($buscar);
+            $parte = [];
+
+            if (ctype_digit($buscar)) {
+                $parte[]  = 'id = ?';
+                $params[] = (int) $buscar;
+            }
+
+            $parte[] = 'nombre LIKE ?';
+            $parte[] = 'ape_pat LIKE ?';
+            $parte[] = 'ape_mat LIKE ?';
+            $parte[] = 'telefono LIKE ?';
+            array_push($params, $like, $like, $like, $like);
+
+            $where = ' WHERE ' . implode(' OR ', $parte);
+        }
+
+        return $this->paginarSql(
+            'SELECT * FROM repartidor' . $where . ' ORDER BY id DESC',
+            $params,
+            $porPagina
+        );
+    }
 }

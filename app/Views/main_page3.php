@@ -25,12 +25,12 @@
     <div class="flash-container">
         <?php if (session()->getFlashdata('error')): ?>
             <div class="w3-panel w3-red w3-animate-opacity">
-                <p><?= session()->getFlashdata('error') ?></p>
+                <p><?= esc(session()->getFlashdata('error')) ?></p>
             </div>
         <?php endif; ?>
         <?php if (session()->getFlashdata('mensaje')): ?>
             <div class="w3-panel w3-green w3-animate-opacity">
-                <p><?= session()->getFlashdata('mensaje') ?></p>
+                <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
             </div>
         <?php endif; ?>
     </div>
@@ -145,9 +145,9 @@
                         <tbody>
                             <?php foreach ($top5_bajos as $i => $p): ?>
                                 <tr>
-                                    <td><?= $i + 1 ?></td>
+                                    <td><?= esc($i + 1) ?></td>
                                     <td><?= esc($p['nombre']) ?></td>
-                                    <td><?= $p['stock'] ?></td>
+                                    <td><?= esc($p['stock']) ?></td>
                                     <td>
                                         <?php if ($p['stock'] <= 5): ?>
                                             <span class="badge badge--red">Bajo</span>
@@ -184,6 +184,7 @@
     <div id="modalCliente" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_cliente') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <input type="hidden" name="origen" value="main_page">
                 <label><b>Nombre*</b></label>
                 <input type="text" placeholder="Ej: Mario" name="nom" class="w3-input w3-border w3-margin-bottom" required>
@@ -204,6 +205,7 @@
     <div id="modalDireccion" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_direccion') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <input type="hidden" name="origen" value="main_page">
                 <label><b>Colonia*</b></label>
                 <input type="text" placeholder="Ej: Centro" name="col" class="w3-input w3-border w3-margin-bottom" required>
@@ -265,6 +267,7 @@
     <div id="modalEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <input type="hidden" name="origen" value="main_page">
                 <label><b>Fecha de entrada*</b></label>
                 <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
@@ -322,6 +325,7 @@
     <div id="modalProducto" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <input type="hidden" name="origen" value="main_page">
                 <label><b>Nombre*</b></label>
                 <input type="text" name="nom" placeholder="Ej: Tomate Saladet" class="w3-input w3-border w3-margin-bottom" required>
@@ -346,6 +350,7 @@
     <div id="modalRepartidor" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <input type="hidden" name="origen" value="main_page">
                 <label><b>Nombre*</b></label>
                 <input type="text" placeholder="Ej: Juan" name="nom" class="w3-input w3-border w3-margin-bottom" required>
@@ -512,6 +517,7 @@
     <div id="modalExistencias" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_existencia') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <input type="hidden" name="origen" value="main_page">
                 <label><b>Producto*</b></label>
                 <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
@@ -539,14 +545,15 @@
     <div id="modalMerma" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <input type="hidden" name="origen" value="main_page">
                 <label><b>Entrada*</b></label>
                 <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                     <option value="">-- Selecciona una entrada --</option>
                     <?php foreach ($entradas as $entrada): ?>
                         <?php if (($stockPorProducto[$entrada['id_producto']] ?? 0) > 0): ?>
-                            <option value="<?= $entrada['id'] ?>">
-                                #<?= $entrada['id'] ?> — <?= esc($entrada['nombre_producto']) ?> (<?= $entrada['fecha'] ?>)
+                            <option value="<?= esc($entrada['id']) ?>">
+                                #<?= esc($entrada['id']) ?> — <?= esc($entrada['nombre_producto']) ?> (<?= esc($entrada['fecha']) ?>)
                             </option>
                         <?php endif; ?>
                     <?php endforeach; ?>
@@ -571,16 +578,14 @@
     <?php include 'Footer.php'; ?>
 
     <script>
-    const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
+    // Escapa texto antes de insertarlo con innerHTML (anti XSS)
+    function escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+    const stockPorProducto = <?= json_seguro($stockPorProducto) ?>;
  
-    const nombreProducto = {
-        <?php foreach ($productos as $pr): ?>
-            <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
-        <?php endforeach; ?>
-    };
+    const nombreProducto = <?= json_seguro(array_column($productos, 'nombre', 'id')) ?>;
  
     // Catálogo con unidad y precio sugeridos por producto
-    const catalogoProductos = <?= json_encode(array_map(fn($p) => [
+    const catalogoProductos = <?= json_seguro(array_map(fn($p) => [
         'id'        => (int)$p['id'],
         'nombre'    => $p['nombre'],
         'categoria' => $p['categoria'] ?? '',
@@ -623,7 +628,7 @@
     const selectEntrada = document.getElementById('id_entrada_modal');
     if (selectEntrada) {
         selectEntrada.addEventListener('change', function () {
-            const entradas = <?= json_encode(array_column($entradas, 'u_venta', 'id'), JSON_FORCE_OBJECT) ?>;
+            const entradas = <?= json_seguro(array_column($entradas, 'u_venta', 'id'), JSON_FORCE_OBJECT) ?>;
             document.getElementById('u_venta_modal').value = entradas[this.value] || '';
         });
     }
@@ -702,7 +707,7 @@
  
             if (candidatos.length === 0) {
                 divResultados.innerHTML =
-                    '<div class="sin-resultados">Sin resultados para "' + texto + '"</div>';
+                    '<div class="sin-resultados">Sin resultados para "' + escHtml(texto) + '"</div>';
                 divResultados.style.display = 'block';
                 return;
             }
@@ -718,9 +723,9 @@
                 const pillText  = stock > 0 ? 'Stock: ' + stock : 'Sin stock';
                 return `<div class="prod-item"
                              data-id="${p.id}"
-                             data-nombre="${p.nombre.replace(/"/g,'&quot;')}"
+                             data-nombre="${escHtml(p.nombre)}"
                              data-stock="${stock}">
-                          <span>${p.nombre}</span>
+                          <span>${escHtml(p.nombre)}</span>
                           <span class="stock-pill ${pillClass}">${pillText}</span>
                         </div>`;
             }).join('');
@@ -899,9 +904,9 @@
             total += parseFloat(item.total);
             tbody.innerHTML += `
               <tr>
-                <td>${nombreProducto[item.id_producto]}</td>
-                <td>${item.u_venta}</td>
-                <td>${item.cant}</td>
+                <td>${escHtml(nombreProducto[item.id_producto])}</td>
+                <td>${escHtml(item.u_venta)}</td>
+                <td>${escHtml(item.cant)}</td>
                 <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                 <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
                 <td><button type="button" onclick="quitarItem(${i})"
@@ -1004,10 +1009,10 @@
         new Chart(document.getElementById('pedidosChart'), {
             type: 'bar',
             data: {
-                labels: <?= json_encode($pedidos_labels) ?>,
+                labels: <?= json_seguro($pedidos_labels) ?>,
                 datasets: [{
                     label: 'Pedidos',
-                    data: <?= json_encode($semanas_count) ?>,
+                    data: <?= json_seguro($semanas_count) ?>,
                     backgroundColor: colVerde,
                     borderColor: colVerdeB,
                     borderWidth: 1,
@@ -1021,10 +1026,10 @@
         new Chart(document.getElementById('ventasChart'), {
             type: 'line',
             data: {
-                labels: <?= json_encode($ventas_labels) ?>,
+                labels: <?= json_seguro($ventas_labels) ?>,
                 datasets: [{
                     label: 'Ventas ($)',
-                    data: <?= json_encode($semanas_ventas) ?>,
+                    data: <?= json_seguro($semanas_ventas) ?>,
                     backgroundColor: colLima,
                     borderColor: colVerdeB,
                     borderWidth: 2,
@@ -1041,10 +1046,10 @@
         new Chart(document.getElementById('topProductosChart'), {
             type: 'bar',
             data: {
-                labels: <?= json_encode($top5_labels) ?>,
+                labels: <?= json_seguro($top5_labels) ?>,
                 datasets: [{
                     label: 'Unidades',
-                    data: <?= json_encode($top5_data) ?>,
+                    data: <?= json_seguro($top5_data) ?>,
                     backgroundColor: colVerde,
                     borderColor: colVerdeB,
                     borderWidth: 1,
@@ -1065,10 +1070,10 @@
         new Chart(document.getElementById('mermaChart'), {
             type: 'bar',
             data: {
-                labels: <?= json_encode($mermas_labels) ?>,
+                labels: <?= json_seguro($mermas_labels) ?>,
                 datasets: [{
                     label: 'Merma',
-                    data: <?= json_encode($mermas_data) ?>,
+                    data: <?= json_seguro($mermas_data) ?>,
                     backgroundColor: colRojo,
                     borderColor: colRojoB,
                     borderWidth: 1,

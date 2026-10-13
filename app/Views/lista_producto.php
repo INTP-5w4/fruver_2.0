@@ -16,13 +16,13 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
@@ -68,28 +68,27 @@
         <tbody>
             <?php foreach ($productos as $p): ?>
                 <tr>
-                    <td><?= $p['id'] ?></td>
+                    <td><?= esc($p['id']) ?></td>
                     <td><?= esc($p['nombre']) ?></td>
                     <td><?= esc($p['descripcion']) ?></td>
                     <td><?= esc($p['categoria']) ?></td>
                     <td><?= esc($p['img']) ?></td>
                     <td>
                         <button onclick="abrirModal(
-                                    '<?= $p['id'] ?>',
-                                    '<?= esc($p['nombre']) ?>',
-                                    '<?= esc($p['descripcion']) ?>',
-                                    '<?= esc($p['categoria']) ?>'
+                                    '<?= esc($p['id'], 'js') ?>',
+                                    '<?= esc($p['nombre'], 'js') ?>',
+                                    '<?= esc($p['descripcion'], 'js') ?>',
+                                    '<?= esc($p['categoria'], 'js') ?>'
                                 )"
                                 style="border:none; cursor:pointer; background:none;">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     </td>
                     <td>
-                        <a href="<?= base_url('borra_id_producto/'.$p['id']) ?>">
-                            <button style="border:none; cursor:pointer; background:none;">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </a>
+                        <form method="post" action="<?= base_url('borra_id_producto/' . (int) $p['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+</form>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -103,6 +102,7 @@
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
             <form action="<?= base_url('modifica_producto') ?>" method="post"
                 enctype="multipart/form-data" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
                 <input type="hidden" name="id" id="edit_id">
 
@@ -139,6 +139,7 @@
     <div id="modalCrearProducto" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
                 <label><b>Nombre*</b></label>
                 <input type="text" name="nom" placeholder="Ej: Tomate Saladet" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Descripción*</b></label>

@@ -7,7 +7,8 @@
 </head>
 <body>
     <form action="<?= base_url('modifica_estatus') ?>" method="post">
-        <input type="hidden" name="id" value="<?= $estatus['id'] ?>">
+<?= csrf_field() ?>
+        <input type="hidden" name="id" value="<?= esc($estatus['id']) ?>">
         <label for="">Estado</label><br>
         <select name="edo" id="">
             <option value="<?= esc('pedido_realizado') ?>" <?= ($estatus['estado'] == 'pedido_realizado') ? 'selected' : '' ?>>Pedido realizado</option>
@@ -19,9 +20,9 @@
             <option value="<?= esc('pedido_cancelado') ?>" <?= ($estatus['estado'] == 'pedido_cancelado') ? 'selected' : '' ?>>Pedido cancelado</option>
         </select><br>
         <label for="">Fecha</label><br>
-        <input type="date" name="fecha" value="<?= $estatus['fecha'] ?>"><br>
+        <input type="date" name="fecha" value="<?= esc($estatus['fecha']) ?>"><br>
         <label for="">ID Pedido</label><br>
-        <input type="number" name="id_pedido" value="<?= $estatus['id_pedido'] ?>"><br>
+        <input type="number" name="id_pedido" value="<?= esc($estatus['id_pedido']) ?>"><br>
         <input type="submit" value="Enviar">
         <br>
     </form>

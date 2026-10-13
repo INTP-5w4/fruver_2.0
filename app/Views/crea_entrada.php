@@ -9,6 +9,7 @@
 <body>
     <div class="formulario-pagina">
 <form action="<?= base_url('guarda_entrada')?>" method="post">
+<?= csrf_field() ?>
         <label>Fecha de entrada</label><br>
         <input type="date" name="f_ent" id=""><br>
         
@@ -47,7 +48,7 @@
         <label>ID del producto</label><br>
         <select name="id_producto" id="">
             <?php foreach ($frutas as $p): ?>
-            <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
+            <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
             <?php endforeach; ?>
         </select><br>
         <header class="modal-header">
@@ -55,6 +56,7 @@
         </header>
 
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="modal-form">
+<?= csrf_field() ?>
 
             <label><b>Fecha de entrada</b></label>
             <input type="date" name="f_ent" class="modal-input" required>
@@ -86,7 +88,7 @@
             <label><b>Producto</b></label>
             <select name="id_producto" class="modal-input" required>
                 <?php foreach ($productos as $p): ?>
-                    <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
+                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
 

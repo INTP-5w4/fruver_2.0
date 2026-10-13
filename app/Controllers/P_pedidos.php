@@ -2,30 +2,62 @@
 
 namespace App\Controllers;
 
+use App\Models\Modelo_cliente;
+use App\Models\Modelo_entrada;
+use App\Models\Modelo_estatus;
+use App\Models\Modelo_existencia;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_producto;
 use App\Models\Modelo_productopedidos;
-use App\Models\Modelo_estatus;
-use App\Models\Modelo_cliente;
 use App\Models\Modelo_repartidor;
-use App\Models\Modelo_existencia;
-use App\Models\Modelo_entrada;       // ← NUEVO
-use CodeIgniter\Controller;
+use App\Models\PdoModelo;
+use DomainException;
+use Throwable;
 
-class P_pedidos extends Controller
+/**
+ * Pedidos completos (cabecera + productos + estatus) del panel de administración.
+ * Todo el SQL vive en Modelo_pedido / Modelo_productopedidos / Modelo_estatus (PDO).
+ */
+class P_pedidos extends BaseController
 {
+    /** Reglas de la cabecera del pedido. */
+    private const REGLAS_CABECERA = [
+        'fecha'         => 'required|valid_date[Y-m-d]',
+        'id_cliente'    => 'required|is_natural_no_zero',
+        'id_repartidor' => 'required|is_natural_no_zero',
+    ];
+
+    private function cabecera(): array
+    {
+        return [
+            'fecha'         => $this->post('fecha'),
+            'id_cliente'    => (int) $this->request->getPost('id_cliente'),
+            'id_repartidor' => (int) $this->request->getPost('id_repartidor'),
+        ];
+    }
+
+    /** Estado enviado por el formulario, solo si es uno de los estados reales del pedido. */
+    private function estadoValido(): ?string
+    {
+        $estado = $this->post('estado');
+
+        return array_key_exists($estado, Modelo_pedido::TRANSICIONES) ? $estado : null;
+    }
+
+    /** Líneas del pedido que llegan como JSON en el campo "items". */
+    private function itemsDelFormulario(): array
+    {
+        $json = json_decode((string) $this->request->getPost('items'), true);
+
+        return Modelo_productopedidos::limpiarItems($json);
+    }
 
     public function crea_p_pedido()
     {
-        $m_pedido   = new Modelo_pedido();
-        $m_producto = new Modelo_producto();
-
-        $datos = [
-            'pedidos'   => $m_pedido->findAll(),
-            'productos' => $m_producto->findAll()
-        ];
-
-        return view('crea_p_pedido', $datos);
+        return view('crea_p_pedido', [
+            'pedidos'   => (new Modelo_pedido())->findAll(),
+            'productos' => (new Modelo_producto())->findAll(),
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -33,77 +65,29 @@ class P_pedidos extends Controller
     // ─────────────────────────────────────────────────────────────
     public function guarda_pedido_completo()
     {
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
+        $estado = $this->estadoValido();
 
-        $datosPedido = [
-            'fecha'         => $this->request->getPost('fecha'),
-            'id_cliente'    => $this->request->getPost('id_cliente'),
-            'id_repartidor' => $this->request->getPost('id_repartidor'),
-        ];
-
-        if (in_array('', $datosPedido, true)) {
+        if (! $this->validate(self::REGLAS_CABECERA) || $estado === null) {
             return redirect()->back()->with('mensaje', 'Datos del pedido incompletos');
         }
 
-        $mPedido->insert($datosPedido);
-        $idPedido = $mPedido->insertID();
+        try {
+            $items = $this->itemsDelFormulario();
 
-        $items = json_decode($this->request->getPost('items'), true);
-
-        if (empty($items) || !is_array($items)) {
-            return redirect()->back()->with('mensaje', 'El carrito está vacío');
+            (new Modelo_pedido())->crearPedidoCompleto(
+                $this->cabecera(),
+                $items,
+                $estado,
+                $this->fechaHoraSql($this->request->getPost('fecha_estatus'))
+            );
+        } catch (DomainException $e) {
+            // Carrito vacío, datos no válidos o stock insuficiente
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->back()->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo crear el pedido.'));
         }
 
-        // VALIDAR STOCK
-        $mExistencia = new Modelo_existencia();
-        $stockMap    = $mExistencia->stockDisponiblePorProducto();
-
-        foreach ($items as $item) {
-
-            $disponible = $stockMap[$item['id_producto']] ?? 0;
-
-            if ($item['cant'] > $disponible) {
-
-                $mPedido->delete($idPedido);
-
-                $mProducto = new Modelo_producto();
-                $prod      = $mProducto->find($item['id_producto']);
-
-                $nombre = $prod['nombre'] ?? 'Producto';
-
-                return redirect()->back()->with(
-                    'error',
-                    "Stock insuficiente para \"$nombre\". Disponible: $disponible"
-                );
-            }
-        }
-
-        // INSERTAR ITEMS
-        foreach ($items as $item) {
-
-            $datosItem = [
-                'cant'         => $item['cant'],
-                'precio_venta' => $item['p_venta'],
-                'unidad_venta' => $item['u_venta'],
-                'total'        => $item['total'],
-                'id_pedido'    => $idPedido,
-                'id_producto'  => $item['id_producto'],
-            ];
-
-            $mPP->insert($datosItem);
-        }
-
-        // INSERTAR ESTATUS
-        $mEstatus->insert([
-            'estado'    => $this->request->getPost('estado'),
-            'fecha'     => $this->request->getPost('fecha_estatus'),
-            'id_pedido' => $idPedido,
-        ]);
-
-        return redirect()->to('lista_p_pedido')
-            ->with('mensaje', 'Pedido creado exitosamente');
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido creado exitosamente');
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -111,137 +95,64 @@ class P_pedidos extends Controller
     // ─────────────────────────────────────────────────────────────
     public function modifica_pedido_completo()
     {
-
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
-
         $idPedido    = $this->request->getPost('id_pedido');
-        $nuevoEstado = $this->request->getPost('estado');
+        $nuevoEstado = $this->estadoValido();
 
-        $estatusActual = $mEstatus
-            ->where('id_pedido', $idPedido)
-            ->orderBy('fecha', 'DESC')
-            ->first();
+        if (! ctype_digit((string) $idPedido) || $nuevoEstado === null || ! $this->validate(self::REGLAS_CABECERA)) {
+            return redirect()->to('lista_p_pedido')->with('error', 'Datos del pedido incompletos');
+        }
 
-        $estadoActual = $estatusActual['estado'] ?? 'pedido_pendiente';
+        $m_pedido = new Modelo_pedido();
 
-        $transicionesValidas = [
-            'pedido_pendiente'   => ['pedido_realizado'],
-            'pedido_realizado'   => ['pedido_confirmado', 'pedido_cancelado'],
-            'pedido_confirmado'  => ['pedido_en_transito', 'pedido_cancelado'],
-            'pedido_en_transito' => ['pedido_entregado', 'pedido_a_credito'],
-            'pedido_entregado'   => ['pedido_pagado', 'pedido_a_credito'],
-            'pedido_a_credito'   => ['pedido_pagado'],
-            'pedido_pagado'      => [],
-            'pedido_cancelado'   => [],
-        ];
+        if (! $m_pedido->find($idPedido)) {
+            return redirect()->to('lista_p_pedido')->with('error', 'Pedido no encontrado');
+        }
 
-        $permitidos = $transicionesValidas[$estadoActual] ?? [];
+        $permitidos = Modelo_pedido::TRANSICIONES[$m_pedido->estadoActual($idPedido)] ?? [];
 
-        if (!in_array($nuevoEstado, $permitidos)) {
+        if (! in_array($nuevoEstado, $permitidos, true)) {
+            return redirect()->to('lista_p_pedido')->with('error', "No se puede cambiar a '{$nuevoEstado}'");
+        }
 
+        try {
+            $m_pedido->modificarPedidoCompleto(
+                $idPedido,
+                $this->cabecera(),
+                $this->itemsDelFormulario(),
+                $nuevoEstado,
+                $this->fechaHoraSql($this->request->getPost('fecha_estatus'))
+            );
+        } catch (DomainException $e) {
+            return redirect()->to('lista_p_pedido')->with('error', $e->getMessage());
+        } catch (Throwable $e) {
             return redirect()->to('lista_p_pedido')
-                ->with(
-                    'error',
-                    "No se puede cambiar a '$nuevoEstado'"
-                );
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo modificar el pedido.'));
         }
 
-        // ACTUALIZAR PEDIDO
-        $mPedido->update($idPedido, [
-            'fecha'         => $this->request->getPost('fecha'),
-            'id_cliente'    => $this->request->getPost('id_cliente'),
-            'id_repartidor' => $this->request->getPost('id_repartidor'),
-        ]);
-
-        // ITEMS
-        $items = json_decode($this->request->getPost('items'), true);
-
-        if (!is_array($items)) {
-            $items = [];
-        }
-
-        $idsEntrantes = array_filter(
-            array_column($items, 'id'),
-            fn($id) => !empty($id)
-        );
-
-        $existentes = $mPP->where('id_pedido', $idPedido)->findAll();
-
-        foreach ($existentes as $fila) {
-
-            if (!in_array($fila['id'], $idsEntrantes)) {
-                $mPP->delete($fila['id']);
-            }
-        }
-
-        foreach ($items as $item) {
-
-            $datos = [
-                'cant'         => $item['cant'],
-                'precio_venta' => $item['p_venta'],
-                'unidad_venta' => $item['u_venta'],
-                'total'        => $item['total'],
-                'id_pedido'    => $idPedido,
-                'id_producto'  => $item['id_producto'],
-            ];
-
-            if (!empty($item['id'])) {
-
-                $mPP->update($item['id'], $datos);
-
-            } else {
-
-                $mPP->insert($datos);
-            }
-        }
-
-        // NUEVO ESTATUS
-        $mEstatus->insert([
-            'estado'    => $nuevoEstado,
-            'fecha'     => $this->request->getPost('fecha_estatus'),
-            'id_pedido' => $idPedido,
-        ]);
-
-        return redirect()->to('lista_p_pedido')
-            ->with('mensaje', 'Pedido modificado exitosamente');
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido modificado exitosamente');
     }
 
     // ─────────────────────────────────────────────────────────────
-    // API PEDIDO
+    // API PEDIDO (JSON para el modal de edición)
     // ─────────────────────────────────────────────────────────────
     public function api_pedido($id = null)
     {
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
+        $m_pedido = new Modelo_pedido();
+        $pedido   = $m_pedido->find($id);
 
-        $pedido  = $mPedido->find($id);
-        $items   = $mPP->where('id_pedido', $id)->findAll();
-        $estatus = $mEstatus->where('id_pedido', $id)
-            ->orderBy('fecha', 'DESC')
-            ->first();
+        if (! $pedido) {
+            return $this->response->setStatusCode(404)->setJSON(['error' => 'Pedido no encontrado']);
+        }
 
+        $estatus      = (new Modelo_estatus())->ultimoPorFecha($id);
         $estadoActual = $estatus['estado'] ?? 'pedido_pendiente';
-
-        $transicionesValidas = [
-            'pedido_pendiente'   => ['pedido_realizado'],
-            'pedido_realizado'   => ['pedido_confirmado', 'pedido_cancelado'],
-            'pedido_confirmado'  => ['pedido_en_transito', 'pedido_cancelado'],
-            'pedido_en_transito' => ['pedido_entregado', 'pedido_a_credito'],
-            'pedido_entregado'   => ['pedido_pagado', 'pedido_a_credito'],
-            'pedido_a_credito'   => ['pedido_pagado'],
-            'pedido_pagado'      => [],
-            'pedido_cancelado'   => [],
-        ];
 
         return $this->response->setJSON([
             'pedido'               => $pedido,
-            'items'                => $items,
+            'items'                => (new Modelo_productopedidos())->itemsDePedido($id),
             'estatus'              => $estatus,
             'estado_actual'        => $estadoActual,
-            'transiciones_validas' => $transicionesValidas[$estadoActual] ?? [],
+            'transiciones_validas' => Modelo_pedido::TRANSICIONES[$estadoActual] ?? [],
         ]);
     }
 
@@ -250,179 +161,162 @@ class P_pedidos extends Controller
     // ─────────────────────────────────────────────────────────────
     public function lista_p_pedido()
     {
-        $buscar    = $this->request->getGet('buscar') ?? '';
-        $pagina    = (int)($this->request->getGet('page') ?? 1);
+        $buscar    = $this->textoBusqueda();
+        $pagina    = max(1, (int) $this->request->getGet('page'));
         $porPagina = 20;
 
-        $m_p_pedido   = new Modelo_productopedidos();
-        $m_producto   = new Modelo_producto();
-        $m_cliente    = new Modelo_cliente();
-        $m_repartidor = new Modelo_repartidor();
-        $m_existencia = new Modelo_existencia();
-        $m_entrada    = new Modelo_entrada();          // ← NUEVO
+        $todos         = (new Modelo_productopedidos())->obtenerPedidosAgrupados($buscar);
+        $total         = count($todos);
+        $pagina_actual = array_slice($todos, ($pagina - 1) * $porPagina, $porPagina);
 
-        $todos  = $m_p_pedido->obtenerPedidosAgrupados($buscar);
-        $total  = count($todos);
-        $offset = ($pagina - 1) * $porPagina;
-        $pagina_actual = array_slice($todos, $offset, $porPagina);
+        // Precio y unidad sugeridos: los de la última entrada de cada producto
+        $ultimasEntradas = (new Modelo_entrada())->ultimaEntradaPorProducto();
 
-        // ── Datos sugeridos de la última entrada por producto ───────
-        $ultimasEntradas = $m_entrada->ultimaEntradaPorProducto();
-
-        $precioSugerido = array_map(
-            fn($e) => $e['precio_venta_u'],
-            $ultimasEntradas
-        );
-        $uVentaSugerida = array_map(
-            fn($e) => $e['u_venta'],
-            $ultimasEntradas
-        );
-        // ───────────────────────────────────────────────────────────
-
-        $datos = [
+        return view('lista_p_pedido', [
             'buscar'                    => $buscar,
             'pedidos_agrupados'         => $pagina_actual,
             'total_pedidos'             => $total,
             'pagina_actual'             => $pagina,
             'por_pagina'                => $porPagina,
-            'total_paginas'             => ceil($total / $porPagina),
-            'productos'                 => $m_producto->findAll(),
-            'clientes'                  => $m_cliente->findAll(),
-            'repartidores'              => $m_repartidor->findAll(),
-            'stockPorProducto'          => $m_existencia->stockDisponiblePorProducto(),
-            'precioSugeridoPorProducto' => $precioSugerido,   // ← RELLENO
-            'uVentaSugeridaPorProducto' => $uVentaSugerida,   // ← NUEVO
-        ];
-
-        return view('lista_p_pedido', $datos);
+            'total_paginas'             => (int) ceil($total / $porPagina),
+            'productos'                 => (new Modelo_producto())->findAll(),
+            'clientes'                  => (new Modelo_cliente())->findAll(),
+            'repartidores'              => (new Modelo_repartidor())->findAll(),
+            'stockPorProducto'          => (new Modelo_existencia())->stockDisponiblePorProducto(),
+            'precioSugeridoPorProducto' => array_map(fn ($e) => $e['precio_venta_u'], $ultimasEntradas),
+            'uVentaSugeridaPorProducto' => array_map(fn ($e) => $e['u_venta'], $ultimasEntradas),
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // RECUPERAR
+    // RECUPERAR (una línea de pedido)
     // ─────────────────────────────────────────────────────────────
     public function recupera($id = null)
     {
+        $linea = (new Modelo_productopedidos())->find($id);
 
-        $m_p_pedido = new Modelo_productopedidos();
-        $m_pedido   = new Modelo_pedido();
-        $m_producto = new Modelo_producto();
+        if (! $linea) {
+            return redirect()->to('lista_p_pedido')->with('error', 'Registro no encontrado');
+        }
 
-        $datos = [
-            'p_pedidos' => $m_p_pedido->find($id),
-            'pedidos'   => $m_pedido->findAll(),
-            'productos' => $m_producto->findAll()
-        ];
-
-        return view('modifica_p_pedido', $datos);
+        return view('modifica_p_pedido', [
+            'p_pedidos' => $linea,
+            'pedidos'   => (new Modelo_pedido())->findAll(),
+            'productos' => (new Modelo_producto())->findAll(),
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // ELIMINAR ITEM
+    // ELIMINAR UNA LÍNEA (POST)
     // ─────────────────────────────────────────────────────────────
     public function eliminar_datos($id = null)
     {
+        try {
+            (new Modelo_productopedidos())->delete($id);
+        } catch (Throwable $e) {
+            return redirect()->to('lista_p_pedido')
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo eliminar el registro.'));
+        }
 
-        $m_p_pedido = new Modelo_productopedidos();
-
-        $m_p_pedido->delete($id);
-
-        return redirect()->to('lista_p_pedido')
-            ->with('mensaje', 'Registro eliminado');
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro eliminado');
     }
 
     // ─────────────────────────────────────────────────────────────
-    // BORRAR PEDIDO COMPLETO
+    // BORRAR PEDIDO COMPLETO (POST)
     // ─────────────────────────────────────────────────────────────
     public function borra_pedido_completo($id = null)
     {
-        $mPedido  = new Modelo_pedido();
-        $mPP      = new Modelo_productopedidos();
-        $mEstatus = new Modelo_estatus();
-
-        $estadosProtegidos = [
-            'pedido_en_transito',
-            'pedido_entregado',
-            'pedido_a_credito',
-            'pedido_pagado',
-        ];
-
-        $estatusActual = $mEstatus
-            ->where('id_pedido', $id)
-            ->orderBy('fecha', 'DESC')
-            ->first();
-
-        $estadoActual = $estatusActual['estado'] ?? null;
-
-        if (in_array($estadoActual, $estadosProtegidos)) {
+        try {
+            (new Modelo_pedido())->eliminarPedidoCompleto($id);
+        } catch (DomainException $e) {
+            // Pedido ya en tránsito, entregado o pagado
+            return redirect()->to('lista_p_pedido')->with('error', $e->getMessage());
+        } catch (Throwable $e) {
             return redirect()->to('lista_p_pedido')
-                ->with('error', 'No se puede eliminar: el pedido ya está en "' 
-                    . str_replace('_', ' ', $estadoActual) . '".');
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo eliminar el pedido.'));
         }
 
-        $mEstatus->where('id_pedido', $id)->delete();
-        $mPP->where('id_pedido', $id)->delete();
-        $mPedido->delete($id);
-
-        return redirect()->to('lista_p_pedido')
-            ->with('mensaje', 'Pedido eliminado correctamente');
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Pedido eliminado correctamente');
     }
 
     // ─────────────────────────────────────────────────────────────
-    // MODIFICAR ITEM SIMPLE
+    // MODIFICAR UNA LÍNEA SIMPLE
     // ─────────────────────────────────────────────────────────────
     public function modifica()
     {
-
-        $m_p_pedido = new Modelo_productopedidos();
-
-        $datos = [
-            'cant'         => $this->request->getPost('cant'),
-            'precio_venta' => $this->request->getPost('p_venta'),
-            'unidad_venta' => $this->request->getPost('u_venta'),
-            'total'        => $this->request->getPost('tot'),
-            'id_pedido'    => $this->request->getPost('id_pedido'),
-            'id_producto'  => $this->request->getPost('id_producto')
+        $reglas = [
+            'id'          => 'required|is_natural_no_zero',
+            'cant'        => 'required|decimal|greater_than[0]',
+            'p_venta'     => 'required|decimal|greater_than_equal_to[0]',
+            'id_pedido'   => 'required|is_natural_no_zero',
+            'id_producto' => 'required|is_natural_no_zero',
         ];
 
-        $id = $this->request->getPost('id');
+        if (! $this->validate($reglas)) {
+            return redirect()->to('lista_p_pedido')->with('error', $this->primerError());
+        }
 
-        $m_p_pedido->update($id, $datos);
+        try {
+            $unidad = Modelo_productopedidos::normalizarUnidad($this->post('u_venta'));
+            $cant   = round((float) $this->post('cant'), 2);
+            $precio = round((float) $this->post('p_venta'), 2);
 
-        return redirect()->to('lista_p_pedido')
-            ->with('mensaje', 'Registro modificado');
+            (new Modelo_productopedidos())->update($this->post('id'), [
+                'cant'         => $cant,
+                'precio_venta' => $precio,
+                'unidad_venta' => $unidad,
+                'total'        => round($cant * $precio, 2), // el total se recalcula aquí
+                'id_pedido'    => (int) $this->request->getPost('id_pedido'),
+                'id_producto'  => (int) $this->request->getPost('id_producto'),
+            ]);
+        } catch (DomainException $e) {
+            return redirect()->to('lista_p_pedido')->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->to('lista_p_pedido')
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo modificar el registro.'));
+        }
+
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro modificado');
     }
 
     // ─────────────────────────────────────────────────────────────
-    // GUARDAR ITEMS VIEJO
+    // GUARDAR LÍNEAS SUELTAS (formulario antiguo crea_p_pedido)
     // ─────────────────────────────────────────────────────────────
     public function guarda_p_pedido()
     {
-
         $m_p_pedido = new Modelo_productopedidos();
 
-        $items = json_decode($this->request->getPost('items'), true);
+        try {
+            $items = $this->itemsDelFormulario();
 
-        if (empty($items)) {
+            // El formulario antiguo manda el id_pedido dentro de cada línea.
+            $json = json_decode((string) $this->request->getPost('items'), true);
 
+            $m_p_pedido->transaccion(function () use ($m_p_pedido, $items, $json) {
+                foreach ($items as $i => $item) {
+                    $idPedido = $json[$i]['id_pedido'] ?? null;
+
+                    if (! is_numeric($idPedido) || (int) $idPedido < 1) {
+                        throw new DomainException('Falta el pedido de una de las líneas.');
+                    }
+
+                    $m_p_pedido->insert([
+                        'cant'         => $item['cant'],
+                        'precio_venta' => $item['precio_venta'],
+                        'unidad_venta' => $item['unidad_venta'],
+                        'total'        => $item['total'],
+                        'id_pedido'    => (int) $idPedido,
+                        'id_producto'  => $item['id_producto'],
+                    ]);
+                }
+            });
+        } catch (DomainException $e) {
+            return redirect()->to('lista_p_pedido')->with('mensaje', $e->getMessage());
+        } catch (Throwable $e) {
             return redirect()->to('lista_p_pedido')
-                ->with('mensaje', 'El carrito está vacío');
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudieron guardar los registros.'));
         }
 
-        foreach ($items as $item) {
-
-            $datos = [
-                'cant'         => $item['cant'],
-                'precio_venta' => $item['p_venta'],
-                'unidad_venta' => $item['u_venta'],
-                'total'        => $item['total'],
-                'id_pedido'    => $item['id_pedido'],
-                'id_producto'  => $item['id_producto'],
-            ];
-
-            $m_p_pedido->insert($datos);
-        }
-
-        return redirect()->to('lista_p_pedido')
-            ->with('mensaje', 'Registro guardado');
+        return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
     }
 }
