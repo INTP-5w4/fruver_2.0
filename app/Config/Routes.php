@@ -9,6 +9,7 @@ use CodeIgniter\Router\RouteCollection;
  *  - Públicas ........ cualquiera puede entrar (landing de la tienda, login/registro de Shield).
  *  - Tienda .......... exige sesión iniciada (filtro "session"): carrito y pedido.
  *  - Panel ........... solo personal (filtro "group"): superadmin, admin y developer.
+ *  - Repartidor ...... solo el grupo "repartidor": ve y actualiza únicamente sus entregas.
  *
  * Toda acción que modifica datos (guardar, modificar, BORRAR) es POST: el filtro CSRF solo
  * protege los métodos que no son GET, y un enlace GET de borrado se podría disparar desde
@@ -30,6 +31,14 @@ $routes->group('tienda', ['filter' => 'session'], static function (RouteCollecti
     $routes->post('carrito/quitar', 'Tienda::quitar');
     $routes->post('carrito/vaciar', 'Tienda::vaciar');
     $routes->post('pedido', 'Tienda::confirmar');
+});
+
+// ───────────── REPARTIDOR (solo su grupo) ─────────────
+$routes->group('repartidor', ['filter' => 'group:repartidor'], static function (RouteCollection $routes) {
+    $routes->get('entregas', 'Entregas::mis_entregas');
+    $routes->post('entregas/(:num)/salir', 'Entregas::salir/$1');
+    $routes->post('entregas/(:num)/entregar', 'Entregas::entregar/$1');
+    $routes->post('entregas/(:num)/fallar', 'Entregas::fallar/$1');
 });
 
 // ───────────── PANEL (solo personal) ─────────────
@@ -105,6 +114,11 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('modifica_merma', 'Mermas::modifica');
     $routes->post('borra_id_merma/(:num)', 'Mermas::eliminar_datos/$1');
     $routes->get('pasa_id_merma/(:num)', 'Mermas::recupera/$1');
+
+    // ===== ENTREGAS (asignación del administrador) =====
+    $routes->get('lista_entrega', 'Entregas::lista_entrega');
+    $routes->post('asigna_entrega', 'Entregas::asigna_entrega');
+    $routes->post('cancela_entrega/(:num)', 'Entregas::cancela_entrega/$1');
 
     // ===== P_PEDIDOS =====
     $routes->get('crea_p_pedido', 'P_pedidos::crea_p_pedido');

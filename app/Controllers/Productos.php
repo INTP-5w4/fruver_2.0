@@ -44,6 +44,10 @@ class Productos extends BaseController
     // ─────────────────────────────────────────────────────────────
     public function main_page()
     {
+        if (auth()->loggedIn() && auth()->user()->inGroup('repartidor')) {
+            return redirect()->to('repartidor/entregas');
+        }
+
         if (! $this->esPersonal()) {
             return redirect()->to('main_page_4');
         }
