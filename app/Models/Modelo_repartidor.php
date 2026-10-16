@@ -44,4 +44,14 @@ class Modelo_repartidor extends PdoModelo
             $porPagina
         );
     }
+
+    /**
+     * Enlaza al repartidor con una cuenta de Shield (repartidor.id_user).
+     * `id_user` no está en $camposPermitidos a propósito: no debe poder llegar desde un formulario.
+     * Falla si la cuenta ya está enlazada a otro repartidor (llave UNIQUE).
+     */
+    public function vincularUsuario(int $idRepartidor, int $idUser): void
+    {
+        $this->afectar('UPDATE repartidor SET id_user = ? WHERE id = ?', [$idUser, $idRepartidor]);
+    }
 }

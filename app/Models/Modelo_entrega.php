@@ -42,6 +42,12 @@ class Modelo_entrega extends PdoModelo
     public function asignar(int $idPedido, int $idRepartidor): int
     {
         return (int) $this->transaccion(function () use ($idPedido, $idRepartidor): int {
+            $estadoPedido = (new Modelo_estatus($this->pdo))->ultimoPorId($idPedido)['estado'] ?? 'pedido_pendiente';
+
+            if (! in_array($estadoPedido, ['pedido_confirmado', 'pedido_en_transito'], true)) {
+                throw new DomainException('Error: solo se puede asignar repartidor a un pedido confirmado.');
+            }
+
             // Bloquea las filas del pedido para que dos asignaciones simultáneas
             // no calculen el mismo número de intento.
             $previas = $this->filas(
@@ -76,6 +82,59 @@ class Modelo_entrega extends PdoModelo
              WHERE id = ? AND estado IN ('asignada', 'en_ruta')",
             [$this->limpiar($motivo, 500), $idEntrega]
         ) > 0;
+    }
+
+    /**
+     * Todas las entregas (vista del administrador) con búsqueda opcional.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function listarTodas(string $buscar = '', int $porPagina = 20): array
+    {
+        $where  = '';
+        $params = [];
+        $buscar = trim($buscar);
+
+        if ($buscar !== '') {
+            $like   = $this->patronLike($buscar);
+            $where  = ' WHERE (e.id_pedido LIKE ? OR e.estado LIKE ? OR r.nombre LIKE ? OR r.ape_pat LIKE ?
+                          OR c.nombre LIKE ? OR c.ape_pat LIKE ?)';
+            $params = array_fill(0, 6, $like);
+        }
+
+        return $this->paginarSql(
+            "SELECT e.*,
+                    CONCAT_WS(' ', r.nombre, r.ape_pat) AS repartidor,
+                    CONCAT_WS(' ', c.nombre, c.ape_pat) AS cliente
+               FROM entrega e
+               JOIN repartidor r ON r.id = e.id_repartidor
+               JOIN pedido p     ON p.id = e.id_pedido
+               JOIN cliente c    ON c.id = p.id_cliente
+               {$where}
+              ORDER BY e.id DESC",
+            $params,
+            $porPagina
+        );
+    }
+
+    /**
+     * Pedidos a los que se les puede asignar repartidor: confirmados o en tránsito
+     * (reintento) y sin una entrega abierta ni ya entregada.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function pedidosAsignables(): array
+    {
+        return $this->filas(
+            "SELECT p.id, p.fecha, CONCAT_WS(' ', c.nombre, c.ape_pat) AS cliente
+               FROM pedido p
+               JOIN cliente c ON c.id = p.id_cliente
+              WHERE (SELECT s.estado FROM estatus s WHERE s.id_pedido = p.id ORDER BY s.id DESC LIMIT 1)
+                    IN ('pedido_confirmado', 'pedido_en_transito')
+                AND NOT EXISTS (SELECT 1 FROM entrega e
+                                 WHERE e.id_pedido = p.id AND e.estado IN ('asignada', 'en_ruta', 'entregada'))
+              ORDER BY p.id DESC"
+        );
     }
 
     /**
@@ -159,21 +218,55 @@ class Modelo_entrega extends PdoModelo
         );
     }
 
-    /** asignada → en_ruta. Devuelve false si no existe, no es suya o no está asignada. */
+    /**
+     * asignada → en_ruta. Si el pedido estaba "confirmado" lo pasa a "en tránsito"
+     * (el trigger de `estatus` descuenta el inventario). En un reintento el pedido ya
+     * está en tránsito y no se vuelve a registrar el estatus.
+     *
+     * @return bool false si no existe, no es suya o no está asignada.
+     * @throws DomainException si el pedido no está confirmado ni en tránsito.
+     */
     public function iniciarRuta(int $idEntrega, int $idUser): bool
     {
-        return $this->afectar(
-            "UPDATE entrega e
-               JOIN repartidor r ON r.id = e.id_repartidor
-                SET e.estado = 'en_ruta', e.fecha_salida = NOW()
-              WHERE e.id = ? AND r.id_user = ? AND e.estado = 'asignada'",
-            [$idEntrega, $idUser]
-        ) > 0;
+        return (bool) $this->transaccion(function () use ($idEntrega, $idUser): bool {
+            $entrega = $this->fila(
+                "SELECT e.id, e.id_pedido
+                   FROM entrega e
+                   JOIN repartidor r ON r.id = e.id_repartidor
+                  WHERE e.id = ? AND r.id_user = ? AND e.estado = 'asignada'
+                  FOR UPDATE",
+                [$idEntrega, $idUser]
+            );
+
+            if ($entrega === null) {
+                return false;
+            }
+
+            $m_estatus = new Modelo_estatus($this->pdo);
+            $estado    = $m_estatus->ultimoPorId((int) $entrega['id_pedido'])['estado'] ?? 'pedido_pendiente';
+
+            if ($estado === 'pedido_confirmado') {
+                $m_estatus->insert(['estado' => 'pedido_en_transito', 'id_pedido' => (int) $entrega['id_pedido']]);
+            } elseif ($estado !== 'pedido_en_transito') {
+                throw new DomainException('Error: el pedido ya no está disponible para salir a entrega.');
+            }
+
+            $this->afectar(
+                "UPDATE entrega SET estado = 'en_ruta', fecha_salida = NOW() WHERE id = ?",
+                [$idEntrega]
+            );
+
+            return true;
+        });
     }
 
     /**
-     * en_ruta → entregada, con cobro contra entrega y evidencia opcionales.
+     * en_ruta → entregada, con cobro contra entrega y evidencia opcionales, y registra
+     * el estatus "pedido_entregado" del pedido.
      * $metodo debe ser efectivo|transferencia|tarjeta si se manda $monto.
+     *
+     * @return bool false si no existe, no es suya, no está en ruta o el cobro no es válido.
+     * @throws DomainException si el pedido no está en tránsito.
      */
     public function marcarEntregada(
         int $idEntrega,
@@ -187,21 +280,45 @@ class Modelo_entrega extends PdoModelo
             return false;
         }
 
-        return $this->afectar(
-            "UPDATE entrega e
-               JOIN repartidor r ON r.id = e.id_repartidor
-                SET e.estado = 'entregada', e.fecha_entrega = NOW(),
-                    e.monto_cobrado = ?, e.metodo_cobro = ?, e.evidencia = ?, e.notas = ?
-              WHERE e.id = ? AND r.id_user = ? AND e.estado = 'en_ruta'",
-            [
-                $monto,
-                $monto === null ? null : $metodo,
-                $this->limpiar($evidencia, 255),
-                $this->limpiar($notas, 500),
-                $idEntrega,
-                $idUser,
-            ]
-        ) > 0;
+        return (bool) $this->transaccion(function () use ($idEntrega, $idUser, $monto, $metodo, $evidencia, $notas): bool {
+            $entrega = $this->fila(
+                "SELECT e.id, e.id_pedido
+                   FROM entrega e
+                   JOIN repartidor r ON r.id = e.id_repartidor
+                  WHERE e.id = ? AND r.id_user = ? AND e.estado = 'en_ruta'
+                  FOR UPDATE",
+                [$idEntrega, $idUser]
+            );
+
+            if ($entrega === null) {
+                return false;
+            }
+
+            $m_estatus = new Modelo_estatus($this->pdo);
+            $estado    = $m_estatus->ultimoPorId((int) $entrega['id_pedido'])['estado'] ?? 'pedido_pendiente';
+
+            if ($estado !== 'pedido_en_transito') {
+                throw new DomainException('Error: el pedido no está en tránsito.');
+            }
+
+            $m_estatus->insert(['estado' => 'pedido_entregado', 'id_pedido' => (int) $entrega['id_pedido']]);
+
+            $this->afectar(
+                "UPDATE entrega
+                    SET estado = 'entregada', fecha_entrega = NOW(),
+                        monto_cobrado = ?, metodo_cobro = ?, evidencia = ?, notas = ?
+                  WHERE id = ?",
+                [
+                    $monto,
+                    $monto === null ? null : $metodo,
+                    $this->limpiar($evidencia, 255),
+                    $this->limpiar($notas, 500),
+                    $idEntrega,
+                ]
+            );
+
+            return true;
+        });
     }
 
     /** en_ruta → fallida, con la incidencia obligatoria (el admin podrá reasignar). */
