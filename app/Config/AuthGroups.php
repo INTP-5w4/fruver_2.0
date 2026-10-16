@@ -61,6 +61,10 @@ class AuthGroups extends ShieldAuthGroups
             'title'       => 'Beta User',
             'description' => 'Has access to beta-level features.',
         ],
+        'repartidor' => [
+            'title'       => 'Repartidor',
+            'description' => 'Reparte pedidos: solo ve y actualiza sus propias entregas.',
+        ],
     ];
 
     /**
@@ -79,6 +83,8 @@ class AuthGroups extends ShieldAuthGroups
         'users.edit'          => 'Can edit existing non-admin users',
         'users.delete'        => 'Can delete existing non-admin users',
         'beta.access'         => 'Can access beta-level features',
+        'entregas.asignar'    => 'Puede asignar repartidor y cancelar entregas',
+        'entregas.propias'    => 'Puede ver y actualizar sus propias entregas',
     ];
 
     /**
@@ -94,6 +100,7 @@ class AuthGroups extends ShieldAuthGroups
             'admin.*',
             'users.*',
             'beta.*',
+            'entregas.*',
         ],
         'admin' => [
             'admin.access',
@@ -101,6 +108,7 @@ class AuthGroups extends ShieldAuthGroups
             'users.edit',
             'users.delete',
             'beta.access',
+            'entregas.asignar',
         ],
         'developer' => [
             'admin.access',
@@ -112,6 +120,9 @@ class AuthGroups extends ShieldAuthGroups
         'user' => [],
         'beta' => [
             'beta.access',
+        ],
+        'repartidor' => [
+            'entregas.propias',
         ],
     ];
 }
