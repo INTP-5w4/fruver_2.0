@@ -460,3 +460,201 @@ body {
 .prod-badge.sin-stock { border-color:#ef9a9a; background:#fff5f5; }
 .prod-badge.sin-stock .badge-stock { color:#c62828; }
 .search-hint { font-size: 12px; color: #999; margin-bottom: 8px; }
+
+/* =========================================
+   RESPONSIVE — tabletas y celulares
+   Breakpoints: 1024px (tableta horizontal), 768px (tableta vertical
+   y celular), 480px (celular). El escritorio (>1024px) queda igual.
+
+   Algunas reglas llevan !important porque los modales de la vista traen
+   estilos en línea (padding-top, max-height) que no se pueden vencer de otra forma.
+   ========================================= */
+
+/* ── TABLETA HORIZONTAL (≤1024px) ── */
+@media (max-width: 1024px) {
+    .dashboard-wrapper {
+        padding: 16px;
+        gap: 16px;
+    }
+
+    .dashboard-wrapper .sidebar {
+        width: 190px;
+        min-width: 190px;
+        padding: 24px 12px;
+    }
+
+    .dashboard-wrapper .nav-item {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .dashboard-main { gap: 16px; }
+
+    /* 4 tarjetas: 2x2 en lugar de 3 + 1 */
+    .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .charts-row,
+    .bottom-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .chart-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .flash-container { width: 80vw; }
+    .flash-container .w3-panel p { font-size: 20px; }
+}
+
+/* ── TABLETA VERTICAL Y CELULAR (≤768px) ── */
+@media (max-width: 768px) {
+    /* Layout en una columna: la barra lateral pasa a ser una franja de botones con scroll */
+    .dashboard-wrapper {
+        flex-direction: column;
+        min-height: 0;
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .dashboard-wrapper .sidebar {
+        position: static;
+        align-self: stretch;
+        width: 100%;
+        min-width: 0;
+        max-height: none;
+        overflow: visible;
+        padding: 10px;
+        border-radius: 16px;
+    }
+
+    .dashboard-wrapper .sidebar-nav {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .dashboard-wrapper .sidebar-nav::-webkit-scrollbar { display: none; }
+
+    .dashboard-wrapper .nav-label { display: none; }
+
+    .dashboard-wrapper .nav-item {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        margin: 0;
+        padding: 10px 16px;
+    }
+
+    .dashboard-wrapper .nav-item:hover,
+    .dashboard-wrapper .nav-item:focus { transform: none; }
+
+    .dashboard-main {
+        overflow: visible;
+        gap: 12px;
+    }
+
+    .charts-row,
+    .bottom-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .kpi-grid { gap: 12px; }
+
+    .chart-card,
+    .chart-card--wide,
+    .table-card,
+    .actions-card {
+        padding: 18px;
+        border-radius: 16px;
+    }
+
+    .table-card { overflow-x: auto; }
+
+    .chart-area { height: 200px; }
+    .chart-title { font-size: 1.05rem; }
+
+    .data-table th,
+    .data-table td { padding-right: 8px; }
+
+    .action-btn { min-height: 44px; }
+
+    .page-header {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 12px 20px;
+        border-radius: 28px;
+    }
+
+    /* Mensajes flash */
+    .flash-container { top: 62px; width: 92vw; }
+    .flash-container .w3-panel { padding: 14px 18px; border-radius: 10px; }
+    .flash-container .w3-panel p { font-size: 16px; }
+
+    /* Modales: menos margen superior y alto acotado a la pantalla */
+    .w3-modal { padding-top: 56px !important; }
+    .w3-modal-content {
+        max-height: calc(100vh - 76px) !important;
+        max-height: calc(100dvh - 76px) !important;
+    }
+
+    .footer { margin-top: 24px; }
+    .footer_container {
+        justify-content: center;
+        text-align: center;
+        padding: 16px;
+    }
+    .footer_brand { align-items: center; }
+
+    .prod-resultados { max-height: 180px; }
+}
+
+/* ── CELULAR (≤480px) ── */
+@media (max-width: 480px) {
+    .dashboard-wrapper { padding: 10px; }
+
+    /* Tarjetas KPI en 2 columnas, con el icono arriba del dato */
+    .kpi-card {
+        flex-direction: column;
+        justify-content: center;
+        gap: 8px;
+        padding: 14px 10px;
+        text-align: center;
+    }
+    .kpi-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 1.4rem;
+    }
+    .kpi-info { align-items: center; }
+    .kpi-value { font-size: 1.5rem; }
+    .kpi-label { font-size: 0.8rem; }
+
+    .chart-card,
+    .chart-card--wide,
+    .table-card,
+    .actions-card { padding: 14px; }
+
+    .chart-area { height: 180px; }
+    .chart-badge { font-size: 0.72rem; padding: 4px 10px; }
+
+    .w3-modal { padding-top: 40px !important; }
+    .w3-modal-content {
+        max-height: calc(100vh - 56px) !important;
+        max-height: calc(100dvh - 56px) !important;
+    }
+
+    /* iOS hace zoom al enfocar campos con fuente menor a 16px */
+    input, select, textarea,
+    .prod-search-input { font-size: 16px; }
+
+    .flash-container .w3-panel p { font-size: 15px; }
+
+    .footer_container { flex-direction: column; gap: 6px; }
+}

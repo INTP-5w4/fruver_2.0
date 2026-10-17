@@ -552,3 +552,177 @@ body > div > table,
 .prod-badge.sin-stock { border-color:#ef9a9a; background:#fff5f5; }
 .prod-badge.sin-stock .badge-stock { color:#c62828; }
 .search-hint { font-size: 12px; color: #999; margin-bottom: 8px; }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE — tabletas y celulares
+   Breakpoints: 1024px (tableta horizontal), 768px (tableta vertical
+   y celular), 480px (celular). El escritorio (>1024px) queda igual.
+
+   Algunas reglas llevan !important porque las vistas traen estilos en
+   línea (padding-top, max-height...) que no se pueden vencer de otra forma.
+   ═══════════════════════════════════════════════════ */
+
+/* ── TABLETA HORIZONTAL (≤1024px) ── */
+@media (max-width: 1024px) {
+    .sidebar { width: 180px; }
+
+    .lista-wrapper {
+        margin-left: 180px;
+        padding: 0 14px 28px;
+    }
+
+    .nav-item {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    th { padding: 12px 14px; font-size: 12px; }
+    td { padding: 10px 14px; }
+
+    .flash-container { width: 80vw; }
+    .flash-container .w3-panel p { font-size: 18px; }
+
+    .footer_container { padding: 16px 24px; }
+}
+
+/* ── TABLETA VERTICAL Y CELULAR (≤768px) ── */
+@media (max-width: 768px) {
+    /* lista_cliente carga este archivo después de Header.css y le quita este desfase */
+    body { padding-top: 55px; }
+
+    /* La barra lateral fija pasa a ser una franja horizontal con scroll,
+       justo debajo del header. */
+    .sidebar {
+        position: static;
+        flex-shrink: 0;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 117, 66, 0.15);
+        box-shadow: 0 2px 6px rgba(0, 117, 66, 0.08);
+    }
+
+    .sidebar-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .sidebar-nav::-webkit-scrollbar { display: none; }
+
+    .nav-label { display: none; }
+
+    .nav-item {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 10px 14px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        border-radius: 6px 6px 0 0;
+    }
+    .nav-item:hover { border-bottom-color: #3AA346; }
+    .nav-item.activo { border-bottom-color: #007542; }
+
+    .lista-wrapper {
+        margin-left: 0;
+        min-height: 0;
+        padding: 0 12px 24px;
+        padding-top: 12px !important;   /* anula paddings en línea (lista_cliente: 55px) */
+    }
+
+    /* Mensajes flash */
+    .flash-container { top: 62px; width: 92vw; }
+    .flash-container .w3-panel { padding: 14px 18px; border-radius: 10px; }
+    .flash-container .w3-panel p { font-size: 16px; }
+
+    /* Botón "+ Nuevo ..." (anula los padding-top en línea de 20/40/55/80px) */
+    .contenedor-boton { padding: 12px 0 !important; }
+    .contenedor-boton > .btn-agregar {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 15px;
+    }
+
+    /* Buscadores: el campo se estira y los botones bajan si no caben */
+    .lista-wrapper form[method="get"],
+    .lista-wrapper form[method="get"] > div {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+    .lista-wrapper form[method="get"] input[type="text"] {
+        flex: 1 1 200px;
+        min-width: 0;
+    }
+
+    /* Tablas: siguen con scroll horizontal; se compactan y los botones de icono son tocables */
+    th { padding: 11px 12px; font-size: 12px; letter-spacing: 0.5px; }
+    td { padding: 10px 12px; font-size: 14px; }
+    td button:not(.btn-expandir) {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+        font-size: 16px;
+    }
+    .detalle-inner { padding: 10px 12px 14px 14px; }
+    .resumen-productos { max-width: 160px; }
+
+    /* Tabla directa en <body> (lista_estatus no usa .tabla-wrapper) */
+    body > table {
+        display: block;
+        min-width: 0;
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Modales: menos margen superior y alto acotado a la pantalla */
+    .w3-modal { padding-top: 56px !important; }
+    .w3-modal-content {
+        max-height: calc(100vh - 76px) !important;
+        max-height: calc(100dvh - 76px) !important;
+    }
+
+    /* Footer centrado */
+    .footer_container {
+        justify-content: center;
+        text-align: center;
+        padding: 16px;
+    }
+    .footer_brand { align-items: center; }
+
+    .formulario-pagina { margin: 24px auto; }
+    .prod-resultados { max-height: 180px; }
+}
+
+/* ── CELULAR (≤480px) ── */
+@media (max-width: 480px) {
+    .lista-wrapper { padding-left: 10px; padding-right: 10px; }
+
+    th { padding: 10px; font-size: 11px; }
+    td { padding: 9px 10px; font-size: 13px; }
+
+    .flash-container .w3-panel p { font-size: 15px; }
+
+    .w3-modal { padding-top: 40px !important; }
+    .w3-modal-content {
+        max-height: calc(100vh - 56px) !important;
+        max-height: calc(100dvh - 56px) !important;
+    }
+
+    /* iOS hace zoom al enfocar campos con fuente menor a 16px */
+    input, select, textarea,
+    .modal-input,
+    .prod-search-input { font-size: 16px; }
+
+    .btn-guardar,
+    .btn-cancelar { padding: 10px 16px; }
+
+    .modal-footer { flex-wrap: wrap; }
+    .modal-footer > * { flex: 1 1 120px; }
+
+    .footer_container { flex-direction: column; gap: 6px; }
+}
