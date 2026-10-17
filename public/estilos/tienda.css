@@ -324,6 +324,70 @@ button { cursor: pointer; }
     .fila-conteo { display: none; }
 }
 
+/* ---------- Tableta (521px–1024px) ----------
+   Acotado con min-width para no pisar el .producto de 196px de la regla ≤520px. */
+@media (min-width: 521px) and (max-width: 1024px) {
+    .producto { flex-basis: 216px; }
+    .panel-carrito { width: min(420px, 100vw); }
+}
+
+/* ---------- Celular (≤480px) ---------- */
+@media (max-width: 480px) {
+    :root { --gutter: 12px; }
+
+    .logo { font-size: 1.6rem; }
+    .barra-fila { gap: 10px; }
+    .cuenta { gap: 10px; font-size: 0.85rem; }
+
+    /* iOS hace zoom al enfocar campos con fuente menor a 16px */
+    .buscador input,
+    .cantidad input,
+    .contacto input { font-size: 16px; }
+    .buscador input { padding: 10px 12px; }
+
+    .categorias a { padding: 10px 14px; }
+
+    .fila { margin-top: 18px; padding-top: 10px; }
+    .fila-cabeza h2 {
+        font-size: 1.5rem;
+        padding-left: 10px;
+        border-left-width: 6px;
+    }
+    .pista { gap: 12px; }
+
+    .nombre { font-size: 1.05rem; }
+    .precio { font-size: 1.2rem; }
+
+    /* Botones con tamaño cómodo para el dedo (≥44px) */
+    .btn { padding: 12px 14px; }
+    .cantidad .paso { width: 44px; }
+
+    /* Carrito a pantalla completa (el <dialog> trae un max-width propio del navegador) */
+    .panel-carrito { width: 100vw; max-width: 100vw; }
+    .panel-cabeza { padding: 12px 14px; }
+    .panel-cuerpo { padding: 6px 14px; }
+    .panel-pie {
+        padding: 12px 14px calc(14px + env(safe-area-inset-bottom, 0px));
+        max-height: 70vh;
+    }
+
+    .linea { grid-template-columns: 48px 1fr auto; gap: 4px 10px; }
+    .linea-foto { width: 48px; height: 48px; }
+    .linea .cantidad { width: 132px; }
+    .linea .cantidad .paso { width: 40px; }
+    .linea-quitar { padding: 8px; }
+
+    .contacto { grid-template-columns: 1fr; }
+    .total strong { font-size: 1.5rem; }
+}
+
+/* ---------- Celular en horizontal: la barra deja de ser fija para no comerse la pantalla ---------- */
+@media (max-height: 480px) and (max-width: 960px) {
+    .barra { position: static; }
+    html { scroll-padding-top: 20px; }
+    .panel-pie { max-height: 55vh; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .panel-carrito[open] { animation: none; }

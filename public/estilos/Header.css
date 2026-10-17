@@ -32,3 +32,31 @@ body {
     color: #ffffff !important;
 }
 
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE — tabletas y celulares
+   Breakpoints: 1024px (tableta), 768px, 480px (celular).
+   El escritorio (>1024px) queda igual.
+   ═══════════════════════════════════════════════════ */
+
+/* El header mide siempre 55px: es la altura que usan body, sidebar y dashboard como desfase */
+@media (max-width: 1024px) {
+    .header_container {
+        height: 55px;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 768px) {
+    .logo {
+        font-size: 1.7em;
+        margin: 0.2em 0.6em;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        font-size: 1.5em;
+        margin: 0.2em 0.5em;
+    }
+}
+
