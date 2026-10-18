@@ -31,6 +31,7 @@ $routes->group('tienda', ['filter' => 'session'], static function (RouteCollecti
     $routes->post('carrito/quitar', 'Tienda::quitar');
     $routes->post('carrito/vaciar', 'Tienda::vaciar');
     $routes->post('pedido', 'Tienda::confirmar');
+    $routes->post('pedido/(:num)/recargar', 'Tienda::recargar/$1');
 });
 
 // ───────────── REPARTIDOR (solo su grupo) ─────────────
@@ -128,6 +129,7 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('borra_id_p_pedido/(:num)', 'P_pedidos::eliminar_datos/$1');
     $routes->get('pasa_id_p_pedido/(:num)', 'P_pedidos::recupera/$1');
     $routes->get('api_pedido/(:num)', 'P_pedidos::api_pedido/$1');
+    $routes->get('api_recargar_pedido/(:num)', 'P_pedidos::api_recargar_pedido/$1');
     $routes->post('guarda_pedido_completo', 'P_pedidos::guarda_pedido_completo');
     $routes->post('modifica_pedido_completo', 'P_pedidos::modifica_pedido_completo');
     $routes->post('borra_pedido_completo/(:num)', 'P_pedidos::borra_pedido_completo/$1');

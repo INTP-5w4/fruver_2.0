@@ -235,6 +235,118 @@ class Modelo_pedido extends PdoModelo
     {
         return (new Modelo_estatus($this->pdo))->ultimoPorFecha($idPedido)['estado'] ?? 'pedido_pendiente';
     }
+        // ─────────────────────────────────────────────────────────────
+    // RECARGAR PEDIDO (volver a pedir lo mismo)
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Prepara las líneas de un pedido anterior para cargarlas en un pedido nuevo.
+     * Precio, unidad y stock se leen del catálogo vigente, no del pedido viejo.
+     *
+     * @return array{pedido:array<string,mixed>,items:list<array<string,mixed>>,avisos:list<string>}
+     *
+     * @param int|null $idCliente  Si se indica (lado tienda), el pedido debe pertenecer a ese cliente.
+     *
+     * @throws DomainException si el pedido no existe o ninguna línea se puede recargar
+     */
+    public function prepararRecarga(int|string $idPedido, ?int $idCliente = null): array
+    {
+        $pedido = $this->find($idPedido);
+
+        // Mismo mensaje si no existe o es de otro cliente: no se revela que existe
+        if (! $pedido || ($idCliente !== null && (int) $pedido['id_cliente'] !== $idCliente)) {
+            throw new DomainException('El pedido no existe.');
+        }
+
+        $lineas = (new Modelo_productopedidos($this->pdo))->itemsDePedido($idPedido);
+        $avisos = [];
+
+        // Sumar cantidades por producto (todas las líneas usarán el mismo precio vigente)
+        $porProducto = [];
+
+        foreach ($lineas as $linea) {
+            $cant = (float) $linea['cant'];
+
+            if ($cant <= 0) {
+                $avisos[] = 'Se omitió una línea del pedido original con cantidad no válida.';
+                continue;
+            }
+
+            $id = (int) $linea['id_producto'];
+            $porProducto[$id] = ($porProducto[$id] ?? 0) + $cant;
+        }
+
+        $productos = new Modelo_producto($this->pdo);
+        $catalogo  = $productos->catalogoPorIds(array_keys($porProducto));
+        $items     = [];
+
+        foreach ($porProducto as $idProducto => $cant) {
+            $prod = $catalogo[$idProducto] ?? null;
+
+            if ($prod === null) {
+                $nombre   = $productos->find($idProducto)['nombre'] ?? 'Producto #' . $idProducto;
+                $avisos[] = '"' . $nombre . '" ya no está disponible (sin precio de venta) y no se incluyó.';
+                continue;
+            }
+
+            $stock = (float) $prod['stock'];
+
+            if ($stock <= 0) {
+                $avisos[] = '"' . $prod['nombre'] . '" no tiene stock y no se incluyó.';
+                continue;
+            }
+
+            if ($cant > $stock) {
+                $avisos[] = '"' . $prod['nombre'] . '": la cantidad se ajustó de ' . $cant . ' a ' . $stock . ' (stock disponible).';
+                $cant     = $stock;
+            }
+
+            try {
+                $unidad = Modelo_productopedidos::normalizarUnidad((string) $prod['unidad']);
+            } catch (DomainException) {
+                $avisos[] = '"' . $prod['nombre'] . '" tiene una unidad de venta no válida y no se incluyó.';
+                continue;
+            }
+
+            $precio  = (float) $prod['precio'];
+            $items[] = [
+                'id'          => null,
+                'id_producto' => $idProducto,
+                'u_venta'     => $unidad,
+                'cant'        => round($cant, 2),
+                'p_venta'     => round($precio, 2),
+                'total'       => number_format($cant * $precio, 2, '.', ''),
+            ];
+        }
+
+        if ($items === []) {
+            throw new DomainException('No se pudo recargar: ninguna línea tiene stock o precio de venta vigente.');
+        }
+
+        return ['pedido' => $pedido, 'items' => $items, 'avisos' => $avisos];
+    }
+        /**
+     * Últimos pedidos de un cliente, con total y lista de productos (para "Volver a pedir").
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function recientesDeCliente(int $idCliente, int $limite = 5): array
+    {
+        return $this->filas(
+            'SELECT p.id, p.fecha,
+                    (SELECT COALESCE(SUM(pp.total), 0)
+                       FROM producto_pedido pp WHERE pp.id_pedido = p.id) AS total,
+                    (SELECT GROUP_CONCAT(pr.nombre ORDER BY pp.id SEPARATOR ", ")
+                       FROM producto_pedido pp
+                       JOIN producto pr ON pr.id = pp.id_producto
+                      WHERE pp.id_pedido = p.id) AS productos
+               FROM pedido p
+              WHERE p.id_cliente = ?
+           ORDER BY p.id DESC
+              LIMIT ' . max(1, $limite),
+            [$idCliente]
+        );
+    }
 
     // ─────────────────────────────────────────────────────────────
     // PEDIDOS DE LA TIENDA (landing main_page_4)
