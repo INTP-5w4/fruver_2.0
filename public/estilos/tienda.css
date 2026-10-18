@@ -392,3 +392,11 @@ button { cursor: pointer; }
     html { scroll-behavior: auto; }
     .panel-carrito[open] { animation: none; }
 }
+/* Volver a pedir (panel del carrito) */
+.anteriores { margin-top: 1rem; border-top: 1px solid rgba(0, 0, 0, .12); padding-top: .75rem; }
+.anteriores summary { cursor: pointer; font-weight: 600; }
+.anteriores-lista { list-style: none; margin: .75rem 0 0; padding: 0; display: grid; gap: .75rem; }
+.anterior { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.anterior-datos { display: grid; gap: .15rem; min-width: 0; }
+.anterior-fecha { font-size: .85em; opacity: .75; }
+.anterior-productos { font-size: .85em; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

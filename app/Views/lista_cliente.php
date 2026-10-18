@@ -67,6 +67,7 @@
                 <th>Apellido Paterno</th>
                 <th>Apellido Materno</th>
                 <th>Telefono</th>
+                <th>Compras</th>
                 <th>Editar</th>
                 <th>Eliminar</th>
             </tr>
@@ -80,6 +81,12 @@
                     <td><?= esc($c['ape_mat']) ?></td>
                     <td><?= esc($c['telefono']) ?></td>
                     <td>
+                        <?= (int) $c['compras'] ?>
+                        <?php if ($c['es_preferencial']): ?>
+                            <span class="w3-tag w3-round w3-amber"><i class="fa-solid fa-star"></i> Preferencial</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
                         <!-- ↓ Botón que abre el modal y llena los datos -->
                         <button onclick="abrirModal(
                                     '<?= esc($c['id'], 'js') ?>',
@@ -87,6 +94,7 @@
                                     '<?= esc($c['ape_pat'], 'js') ?>',
                                     '<?= esc($c['ape_mat'], 'js') ?>',
                                     '<?= esc($c['telefono'], 'js') ?>'
+
                                 )"
                                 style="border:none; cursor:pointer; background:none;">
                             <i class="fa-solid fa-pen-to-square"></i>
