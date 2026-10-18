@@ -17,6 +17,7 @@
  */
 $pedidoOk     = session()->getFlashdata('pedido_ok');
 $flashError   = session()->getFlashdata('error');
+$avisosRecarga = session()->getFlashdata('aviso_recarga');
 $abrirCarrito = (bool) session()->getFlashdata('abrir_carrito');
 
 $totalProductos = 0;
@@ -107,6 +108,12 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
     <?php endif; ?>
     <?php if ($flashError): ?>
         <p class="aviso aviso-error" role="alert"><?= esc($flashError) ?></p>
+    <?php endif; ?>
+    <?php if (is_array($avisosRecarga)): ?>
+        <p class="aviso aviso-info" role="status">Cargamos tu pedido anterior en el carrito. Revísalo antes de confirmar.</p>
+    <?php foreach ($avisosRecarga as $aviso): ?>
+        <p class="aviso aviso-info"><?= esc($aviso) ?></p>
+        <?php endforeach; ?>
     <?php endif; ?>
     <?php if (! $conSesion): ?>
         <p class="aviso aviso-info">
@@ -210,6 +217,26 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
     <div class="panel-cuerpo">
         <p class="panel-vacio" data-vacio>Tu carrito está vacío. Agrega productos de las filas de arriba.</p>
         <ul class="lineas" data-lineas></ul>
+                <?php if (! empty($pedidosAnteriores)): ?>
+            <details class="anteriores">
+                <summary>Volver a pedir un pedido anterior</summary>
+                <ul class="anteriores-lista">
+                    <?php foreach ($pedidosAnteriores as $ped): ?>
+                        <li class="anterior">
+                            <div class="anterior-datos">
+                                <strong>Pedido #<?= (int) $ped['id'] ?></strong>
+                                <span class="anterior-fecha"><?= esc($ped['fecha']) ?> · <?= esc(tienda_dinero($ped['total'])) ?></span>
+                                <span class="anterior-productos"><?= esc($ped['productos'] ?? '') ?></span>
+                            </div>
+                            <form method="post" action="<?= base_url('tienda/pedido/' . (int) $ped['id'] . '/recargar') ?>">
+                                <?= csrf_field() ?>
+                                <button class="btn btn-borde" type="submit">Volver a pedir</button>
+                            </form>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </details>
+        <?php endif; ?>
     </div>
 
     <form class="panel-pie" method="post" action="<?= base_url('tienda/pedido') ?>" data-pedido>

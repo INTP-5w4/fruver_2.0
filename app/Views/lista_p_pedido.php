@@ -75,6 +75,7 @@
             <th>Total pedido</th>
             <th>Repartidor</th>
             <th>Estatus</th>
+            <th>Recargar</th>
             <th>Editar</th>
             <th>Eliminar</th>
         </tr>
@@ -103,6 +104,13 @@
                     <?= esc(str_replace('_', ' ', $pedido['estado_actual'] ?? 'pendiente')) ?>
                 </span>
             </td>
+                        <td onclick="event.stopPropagation()">
+                <button onclick="recargarPedido('<?= esc($pedido['id_pedido'], 'js') ?>')"
+                        style="border:none; cursor:pointer; background:none;"
+                        title="Volver a pedir lo mismo">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+            </td>
             <td onclick="event.stopPropagation()">
                 <button onclick="abrirEditarPedido('<?= esc($pedido['id_pedido'], 'js') ?>')"
                         style="border:none; cursor:pointer; background:none;">
@@ -118,7 +126,7 @@
         </tr>
 
         <tr class="fila-detalle" id="detalle-<?= esc($pedido['id_pedido']) ?>">
-            <td colspan="10">
+            <td colspan="11">
                 <div class="detalle-inner">
                     <b>Productos del pedido #<?= esc($pedido['id_pedido']) ?>:</b>
                     <table class="w3-table w3-bordered w3-small">
@@ -801,6 +809,49 @@ function cerrarModal() {
     document.getElementById('cp_cant').value    = '';
     document.getElementById('cp_p_venta').value = '';
     document.getElementById('modalCrearPpedido').style.display = 'none';
+}
+// ════════════════════════════════════════════════════════════
+//  RECARGAR PEDIDO (volver a pedir lo mismo)
+// ════════════════════════════════════════════════════════════
+async function recargarPedido(idPedido) {
+    try {
+        const res  = await fetch(`<?= base_url('api_recargar_pedido/') ?>${idPedido}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.error || 'No se pudo recargar el pedido.');
+            return;
+        }
+
+        // id_producto como texto: el resto del wizard lo compara contra el valor del input hidden
+        carrito = data.items.map(i => ({
+            id_producto: String(i.id_producto),
+            u_venta:     i.u_venta,
+            cant:        parseFloat(i.cant),
+            p_venta:     parseFloat(i.p_venta),
+            total:       parseFloat(i.total).toFixed(2),
+        }));
+        renderCarrito();
+
+        const ahora = new Date();
+        const hoy   = new Date(ahora - ahora.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+        document.getElementById('ped_fecha').value        = hoy;
+        document.getElementById('ped_id_cliente').value   = data.pedido.id_cliente;
+        // Si el pedido original no tenía repartidor, queda vacío y el paso 1 pedirá elegir uno
+        document.getElementById('ped_id_repartidor').value = data.pedido.id_repartidor ?? '';
+
+        cpLimpiarSeleccion();
+        mostrarPaso(1);
+        document.getElementById('modalCrearPpedido').style.display = 'block';
+
+        if (data.avisos.length) {
+            alert('Revisa antes de guardar:\n\n• ' + data.avisos.join('\n• '));
+        }
+    } catch (e) {
+        alert('Error al recargar el pedido.');
+        console.error(e);
+    }
 }
  
  

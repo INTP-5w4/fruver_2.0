@@ -319,4 +319,19 @@ class P_pedidos extends BaseController
 
         return redirect()->to('lista_p_pedido')->with('mensaje', 'Registro guardado');
     }
+            public function api_recargar_pedido($id = null)
+    {
+        try {
+            $datos = (new \App\Models\Modelo_pedido())->prepararRecarga((int) $id);
+
+            return $this->response->setJSON($datos);
+        } catch (\DomainException $e) {
+            return $this->response->setStatusCode(422)->setJSON(['error' => $e->getMessage()]);
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(500)->setJSON([
+                'error' => \App\Models\PdoModelo::mensajeSeguro($e, 'No se pudo recargar el pedido.'),
+            ]);
+        }
+    }
 }
+

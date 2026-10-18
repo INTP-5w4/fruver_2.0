@@ -58,6 +58,9 @@ class Tienda extends BaseController
             'saludo'     => $perfil['nombre'] ?? ($usuario->username ?? ''),
             'tienePerfil' => $perfil !== null,
             'carrito'    => $usuario !== null ? $this->instantanea() : null,
+            'pedidosAnteriores' => $perfil !== null
+                ? (new Modelo_pedido())->recientesDeCliente((int) $perfil['id'])
+                : [],
         ];
 
         return view('main_page_4', $datos);
@@ -230,6 +233,47 @@ class Tienda extends BaseController
         $carrito->vaciar();
 
         return redirect()->to('main_page_4')->with('pedido_ok', $pedido);
+    }
+        // ─────────────────────────────────────────────────────────────
+    // VOLVER A PEDIR (carga un pedido anterior en el carrito)
+    // ─────────────────────────────────────────────────────────────
+    public function recargar($idPedido = null)
+    {
+        $usuario = auth()->user();
+        $perfil  = (new Modelo_cliente())->buscarPorUsuario((int) $usuario->id);
+
+        if ($perfil === null) {
+            return $this->volverATienda()->with('error', 'Todavía no tienes pedidos anteriores.');
+        }
+
+        try {
+            // Se pasa el id del cliente: solo puede recargar SUS pedidos
+            $datos = (new Modelo_pedido())->prepararRecarga((int) $idPedido, (int) $perfil['id']);
+        } catch (DomainException $e) {
+            return $this->volverATienda()->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return $this->volverATienda()->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo cargar el pedido.'));
+        }
+
+        $carrito = new Carrito();
+        $avisos  = $datos['avisos'];
+
+        foreach ($datos['items'] as $item) {
+            $cantidad = (int) floor((float) $item['cant']);
+
+            if ($cantidad < 1) {
+                $avisos[] = 'Un producto no se incluyó porque su cantidad es menor a 1.';
+                continue;
+            }
+
+            try {
+                $carrito->agregar((int) $item['id_producto'], $cantidad);
+            } catch (DomainException $e) {
+                $avisos[] = $e->getMessage();
+            }
+        }
+
+        return $this->volverATienda()->with('aviso_recarga', array_values(array_unique($avisos)));
     }
 
     // ─────────────────────────────────────────────────────────────
