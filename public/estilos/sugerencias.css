@@ -1,0 +1,60 @@
+/* ═══════════════════════════════════════════════════
+   FRUVER — sugerencias.css (Buzón de sugerencias)
+   ═══════════════════════════════════════════════════ */
+
+.sugerencia-wrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px;
+}
+
+.sugerencia-card {
+    width: 100%;
+    max-width: 640px;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 8px rgba(0, 117, 66, 0.15);
+}
+
+.sugerencia-card h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    color: #007542;
+}
+
+.sugerencia-intro {
+    margin: 0 0 20px;
+    color: #555;
+    font-size: 14px;
+}
+
+.sugerencia-card label {
+    display: block;
+    margin: 16px 0 6px;
+}
+
+.sugerencia-card textarea {
+    resize: vertical;
+}
+
+.sugerencia-card .contador {
+    display: block;
+    text-align: right;
+    color: #777;
+    margin-top: 4px;
+}
+
+.campo-error {
+    margin: 6px 0 0;
+    color: #c62828;
+    font-size: 13px;
+}
+
+.sugerencia-acciones {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 24px;
+}
