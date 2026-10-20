@@ -82,3 +82,8 @@ $routes->get('api_pedido/(:num)',            'P_pedidos::api_pedido/$1');
 $routes->post('guarda_pedido_completo',      'P_pedidos::guarda_pedido_completo');
 $routes->post('modifica_pedido_completo',    'P_pedidos::modifica_pedido_completo');
 $routes->get('borra_pedido_completo/(:num)', 'P_pedidos::borra_pedido_completo/$1'); // ← nueva
+//====================BUZÓN DE SUGERENCIAS===========================
+// Disponible para cualquier rol autenticado (el filtro 'session' global exige login).
+// El filtro 'csrf' se aplica solo aquí para no afectar a los formularios existentes.
+$routes->get('crea_sugerencia',   'Sugerencias::crea_sugerencia',   ['filter' => 'csrf']);
+$routes->post('guarda_sugerencia', 'Sugerencias::guarda_sugerencia', ['filter' => 'csrf']);
