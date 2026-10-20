@@ -1,0 +1,180 @@
+/* auth.css — Estilo FRUVER para las vistas de Shield (login, registro, magic link).
+   Autocontenido: implementa solo las clases que usan esas vistas (sin Bootstrap). */
+:root {
+    --fv-green: #00910a;
+    --fv-green-dark: #007542;
+    --fv-green-mid: #3AA346;
+    --fv-bg: #F4F7FE;
+    --fv-text: #2B3674;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body.fv-auth {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--fv-bg);
+    color: var(--fv-text);
+    font-family: 'Poppins', 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    line-height: 1.5;
+}
+
+/* Barra superior igual a la del sistema */
+.fv-auth-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--fv-green);
+    padding: 0.2em 0.4em;
+}
+.fv-auth-logo {
+    margin: 0.2em 0.4em;
+    color: #ffffff;
+    font-size: 2em;
+    font-weight: 600;
+    text-decoration: none;
+}
+.fv-auth-volver {
+    margin: 0 1em;
+    padding: 7px 16px;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 50px;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.fv-auth-volver:hover { background: #ffffff; color: var(--fv-green); }
+
+.fv-auth-main { flex: 1; width: 100%; max-width: 1140px; margin: 0 auto; }
+
+.fv-auth-footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 13px;
+    color: var(--fv-green-dark);
+}
+
+/* ── Utilidades que usan las vistas de Shield ───────────────── */
+.container { width: 100%; }
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+.justify-content-center { justify-content: center; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.text-center { text-align: center; }
+.p-5 { padding: 3rem; }
+.m-3 { margin: 1rem; }
+.mb-2 { margin-bottom: .5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mb-5 { margin-bottom: 3rem; }
+.col-12 { width: 100%; }
+@media (min-width: 768px) {
+    .col-md-5 { width: 41.667%; }
+    .col-md-8 { width: 66.667%; }
+}
+@media (max-width: 767px) {
+    .p-5 { padding: 1.5rem 0.75rem; }
+}
+
+/* ── Tarjeta ────────────────────────────────────────────────── */
+.card {
+    background: #ffffff;
+    border-top: 5px solid var(--fv-green);
+    border-radius: 20px;
+    box-shadow: 0 18px 40px rgba(112, 144, 176, 0.18);
+}
+.card-body { padding: 2rem 2rem 1.5rem; }
+.card-title {
+    margin-top: 0;
+    color: var(--fv-green-dark);
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+/* ── Campos con etiqueta flotante ───────────────────────────── */
+.form-floating { position: relative; }
+.form-floating > .form-control {
+    height: 58px;
+    padding: 1.625rem 0.75rem 0.625rem;
+}
+.form-floating > label {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 1rem 0.75rem;
+    pointer-events: none;
+    color: #6b7a99;
+    transform-origin: 0 0;
+    transition: opacity .1s ease-in-out, transform .1s ease-in-out;
+}
+.form-floating > .form-control::placeholder { color: transparent; }
+.form-floating > .form-control:focus ~ label,
+.form-floating > .form-control:not(:placeholder-shown) ~ label {
+    opacity: .75;
+    transform: scale(.85) translateY(-.5rem) translateX(.15rem);
+}
+.form-control {
+    display: block;
+    width: 100%;
+    font: inherit;
+    color: var(--fv-text);
+    background: #ffffff;
+    border: 1px solid rgba(0, 117, 66, 0.25);
+    border-radius: 10px;
+}
+.form-control:focus {
+    outline: 0;
+    border-color: var(--fv-green-mid);
+    box-shadow: 0 0 0 0.2rem rgba(58, 163, 70, 0.2);
+}
+
+/* ── Recordarme ─────────────────────────────────────────────── */
+.form-check { display: block; min-height: 1.5rem; }
+.form-check-label { cursor: pointer; }
+.form-check-input {
+    width: 1em;
+    height: 1em;
+    margin-right: .4em;
+    vertical-align: middle;
+    accent-color: var(--fv-green);
+}
+
+/* ── Botón principal ────────────────────────────────────────── */
+.btn {
+    display: inline-block;
+    font: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+.btn-primary {
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--fv-green-dark), var(--fv-green-mid));
+    border: none;
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+.btn-primary:hover,
+.btn-primary:focus { background: linear-gradient(135deg, var(--fv-green-mid), #58BB43); }
+.btn-block { width: 100%; }
+
+/* ── Alertas y enlaces ──────────────────────────────────────── */
+.alert {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid transparent;
+    border-radius: 10px;
+}
+.alert-danger  { color: #842029; background: #f8d7da; border-color: #f5c2c7; }
+.alert-success { color: #0f5132; background: #d1e7dd; border-color: #badbcc; }
+
+.fv-auth a { color: var(--fv-green-dark); }
+.fv-auth a:hover { color: var(--fv-green); }
+.fv-auth .fv-auth-logo,
+.fv-auth .fv-auth-logo:hover,
+.fv-auth .fv-auth-volver { color: #ffffff; }
+.fv-auth .fv-auth-volver:hover { color: var(--fv-green); }

@@ -11,6 +11,9 @@
 </head>
 <body>
         <?php include 'Header.php'; ?>
+    <?php include 'sidebar.php'; ?>
+
+<div class="lista-wrapper">
 
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
@@ -26,7 +29,7 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 80px;">
+<div class="contenedor-boton" style="padding-top: 20px;">
     <button onclick="document.getElementById('modalCrearEstatus').style.display='block'"
             class="btn-agregar">
         + Nuevo Estatus
@@ -146,6 +149,8 @@
         </form>
     </div>
 </div>
+
+</div><!-- /.lista-wrapper -->
 
 <?php include 'Footer.php'; ?>
 

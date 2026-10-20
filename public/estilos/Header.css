@@ -60,3 +60,24 @@ body {
     }
 }
 
+/* Botón de logout (solo admin con sesión activa) */
+.header_container { justify-content: space-between; }
+.header-logout {
+    margin: 0 1em;
+    padding: 7px 16px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 50px;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+}
+.header-logout:hover {
+    background: #ffffff;
+    color: #00910a;
+}
+@media (max-width: 480px) {
+    .header-logout { margin: 0 0.5em; padding: 6px 12px; font-size: 13px; }
+}
