@@ -81,3 +81,22 @@ body {
 @media (max-width: 480px) {
     .header-logout { margin: 0 0.5em; padding: 6px 12px; font-size: 13px; }
 }
+
+/* Acciones del header (buzón de sugerencias + cerrar sesión), alineadas a la derecha */
+.header-acciones {
+    display: flex;
+    align-items: center;
+}
+.header-enlace {
+    margin: 0 0.6em;
+    color: #ffffff;
+    font-size: 14px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+.header-enlace:hover {
+    text-decoration: underline;
+}
+@media (max-width: 480px) {
+    .header-enlace { margin: 0 0.3em; font-size: 13px; }
+}
