@@ -76,6 +76,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                 <?php if ($esPersonal): ?>
                     <a class="cuenta-enlace" href="<?= base_url('/') ?>">Panel</a>
                 <?php endif; ?>
+                <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>">Sugerencias</a>
                 <a class="cuenta-enlace" href="<?= base_url('logout') ?>">Salir</a>
             <?php else: ?>
                 <a class="cuenta-enlace" href="<?= base_url('login') ?>">Iniciar sesión</a>
