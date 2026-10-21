@@ -16,9 +16,14 @@
 
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <h2 style="margin:0;">Mis entregas</h2>
-        <a href="<?= base_url('logout') ?>" class="w3-button w3-border">
-            <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
-        </a>
+        <div>
+            <a href="<?= base_url('crea_sugerencia') ?>" class="w3-button w3-border">
+                <i class="fa-regular fa-lightbulb"></i> Enviar sugerencia
+            </a>
+            <a href="<?= base_url('logout') ?>" class="w3-button w3-border">
+                <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+            </a>
+        </div>
     </div>
 
     <div class="flash-container">

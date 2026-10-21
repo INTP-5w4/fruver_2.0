@@ -58,3 +58,87 @@
     gap: 12px;
     margin-top: 24px;
 }
+
+/* ═══════════════════════════════════════════════════
+   Lista de sugerencias (vista del personal)
+   ═══════════════════════════════════════════════════ */
+
+.sug-barra {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.sug-titulo {
+    margin: 0;
+    font-size: 24px;
+    color: #007542;
+}
+
+/* <a> con el aspecto de .btn-agregar */
+.btn-enlace {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.sug-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 4px 0 16px;
+}
+.sug-pildora {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 16px;
+    background: #eceff1;
+    color: #37474f;
+    font-size: 13px;
+    text-decoration: none;
+    border: 2px solid transparent;
+}
+.sug-pildora:hover { filter: brightness(0.96); }
+.sug-pildora--activa { border-color: #007542; }
+
+.sug-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Etiquetas de valoración */
+.sug-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.sug-badge--muy,   .sug-pildora.sug-badge--muy   { background: #fdecea; color: #c62828; }
+.sug-badge--imp,   .sug-pildora.sug-badge--imp   { background: #fff4e0; color: #9a5b00; }
+.sug-badge--poco,  .sug-pildora.sug-badge--poco  { background: #eceff1; color: #455a64; }
+
+/* Celdas de texto largo: se permite el salto de línea (la tabla base usa nowrap) */
+.sug-celda-titulo { min-width: 180px; max-width: 280px; white-space: normal; word-break: break-word; }
+.sug-celda-desc   { min-width: 260px; max-width: 440px; white-space: normal; word-break: break-word; }
+.sug-celda-desc summary { cursor: pointer; color: #007542; font-size: 13px; margin-top: 4px; }
+.sug-texto { margin-top: 6px; padding: 8px 10px; background: #f1f8f1; border-radius: 6px; }
+
+.sug-vacio { text-align: center; padding: 28px 16px; color: #777; }
+
+@media (max-width: 800px) {
+    .btn-agregar.btn-enlace { width: 100%; text-align: center; }
+}
+
+/* Cabecera del formulario: título + botón de lectura (solo personal) */
+.sugerencia-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.sugerencia-cabecera h1 { margin: 0; }
