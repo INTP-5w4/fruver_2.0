@@ -25,9 +25,65 @@ class Sugerencias extends BaseController
     // ─────────────────────────────────────────────────────────────
     public function crea_sugerencia()
     {
+        $usuario = auth()->user();
+
+        // "Volver" lleva a la pantalla de inicio de cada rol.
+        if ($this->esPersonal()) {
+            $volver = '/';
+        } elseif ($usuario !== null && $usuario->inGroup('repartidor')) {
+            $volver = 'repartidor/entregas';
+        } else {
+            $volver = 'main_page_4';
+        }
+
         return view('crea_sugerencia', [
             'valoraciones' => Modelo_sugerencia::VALORACIONES,
+            'esPersonal'   => $this->esPersonal(),
+            'volver'       => $volver,
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // LECTURA (solo personal: superadmin, admin y developer)
+    // ─────────────────────────────────────────────────────────────
+    public function lista_sugerencia()
+    {
+        // La ruta ya exige el grupo; se repite aquí porque este controlador también atiende
+        // el formulario público y un cambio futuro de rutas no debe abrir la lista a otros roles.
+        if (! $this->esPersonal()) {
+            return redirect()->to(site_url('/'))->with('error', 'No tienes permiso para ver las sugerencias.');
+        }
+
+        // textoGet() ignora arreglos (?buscar[]=x), que harían fallar un (string) con error 500.
+        $buscar     = $this->textoGet('buscar', 100);
+        $valoracion = $this->textoGet('valoracion', 50);
+        $orden      = $this->textoGet('orden', 20);
+
+        // Lista blanca: cualquier otro valor se ignora.
+        if (! in_array($valoracion, Modelo_sugerencia::VALORACIONES, true)) {
+            $valoracion = '';
+        }
+        if (! in_array($orden, Modelo_sugerencia::ORDENES, true)) {
+            $orden = 'recientes';
+        }
+
+        try {
+            $m_sugerencia = new Modelo_sugerencia();
+
+            return view('lista_sugerencia', [
+                'sugerencias'  => $m_sugerencia->listar($buscar, $valoracion, $orden),
+                'pager'        => $m_sugerencia->pager,
+                'conteos'      => $m_sugerencia->conteos(),
+                'buscar'       => $buscar,
+                'valoracion'   => $valoracion,
+                'orden'        => $orden,
+                'valoraciones' => Modelo_sugerencia::VALORACIONES,
+            ]);
+        } catch (Throwable $e) {
+            // Por ejemplo: la tabla aún no existe porque no se corrió la migración.
+            return redirect()->to(site_url('/'))
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudieron cargar las sugerencias.'));
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -128,6 +184,16 @@ class Sugerencias extends BaseController
         $valor = $this->request->getPost($campo);
 
         return is_string($valor) ? $valor : '';
+    }
+
+    /**
+     * Parámetro de la URL como texto recortado. Si llega un arreglo u otro tipo, devuelve ''.
+     */
+    private function textoGet(string $campo, int $max): string
+    {
+        $valor = $this->request->getGet($campo);
+
+        return is_string($valor) ? mb_substr(trim($valor), 0, $max) : '';
     }
 
     /**

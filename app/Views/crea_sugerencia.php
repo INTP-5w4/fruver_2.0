@@ -34,7 +34,15 @@
 
     <main class="sugerencia-wrapper">
         <section class="sugerencia-card">
-            <h1>Buzón de sugerencias</h1>
+            <div class="sugerencia-cabecera">
+                <h1>Buzón de sugerencias</h1>
+                <?php if (! empty($esPersonal)): ?>
+                    <!-- Solo el personal (superadmin, admin, developer) puede leer lo recibido -->
+                    <a href="<?= base_url('lista_sugerencia') ?>" class="w3-button w3-border">
+                        <i class="fa-solid fa-inbox"></i> Ver sugerencias recibidas
+                    </a>
+                <?php endif; ?>
+            </div>
             <p class="sugerencia-intro">
                 ¿Tienes una idea para mejorar FRUVER? Cuéntanosla. Tu usuario y tu rol se registran
                 automáticamente junto con tu sugerencia.
@@ -78,7 +86,7 @@
                 <?php endif; ?>
 
                 <div class="sugerencia-acciones">
-                    <a href="<?= base_url('/') ?>" class="w3-button w3-light-grey">Volver</a>
+                    <a href="<?= base_url($volver ?? '/') ?>" class="w3-button w3-light-grey">Volver</a>
                     <button type="submit" class="w3-button w3-green">Enviar sugerencia</button>
                 </div>
             </form>
