@@ -34,6 +34,13 @@ $routes->group('tienda', ['filter' => 'session'], static function (RouteCollecti
     $routes->post('pedido/(:num)/recargar', 'Tienda::recargar/$1');
 });
 
+// ───────────── BUZÓN DE SUGERENCIAS (cualquier usuario con sesión, de cualquier rol) ─────────────
+// El CSRF lo aplica el filtro global; el guardado es POST.
+$routes->group('', ['filter' => 'session'], static function (RouteCollection $routes) {
+    $routes->get('crea_sugerencia', 'Sugerencias::crea_sugerencia');
+    $routes->post('guarda_sugerencia', 'Sugerencias::guarda_sugerencia');
+});
+
 // ───────────── REPARTIDOR (solo su grupo) ─────────────
 $routes->group('repartidor', ['filter' => 'group:repartidor'], static function (RouteCollection $routes) {
     $routes->get('entregas', 'Entregas::mis_entregas');
