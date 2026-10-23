@@ -185,6 +185,9 @@ class P_pedidos extends BaseController
             'stockPorProducto'          => (new Modelo_existencia())->stockDisponiblePorProducto(),
             'precioSugeridoPorProducto' => array_map(fn ($e) => $e['precio_venta_u'], $ultimasEntradas),
             'uVentaSugeridaPorProducto' => array_map(fn ($e) => $e['u_venta'], $ultimasEntradas),
+            // Precio preferencial: clientes que lo tienen y porcentaje de descuento (requerimiento #7)
+            'idsPreferenciales'         => (new Modelo_cliente())->idsPreferenciales(),
+            'descuentoPreferencial'     => Modelo_cliente::DESCUENTO_PREFERENCIAL,
         ]);
     }
 

@@ -13,6 +13,13 @@ class Modelo_cliente extends PdoModelo
     /** PROVISIONAL: compras necesarias para ser cliente preferencial (confirmar con el cliente). */
     public const UMBRAL_PREFERENCIAL = 5;
 
+    /**
+     * PROVISIONAL: porcentaje de descuento del precio preferencial (confirmar con el cliente).
+     * Se propone en las líneas del pedido de un cliente preferencial; el personal puede
+     * cambiar el precio de cada línea a mano (no se bloquea).
+     */
+    public const DESCUENTO_PREFERENCIAL = 5.0;
+
     /** Estados del pedido que cuentan como una compra realizada. */
     public const ESTADOS_COMPRA = ['pedido_entregado', 'pedido_a_credito', 'pedido_pagado'];
 
