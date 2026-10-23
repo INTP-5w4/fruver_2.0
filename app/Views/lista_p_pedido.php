@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
+    <style>
+        .hint-pref { color:#2e7d32; font-size:12px; margin:4px 0 0; }
+        .barra-pref { display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:#e8f5e9;
+                      border:1px solid #a5d6a7; border-radius:6px; padding:8px 10px; margin-top:8px; font-size:13px; }
+        .precio-linea { width:110px; min-width:90px; padding:4px 6px; }
+    </style>
     <title>Lista Pedidos</title>
     <style>
         /* Fix lupa — W3.CSS sobreescribe el padding del input */
@@ -213,7 +219,7 @@
         <select id="ped_id_cliente" class="w3-select w3-border w3-margin-bottom">
           <?php foreach ($clientes as $c): ?>
             <option value="<?= esc($c['id']) ?>">
-              <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
+              <?= in_array((int) $c['id'], $idsPreferenciales, true) ? '★ ' : '' ?><?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -264,13 +270,21 @@
         <label><b>Cantidad*</b></label>
         <input type="number" id="cp_cant" placeholder="Ej: 5" class="w3-input w3-border w3-margin-bottom">
         <label><b>Precio de venta (unitario)*</b></label>
-        <input type="number" id="cp_p_venta" placeholder="Ej: 45.00" step="0.01" class="w3-input w3-border w3-margin-bottom">
+        <input type="number" id="cp_p_venta" placeholder="Ej: 45.00" step="0.01" min="0" class="w3-input w3-border">
+        <small id="cp_hint_pref" class="hint-pref" style="display:none;"></small>
+        <div class="w3-margin-bottom"></div>
         <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
           + Agregar producto
         </button>
 
         <div id="carritoContainer" style="display:none;">
           <hr><b>Carrito:</b>
+          <div id="cBarraPref" class="barra-pref" style="display:none;">
+            <span>★ Cliente preferencial: precio sugerido −<span class="pref-pct"></span>%.</span>
+            <button type="button" class="w3-button w3-small w3-green" onclick="aplicarPrecioPreferencialTodo('c')">Aplicar a todo el pedido</button>
+            <button type="button" class="w3-button w3-small w3-border" onclick="restablecerPreciosCatalogo('c')">Volver al precio de catálogo</button>
+          </div>
+          <p class="w3-small w3-text-grey" style="margin:6px 0 0;">Puedes cambiar el precio de cada línea directamente en la tabla.</p>
           <table class="w3-table w3-bordered w3-small w3-margin-top">
             <thead class="w3-green">
               <tr><th>Producto</th><th>Unidad</th><th>Cant</th><th>Precio</th><th>Total</th><th></th></tr>
@@ -340,7 +354,7 @@
         <select id="eped_id_cliente" class="w3-select w3-border w3-margin-bottom">
           <?php foreach ($clientes as $c): ?>
             <option value="<?= esc($c['id']) ?>">
-              <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
+              <?= in_array((int) $c['id'], $idsPreferenciales, true) ? '★ ' : '' ?><?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
             </option>
           <?php endforeach; ?>
         </select>
@@ -391,13 +405,21 @@
         <label><b>Cantidad*</b></label>
         <input type="number" id="ecp_cant" placeholder="Ej: 5" class="w3-input w3-border w3-margin-bottom">
         <label><b>Precio de venta (unitario)*</b></label>
-        <input type="number" id="ecp_p_venta" placeholder="Ej: 45.00" step="0.01" class="w3-input w3-border w3-margin-bottom">
+        <input type="number" id="ecp_p_venta" placeholder="Ej: 45.00" step="0.01" min="0" class="w3-input w3-border">
+        <small id="ecp_hint_pref" class="hint-pref" style="display:none;"></small>
+        <div class="w3-margin-bottom"></div>
         <button type="button" onclick="eAgregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
           + Agregar producto
         </button>
 
         <div id="eCarritoContainer" style="display:none;">
           <hr><b>Carrito:</b>
+          <div id="eBarraPref" class="barra-pref" style="display:none;">
+            <span>★ Cliente preferencial: precio sugerido −<span class="pref-pct"></span>%.</span>
+            <button type="button" class="w3-button w3-small w3-green" onclick="aplicarPrecioPreferencialTodo('e')">Aplicar a todo el pedido</button>
+            <button type="button" class="w3-button w3-small w3-border" onclick="restablecerPreciosCatalogo('e')">Volver al precio de catálogo</button>
+          </div>
+          <p class="w3-small w3-text-grey" style="margin:6px 0 0;">Puedes cambiar el precio de cada línea directamente en la tabla.</p>
           <table class="w3-table w3-bordered w3-small w3-margin-top">
             <thead class="w3-green">
               <tr><th>Producto</th><th>Unidad</th><th>Cant</th><th>Precio</th><th>Total</th><th></th></tr>
@@ -458,6 +480,9 @@
 // Escapa texto antes de insertarlo con innerHTML (anti XSS)
 function escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 const stockPorProducto = <?= json_seguro($stockPorProducto) ?>;
+// Precio preferencial: ids de clientes preferenciales y % de descuento (provisional, ver Modelo_cliente)
+const clientesPreferenciales   = <?= json_seguro(array_map('intval', $idsPreferenciales)) ?>;
+const DESCUENTO_PREFERENCIAL   = <?= json_seguro((float) $descuentoPreferencial) ?>;
  
 const nombreProducto = <?= json_seguro(array_column($productos, 'nombre', 'id')) ?>;
  
@@ -666,7 +691,7 @@ crearBuscadorProducto('cp_', function(id, nombre, stock, producto) {
  
     // Auto-rellenar precio (editable por el usuario)
     if (producto.precio) {
-        document.getElementById('cp_p_venta').value = parseFloat(producto.precio).toFixed(2);
+        rellenarPrecio('c', producto.precio);
     }
 });
  
@@ -677,11 +702,118 @@ crearBuscadorProducto('ecp_', function(id, nombre, stock, producto) {
  
     // Auto-rellenar precio (editable por el usuario)
     if (producto.precio) {
-        document.getElementById('ecp_p_venta').value = parseFloat(producto.precio).toFixed(2);
+        rellenarPrecio('e', producto.precio);
     }
 });
  
  
+// ════════════════════════════════════════════════════════════
+//  PRECIO PREFERENCIAL Y PRECIOS EDITABLES POR LÍNEA (req. #7)
+//  El precio preferencial solo se SUGIERE: cada línea del pedido se puede
+//  seguir editando (en el campo de precio o en la tabla del carrito).
+//  Afecta únicamente al pedido; el catálogo no se modifica.
+// ════════════════════════════════════════════════════════════
+const dinero = v => parseFloat(v).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+const redondea2 = v => Math.round((parseFloat(v) + Number.EPSILON) * 100) / 100;
+
+// 'c' = crear pedido, 'e' = editar pedido
+const ctxPedido = {
+    c: { lista: () => carrito,       cliente: 'ped_id_cliente',  campo: 'cp_p_venta',  hint: 'cp_hint_pref',  barra: 'cBarraPref', render: () => renderCarrito() },
+    e: { lista: () => carritoEditar, cliente: 'eped_id_cliente', campo: 'ecp_p_venta', hint: 'ecp_hint_pref', barra: 'eBarraPref', render: () => eRenderCarrito() },
+};
+
+function esPreferencial(idCliente) {
+    return clientesPreferenciales.includes(parseInt(idCliente, 10));
+}
+function clienteEsPreferencial(modo) {
+    return esPreferencial(document.getElementById(ctxPedido[modo].cliente).value);
+}
+function precioPreferencial(precio) {
+    return redondea2(parseFloat(precio) * (100 - DESCUENTO_PREFERENCIAL) / 100);
+}
+function precioCatalogo(idProducto) {
+    const p = catalogoProductos.find(x => String(x.id) === String(idProducto));
+    return p && p.precio !== '' && p.precio !== null && parseFloat(p.precio) > 0 ? parseFloat(p.precio) : null;
+}
+
+// Rellena el campo de precio al elegir un producto (preferencial si el cliente lo es).
+function rellenarPrecio(modo, precio) {
+    const c = ctxPedido[modo];
+    const campo = document.getElementById(c.campo);
+    const hint  = document.getElementById(c.hint);
+    if (clienteEsPreferencial(modo)) {
+        campo.value = precioPreferencial(precio).toFixed(2);
+        hint.textContent = `Precio preferencial (−${DESCUENTO_PREFERENCIAL}%) sobre ${dinero(precio)}. Puedes editarlo.`;
+        hint.style.display = 'block';
+    } else {
+        campo.value = parseFloat(precio).toFixed(2);
+        hint.style.display = 'none';
+    }
+}
+
+// Muestra la barra de precio preferencial si el cliente lo es y hay líneas.
+function actualizarBarraPref(modo) {
+    const c = ctxPedido[modo];
+    const barra = document.getElementById(c.barra);
+    barra.style.display = clienteEsPreferencial(modo) ? 'flex' : 'none';
+    barra.querySelector('.pref-pct').textContent = DESCUENTO_PREFERENCIAL;
+}
+
+// Cambia el precio de TODAS las líneas con precio de catálogo conocido.
+function cambiarPreciosLineas(modo, calcula) {
+    const lista = ctxPedido[modo].lista();
+    let sinPrecio = 0;
+    lista.forEach(it => {
+        const base = precioCatalogo(it.id_producto);
+        if (base === null) { sinPrecio++; return; }
+        it.p_venta = calcula(base);
+        it.total   = (it.cant * it.p_venta).toFixed(2);
+    });
+    ctxPedido[modo].render();
+    if (sinPrecio) alert(`${sinPrecio} producto(s) no tienen precio de catálogo y conservan su precio.`);
+}
+function aplicarPrecioPreferencialTodo(modo) { cambiarPreciosLineas(modo, precioPreferencial); }
+function restablecerPreciosCatalogo(modo)    { cambiarPreciosLineas(modo, b => redondea2(b)); }
+
+// Edición del precio de una línea directamente en la tabla del carrito.
+function editarPrecioLinea(modo, i, input) {
+    const lista = ctxPedido[modo].lista();
+    const p = parseFloat(input.value);
+    if (!isFinite(p) || p <= 0 || p > 99999999) {
+        alert('Escribe un precio mayor a 0.');
+        input.value = parseFloat(lista[i].p_venta).toFixed(2);
+        return;
+    }
+    lista[i].p_venta = redondea2(p);
+    lista[i].total   = (lista[i].cant * lista[i].p_venta).toFixed(2);
+    refrescarTotalesCarrito(modo);   // sin reconstruir la tabla: el cursor no se pierde al tabular
+}
+function refrescarTotalesCarrito(modo) {
+    const lista = ctxPedido[modo].lista();
+    let total = 0;
+    lista.forEach((it, i) => {
+        total += parseFloat(it.total);
+        const celda = document.getElementById(`${modo}tot-${i}`);
+        if (celda) celda.textContent = dinero(it.total);
+    });
+    const gran = document.getElementById(`${modo}granTotal`);
+    if (gran) gran.textContent = dinero(total);
+}
+// Celda <td> del precio editable de la línea i
+function celdaPrecioEditable(modo, i, item) {
+    return `<td><input type="number" class="w3-input w3-border precio-linea" min="0.01" step="0.01"
+                 value="${parseFloat(item.p_venta).toFixed(2)}" aria-label="Precio unitario"
+                 onchange="editarPrecioLinea('${modo}', ${i}, this)"></td>`;
+}
+
+// Al cambiar de cliente solo se actualiza la barra; los precios ya capturados no se tocan.
+['c', 'e'].forEach(m => {
+    document.getElementById(ctxPedido[m].cliente).addEventListener('change', () => {
+        actualizarBarraPref(m);
+        document.getElementById(ctxPedido[m].hint).style.display = 'none';
+    });
+});
+
 // ════════════════════════════════════════════════════════════
 //  WIZARD CREAR
 // ════════════════════════════════════════════════════════════
@@ -762,7 +894,7 @@ function agregarAlCarrito() {
  
     cpLimpiarSeleccion();
     document.getElementById('cp_cant').value    = '';
-    document.getElementById('cp_p_venta').value = '';
+    document.getElementById('cp_p_venta').value = ''; document.getElementById('cp_hint_pref').style.display = 'none';
 }
  
 function renderCarrito() {
@@ -776,8 +908,8 @@ function renderCarrito() {
             <td>${escHtml(nombreProducto[item.id_producto])}</td>
             <td>${escHtml(item.u_venta)}</td>
             <td>${escHtml(item.cant)}</td>
-            <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-            <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+            ${celdaPrecioEditable('c', i, item)}
+            <td id="ctot-${i}">${dinero(item.total)}</td>
             <td><button type="button" onclick="quitarItem(${i})"
                 class="w3-button w3-red w3-small">✕</button></td>
           </tr>`;
@@ -785,11 +917,12 @@ function renderCarrito() {
     tbody.innerHTML += `
       <tr>
         <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
-        <td><strong>${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</strong></td>
+        <td><strong id="cgranTotal">${dinero(total)}</strong></td>
         <td></td>
       </tr>`;
 
     document.getElementById('carritoContainer').style.display = carrito.length ? 'block' : 'none';
+    actualizarBarraPref('c');
 }
  
 function quitarItem(i) { carrito.splice(i, 1); renderCarrito(); }
@@ -815,7 +948,7 @@ function cerrarModal() {
     cpLimpiarSeleccion();
     document.getElementById('ped_fecha').value          = '';
     document.getElementById('cp_cant').value    = '';
-    document.getElementById('cp_p_venta').value = '';
+    document.getElementById('cp_p_venta').value = ''; document.getElementById('cp_hint_pref').style.display = 'none';
     document.getElementById('modalCrearPpedido').style.display = 'none';
 }
 // ════════════════════════════════════════════════════════════
@@ -846,6 +979,7 @@ async function recargarPedido(idPedido) {
 
         document.getElementById('ped_fecha').value        = hoy;
         document.getElementById('ped_id_cliente').value   = data.pedido.id_cliente;
+        actualizarBarraPref('c');
         // Si el pedido original no tenía repartidor, queda vacío y el paso 1 pedirá elegir uno
         document.getElementById('ped_id_repartidor').value = data.pedido.id_repartidor ?? '';
 
@@ -988,7 +1122,7 @@ function eAgregarAlCarrito() {
  
     ecpLimpiarSeleccion();
     document.getElementById('ecp_cant').value    = '';
-    document.getElementById('ecp_p_venta').value = '';
+    document.getElementById('ecp_p_venta').value = ''; document.getElementById('ecp_hint_pref').style.display = 'none';
 }
  
 function eRenderCarrito() {
@@ -1002,8 +1136,8 @@ function eRenderCarrito() {
             <td>${escHtml(nombreProducto[item.id_producto])}</td>
             <td>${escHtml(item.u_venta)}</td>
             <td>${escHtml(item.cant)}</td>
-            <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-            <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
+            ${celdaPrecioEditable('e', i, item)}
+            <td id="etot-${i}">${dinero(item.total)}</td>
             <td><button type="button" onclick="eQuitarItem(${i})"
                 class="w3-button w3-red w3-small">✕</button></td>
         </tr>`;
@@ -1011,10 +1145,11 @@ function eRenderCarrito() {
     tbody.innerHTML += `
       <tr>
         <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
-        <td><strong>${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</strong></td>
+        <td><strong id="egranTotal">${dinero(total)}</strong></td>
         <td></td>
       </tr>`;
     document.getElementById('eCarritoContainer').style.display = carritoEditar.length ? 'block' : 'none';
+    actualizarBarraPref('e');
 }
  
 function eQuitarItem(i) { carritoEditar.splice(i, 1); eRenderCarrito(); }
@@ -1039,7 +1174,7 @@ function eCerrarModal() {
     eMostrarPaso(1);
     ecpLimpiarSeleccion();
     document.getElementById('ecp_cant').value    = '';
-    document.getElementById('ecp_p_venta').value = '';
+    document.getElementById('ecp_p_venta').value = ''; document.getElementById('ecp_hint_pref').style.display = 'none';
     document.getElementById('modalEditarPedido').style.display = 'none';
 }
  
