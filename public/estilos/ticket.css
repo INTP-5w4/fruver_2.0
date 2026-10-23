@@ -1,0 +1,108 @@
+/* ═══════════════════════════════════════════════════
+   FRUVER — ticket.css (ticket del pedido por WhatsApp)
+   ═══════════════════════════════════════════════════ */
+
+.ticket-barra {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 20px;
+}
+.ticket-titulo {
+    margin: 0;
+    font-size: 24px;
+    color: #007542;
+}
+
+.ticket-card {
+    max-width: 720px;
+    margin: 16px 0 24px;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px 24px;
+    box-shadow: 0 2px 8px rgba(0, 117, 66, 0.15);
+}
+
+.ticket-datos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px 24px;
+    margin: 0 0 16px;
+}
+.ticket-datos dt {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #777;
+}
+.ticket-datos dd {
+    margin: 2px 0 0;
+}
+
+.ticket-card label {
+    display: block;
+    margin: 16px 0 6px;
+}
+
+/* El mensaje se ve tal como saldrá en WhatsApp */
+.ticket-mensaje {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    background: #f1f8e9;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.ticket-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+/* Verde de WhatsApp */
+.btn-whatsapp {
+    display: inline-block;
+    padding: 9px 18px;
+    border-radius: 4px;
+    background: #25d366;
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+}
+.btn-whatsapp:hover {
+    background: #1ebe5b;
+    color: #ffffff;
+}
+.btn-deshabilitado,
+.btn-deshabilitado:hover {
+    background: #b0bec5;
+    cursor: not-allowed;
+}
+
+.ticket-copiado {
+    color: #2e7d32;
+    font-size: 14px;
+}
+.ticket-nota {
+    margin: 12px 0 0;
+    color: #666;
+    font-size: 13px;
+}
+
+/* Botón de WhatsApp en las tablas de pedidos */
+.btn-ticket-wa {
+    color: #25d366;
+    font-size: 20px;
+    text-decoration: none;
+}
+.btn-ticket-wa:hover {
+    color: #128c7e;
+}

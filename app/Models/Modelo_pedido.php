@@ -235,6 +235,56 @@ class Modelo_pedido extends PdoModelo
     {
         return (new Modelo_estatus($this->pdo))->ultimoPorFecha($idPedido)['estado'] ?? 'pedido_pendiente';
     }
+
+    /**
+     * Datos para el ticket (resumen) de un pedido: cliente, estado actual y líneas.
+     * Devuelve null si el pedido no existe. Se usa para el mensaje de WhatsApp.
+     *
+     * @return null|array{id:int,fecha:?string,cliente:string,telefono:?string,estado:string,
+     *                    total:float,items:list<array<string,mixed>>}
+     */
+    public function ticket(int|string $idPedido): ?array
+    {
+        $cab = $this->fila(
+            'SELECT p.id, p.fecha, c.nombre, c.ape_pat, c.ape_mat, c.telefono
+               FROM pedido p
+               JOIN cliente c ON c.id = p.id_cliente
+              WHERE p.id = ?
+              LIMIT 1',
+            [$idPedido]
+        );
+
+        if ($cab === null) {
+            return null;
+        }
+
+        $items = $this->filas(
+            'SELECT pp.cant, pp.unidad_venta, pp.precio_venta, pp.total, pr.nombre AS nombre_producto
+               FROM producto_pedido pp
+               JOIN producto pr ON pr.id = pp.id_producto
+              WHERE pp.id_pedido = ?
+           ORDER BY pp.id ASC',
+            [$idPedido]
+        );
+
+        $total = 0.0;
+        foreach ($items as $item) {
+            // `total` puede venir nulo (lo calcula un trigger al insertar): se recalcula.
+            $total += $item['total'] !== null
+                ? (float) $item['total']
+                : round((float) $item['cant'] * (float) $item['precio_venta'], 2);
+        }
+
+        return [
+            'id'       => (int) $cab['id'],
+            'fecha'    => $cab['fecha'],
+            'cliente'  => trim(implode(' ', array_filter([$cab['nombre'], $cab['ape_pat'], $cab['ape_mat']]))),
+            'telefono' => $cab['telefono'],
+            'estado'   => $this->estadoActual($idPedido),
+            'total'    => round($total, 2),
+            'items'    => $items,
+        ];
+    }
         // ─────────────────────────────────────────────────────────────
     // RECARGAR PEDIDO (volver a pedir lo mismo)
     // ─────────────────────────────────────────────────────────────

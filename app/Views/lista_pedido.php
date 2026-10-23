@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
     <title>Lista pedido</title>
 </head>
 <body>
@@ -60,6 +61,7 @@
             <th>Fecha</th>
             <th>Nombre del cliente</th>
             <th>Nombre del repartidor</th>
+            <th>WhatsApp</th>
             <th>Editar</th>
             <th>Eliminar</th>
         </thead>
@@ -73,6 +75,12 @@
                 </td>
                 <td><?php $r = $p['id_repartidor'] !== null ? ($repartidores[$p['id_repartidor']] ?? null) : null;
                     echo $r ? esc("{$r['nombre']} {$r['ape_pat']} {$r['ape_mat']}") : 'Sin asignar'; ?>
+                </td>
+                <td>
+                    <a href="<?= base_url('ticket_pedido/' . (int) $p['id']) ?>"
+                       class="btn-ticket-wa" title="Enviar el ticket del pedido por WhatsApp">
+                        <i class="fa-brands fa-whatsapp"></i>
+                    </a>
                 </td>
                 <td>
                     <button onclick="abrirModal(
