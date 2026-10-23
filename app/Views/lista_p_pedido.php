@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
     <title>Lista Pedidos</title>
     <style>
         /* Fix lupa — W3.CSS sobreescribe el padding del input */
@@ -75,6 +76,7 @@
             <th>Total pedido</th>
             <th>Repartidor</th>
             <th>Estatus</th>
+            <th>WhatsApp</th>
             <th>Recargar</th>
             <th>Editar</th>
             <th>Eliminar</th>
@@ -104,7 +106,13 @@
                     <?= esc(str_replace('_', ' ', $pedido['estado_actual'] ?? 'pendiente')) ?>
                 </span>
             </td>
-                        <td onclick="event.stopPropagation()">
+            <td onclick="event.stopPropagation()">
+                <a href="<?= base_url('ticket_pedido/' . (int) $pedido['id_pedido']) ?>"
+                   class="btn-ticket-wa" title="Enviar el ticket del pedido por WhatsApp">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+            </td>
+            <td onclick="event.stopPropagation()">
                 <button onclick="recargarPedido('<?= esc($pedido['id_pedido'], 'js') ?>')"
                         style="border:none; cursor:pointer; background:none;"
                         title="Volver a pedir lo mismo">
@@ -126,7 +134,7 @@
         </tr>
 
         <tr class="fila-detalle" id="detalle-<?= esc($pedido['id_pedido']) ?>">
-            <td colspan="11">
+            <td colspan="12">
                 <div class="detalle-inner">
                     <b>Productos del pedido #<?= esc($pedido['id_pedido']) ?>:</b>
                     <table class="w3-table w3-bordered w3-small">

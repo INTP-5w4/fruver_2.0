@@ -128,6 +128,9 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('asigna_entrega', 'Entregas::asigna_entrega');
     $routes->post('cancela_entrega/(:num)', 'Entregas::cancela_entrega/$1');
 
+    // ===== TICKET DEL PEDIDO POR WHATSAPP =====
+    $routes->get('ticket_pedido/(:num)', 'Tickets::ver/$1');
+
     // ===== SUGERENCIAS (lectura del personal; el formulario es para todos y va más arriba) =====
     $routes->get('lista_sugerencia', 'Sugerencias::lista_sugerencia');
 
