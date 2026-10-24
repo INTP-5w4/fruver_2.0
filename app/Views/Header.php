@@ -9,6 +9,11 @@ $conSesionHeader = auth()->loggedIn();
         <div class="logo"><a href="<?= base_url('') ?>">FRUVER</a></div>
         <?php if ($conSesionHeader): ?>
             <div class="header-acciones">
+                <?php if ($esBackend): ?>
+                    <a href="<?= base_url('main_page_4') ?>" class="header-enlace" title="Ver la tienda como la ven los clientes">
+                        <i class="fa-solid fa-store"></i> Ir a la tienda
+                    </a>
+                <?php endif; ?>
                 <a href="<?= base_url('crea_sugerencia') ?>" class="header-enlace" title="Enviar una sugerencia">
                     <i class="fa-regular fa-lightbulb"></i> Buzón de sugerencias
                 </a>
