@@ -87,6 +87,8 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->get('crea_entrada', 'Entradas::crea_entrada');
     $routes->get('lista_entrada', 'Entradas::lista_entrada');
     $routes->post('guarda_entrada', 'Entradas::guarda_entrada');
+    $routes->get('entrada_rapida', 'Entradas::entrada_rapida');
+    $routes->post('guarda_entrada_rapida', 'Entradas::guarda_entrada_rapida');
     $routes->post('modifica_entrada', 'Entradas::modifica_entrada');
     $routes->get('pasa_id_entrada/(:num)', 'Entradas::recupera/$1');
     $routes->post('borra_id_entrada/(:num)', 'Entradas::eliminar_datos/$1');

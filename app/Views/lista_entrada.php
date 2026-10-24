@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/entrada_rapida.css') ?>">
     <title>Lista Entrada</title>
 </head>
 <body>
@@ -33,6 +34,9 @@
             class="btn-agregar">
         + Nueva Entrada
     </button>
+    <a href="<?= base_url('entrada_rapida') ?>" class="btn-agregar btn-enlace" title="Registrar varias entradas escribiendo solo la cantidad">
+        <i class="fa-solid fa-bolt"></i> Entrada rápida
+    </a>
 </div>
 <form method="get" action="<?= base_url('lista_entrada') ?>" class="w3-margin-bottom">
     <div style="display:flex; gap:8px;">
