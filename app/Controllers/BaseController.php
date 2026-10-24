@@ -53,12 +53,20 @@ abstract class BaseController extends Controller
         return $usuario !== null && $usuario->inGroup(...self::GRUPOS_PERSONAL);
     }
 
-    /** Texto del buscador (?buscar=...) sin espacios sobrantes y con tope de longitud. */
+    /**
+     * Texto del buscador (?buscar=...) sin espacios sobrantes y con tope de longitud.
+     * Si llega un arreglo (?buscar[]=x) u otro tipo, se trata como búsqueda vacía
+     * (convertirlo a string provocaba un error 500).
+     */
     protected function textoBusqueda(string $campo = 'buscar'): string
     {
-        $texto = trim((string) $this->request->getGet($campo));
+        $valor = $this->request->getGet($campo);
 
-        return mb_substr($texto, 0, 100);
+        if (! is_string($valor)) {
+            return '';
+        }
+
+        return mb_substr(trim($valor), 0, 100);
     }
 
     /** Valor de un campo POST como texto recortado (nunca null). */
