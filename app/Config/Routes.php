@@ -66,6 +66,7 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('borra_id_cliente/(:num)', 'Clientes::eliminar_datos/$1');
     $routes->post('guarda_cliente', 'Clientes::guarda_cliente');
     $routes->post('modifica_cliente', 'Clientes::modifica');
+    $routes->post('preferencial_cliente', 'Clientes::preferencial');
 
     // ===== REPARTIDORES =====
     $routes->get('crea_repartidor', 'Repartidores::crea_repartidor');
