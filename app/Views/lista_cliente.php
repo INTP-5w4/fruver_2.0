@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/cliente_preferencial.css') ?>">
     <title>Lista Clientes</title>
 </head>
 <body>
@@ -22,6 +23,19 @@
         <?php if (session()->getFlashdata('error2')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
             <p><?= esc(session()->getFlashdata('error2')) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('error_pref')): ?>
+        <div class="w3-panel w3-red w3-animate-opacity">
+            <p><?= esc(session()->getFlashdata('error_pref')) ?></p>
+        </div>
+    <?php endif; ?>
+    <?php if (! $conPreferencial): ?>
+        <div class="w3-panel w3-pale-yellow w3-border">
+            <p><b>Falta ejecutar la migración</b> para poder cambiar el estado preferencial de un cliente
+               (<code>php spark migrate</code> o <code>database_cambios/preferencial_cambios.sql</code>).
+               Mientras tanto se decide solo por compras.</p>
         </div>
     <?php endif; ?>
 
@@ -68,6 +82,7 @@
                 <th>Apellido Materno</th>
                 <th>Telefono</th>
                 <th>Compras</th>
+                <th>Preferencial</th>
                 <th>Editar</th>
                 <th>Eliminar</th>
             </tr>
@@ -80,11 +95,31 @@
                     <td><?= esc($c['ape_pat']) ?></td>
                     <td><?= esc($c['ape_mat']) ?></td>
                     <td><?= esc($c['telefono']) ?></td>
-                    <td>
-                        <?= (int) $c['compras'] ?>
+                    <td><?= (int) $c['compras'] ?></td>
+                    <td class="pref-celda">
+                        <?php $manual = in_array($c['preferencial_modo'], ['si', 'no'], true); ?>
                         <?php if ($c['es_preferencial']): ?>
                             <span class="w3-tag w3-round w3-amber"><i class="fa-solid fa-star"></i> Preferencial</span>
+                        <?php else: ?>
+                            <span class="w3-tag w3-round w3-light-grey">No preferencial</span>
                         <?php endif; ?>
+                        <small class="pref-origen"><?= $manual ? 'manual' : 'por compras' ?></small>
+                        <?php if ($manual && ! empty($c['preferencial_motivo'])): ?>
+                            <small class="pref-motivo" title="<?= esc($c['preferencial_motivo'], 'attr') ?>">
+                                “<?= esc($c['preferencial_motivo']) ?>”
+                            </small>
+                        <?php endif; ?>
+                        <button type="button" class="btn-pref" <?= $conPreferencial ? '' : 'disabled' ?>
+                                title="Cambiar el estado preferencial"
+                                data-id="<?= (int) $c['id'] ?>"
+                                data-nombre="<?= esc(trim($c['nombre'] . ' ' . $c['ape_pat'] . ' ' . $c['ape_mat']), 'attr') ?>"
+                                data-modo="<?= esc($c['preferencial_modo'], 'attr') ?>"
+                                data-motivo="<?= esc((string) ($c['preferencial_motivo'] ?? ''), 'attr') ?>"
+                                data-por="<?= esc((string) ($c['preferencial_por'] ?? ''), 'attr') ?>"
+                                data-fecha="<?= esc((string) ($c['preferencial_fecha'] ?? ''), 'attr') ?>"
+                                data-compras="<?= (int) $c['compras'] ?>">
+                            <i class="fa-solid fa-star"></i> Cambiar
+                        </button>
                     </td>
                     <td>
                         <!-- ↓ Botón que abre el modal y llena los datos -->
@@ -144,6 +179,39 @@
                             class="w3-button w3-white">Cancelar</button>
                 </footer>
 
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL ESTADO PREFERENCIAL -->
+    <div id="modalPreferencial" class="w3-modal" style="display:none; padding-top:100px; z-index:9999;">
+        <div class="w3-modal-content w3-animate-zoom" style="max-width:520px; max-height:90vh; overflow-y:auto;">
+            <form action="<?= base_url('preferencial_cliente') ?>" method="post" class="w3-container w3-padding-16" id="form-pref">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id" id="pref_id">
+
+                <h3 style="margin-top:0;">Estado preferencial</h3>
+                <p id="pref_cliente" class="pref-cliente"></p>
+                <p id="pref_actual" class="pref-actual"></p>
+
+                <label class="pref-opcion"><input type="radio" name="modo" value="automatico" class="w3-radio">
+                    <span><b>Automático</b> — preferencial al llegar a <?= (int) $umbral ?> compras <small>(quita cualquier cambio manual)</small></span></label>
+                <label class="pref-opcion"><input type="radio" name="modo" value="si" class="w3-radio">
+                    <span><b>Preferencial siempre</b> <small>(aunque no llegue a <?= (int) $umbral ?> compras)</small></span></label>
+                <label class="pref-opcion"><input type="radio" name="modo" value="no" class="w3-radio">
+                    <span><b>No preferencial</b> <small>(aunque tenga muchas compras)</small></span></label>
+
+                <div id="pref_motivo_bloque">
+                    <label for="pref_motivo"><b>Motivo*</b> <small>(<?= (int) \App\Models\Modelo_cliente::MOTIVO_MIN ?>–<?= (int) \App\Models\Modelo_cliente::MOTIVO_MAX ?> caracteres)</small></label>
+                    <textarea name="motivo" id="pref_motivo" rows="3" maxlength="<?= (int) \App\Models\Modelo_cliente::MOTIVO_MAX ?>"
+                              class="w3-input w3-border" placeholder="Ej: cliente mayorista con convenio verbal"></textarea>
+                    <small id="pref_contador" class="pref-contador"></small>
+                </div>
+
+                <footer class="w3-container w3-green w3-padding w3-margin-top">
+                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="button" id="pref_cancelar" class="w3-button w3-white">Cancelar</button>
+                </footer>
             </form>
         </div>
     </div>
@@ -209,5 +277,6 @@
         document.getElementById('modalEditarCliente').style.display = 'block';
     <?php endif; ?>
 </script>
+<script src="<?= base_url('js/cliente_preferencial.js') ?>"></script>
 </body>
 </html>
