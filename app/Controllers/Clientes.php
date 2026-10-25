@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Modelo_cliente;
 use App\Models\PdoModelo;
+use DomainException;
 use Throwable;
 
 class Clientes extends BaseController
@@ -76,7 +77,59 @@ class Clientes extends BaseController
         $datos['pager']    = $m_cliente->pager;
         $datos['buscar']   = $buscar;
 
+        // Si falta la migración, la vista avisa y desactiva el cambio de estado preferencial
+        $datos['conPreferencial'] = $m_cliente->tieneColumnasPreferencial();
+        $datos['umbral']          = Modelo_cliente::UMBRAL_PREFERENCIAL;
+
         return view('lista_cliente', $datos);
+    }
+
+    /**
+     * Cambia (o revierte) el estado de cliente preferencial, con el motivo.
+     * modo: automatico (por compras) | si (preferencial siempre) | no (nunca preferencial).
+     */
+    public function preferencial()
+    {
+        $volver = redirect()->to('lista_cliente');
+
+        $id    = $this->request->getPost('id');
+        $modo  = $this->request->getPost('modo');
+        $texto = $this->request->getPost('motivo');
+
+        if (! is_string($id) || ! ctype_digit($id) || (int) $id < 1) {
+            return $volver->with('error_pref', 'Cliente no válido.');
+        }
+
+        if (! is_string($modo) || ! in_array($modo, Modelo_cliente::MODOS_PREFERENCIAL, true)) {
+            return $volver->with('error_pref', 'Elige una opción válida.');
+        }
+
+        // El motivo se guarda en una sola línea, sin caracteres de control ni de dirección de texto
+        // (la protección contra XSS se hace escapando la salida con esc() en la vista).
+        $motivo = is_string($texto)
+            ? trim((string) preg_replace('/[\p{Cc}\p{Cf}\s]+/u', ' ', $texto))
+            : '';
+
+        $usuario = auth()->user();
+        $por     = $usuario !== null ? (string) ($usuario->username ?? $usuario->email ?? '') : '';
+
+        try {
+            $existe = (new Modelo_cliente())->cambiarPreferencial((int) $id, $modo, $motivo, $por);
+        } catch (DomainException $e) {
+            return $volver->with('error_pref', $e->getMessage());
+        } catch (Throwable $e) {
+            return $volver->with('error_pref', PdoModelo::mensajeSeguro($e, 'No se pudo cambiar el estado preferencial.'));
+        }
+
+        if (! $existe) {
+            return $volver->with('error_pref', 'Cliente no encontrado.');
+        }
+
+        return $volver->with('mensaje', match ($modo) {
+            'si'    => 'El cliente ahora es preferencial.',
+            'no'    => 'El cliente quedó como NO preferencial.',
+            default => 'El estado preferencial volvió a ser automático (por compras).',
+        });
     }
 
     public function modifica()
