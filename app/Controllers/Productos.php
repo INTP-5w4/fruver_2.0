@@ -118,7 +118,7 @@ class Productos extends BaseController
         $file->move(ROOTPATH . 'public/uploads', $nombre_img);
 
         try {
-            (new Modelo_producto())->insert([
+            $codigo = (new Modelo_producto())->insertarConCodigo([
                 'nombre'      => $this->post('nom'),
                 'descripcion' => $this->post('desc'),
                 'categoria'   => $this->post('cat'),
@@ -132,7 +132,7 @@ class Productos extends BaseController
                 ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo registrar el producto.'));
         }
 
-        return redirect()->to($this->destino('lista_producto'))->with('mensaje', 'Producto registrado');
+        return redirect()->to($this->destino('lista_producto'))->with('mensaje', 'Producto registrado con código ' . $codigo);
     }
 
     // ─────────────────────────────────────────────────────────────

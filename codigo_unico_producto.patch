@@ -1,0 +1,449 @@
+From 00c8b59452984b39c39cacc056efd537afe3b829 Mon Sep 17 00:00:00 2001
+From: Delsin <delsin@example.com>
+Date: Mon, 26 Oct 2026 03:30:55 +0000
+Subject: [PATCH] Codigo unico de producto (CAT-NOMBRE, consecutivo si
+ colisiona)
+
+---
+ app/Controllers/Productos.php                 |  4 +-
+ .../2026-10-25-100000_AddCodigoToProducto.php | 87 ++++++++++++++++++
+ app/Libraries/CodigoProducto.php              | 89 +++++++++++++++++++
+ app/Models/Modelo_producto.php                | 67 +++++++++++++-
+ app/Views/lista_producto.php                  |  2 +
+ database_cambios/codigo_producto_cambios.sql  | 25 ++++++
+ tests/unit/CodigoProductoTest.php             | 59 ++++++++++++
+ 7 files changed, 329 insertions(+), 4 deletions(-)
+ create mode 100644 app/Database/Migrations/2026-10-25-100000_AddCodigoToProducto.php
+ create mode 100644 app/Libraries/CodigoProducto.php
+ create mode 100644 database_cambios/codigo_producto_cambios.sql
+ create mode 100644 tests/unit/CodigoProductoTest.php
+
+diff --git a/app/Controllers/Productos.php b/app/Controllers/Productos.php
+index 1f4296a..57708fa 100644
+--- a/app/Controllers/Productos.php
++++ b/app/Controllers/Productos.php
+@@ -118,7 +118,7 @@ class Productos extends BaseController
+         $file->move(ROOTPATH . 'public/uploads', $nombre_img);
+ 
+         try {
+-            (new Modelo_producto())->insert([
++            $codigo = (new Modelo_producto())->insertarConCodigo([
+                 'nombre'      => $this->post('nom'),
+                 'descripcion' => $this->post('desc'),
+                 'categoria'   => $this->post('cat'),
+@@ -132,7 +132,7 @@ class Productos extends BaseController
+                 ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo registrar el producto.'));
+         }
+ 
+-        return redirect()->to($this->destino('lista_producto'))->with('mensaje', 'Producto registrado');
++        return redirect()->to($this->destino('lista_producto'))->with('mensaje', 'Producto registrado con código ' . $codigo);
+     }
+ 
+     // ─────────────────────────────────────────────────────────────
+diff --git a/app/Database/Migrations/2026-10-25-100000_AddCodigoToProducto.php b/app/Database/Migrations/2026-10-25-100000_AddCodigoToProducto.php
+new file mode 100644
+index 0000000..e91e83c
+--- /dev/null
++++ b/app/Database/Migrations/2026-10-25-100000_AddCodigoToProducto.php
+@@ -0,0 +1,87 @@
++<?php
++
++namespace App\Database\Migrations;
++
++use App\Libraries\CodigoProducto;
++use CodeIgniter\Database\Migration;
++
++/**
++ * Código único de producto (requerimiento #8).
++ *
++ * Agrega producto.codigo (VARCHAR 30) con un índice UNIQUE y rellena los productos que ya
++ * existen, en orden de id, con el mismo generador que usa el alta (App\Libraries\CodigoProducto):
++ * categoría + nombre, y consecutivo -02, -03... si dos productos generan el mismo código.
++ *
++ * La columna admite NULL a propósito: así un producto cargado por fuera de la app (por
++ * ejemplo con un INSERT directo) no rompe nada; la app siempre le pone código a los nuevos.
++ *
++ * Es idempotente: si la columna o el índice ya existen, no los vuelve a crear, y solo
++ * rellena los productos que siguen sin código.
++ */
++class AddCodigoToProducto extends Migration
++{
++    private const INDICE = 'uq_producto_codigo';
++
++    public function up()
++    {
++        if (! $this->db->fieldExists('codigo', 'producto')) {
++            $this->forge->addColumn('producto', [
++                'codigo' => [
++                    'type'       => 'VARCHAR',
++                    'constraint' => 30,
++                    'null'       => true,
++                    'default'    => null,
++                ],
++            ]);
++        }
++
++        $this->rellenarExistentes();
++
++        if (! $this->existeIndice()) {
++            $this->db->query('ALTER TABLE `producto` ADD UNIQUE KEY `' . self::INDICE . '` (`codigo`)');
++        }
++    }
++
++    public function down()
++    {
++        if ($this->existeIndice()) {
++            $this->db->query('ALTER TABLE `producto` DROP INDEX `' . self::INDICE . '`');
++        }
++
++        if ($this->db->fieldExists('codigo', 'producto')) {
++            $this->forge->dropColumn('producto', 'codigo');
++        }
++    }
++
++    /** Asigna código a los productos que no tienen, respetando los que ya lo tienen. */
++    private function rellenarExistentes(): void
++    {
++        $usados = array_map(
++            'strtoupper',
++            array_column($this->db->query('SELECT codigo FROM producto WHERE codigo IS NOT NULL')->getResultArray(), 'codigo')
++        );
++
++        $pendientes = $this->db
++            ->query('SELECT id, nombre, categoria FROM producto WHERE codigo IS NULL ORDER BY id ASC')
++            ->getResultArray();
++
++        foreach ($pendientes as $p) {
++            $base   = CodigoProducto::base((string) $p['categoria'], (string) $p['nombre']);
++            $codigo = CodigoProducto::siguienteLibre($base, $usados);
++
++            $usados[] = $codigo;
++
++            $this->db->query('UPDATE producto SET codigo = ? WHERE id = ?', [$codigo, (int) $p['id']]);
++        }
++    }
++
++    private function existeIndice(): bool
++    {
++        $filas = $this->db->query(
++            'SHOW INDEX FROM `producto` WHERE Key_name = ?',
++            [self::INDICE]
++        )->getResultArray();
++
++        return $filas !== [];
++    }
++}
+diff --git a/app/Libraries/CodigoProducto.php b/app/Libraries/CodigoProducto.php
+new file mode 100644
+index 0000000..8f3646f
+--- /dev/null
++++ b/app/Libraries/CodigoProducto.php
+@@ -0,0 +1,89 @@
++<?php
++
++namespace App\Libraries;
++
++/**
++ * Generador de códigos únicos de producto (requerimiento #8).
++ *
++ * Formato:  CAT-NOMBRE        ->  FRU-UVAAZU
++ *           CAT-NOMBRE-NN     ->  FRU-UVAAZU-02   (cuando el código base ya existe)
++ *
++ *  - CAT    : 3 letras fijas por categoría (frutas=FRU, verduras=VER, hierbas=HIE;
++ *             sin categoría = GEN).
++ *  - NOMBRE : 3 letras de la 1.ª palabra + 3 de la 2.ª ("uva azul" -> UVAAZU,
++ *             "uva morada" -> UVAMOR). Con una sola palabra, hasta 6 letras
++ *             ("zanahoria" -> ZANAHO). Se ignoran "de", "la", "con", etc.
++ *  - NN     : consecutivo que se agrega SOLO si dos productos distintos generan el
++ *             mismo código base (p. ej. "uva azul" y "uva azulada").
++ *
++ * Esta clase no toca la base de datos: solo calcula texto. Quien la usa (el modelo o la
++ * migración) le dice qué códigos ya existen. La garantía final de unicidad es el índice
++ * UNIQUE de la columna producto.codigo.
++ */
++class CodigoProducto
++{
++    public const PREFIJOS = [
++        'frutas'   => 'FRU',
++        'verduras' => 'VER',
++        'hierbas'  => 'HIE',
++    ];
++
++    public const PREFIJO_GENERICO = 'GEN';
++
++    private const PALABRAS_IGNORADAS = ['DE', 'DEL', 'LA', 'EL', 'LOS', 'LAS', 'Y', 'CON', 'EN', 'A'];
++
++    private const SIN_ACENTOS = [
++        'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U', 'Ü' => 'U', 'Ñ' => 'N',
++        'á' => 'A', 'é' => 'E', 'í' => 'I', 'ó' => 'O', 'ú' => 'U', 'ü' => 'U', 'ñ' => 'N',
++    ];
++
++    /** Código base (sin consecutivo) a partir de la categoría y el nombre. */
++    public static function base(string $categoria, string $nombre): string
++    {
++        $prefijo = self::PREFIJOS[strtolower(trim($categoria))] ?? self::PREFIJO_GENERICO;
++
++        return $prefijo . '-' . self::abreviarNombre($nombre);
++    }
++
++    /**
++     * Primer código libre a partir del base: BASE, BASE-02, BASE-03...
++     *
++     * @param list<string> $existentes Códigos que ya están en uso (los que empiezan con $base).
++     */
++    public static function siguienteLibre(string $base, array $existentes): string
++    {
++        $usados = array_flip(array_map('strtoupper', $existentes));
++
++        if (! isset($usados[$base])) {
++            return $base;
++        }
++
++        $n = 2;
++        while (isset($usados[sprintf('%s-%02d', $base, $n)])) {
++            $n++;
++        }
++
++        return sprintf('%s-%02d', $base, $n);
++    }
++
++    private static function abreviarNombre(string $nombre): string
++    {
++        $texto = strtr($nombre, self::SIN_ACENTOS);
++        $texto = strtoupper(preg_replace('/[^A-Za-z0-9 ]+/', ' ', $texto) ?? '');
++
++        $palabras = array_values(array_filter(
++            preg_split('/\s+/', trim($texto)) ?: [],
++            static fn (string $p): bool => $p !== '' && ! in_array($p, self::PALABRAS_IGNORADAS, true)
++        ));
++
++        if ($palabras === []) {
++            return 'PROD';
++        }
++
++        if (count($palabras) === 1) {
++            return substr($palabras[0], 0, 6);
++        }
++
++        return substr($palabras[0], 0, 3) . substr($palabras[1], 0, 3);
++    }
++}
+diff --git a/app/Models/Modelo_producto.php b/app/Models/Modelo_producto.php
+index 9093763..d79a213 100644
+--- a/app/Models/Modelo_producto.php
++++ b/app/Models/Modelo_producto.php
+@@ -2,12 +2,16 @@
+ 
+ namespace App\Models;
+ 
++use App\Libraries\CodigoProducto;
++use PDOException;
++use RuntimeException;
++
+ class Modelo_producto extends PdoModelo
+ {
+     protected string $tabla         = 'producto';
+     protected string $llavePrimaria = 'id';
+ 
+-    protected array $camposPermitidos = ['nombre', 'descripcion', 'categoria', 'img'];
++    protected array $camposPermitidos = ['nombre', 'descripcion', 'categoria', 'img', 'codigo'];
+ 
+     /** Categorías válidas (coinciden con el ENUM de la columna producto.categoria). */
+     public const CATEGORIAS = ['frutas', 'hierbas', 'verduras'];
+@@ -32,10 +36,11 @@ class Modelo_producto extends PdoModelo
+                 $params[] = (int) $buscar;
+             }
+ 
++            $parte[] = 'codigo LIKE ?';
+             $parte[] = 'nombre LIKE ?';
+             $parte[] = 'descripcion LIKE ?';
+             $parte[] = 'categoria LIKE ?';
+-            array_push($params, $like, $like, $like);
++            array_push($params, $like, $like, $like, $like);
+ 
+             $where = ' WHERE ' . implode(' OR ', $parte);
+         }
+@@ -81,6 +86,64 @@ class Modelo_producto extends PdoModelo
+         );
+     }
+ 
++    // ─────────────────────────────────────────────────────────────
++    // CÓDIGO ÚNICO DE PRODUCTO
++    // ─────────────────────────────────────────────────────────────
++
++    /**
++     * Inserta un producto y le asigna su código único (ver App\Libraries\CodigoProducto).
++     *
++     * El código se calcula con categoría + nombre. Si ya existe, se le agrega un consecutivo
++     * (-02, -03...). Si dos personas guardan al mismo tiempo y chocan en el índice UNIQUE,
++     * se vuelve a calcular y se reintenta. Los demás errores (por ejemplo el trigger
++     * no_duplica_producto, que rechaza un nombre repetido) se propagan tal cual para que
++     * el controlador los muestre con PdoModelo::mensajeSeguro().
++     *
++     * @param  array<string,mixed> $datos nombre, descripcion, categoria, img
++     * @return string El código asignado (el id nuevo queda en insertID()).
++     */
++    public function insertarConCodigo(array $datos): string
++    {
++        $base = CodigoProducto::base((string) ($datos['categoria'] ?? ''), (string) ($datos['nombre'] ?? ''));
++
++        for ($intento = 1; $intento <= 5; $intento++) {
++            $codigo = CodigoProducto::siguienteLibre($base, $this->codigosConBase($base));
++
++            try {
++                $this->insert([...$datos, 'codigo' => $codigo]);
++
++                return $codigo;
++            } catch (PDOException $e) {
++                // 1062 = entrada duplicada en el índice UNIQUE de `codigo`: alguien tomó ese
++                // código justo antes. Se recalcula y se reintenta.
++                $choqueDeCodigo = (int) ($e->errorInfo[1] ?? 0) === 1062
++                    && str_contains((string) ($e->errorInfo[2] ?? ''), 'uq_producto_codigo');
++
++                if (! $choqueDeCodigo || $intento === 5) {
++                    throw $e;
++                }
++            }
++        }
++
++        // No se llega aquí: el bucle siempre devuelve o lanza.
++        throw new \RuntimeException('No se pudo generar un código único de producto.');
++    }
++
++    /**
++     * Códigos ya usados que empiezan con $base (el propio base y sus consecutivos -NN).
++     *
++     * @return list<string>
++     */
++    private function codigosConBase(string $base): array
++    {
++        $filas = $this->filas(
++            'SELECT codigo FROM producto WHERE codigo = ? OR codigo LIKE ?',
++            [$base, addcslashes($base, '%_\\') . '-%']
++        );
++
++        return array_column($filas, 'codigo');
++    }
++
+     // ─────────────────────────────────────────────────────────────
+     // CATÁLOGO PÚBLICO (landing page main_page_4)
+     // ─────────────────────────────────────────────────────────────
+diff --git a/app/Views/lista_producto.php b/app/Views/lista_producto.php
+index ec003c7..783d9e8 100644
+--- a/app/Views/lista_producto.php
++++ b/app/Views/lista_producto.php
+@@ -57,6 +57,7 @@
+         <thead>
+             <tr>
+                 <th>ID</th>
++                <th>Código</th>
+                 <th>Nombre</th>
+                 <th>Descripción</th>
+                 <th>Categoria</th>
+@@ -69,6 +70,7 @@
+             <?php foreach ($productos as $p): ?>
+                 <tr>
+                     <td><?= esc($p['id']) ?></td>
++                    <td><?= esc($p['codigo'] ?? '—') ?></td>
+                     <td><?= esc($p['nombre']) ?></td>
+                     <td><?= esc($p['descripcion']) ?></td>
+                     <td><?= esc($p['categoria']) ?></td>
+diff --git a/database_cambios/codigo_producto_cambios.sql b/database_cambios/codigo_producto_cambios.sql
+new file mode 100644
+index 0000000..ea4a57f
+--- /dev/null
++++ b/database_cambios/codigo_producto_cambios.sql
+@@ -0,0 +1,25 @@
++-- ============================================================
++-- FRUVER 2.0 · Código único de producto (requerimiento #8)
++-- Alternativa a la migración 2026-10-25-100000_AddCodigoToProducto.
++-- Si ya corriste `php spark migrate`, NO hace falta ejecutar este archivo.
++--
++-- OJO: este archivo solo crea la columna y el índice. Los productos que ya existen
++-- se rellenan con la migración (php spark migrate), porque el código sale de la
++-- categoría + el nombre y se calcula en PHP. Si usas solo phpMyAdmin, ejecuta este
++-- archivo y luego `php spark migrate` una vez para rellenar los códigos pendientes
++-- (la migración no vuelve a crear lo que ya existe).
++--
++-- Usa ADD COLUMN IF NOT EXISTS (MariaDB, que es la que trae XAMPP). En MySQL 8 quita
++-- las palabras "IF NOT EXISTS" y no repitas el ADD UNIQUE KEY si ya lo creaste.
++-- ============================================================
++
++ALTER TABLE `producto`
++  ADD COLUMN IF NOT EXISTS `codigo` VARCHAR(30) NULL DEFAULT NULL;
++
++-- El índice UNIQUE es la garantía final de que no haya dos productos con el mismo código.
++-- Si algún código ya estuviera repetido, este paso falla: corrige el duplicado y repite.
++ALTER TABLE `producto`
++  ADD UNIQUE KEY `uq_producto_codigo` (`codigo`);
++
++-- Formato:  CAT-NOMBRE  (FRU-UVAAZU)  o  CAT-NOMBRE-NN  (FRU-UVAAZU-02) si ya existe.
++--   CAT: frutas=FRU, verduras=VER, hierbas=HIE, sin categoría=GEN
+diff --git a/tests/unit/CodigoProductoTest.php b/tests/unit/CodigoProductoTest.php
+new file mode 100644
+index 0000000..c0775d5
+--- /dev/null
++++ b/tests/unit/CodigoProductoTest.php
+@@ -0,0 +1,59 @@
++<?php
++
++use App\Libraries\CodigoProducto;
++use CodeIgniter\Test\CIUnitTestCase;
++
++/**
++ * @internal
++ */
++final class CodigoProductoTest extends CIUnitTestCase
++{
++    public function testUvaAzulYUvaMoradaTienenCodigosDistintos(): void
++    {
++        $this->assertSame('FRU-UVAAZU', CodigoProducto::base('frutas', 'Uva azul'));
++        $this->assertSame('FRU-UVAMOR', CodigoProducto::base('frutas', 'uva morada'));
++    }
++
++    public function testUnaSolaPalabraUsaHastaSeisLetras(): void
++    {
++        $this->assertSame('VER-ZANAHO', CodigoProducto::base('verduras', 'Zanahoria'));
++        $this->assertSame('FRU-KIWI', CodigoProducto::base('frutas', 'kiwi'));
++    }
++
++    public function testIgnoraArticulosAcentosYSimbolos(): void
++    {
++        $this->assertSame('VER-FLOCAL', CodigoProducto::base('verduras', 'Flor de calabaza'));
++        $this->assertSame('FRU-PLAMAC', CodigoProducto::base('frutas', 'Plátano Macho'));
++        $this->assertSame('HIE-EPAZOT', CodigoProducto::base('hierbas', 'Epazote'));
++        $this->assertSame('VER-CHAYOT', CodigoProducto::base('verduras', 'Chayóte!!'));
++    }
++
++    public function testCategoriaVaciaOInvalidaUsaGEN(): void
++    {
++        $this->assertSame('GEN-PERA', CodigoProducto::base('', 'pera'));
++        $this->assertSame('GEN-PERA', CodigoProducto::base('otra', 'pera'));
++    }
++
++    public function testNombreSinLetrasUsaPROD(): void
++    {
++        $this->assertSame('FRU-PROD', CodigoProducto::base('frutas', '***'));
++    }
++
++    public function testSiguienteLibreAgregaConsecutivo(): void
++    {
++        $this->assertSame('FRU-UVAAZU', CodigoProducto::siguienteLibre('FRU-UVAAZU', []));
++        $this->assertSame('FRU-UVAAZU-02', CodigoProducto::siguienteLibre('FRU-UVAAZU', ['FRU-UVAAZU']));
++        $this->assertSame(
++            'FRU-UVAAZU-03',
++            CodigoProducto::siguienteLibre('FRU-UVAAZU', ['FRU-UVAAZU', 'FRU-UVAAZU-02'])
++        );
++    }
++
++    public function testSiguienteLibreRellenaHuecosYNoEsSensibleAMayusculas(): void
++    {
++        $this->assertSame(
++            'FRU-UVAAZU-02',
++            CodigoProducto::siguienteLibre('FRU-UVAAZU', ['fru-uvaazu', 'FRU-UVAAZU-03'])
++        );
++    }
++}
+-- 
+2.43.0
+
