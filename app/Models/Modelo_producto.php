@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Libraries\CodigoProducto;
+use PDOException;
+use RuntimeException;
+
 class Modelo_producto extends PdoModelo
 {
     protected string $tabla         = 'producto';
     protected string $llavePrimaria = 'id';
 
-    protected array $camposPermitidos = ['nombre', 'descripcion', 'categoria', 'img'];
+    protected array $camposPermitidos = ['nombre', 'descripcion', 'categoria', 'img', 'codigo'];
 
     /** Categorías válidas (coinciden con el ENUM de la columna producto.categoria). */
     public const CATEGORIAS = ['frutas', 'hierbas', 'verduras'];
@@ -32,10 +36,11 @@ class Modelo_producto extends PdoModelo
                 $params[] = (int) $buscar;
             }
 
+            $parte[] = 'codigo LIKE ?';
             $parte[] = 'nombre LIKE ?';
             $parte[] = 'descripcion LIKE ?';
             $parte[] = 'categoria LIKE ?';
-            array_push($params, $like, $like, $like);
+            array_push($params, $like, $like, $like, $like);
 
             $where = ' WHERE ' . implode(' OR ', $parte);
         }
@@ -79,6 +84,64 @@ class Modelo_producto extends PdoModelo
            ORDER BY total_vendido DESC
               LIMIT 5'
         );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // CÓDIGO ÚNICO DE PRODUCTO
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Inserta un producto y le asigna su código único (ver App\Libraries\CodigoProducto).
+     *
+     * El código se calcula con categoría + nombre. Si ya existe, se le agrega un consecutivo
+     * (-02, -03...). Si dos personas guardan al mismo tiempo y chocan en el índice UNIQUE,
+     * se vuelve a calcular y se reintenta. Los demás errores (por ejemplo el trigger
+     * no_duplica_producto, que rechaza un nombre repetido) se propagan tal cual para que
+     * el controlador los muestre con PdoModelo::mensajeSeguro().
+     *
+     * @param  array<string,mixed> $datos nombre, descripcion, categoria, img
+     * @return string El código asignado (el id nuevo queda en insertID()).
+     */
+    public function insertarConCodigo(array $datos): string
+    {
+        $base = CodigoProducto::base((string) ($datos['categoria'] ?? ''), (string) ($datos['nombre'] ?? ''));
+
+        for ($intento = 1; $intento <= 5; $intento++) {
+            $codigo = CodigoProducto::siguienteLibre($base, $this->codigosConBase($base));
+
+            try {
+                $this->insert([...$datos, 'codigo' => $codigo]);
+
+                return $codigo;
+            } catch (PDOException $e) {
+                // 1062 = entrada duplicada en el índice UNIQUE de `codigo`: alguien tomó ese
+                // código justo antes. Se recalcula y se reintenta.
+                $choqueDeCodigo = (int) ($e->errorInfo[1] ?? 0) === 1062
+                    && str_contains((string) ($e->errorInfo[2] ?? ''), 'uq_producto_codigo');
+
+                if (! $choqueDeCodigo || $intento === 5) {
+                    throw $e;
+                }
+            }
+        }
+
+        // No se llega aquí: el bucle siempre devuelve o lanza.
+        throw new \RuntimeException('No se pudo generar un código único de producto.');
+    }
+
+    /**
+     * Códigos ya usados que empiezan con $base (el propio base y sus consecutivos -NN).
+     *
+     * @return list<string>
+     */
+    private function codigosConBase(string $base): array
+    {
+        $filas = $this->filas(
+            'SELECT codigo FROM producto WHERE codigo = ? OR codigo LIKE ?',
+            [$base, addcslashes($base, '%_\\') . '-%']
+        );
+
+        return array_column($filas, 'codigo');
     }
 
     // ─────────────────────────────────────────────────────────────

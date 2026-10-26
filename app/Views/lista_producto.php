@@ -57,6 +57,7 @@
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Código</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
                 <th>Categoria</th>
@@ -69,6 +70,7 @@
             <?php foreach ($productos as $p): ?>
                 <tr>
                     <td><?= esc($p['id']) ?></td>
+                    <td><?= esc($p['codigo'] ?? '—') ?></td>
                     <td><?= esc($p['nombre']) ?></td>
                     <td><?= esc($p['descripcion']) ?></td>
                     <td><?= esc($p['categoria']) ?></td>
