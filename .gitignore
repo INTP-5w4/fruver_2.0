@@ -60,6 +60,8 @@ writable/session/*
 writable/uploads/*
 !writable/uploads/index.html
 
+writable/tickets/*
+
 writable/debugbar/*
 !writable/debugbar/index.html
 
