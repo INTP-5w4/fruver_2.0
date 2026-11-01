@@ -15,6 +15,7 @@
                       border:1px solid #a5d6a7; border-radius:6px; padding:8px 10px; margin-top:8px; font-size:13px; }
         .precio-linea { width:110px; min-width:90px; padding:4px 6px; }
     </style>
+    <meta name="csrf-token" content="<?= esc(csrf_hash(), 'attr') ?>">
     <title>Lista Pedidos</title>
     <style>
         /* Fix lupa — W3.CSS sobreescribe el padding del input */
@@ -83,6 +84,7 @@
             <th>Repartidor</th>
             <th>Estatus</th>
             <th>WhatsApp</th>
+            <th>Imprimir</th>
             <th>Recargar</th>
             <th>Editar</th>
             <th>Eliminar</th>
@@ -119,6 +121,14 @@
                 </a>
             </td>
             <td onclick="event.stopPropagation()">
+                <button type="button" title="Imprimir ticket"
+                        data-url="<?= base_url('imprime_ticket/' . (int) $pedido['id_pedido']) ?>"
+                        onclick="imprimirTicket(this, event)"
+                        style="border:none; cursor:pointer; background:none;">
+                    <i class="fa-solid fa-print"></i>
+                </button>
+            </td>
+            <td onclick="event.stopPropagation()">
                 <button onclick="recargarPedido('<?= esc($pedido['id_pedido'], 'js') ?>')"
                         style="border:none; cursor:pointer; background:none;"
                         title="Volver a pedir lo mismo">
@@ -140,7 +150,7 @@
         </tr>
 
         <tr class="fila-detalle" id="detalle-<?= esc($pedido['id_pedido']) ?>">
-            <td colspan="12">
+            <td colspan="13">
                 <div class="detalle-inner">
                     <b>Productos del pedido #<?= esc($pedido['id_pedido']) ?>:</b>
                     <table class="w3-table w3-bordered w3-small">
@@ -1187,5 +1197,6 @@ window.onclick = function (event) {
 </script>
 
 </div><!-- /.lista-wrapper -->
+<script src="<?= base_url('js/impresion_ticket.js') ?>"></script>
 </body>
 </html>

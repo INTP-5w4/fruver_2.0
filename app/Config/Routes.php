@@ -134,6 +134,14 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     // ===== TICKET DEL PEDIDO POR WHATSAPP =====
     $routes->get('ticket_pedido/(:num)', 'Tickets::ver/$1');
 
+    // ===== TICKET IMPRESO (impresora térmica ESC/POS o vista del navegador) =====
+    // POST: el filtro CSRF global exige el token (cabecera X-CSRF-TOKEN en public/js/impresion_ticket.js).
+    $routes->get('ticket_impreso/(:num)', 'Tickets::vista/$1');
+    $routes->post('imprime_ticket/(:num)', 'Tickets::imprimir/$1');
+    $routes->get('impresora', 'Tickets::configuracion');
+    $routes->post('impresora/prueba', 'Tickets::prueba');
+    $routes->post('impresora/conexion', 'Tickets::conexion');
+
     // ===== SUGERENCIAS (lectura del personal; el formulario es para todos y va más arriba) =====
     $routes->get('lista_sugerencia', 'Sugerencias::lista_sugerencia');
 
