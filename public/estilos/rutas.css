@@ -65,3 +65,20 @@
     .rutas-layout { grid-template-columns: 1fr; }
     .rutas-mapa { position: static; height: 50vh; }
 }
+
+/* Pines numerados (Leaflet) */
+.fv-pin-caja { background: none; border: none; }
+.fv-pin { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+          border: 2px solid #1b5e20; box-shadow: 0 1px 3px rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; }
+.fv-pin span { transform: rotate(45deg); color: #fff; font: 700 12px/1 system-ui, sans-serif; }
+.leaflet-container { font: inherit; }
+
+/* Buscador de direcciones (openrouteservice) */
+.geo-busqueda { position: relative; margin-bottom: 8px; }
+.geo-busqueda input { width: 100%; margin: 0; }
+.geo-sugerencias { position: absolute; z-index: 1000; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 0; list-style: none;
+                   background: #fff; border: 1px solid #c8d6c8; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); max-height: 240px; overflow: auto; }
+.geo-sugerencias li { padding: 8px 10px; cursor: pointer; font-size: .92em; border-bottom: 1px solid #eef2ee; }
+.geo-sugerencias li:hover, .geo-sugerencias li:focus { background: #eef8ef; outline: none; }
+.geo-sugerencias li.vacio { cursor: default; color: #666; }
+.geo-sugerencias small { color: #8a5a00; }

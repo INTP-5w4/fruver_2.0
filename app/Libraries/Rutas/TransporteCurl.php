@@ -16,9 +16,9 @@ final class TransporteCurl implements TransporteHttp
         ], $tiempoEsperaSeg);
     }
 
-    public function get(string $url, array $parametros, int $tiempoEsperaSeg): array
+    public function get(string $url, array $parametros, int $tiempoEsperaSeg, array $encabezados = []): array
     {
-        return $this->enviar('GET', $url, ['query' => $parametros], $tiempoEsperaSeg);
+        return $this->enviar('GET', $url, ['query' => $parametros, 'headers' => $encabezados], $tiempoEsperaSeg);
     }
 
     private function enviar(string $metodo, string $url, array $opciones, int $tiempoEsperaSeg): array
@@ -33,7 +33,7 @@ final class TransporteCurl implements TransporteHttp
         try {
             $respuesta = $cliente->request($metodo, $url, $opciones);
         } catch (Throwable $e) {
-            throw new ErrorProveedorRutas('No se pudo conectar con Google Maps: ' . $e->getMessage(), 0, $e);
+            throw new ErrorProveedorRutas('No se pudo conectar con el servicio de mapas: ' . $e->getMessage(), 0, $e);
         }
 
         return ['status' => $respuesta->getStatusCode(), 'cuerpo' => (string) $respuesta->getBody()];

@@ -332,8 +332,8 @@ class Modelo_entrega extends PdoModelo
 
     /**
      * Guarda el GPS del teléfono al entregar y, si la dirección del pedido no tiene
-     * coordenadas o solo tiene las de Google, las reemplaza: es un dato propio del
-     * negocio (no vence) y suele ser más exacto que la geocodificación.
+     * coordenadas o solo tiene las de un servicio (Google u OpenStreetMap), las
+     * reemplaza: es un dato propio del negocio (no vence) y suele ser más exacto.
      * Un pin acomodado a mano no se toca.
      */
     private function guardarGps(int $idEntrega, int $idPedido, Punto $gps): void
@@ -353,7 +353,7 @@ class Modelo_entrega extends PdoModelo
             $this->afectar(
                 "UPDATE direccion
                     SET lat = ?, lng = ?, origen_coord = 'gps_entrega', precision_geo = 'GPS_ENTREGA', coord_actualizada_en = NOW()
-                  WHERE id = ? AND (origen_coord IS NULL OR origen_coord = 'google')",
+                  WHERE id = ? AND (origen_coord IS NULL OR origen_coord IN ('google', 'osm'))",
                 [$gps->lat, $gps->lng, (int) $idDireccion]
             );
         }

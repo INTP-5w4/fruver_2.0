@@ -10,40 +10,50 @@ use InvalidArgumentException;
 /**
  * Punto de entrada del motor de rutas.
  *
- * Decide qué optimizador usar (Google o local), aplica la estrategia y, si Google
- * falla, cae al optimizador local para que el repartidor nunca se quede sin ruta.
+ * Decide qué optimizador usar (openrouteservice, Google o local), aplica la estrategia
+ * y, si el servicio falla, cae al optimizador local para que el repartidor nunca se
+ * quede sin ruta.
  *
  * Estrategias que se ofrecen para que el repartidor/admin ESCOJA:
- *  - rapida     : Google reordena las paradas (menor tiempo, con tráfico).
- *  - prioridad  : primero quien tiene hora límite y los preferenciales; Google solo mide.
+ *  - rapida     : el servicio reordena las paradas (menor tiempo).
+ *  - prioridad  : primero quien tiene hora límite y los preferenciales; el servicio solo mide.
  *  - sin_cuotas : como "rapida" pero evitando casetas y autopistas.
- *  - manual     : el orden que el usuario acomodó; Google solo mide.
- *  - aproximada : sin Google (línea recta).
+ *  - manual     : el orden que el usuario acomodó; el servicio solo mide.
+ *  - aproximada : sin servicio externo (línea recta).
  */
 final class PlaneadorRutas
 {
     public function __construct(
         private readonly ConfigRutas $cfg,
-        private readonly ?OptimizadorInterface $google,
+        private readonly ?OptimizadorInterface $servicio,
         private readonly OptimizadorInterface $local,
     ) {
     }
 
-    /** Construye el planeador con la configuración de .env. */
+    /** Construye el planeador con el proveedor configurado en .env. */
     public static function crear(?ConfigRutas $cfg = null, ?TransporteHttp $http = null): self
     {
         $cfg ??= config('Rutas');
 
-        $google = $cfg->conGoogle()
-            ? new OptimizadorGoogle($cfg->llaveServidor, $http ?? new TransporteCurl(), $cfg->idioma, $cfg->region, $cfg->tiempoEsperaSeg)
-            : null;
-
-        return new self($cfg, $google, new OptimizadorLocal($cfg->velocidadLocal));
+        return new self($cfg, ServiciosMapa::optimizador($cfg, $http), new OptimizadorLocal($cfg->velocidadLocal));
     }
 
-    public function hayGoogle(): bool
+    /** ¿Hay un servicio externo (openrouteservice o Google)? */
+    public function hayServicio(): bool
     {
-        return $this->google !== null;
+        return $this->servicio !== null;
+    }
+
+    /** Paradas permitidas por ruta según la configuración y el servicio. */
+    public function maxParadas(): int
+    {
+        $tope = match (true) {
+            $this->servicio instanceof OptimizadorGoogle => OptimizadorGoogle::MAX_INTERMEDIAS,
+            $this->servicio instanceof OptimizadorOrs    => OptimizadorOrs::MAX_PARADAS,
+            default                                      => 50,
+        };
+
+        return max(1, min($this->cfg->maxParadas, $tope));
     }
 
     /**
@@ -60,34 +70,34 @@ final class PlaneadorRutas
             $paradas = self::porPrioridad($paradas);
         }
 
-        if ($this->google === null || $op->estrategia === 'aproximada') {
+        if ($this->servicio === null || $op->estrategia === 'aproximada') {
             return $this->local->calcular($origen, $paradas, $op);
         }
 
         try {
-            return $this->google->calcular($origen, $paradas, $op);
+            return $this->servicio->calcular($origen, $paradas, $op);
         } catch (ErrorProveedorRutas $e) {
-            log_message('error', 'Rutas: Google falló, se usa el optimizador local. ' . $e->getMessage());
+            log_message('error', 'Rutas: el servicio de mapas falló, se usa el optimizador local. ' . $e->getMessage());
 
             $r = $this->local->calcular($origen, $paradas, $op);
 
             return new ResultadoRuta(
                 $r->estrategia, 'local', $r->orden, $r->tramos, $r->distanciaM, $r->duracionS, null, $r->regresa,
-                'Google Maps no respondió; se muestra una ruta aproximada (línea recta, sin tráfico).'
+                'El servicio de mapas no respondió; se muestra una ruta aproximada (línea recta, sin tráfico).'
             );
         }
     }
 
     /**
-     * Calcula las opciones para comparar. Si Google falla en la primera, no se
-     * insiste con las demás (evita esperas y cobros): se devuelve solo la aproximada.
+     * Calcula las opciones para comparar. Si el servicio falla en la primera, no se
+     * insiste con las demás (evita esperas y gasto de cuota): se devuelve solo la aproximada.
      *
      * @param list<Parada> $paradas
      * @return array<string,ResultadoRuta> estrategia => resultado
      */
     public function opciones(Punto $origen, array $paradas, OpcionesRuta $base): array
     {
-        if ($this->google === null) {
+        if ($this->servicio === null) {
             return ['aproximada' => $this->calcular($origen, $paradas, $base->con('aproximada'))];
         }
 
@@ -154,7 +164,7 @@ final class PlaneadorRutas
     /** @param list<Parada> $paradas */
     private function validarCantidad(array $paradas): void
     {
-        $max = min($this->cfg->maxParadas, OptimizadorGoogle::MAX_INTERMEDIAS);
+        $max = $this->maxParadas();
 
         if (count($paradas) > $max) {
             throw new InvalidArgumentException("Una ruta admite máximo {$max} paradas. Divide los pedidos en dos rutas.");

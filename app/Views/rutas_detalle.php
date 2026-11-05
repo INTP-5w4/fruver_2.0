@@ -39,7 +39,7 @@
         <b>Sale de:</b> <?= esc($ruta['almacen']) ?> ·
         <b>Distancia:</b> <?= esc(rutas_km($ruta['distancia_m'])) ?> ·
         <b>Tiempo manejando:</b> <?= esc(rutas_duracion($ruta['duracion_s'])) ?> ·
-        <b>Tipo:</b> <?= esc(str_replace('_', ' ', $ruta['estrategia'])) ?><?= $ruta['proveedor'] === 'local' ? ' (aproximada, sin Google)' : '' ?>
+        <b>Tipo:</b> <?= esc(str_replace('_', ' ', $ruta['estrategia'])) ?><?= $ruta['proveedor'] === 'local' ? ' (aproximada, sin servicio de mapas)' : '' ?>
         <?= $ruta['regresa_almacen'] ? '· regresa al almacén' : '' ?>
     </p>
 

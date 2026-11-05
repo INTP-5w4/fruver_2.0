@@ -30,7 +30,7 @@ ALTER TABLE `direccion`
   ADD COLUMN `place_id`             VARCHAR(255)  NULL DEFAULT NULL,
   ADD COLUMN `lat`                  DECIMAL(10,7) NULL DEFAULT NULL,
   ADD COLUMN `lng`                  DECIMAL(10,7) NULL DEFAULT NULL,
-  ADD COLUMN `origen_coord`         ENUM('google','manual','gps_entrega') NULL DEFAULT NULL,
+  ADD COLUMN `origen_coord`         ENUM('google','osm','manual','gps_entrega') NULL DEFAULT NULL,
   ADD COLUMN `precision_geo`        VARCHAR(30)   NULL DEFAULT NULL,
   ADD COLUMN `coord_actualizada_en` DATETIME      NULL DEFAULT NULL,
   ADD COLUMN `es_principal`         TINYINT(1)    NOT NULL DEFAULT 0,

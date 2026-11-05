@@ -17,7 +17,11 @@ class Modelo_direccion extends PdoModelo
         'origen_coord', 'precision_geo', 'coord_actualizada_en', 'es_principal',
     ];
 
-    public const ORIGENES = ['google', 'manual', 'gps_entrega'];
+    /** google/osm = de un servicio; manual = pin del usuario; gps_entrega = GPS del repartidor. */
+    public const ORIGENES = ['google', 'osm', 'manual', 'gps_entrega'];
+
+    /** Orígenes automáticos: se pueden reemplazar por un pin o por el GPS de una entrega. */
+    public const ORIGENES_AUTOMATICOS = ['google', 'osm'];
 
     /** Mismos valores que usan los formularios del panel. */
     public const ESTADOS_MX = [
@@ -142,8 +146,8 @@ class Modelo_direccion extends PdoModelo
     }
 
     /**
-     * Guarda coordenadas. $origen: google (vence a los 30 días) | manual | gps_entrega.
-     * Un pin manual o el GPS de una entrega no se sobrescriben con datos de Google.
+     * Guarda coordenadas. $origen: google (vence a los 30 días) | osm | manual | gps_entrega.
+     * Un pin manual o el GPS de una entrega no se sobrescriben con datos de un servicio.
      */
     public function guardarCoordenadas(int $idDireccion, Punto $p, string $origen, array $extra = []): bool
     {
@@ -162,13 +166,13 @@ class Modelo_direccion extends PdoModelo
             $p->lat, $p->lng, $origen,
             $extra['place_id'] ?? null,
             $extra['direccion_formateada'] ?? null,
-            $origen === 'google' ? ($extra['precision_geo'] ?? null) : strtoupper($origen),
+            in_array($origen, self::ORIGENES_AUTOMATICOS, true) ? ($extra['precision_geo'] ?? null) : strtoupper($origen),
             $extra['codigo_postal'] ?? null,
             $idDireccion,
         ];
 
-        if ($origen === 'google') {
-            $sql .= " AND (origen_coord IS NULL OR origen_coord = 'google')";
+        if (in_array($origen, self::ORIGENES_AUTOMATICOS, true)) {
+            $sql .= " AND (origen_coord IS NULL OR origen_coord IN ('google', 'osm'))";
         }
 
         return $this->afectar($sql, $params) > 0;
@@ -190,6 +194,7 @@ class Modelo_direccion extends PdoModelo
     /**
      * Direcciones que necesitan geocodificarse: sin coordenadas, o con coordenadas de
      * Google con más de $dias días (Términos de servicio de Google Maps Platform).
+     * Las de OpenStreetMap (osm) no vencen.
      *
      * @return list<array<string,mixed>>
      */
@@ -200,7 +205,7 @@ class Modelo_direccion extends PdoModelo
         }
 
         $where = $todas
-            ? "(origen_coord IS NULL OR origen_coord = 'google')"
+            ? "(origen_coord IS NULL OR origen_coord IN ('google', 'osm'))"
             : "(lat IS NULL OR (origen_coord = 'google' AND coord_actualizada_en < (NOW() - INTERVAL ? DAY)))";
 
         return $this->filas(
