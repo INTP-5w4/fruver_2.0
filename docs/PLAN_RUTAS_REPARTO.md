@@ -2,6 +2,11 @@
 
 > Rama: `Rutas-reparto` · Fecha: noviembre 2026 · Estado: propuesta para revisión
 >
+> ⚠️ **Actualización 5 nov 2026:** este plan se escribió sobre `main`. La rama más avanzada,
+> `feature/impresion-termica`, ya resuelve varias fases (repartidor ↔ usuario, rol, seguridad,
+> tabla `entrega`) y trae CSP activado. Lee **`docs/CONTRASTE_PLAN_RUTAS.md`**: sustituye la §4
+> (modelo de datos) y reajusta las §5 y §8 de este documento.
+>
 > Objetivo: que el repartidor vea sus pedidos del día ordenados en la ruta más eficiente,
 > pueda **comparar y escoger** entre opciones de ruta, navegar con Google Maps y marcar
 > cada entrega desde su teléfono. Los datos de calles, tráfico y tiempos vienen de
