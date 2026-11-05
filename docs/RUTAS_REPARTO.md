@@ -1,8 +1,13 @@
-# Rutas de reparto con Google Maps — guía de instalación y uso
+# Rutas de reparto — guía técnica de instalación y uso
 
 Este módulo permite al personal planear la ruta óptima de cada repartidor y al
 repartidor seguirla desde su teléfono: ver el orden de las paradas, navegar con
-Google Maps, registrar entregas con GPS y foto, y reoptimizar desde donde esté.
+Google Maps (enlace gratuito), registrar entregas con GPS y foto, y reoptimizar desde
+donde esté.
+
+**Proveedor recomendado: openrouteservice + OpenStreetMap.** Es gratuito, no pide
+tarjeta ni RFC y no hay que instalar nada: Fruver consulta el servicio por internet.
+Google Maps sigue disponible como opción (`rutas.proveedor = google`).
 
 > Diseño y decisiones: `docs/PLAN_RUTAS_REPARTO.md` y `docs/CONTRASTE_PLAN_RUTAS.md`.
 
@@ -11,91 +16,109 @@ Google Maps, registrar entregas con GPS y foto, y reoptimizar desde donde esté.
 ## 1. Base de datos
 
 ```bash
-php spark migrate
+php spark migrate --all
 ```
 
-Aplica `app/Database/Migrations/2026-11-05-100000_AddRutasReparto.php` (idempotente).
-Si prefieres phpMyAdmin, ejecuta **una vez** `database_cambios/rutas_reparto_cambios.sql`.
-
-Qué agrega:
+Aplica `2026-11-05-100000_AddRutasReparto` y `2026-11-05-120000_AddOsmOrigenDireccion`
+(ambas idempotentes). Con phpMyAdmin: ejecuta **una vez** `database_cambios/rutas_reparto_cambios.sql`;
+si ya lo habías ejecutado antes de este cambio, ejecuta además `database_cambios/rutas_osm_cambios.sql`.
 
 | Tabla | Cambio |
 |-------|--------|
 | `almacen` | Nueva: punto de salida (y regreso) de las rutas. |
 | `ruta` | Nueva: agrupa las entregas de un repartidor en un día, con distancia, tiempo y trazo. |
 | `entrega` | `id_ruta`, `orden_ruta`, `eta`, tramo y GPS real de la entrega. Cada entrega es una parada. |
-| `direccion` | `lat`, `lng`, `place_id`, `codigo_postal`, `referencias`, `es_principal`, origen y precisión de la ubicación. |
+| `direccion` | `lat`, `lng`, `place_id`, `codigo_postal`, `referencias`, `es_principal`, origen (`osm`, `google`, `manual`, `gps_entrega`) y precisión. |
 | `pedido` | `id_direccion` (a dónde va) y `ventana_fin` (entregar antes de). |
 | `repartidor` | `vehiculo` (moto, auto, camioneta, bicicleta) y `capacidad_kg`. |
 
-Datos iniciales: la dirección más reciente de cada cliente queda como principal y los
-pedidos de clientes con una sola dirección se ligan a ella. Mientras no se corra la
-migración, el sistema funciona exactamente como antes (los campos nuevos no aparecen).
+Mientras no se corra la migración, el sistema funciona exactamente como antes.
 
----
+## 2. Proveedor de mapas
 
-## 2. Google Cloud (una sola vez)
+| `rutas.proveedor` | Qué usa | Qué necesitas |
+|-------------------|---------|---------------|
+| `ors` (recomendado) | openrouteservice (rutas, optimización, búsqueda de direcciones) + mapas de OpenStreetMap con Leaflet | Cuenta gratuita en <https://account.heigit.org> y su llave |
+| `google` | Google Routes, Geocoding, Maps JavaScript y Places | Cuenta de facturación de Google Cloud y dos llaves |
+| `local` | Mapa de OpenStreetMap para ubicar con pin; rutas aproximadas (línea recta, sin tráfico) | Nada |
+| *(vacío)* | Automático: `ors` si hay `rutas.llaveOrs`, `google` si hay `rutas.llaveServidor`, si no `local` | — |
 
-1. Entra a <https://console.cloud.google.com/>, crea un proyecto y **activa la facturación**
-   (Google da llamadas gratis cada mes por producto; ver §6).
-2. En **APIs y servicios → Biblioteca**, habilita:
-   - **Routes API** (cálculo y optimización de rutas — servidor)
-   - **Geocoding API** (texto → coordenadas — servidor)
-   - **Maps JavaScript API** (mapas en pantalla — navegador)
-   - **Places API (New)** (autocompletado de direcciones — navegador)
-3. En **Credenciales**, crea **dos** llaves:
+### openrouteservice (recomendado)
 
-   | Llave | Restricción de aplicación | Restricción de API |
-   |-------|---------------------------|--------------------|
-   | Servidor | Direcciones IP (la IP pública del servidor) | Routes API, Geocoding API |
-   | Navegador | Sitios web (HTTP referrer): `https://tu-dominio/*` (y `http://localhost/*` para pruebas) | Maps JavaScript API, Places API (New) |
+1. Crea una cuenta en <https://account.heigit.org> y confirma tu correo.
+2. En el panel, crea una llave (token) del plan gratuito *Standard*.
+3. En `.env`:
+   ```ini
+   rutas.proveedor = ors
+   rutas.llaveOrs  = "tu-llave"
+   ```
 
-   La llave del navegador queda visible en el HTML; por eso se restringe al dominio.
-4. (Opcional) En **Google Maps Platform → Administración de mapas**, crea un **Map ID**
-   de tipo JavaScript para tener pines con número.
-5. En **Facturación → Presupuestos y alertas**, crea una alerta (p. ej. USD 5) y en
-   **Google Maps Platform → Cuotas** pon límites diarios por API.
+La llave solo se usa en el servidor (PHP). El navegador nunca la ve: el buscador de
+direcciones pregunta a `/direcciones/buscar` y el servidor consulta a openrouteservice.
 
-## 3. Archivo `.env`
+Límites diarios del plan gratuito (según openrouteservice.org/plans): 2,000 rutas,
+500 optimizaciones, 1,000 búsquedas de dirección y 1,000 autocompletados. Cada
+«Calcular rutas» usa 1 optimización y 2–3 rutas; cada «Reoptimizar», 1 y 1.
+
+Limitaciones: no considera tráfico en tiempo real, y en México muchos números
+exteriores no están en OpenStreetMap, así que varias direcciones se ubicarán de forma
+aproximada (calle o colonia). Por eso conviene acomodar el pin, y el GPS de cada
+entrega corrige la ubicación para la siguiente vez.
+
+### Google (opcional)
+
+Requiere cuenta de facturación (en México pide RFC). Habilita Routes API, Geocoding API,
+Maps JavaScript API y Places API (New); crea una llave de servidor (restringida a Routes
+y Geocoding) y una de navegador (restringida por dominio a Maps JavaScript y Places).
 
 ```ini
-rutas.llaveServidor  = "AIza...servidor"
-rutas.llaveNavegador = "AIza...navegador"
-rutas.mapId          = ""            # opcional
-rutas.horaSalida     = "09:00"       # hora de salida por omisión
-rutas.minutosPorParada = 5           # tiempo estimado en cada entrega
-# rutas.latCentro = 19.0433          # centro del mapa si aún no hay almacén
-# rutas.lngCentro = -98.1981
+rutas.proveedor      = google
+rutas.llaveServidor  = "AIza..."
+rutas.llaveNavegador = "AIza..."
+rutas.mapId          = ""    # opcional
 ```
 
-Todas las opciones están documentadas en `app/Config/Rutas.php`.
+Los Términos de Google solo permiten guardar sus coordenadas 30 días (el comando de
+geocodificación las renueva) y exigen mostrarlas sobre un mapa de Google.
 
-**Sin llaves** el módulo también funciona: las rutas se calculan con un optimizador
-local (vecino más cercano + 2-opt, en línea recta y sin tráfico) y se marcan como
-“aproximadas”; los formularios no muestran mapa y la navegación usa el texto de la dirección.
+### Otras opciones de `.env`
 
-## 4. Primeros pasos
+```ini
+rutas.horaSalida       = "09:00"   # hora de salida por omisión
+rutas.minutosPorParada = 5         # tiempo estimado en cada entrega
+rutas.maxParadas       = 25        # paradas por ruta
+# rutas.latCentro = 19.0433        # centro del mapa si aún no hay almacén
+# rutas.lngCentro = -98.1981
+# rutas.mapaTiles = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"   # servidor de capas
+```
+
+Todas están documentadas en `app/Config/Rutas.php`.
+
+Sobre las capas de OpenStreetMap: sus servidores los sostienen donaciones y piden uso
+moderado y mostrar el crédito (Fruver lo muestra). Con pocos usuarios no hay problema;
+si el uso crece, cambia `rutas.mapaTiles` por un proveedor de capas comercial.
+
+## 3. Primeros pasos
 
 1. **Rutas de reparto → Almacén**: registra la bodega y ubica el pin en la puerta de salida.
-2. **Repartidores**: indica el vehículo de cada uno (cambia el modo de viaje en Google).
+2. **Repartidores**: indica el vehículo de cada uno (con openrouteservice, moto y auto usan el mismo perfil).
    Para que un repartidor entre al sistema: `php spark repartidor:vincular correo@ejemplo.com <id>`.
-3. **Direcciones**: la lista muestra cuáles están “Sin ubicar”. Ubícalas con el botón
-   ⌖ de cada fila o todas de una vez:
+3. **Direcciones**: la lista muestra cuáles están «Sin ubicar» o «Aproximada». Ubícalas con
+   el botón ⌖ de cada fila o todas de una vez:
    ```bash
-   php spark direcciones:geocodificar            # pendientes (máx. 200)
    php spark direcciones:geocodificar --prueba   # solo muestra
+   php spark direcciones:geocodificar            # pendientes (máx. 200 por ejecución)
    ```
-   Conviene programarlo **una vez por semana**: los Términos de Google solo permiten
-   conservar coordenadas obtenidas de Geocoding/Places 30 días, y el comando las renueva.
-   Las coordenadas del pin manual o del GPS de entrega son datos propios y no vencen.
+   Con openrouteservice no hace falta repetirlo: las coordenadas no vencen.
+   Con Google conviene programarlo semanalmente.
 
-## 5. Uso diario
+## 4. Uso diario
 
 **Personal — planear (menú «Rutas de reparto»)**
 1. Elige fecha, hora de salida, repartidor y almacén.
 2. Marca los pedidos (confirmados). Los que no tienen dirección ubicada aparecen deshabilitados.
-3. **Calcular rutas óptimas** muestra hasta tres opciones para comparar:
-   - *Más rápida*: Google reordena las paradas considerando el tráfico.
+3. **Calcular rutas óptimas** muestra las opciones para comparar:
+   - *Más rápida*: el servicio reordena las paradas.
    - *Por horario y preferentes*: primero quien tiene hora límite y los clientes preferenciales.
    - *Sin casetas ni autopistas*.
 4. Puedes **arrastrar** los pedidos de la lista para fijar tu propio orden y pulsar
@@ -105,46 +128,36 @@ local (vecino más cercano + 2-opt, en línea recta y sin tráfico) y se marcan 
    avisar la hora al cliente y fotos de evidencia.
 
 **Repartidor — en el teléfono («Mi ruta»)**
-1. **Salir a ruta**: todas las paradas pasan a “en ruta” (y los pedidos a *en tránsito*).
-2. **Navegar** abre Google Maps hacia la siguiente parada (sin costo).
+1. **Salir a ruta**: todas las paradas pasan a «en ruta» (y los pedidos a *en tránsito*).
+2. **Navegar** abre Google Maps hacia la siguiente parada (enlace público, sin llave ni costo).
 3. **Entregado**: registra cobro, foto opcional y la ubicación GPS del teléfono
    (que además corrige la ubicación del cliente para la próxima vez).
 4. **No se pudo**: registra el motivo; el personal podrá reprogramar.
 5. **Reoptimizar desde aquí**: reordena las paradas pendientes desde su ubicación actual.
 6. Al cerrar la última parada, la ruta se marca como terminada.
 
-Los pedidos de la tienda en línea ahora piden la dirección de entrega (o dejan elegir
-una de las ya registradas). En el panel, los modales de pedido tienen selector de
-dirección y “entregar antes de”.
+Si el servicio de rutas no responde o se acaba la cuota del día, la ruta se calcula en
+modo aproximado y la pantalla lo indica: el reparto no se detiene.
 
-## 6. Costos
-
-Desde marzo 2025 Google da llamadas gratis **por SKU, por mes**: 10,000 (Essentials),
-5,000 (Pro) y 1,000 (Enterprise). La optimización de paradas se cobra en
-**Compute Routes Pro**. Uso típico de Fruver (3 repartidores, ~3 cálculos por ruta al día):
-~300 optimizaciones/mes → dentro del nivel gratuito. Para no pagar de más:
-
-- La pantalla calcula las opciones **una vez** y las guarda; elegir una no vuelve a llamar a Google.
-- Si Google falla en la primera opción, no se insiste con las demás.
-- Solo se piden los campos necesarios (field mask).
-
-## 7. Problemas comunes
+## 5. Problemas comunes
 
 | Síntoma | Causa probable |
 |---------|----------------|
-| “Google Maps rechazó la llave del navegador” | La llave del navegador no permite tu dominio o no tiene Maps JavaScript API. |
-| El mapa no carga y la consola dice *Content Security Policy* | Google agregó un dominio nuevo: añádelo en `app/Libraries/Rutas/CspMapas.php`. |
-| Rutas siempre “aproximadas” | Falta `rutas.llaveServidor`, la Routes API no está habilitada o la llave está restringida a otra IP (ver `writable/logs`). |
-| “Reoptimizar” dice que no lee la ubicación | El sitio debe abrirse con **HTTPS** y el repartidor debe permitir la ubicación. |
+| Aviso «No hay servicio de rutas configurado» | Falta `rutas.llaveOrs` en `.env` (o el archivo quedó como `.env.txt`). |
+| Rutas siempre «aproximadas» | Llave de openrouteservice inválida, cuota diaria agotada o sin internet en el servidor (ver `writable/logs`). |
+| El buscador de direcciones no muestra nada | Escribe al menos 4 letras; si sigue, revisa la llave y el log. Siempre puedes tocar el mapa. |
+| El mapa sale en blanco | Sin internet en la computadora, o la consola (F12) muestra un bloqueo de *Content Security Policy*: agrega el dominio en `app/Libraries/Rutas/CspMapas.php`. |
+| «Reoptimizar» dice que no lee la ubicación | El sitio debe abrirse con **HTTPS** y el repartidor debe permitir la ubicación. |
 | Un pedido no aparece en el planeador | Debe estar *confirmado* y sin una entrega abierta. |
+| Con Google: «rechazó la llave del navegador» | La llave del navegador no permite tu dominio o no tiene Maps JavaScript API. |
 
-## 8. Archivos del módulo
+## 6. Archivos del módulo
 
 - Configuración: `app/Config/Rutas.php`
-- Motor: `app/Libraries/Rutas/` (`PlaneadorRutas`, `OptimizadorGoogle`, `OptimizadorLocal`, `Geocodificador`, `UbicadorDirecciones`, `EnlaceNavegacion`, `CspMapas`)
+- Motor: `app/Libraries/Rutas/` (`PlaneadorRutas`, `ServiciosMapa`, `OptimizadorOrs`, `OptimizadorGoogle`, `OptimizadorLocal`, `GeocodificadorOrs`, `Geocodificador`, `UbicadorDirecciones`, `EnlaceNavegacion`, `CspMapas`)
 - Modelos: `Modelo_ruta`, `Modelo_almacen` (+ cambios en `Modelo_direccion`, `Modelo_pedido`, `Modelo_entrega`, `Modelo_repartidor`)
-- Controladores: `Rutas` (planeador), `Entregas` (mi ruta, reoptimizar, evidencia), `Direcciones`, `Tienda`
+- Controladores: `Rutas` (planeador), `Entregas` (mi ruta, reoptimizar, evidencia), `Direcciones` (incluye el buscador), `Tienda`
 - Vistas: `rutas_planeador`, `rutas_detalle`, `rutas_almacen`, `mi_ruta`, `partials/*`
-- JavaScript: `public/js/mapas.js`, `geo_direccion.js`, `direccion_pedido.js`, `rutas_planeador.js`, `ruta_mapa.js`
+- JavaScript: `public/js/mapas.js` (adaptador Leaflet/Google), `geo_direccion.js`, `direccion_pedido.js`, `rutas_planeador.js`, `ruta_mapa.js`
 - Comando: `php spark direcciones:geocodificar`
-- Pruebas: `tests/unit/RutasTest.php`, `tests/unit/VistasRutasTest.php`
+- Pruebas: `tests/unit/RutasTest.php`, `tests/unit/RutasOrsTest.php`, `tests/unit/VistasRutasTest.php`
