@@ -86,7 +86,7 @@
                     <td><?= esc($r['direccion']) ?></td>
                     <td><?= esc($r['notas']) ?></td>
                     <td>
-                        <button onclick="abrirModal(
+                        <button data-vehiculo="<?= esc($r['vehiculo'] ?? 'moto', 'attr') ?>" onclick="document.getElementById('edit_vehiculo').value = this.dataset.vehiculo; abrirModal(
                                     '<?= esc($r['id'], 'js') ?>',
                                     '<?= esc($r['nombre'], 'js') ?>',
                                     '<?= esc($r['ape_pat'], 'js') ?>',
@@ -142,6 +142,13 @@
                 <label><b>Notas</b></label>
                 <textarea name="not" class="modal-input" rows="4" value="<?= old('not') ?>"></textarea>
 
+                <label><b>Vehículo</b> <span class="w3-small">(para calcular la ruta)</span></label>
+                <select name="vehiculo" class="modal-input">
+                    <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
+                        <option value="<?= esc($valor) ?>" <?= old('vehiculo') === $valor ? 'selected' : '' ?>><?= esc($texto) ?></option>
+                    <?php endforeach; ?>
+                </select>
+
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
                     <button type="button"
@@ -185,6 +192,13 @@
 
                 <label><b>Notas</b></label>
                 <textarea name="not" id="edit_not" rows="4" class="modal-input"></textarea>
+
+                <label><b>Vehículo</b> <span class="w3-small">(para calcular la ruta)</span></label>
+                <select name="vehiculo" id="edit_vehiculo" class="modal-input">
+                    <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
+                        <option value="<?= esc($valor) ?>"><?= esc($texto) ?></option>
+                    <?php endforeach; ?>
+                </select>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>

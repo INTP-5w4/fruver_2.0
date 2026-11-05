@@ -34,6 +34,13 @@
             <label><b>Notas</b></label>
             <textarea name="not" class="modal-input" rows="4" required></textarea>
 
+            <label><b>Vehículo</b> <span class="w3-small">(para calcular la ruta)</span></label>
+            <select name="vehiculo" class="modal-input">
+                <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
+                    <option value="<?= esc($valor) ?>" <?= old('vehiculo') === $valor ? 'selected' : '' ?>><?= esc($texto) ?></option>
+                <?php endforeach; ?>
+            </select>
+
             <footer class="modal-footer">
                 <button type="submit" class="btn-guardar">Guardar</button>
             </footer>

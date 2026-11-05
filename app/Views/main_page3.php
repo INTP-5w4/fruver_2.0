@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="<?= base_url('estilos/dashboard.css') ?>">
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="<?= base_url('js/direccion_pedido.js') ?>" defer></script>
 </head>
 <body>
 
@@ -407,6 +408,15 @@
                             </option>
                         <?php endforeach; ?>
                     </select>
+                    <?php if (rutas_listas()): ?>
+                    <label><b>Dirección de entrega</b></label>
+                    <select id="ped_id_direccion" name="id_direccion" form="formCarrito" class="w3-select w3-border w3-margin-bottom"
+                            data-direcciones-de="ped_id_cliente" data-api="<?= base_url('api_direcciones_cliente/') ?>">
+                      <option value="">Dirección principal del cliente</option>
+                    </select>
+                    <label><b>Entregar antes de</b> <span class="w3-small">(opcional, para planear la ruta)</span></label>
+                    <input type="time" id="ped_ventana_fin" name="ventana_fin" form="formCarrito" class="w3-input w3-border w3-margin-bottom">
+                    <?php endif; ?>
                 </div>
 
                 <div id="paso2" style="display:none;">

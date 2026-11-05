@@ -9,6 +9,35 @@ class Modelo_repartidor extends PdoModelo
 
     protected array $camposPermitidos = ['nombre', 'ape_pat', 'ape_mat', 'telefono', 'direccion', 'notas'];
 
+    /** Vehículos (definen el modo de viaje en Google Maps). */
+    public const VEHICULOS = ['moto' => 'Moto', 'auto' => 'Auto', 'camioneta' => 'Camioneta', 'bicicleta' => 'Bicicleta'];
+
+    private static ?bool $conVehiculo = null;
+
+    public function __construct(?\PDO $pdo = null)
+    {
+        parent::__construct($pdo);
+
+        if ($this->tieneVehiculo()) {
+            $this->camposPermitidos[] = 'vehiculo';
+        }
+    }
+
+    /** ¿Ya existe la columna `vehiculo` (migración de rutas)? */
+    public function tieneVehiculo(): bool
+    {
+        if (self::$conVehiculo === null) {
+            try {
+                $this->filas('SELECT vehiculo FROM repartidor LIMIT 0');
+                self::$conVehiculo = true;
+            } catch (\Throwable) {
+                self::$conVehiculo = false;
+            }
+        }
+
+        return self::$conVehiculo;
+    }
+
     /**
      * Lista paginada de repartidores con búsqueda opcional.
      *

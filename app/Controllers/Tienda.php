@@ -3,7 +3,9 @@
 namespace App\Controllers;
 
 use App\Libraries\Carrito;
+use App\Libraries\Rutas\UbicadorDirecciones;
 use App\Models\Modelo_cliente;
+use App\Models\Modelo_direccion;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_producto;
 use App\Models\PdoModelo;
@@ -61,6 +63,12 @@ class Tienda extends BaseController
             'pedidosAnteriores' => $perfil !== null
                 ? (new Modelo_pedido())->recientesDeCliente((int) $perfil['id'])
                 : [],
+            // Rutas de reparto: a dónde llevar el pedido.
+            'pideDireccion'     => rutas_listas(),
+            'misDirecciones'    => $perfil !== null && rutas_listas()
+                ? (new Modelo_direccion())->deCliente((int) $perfil['id'])
+                : [],
+            'estadosMx'         => Modelo_direccion::ESTADOS_MX,
         ];
 
         return view('main_page_4', $datos);
@@ -221,8 +229,16 @@ class Tienda extends BaseController
             $perfil = ['id' => $idCliente];
         }
 
+        $idDireccion = null;
+        if (rutas_listas()) {
+            $idDireccion = $this->direccionDeEntrega((int) $perfil['id']);
+            if (is_string($idDireccion)) {
+                return $this->volverATienda()->withInput()->with('error', $idDireccion);
+            }
+        }
+
         try {
-            $pedido = (new Modelo_pedido())->crearPedidoDeCliente((int) $perfil['id'], $lineas);
+            $pedido = (new Modelo_pedido())->crearPedidoDeCliente((int) $perfil['id'], $lineas, $idDireccion);
         } catch (DomainException $e) {
             return $this->volverATienda()->with('error', $e->getMessage());
         } catch (Throwable $e) {
@@ -281,6 +297,77 @@ class Tienda extends BaseController
     // ─────────────────────────────────────────────────────────────
 
     /** Vuelve a la landing con el panel del carrito abierto (para ver el error). */
+    /**
+     * Dirección de entrega del pedido de la tienda:
+     *  - una de las direcciones del propio cliente (validado en el servidor), o
+     *  - una nueva capturada en el formulario (se guarda y se ubica en el mapa).
+     *
+     * @return int|string id de la dirección, o el mensaje de error para el cliente
+     */
+    private function direccionDeEntrega(int $idCliente): int|string
+    {
+        $m      = new Modelo_direccion();
+        $mias   = $m->deCliente($idCliente);
+        $elegida = $this->post('id_direccion');
+
+        if ($elegida !== 'nueva' && $mias !== []) {
+            $id = $m->resolverParaPedido($idCliente, ctype_digit($elegida) ? (int) $elegida : null);
+
+            return $id ?? 'Elige una de tus direcciones de entrega.';
+        }
+
+        if (count($mias) >= Modelo_direccion::MAX_POR_CLIENTE_TIENDA) {
+            return 'Ya tienes muchas direcciones registradas; elige una de ellas o pide ayuda al personal.';
+        }
+
+        $reglas = [
+            'dir_calle' => 'required|max_length[200]',
+            'dir_num'   => 'required|max_length[50]',
+            'dir_col'   => 'required|max_length[200]',
+            'dir_mun'   => 'required|max_length[200]',
+            'dir_edo'   => 'required|in_list[' . implode(',', Modelo_direccion::ESTADOS_MX) . ']',
+            'dir_cp'    => 'permit_empty|alpha_numeric|max_length[10]',
+            'dir_ref'   => 'permit_empty|max_length[300]',
+        ];
+        $mensajes = [
+            'dir_calle' => ['required' => 'Escribe la calle de entrega.'],
+            'dir_num'   => ['required' => 'Escribe el número exterior (o "S/N").'],
+            'dir_col'   => ['required' => 'Escribe la colonia.'],
+            'dir_mun'   => ['required' => 'Escribe el municipio.'],
+            'dir_edo'   => ['required' => 'Elige el estado.', 'in_list' => 'Elige un estado de la lista.'],
+            'dir_cp'    => ['alpha_numeric' => 'El código postal solo admite números.'],
+        ];
+
+        if (! $this->validate($reglas, $mensajes)) {
+            return $this->primerError();
+        }
+
+        $datos = [
+            'calle'         => $this->post('dir_calle'),
+            'numero'        => $this->post('dir_num'),
+            'colonia'       => $this->post('dir_col'),
+            'municipio'     => $this->post('dir_mun'),
+            'estado'        => $this->post('dir_edo'),
+            'codigo_postal' => $this->post('dir_cp') !== '' ? $this->post('dir_cp') : null,
+            'referencias'   => $this->post('dir_ref') !== '' ? $this->post('dir_ref') : null,
+            'id_cliente'    => $idCliente,
+        ];
+
+        try {
+            $id = $m->insert($datos);
+        } catch (Throwable $e) {
+            return PdoModelo::mensajeSeguro($e, 'No se pudo guardar tu dirección.');
+        }
+
+        // Se ubica en el mapa con Google (si está configurado); si falla, el personal lo verá.
+        UbicadorDirecciones::crear($m)->ubicar($id, $datos, null, true);
+        if ($mias === [] || $this->request->getPost('dir_principal') === '1') {
+            $m->marcarPrincipal($id);
+        }
+
+        return $id;
+    }
+
     private function volverATienda()
     {
         return redirect()->to('main_page_4')->with('abrir_carrito', true);

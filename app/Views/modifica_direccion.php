@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifica Dirección</title>
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <?= view('partials/mapa_config') ?>
+    <script src="<?= base_url('js/geo_direccion.js') ?>" defer></script>
 </head>
 <body>
     <div class="formulario-pagina">
@@ -39,6 +41,11 @@
                     </option>
                 <?php endforeach; ?>
             </select>
+
+            <?php if (array_key_exists('lat', $direcciones)): ?>
+                <?= view('partials/campos_extra_direccion', ['dir' => $direcciones]) ?>
+                <?= view('partials/geo_direccion', ['geo' => $direcciones, 'geoId' => 'geo_modifica']) ?>
+            <?php endif; ?>
 
             <label><b>Cliente</b></label>
             <select name="id_cliente" class="modal-input">

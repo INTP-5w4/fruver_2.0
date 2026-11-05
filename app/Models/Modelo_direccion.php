@@ -19,6 +19,18 @@ class Modelo_direccion extends PdoModelo
 
     public const ORIGENES = ['google', 'manual', 'gps_entrega'];
 
+    /** Mismos valores que usan los formularios del panel. */
+    public const ESTADOS_MX = [
+        'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua',
+        'Ciudad de Mexico', 'Coahuila', 'Colima', 'Durango', 'Estado de Mexico', 'Guanajuato', 'Guerrero',
+        'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo Leon', 'Oaxaca', 'Puebla', 'Queretaro',
+        'Quintana Roo', 'San Luis Potosi', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz',
+        'Yucatan', 'Zacatecas',
+    ];
+
+    /** Máximo de direcciones que un cliente puede dar de alta desde la tienda. */
+    public const MAX_POR_CLIENTE_TIENDA = 10;
+
     private static ?bool $conGeo = null;
 
     public function __construct(?\PDO $pdo = null)

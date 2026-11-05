@@ -59,6 +59,8 @@ class Repartidores extends BaseController
             'telefono'  => $this->post('tel'),
             'direccion' => $this->post('dir'),
             'notas'     => $this->post('not'),
+            // Rutas: solo valores de la lista blanca; el modelo lo ignora si aún no hay migración.
+            'vehiculo'  => array_key_exists($this->post('vehiculo'), Modelo_repartidor::VEHICULOS) ? $this->post('vehiculo') : 'moto',
         ];
     }
 

@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
+    <?= view('partials/mapa_config') ?>
+    <script src="<?= base_url('js/geo_direccion.js') ?>" defer></script>
     <title>Lista Direcciones</title>
 </head>
 <body>
@@ -23,6 +25,20 @@
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
             <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if (session()->getFlashdata('aviso')): ?>
+        <div class="w3-panel w3-pale-yellow w3-border w3-animate-opacity">
+            <p><?= esc(session()->getFlashdata('aviso')) ?></p>
+        </div>
+    <?php endif; ?>
+
+    <?php if (! empty($conGeo) && $resumenGeo['total'] > $resumenGeo['ubicadas']): ?>
+        <div class="w3-panel w3-pale-yellow w3-border">
+            <p><b><?= (int) ($resumenGeo['total'] - $resumenGeo['ubicadas']) ?></b> de <?= (int) $resumenGeo['total'] ?> direcciones aún no están ubicadas en el mapa
+               (no podrán entrar a una ruta). Usa el botón <i class="fa-solid fa-location-crosshairs"></i> de cada fila,
+               o ejecuta <code>php spark direcciones:geocodificar</code>.</p>
         </div>
     <?php endif; ?>
 </div>
@@ -55,6 +71,7 @@
                 <th>Municipio</th>
                 <th>Estado</th>
                 <th>Nombre Cliente</th>
+                <?php if (! empty($conGeo)): ?><th>Mapa</th><?php endif; ?>
                 <th>Editar</th>
                 <th>Eliminar</th>
             </tr>
@@ -70,9 +87,32 @@
                     <td><?= esc($d['estado']) ?></td>
                     <td>
                         <?= esc($d['nombre'].' '.$d['ape_pat'].' '.$d['ape_mat']) ?>
+                        <?php if (! empty($d['es_principal'])): ?><span class="geo-tag geo-tag--ok" title="Dirección principal">★</span><?php endif; ?>
                     </td>
+                    <?php if (! empty($conGeo)): ?>
                     <td>
-                        <button onclick="abrirModal(
+                        <?php if ($d['lat'] === null): ?>
+                            <span class="geo-tag geo-tag--no">Sin ubicar</span>
+                        <?php elseif (($d['precision_geo'] ?? '') === 'APPROXIMATE'): ?>
+                            <span class="geo-tag geo-tag--aprox" title="Google la ubicó solo de forma aproximada: acomoda el pin">Aproximada</span>
+                        <?php else: ?>
+                            <span class="geo-tag geo-tag--ok" title="<?= esc((string) $d['origen_coord'], 'attr') ?>">Ubicada</span>
+                        <?php endif; ?>
+                        <?php if (! in_array($d['origen_coord'] ?? null, ['manual', 'gps_entrega'], true)): ?>
+                            <form method="post" action="<?= base_url('direcciones/geocodificar/' . (int) $d['id']) ?>" style="display:inline; margin:0;">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn-icono" title="Ubicar con Google a partir del texto"><i class="fa-solid fa-location-crosshairs"></i></button>
+                            </form>
+                        <?php endif; ?>
+                    </td>
+                    <?php endif; ?>
+                    <td>
+                        <button data-lat="<?= esc((string) ($d['lat'] ?? ''), 'attr') ?>"
+                                data-lng="<?= esc((string) ($d['lng'] ?? ''), 'attr') ?>"
+                                data-cp="<?= esc((string) ($d['codigo_postal'] ?? ''), 'attr') ?>"
+                                data-ref="<?= esc((string) ($d['referencias'] ?? ''), 'attr') ?>"
+                                data-principal="<?= ! empty($d['es_principal']) ? '1' : '0' ?>"
+                                onclick="prepararGeoEdicion(this); abrirModal(
                                     '<?= esc($d['id'], 'js') ?>',
                                     '<?= esc($d['colonia'], 'js') ?>',
                                     '<?= esc($d['calle'], 'js') ?>',
@@ -131,6 +171,11 @@
                     <?php endforeach; ?>
                 </select>
 
+                <?php if (! empty($conGeo)): ?>
+                    <?= view('partials/campos_extra_direccion', ['idSufijo' => '_crear']) ?>
+                    <?= view('partials/geo_direccion', ['geoId' => 'geo_crear']) ?>
+                <?php endif; ?>
+
                 <label><b>Cliente*</b></label>
                 <select name="id_cliente" class="modal-input" required>
                     <?php foreach ($clientes as $cliente): ?>
@@ -185,6 +230,11 @@
                     <?php endforeach; ?>
                 </select>
 
+                <?php if (! empty($conGeo)): ?>
+                    <?= view('partials/campos_extra_direccion', ['idSufijo' => '_editar']) ?>
+                    <?= view('partials/geo_direccion', ['geoId' => 'geo_editar']) ?>
+                <?php endif; ?>
+
                 <label><b>Cliente*</b></label>
                 <select name="id_cliente" id="edit_id_cliente" class="modal-input" required>
                     <?php foreach ($clientes as $cliente): ?>
@@ -209,6 +259,15 @@
 </div><!-- /.lista-wrapper -->
 
     <script>
+        function prepararGeoEdicion(boton) {
+            var cp = document.getElementById('cp_editar');
+            if (!cp) { return; }
+            cp.value = boton.dataset.cp || '';
+            document.getElementById('referencias_editar').value = boton.dataset.ref || '';
+            document.getElementById('principal_editar').checked = boton.dataset.principal === '1';
+            if (window.FruverGeo) { FruverGeo.posicionar(document.getElementById('geo_editar'), boton.dataset.lat, boton.dataset.lng); }
+        }
+
         function abrirModal(id, colonia, calle, numero, municipio, estado, id_cliente) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_col').value = colonia;

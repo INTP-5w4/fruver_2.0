@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea Direccion</title>
     <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
+    <?= view('partials/mapa_config') ?>
+    <script src="<?= base_url('js/geo_direccion.js') ?>" defer></script>
 </head>
 <body>
     <div class="formulario-pagina">
@@ -63,6 +65,11 @@
                 <option value="Yucatan">Yucatán</option>
                 <option value="Zacatecas">Zacatecas</option>
             </select>
+
+            <?php if (rutas_listas()): ?>
+                <?= view('partials/campos_extra_direccion') ?>
+                <?= view('partials/geo_direccion', ['geoId' => 'geo_crea']) ?>
+            <?php endif; ?>
 
             <label><b>Cliente</b></label>
             <select name="id_cliente" class="modal-input" required>
