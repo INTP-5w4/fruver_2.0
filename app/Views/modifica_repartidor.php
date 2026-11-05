@@ -28,6 +28,13 @@
         <label for="not">Notas</label><br>
         <textarea name="not" id=""><?= esc($repartidores['notas']) ?></textarea><br>
 
+        <label for="vehiculo">Vehículo</label><br>
+        <select name="vehiculo" id="vehiculo">
+            <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
+                <option value="<?= esc($valor) ?>" <?= ($repartidores['vehiculo'] ?? 'moto') === $valor ? 'selected' : '' ?>><?= esc($texto) ?></option>
+            <?php endforeach; ?>
+        </select><br>
+
         <input type="submit" value="Enviar">
     </form>
 </body>

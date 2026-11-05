@@ -400,3 +400,7 @@ button { cursor: pointer; }
 .anterior-datos { display: grid; gap: .15rem; min-width: 0; }
 .anterior-fecha { font-size: .85em; opacity: .75; }
 .anterior-productos { font-size: .85em; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Dirección de entrega (rutas de reparto) */
+.entrega select { width: 100%; min-width: 0; padding: 9px 11px; border: 2px solid var(--linea); border-radius: 8px; background: var(--blanco); font-weight: 400; }
+.entrega .entrega-elegir, .entrega .entrega-ref { grid-column: 1 / -1; }
