@@ -2,6 +2,8 @@
 
 > Rama: `Rutas-reparto` · Fecha: noviembre 2026 · Estado: propuesta para revisión
 >
+> ✅ **Implementado (5 nov 2026)** sobre `feature/impresion-termica`. Instalación y uso: **`docs/RUTAS_REPARTO.md`**.
+>
 > ⚠️ **Actualización 5 nov 2026:** este plan se escribió sobre `main`. La rama más avanzada,
 > `feature/impresion-termica`, ya resuelve varias fases (repartidor ↔ usuario, rol, seguridad,
 > tabla `entrega`) y trae CSP activado. Lee **`docs/CONTRASTE_PLAN_RUTAS.md`**: sustituye la §4
