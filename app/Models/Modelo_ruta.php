@@ -209,14 +209,12 @@ class Modelo_ruta extends PdoModelo
     {
         return $this->filas(
             "SELECT r.*, CONCAT_WS(' ', rp.nombre, rp.ape_pat) AS repartidor, rp.vehiculo,
-                    COUNT(e.id) AS paradas,
-                    SUM(e.estado = 'entregada') AS entregadas,
-                    SUM(e.estado = 'fallida') AS fallidas
+                    (SELECT COUNT(*) FROM entrega e WHERE e.id_ruta = r.id) AS paradas,
+                    (SELECT COUNT(*) FROM entrega e WHERE e.id_ruta = r.id AND e.estado = 'entregada') AS entregadas,
+                    (SELECT COUNT(*) FROM entrega e WHERE e.id_ruta = r.id AND e.estado = 'fallida') AS fallidas
                FROM ruta r
                JOIN repartidor rp ON rp.id = r.id_repartidor
-          LEFT JOIN entrega e     ON e.id_ruta = r.id
               WHERE r.fecha = ?
-           GROUP BY r.id
            ORDER BY r.id DESC",
             [$fecha]
         );
@@ -340,10 +338,17 @@ class Modelo_ruta extends PdoModelo
     public function reordenarPendientes(int $idRuta, array $pendientes, array $totales): void
     {
         $this->transaccion(function () use ($idRuta, $pendientes, $totales): void {
-            $cerradas = (int) $this->valor(
-                "SELECT COUNT(*) FROM entrega WHERE id_ruta = ? AND estado NOT IN ('asignada', 'en_ruta')",
+            // Las paradas ya cerradas quedan primero, numeradas en el orden en que ocurrieron,
+            // para que no se repitan números con las pendientes.
+            $hechas = $this->filas(
+                "SELECT id FROM entrega WHERE id_ruta = ? AND estado NOT IN ('asignada', 'en_ruta')
+                  ORDER BY COALESCE(fecha_entrega, fecha_asignacion), orden_ruta, id",
                 [$idRuta]
             );
+            foreach ($hechas as $i => $h) {
+                $this->afectar('UPDATE entrega SET orden_ruta = ? WHERE id = ?', [$i + 1, (int) $h['id']]);
+            }
+            $cerradas = count($hechas);
 
             foreach (array_values($pendientes) as $i => $p) {
                 $this->afectar(

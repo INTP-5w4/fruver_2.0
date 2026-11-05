@@ -42,10 +42,8 @@ final class UbicadorDirecciones
 
         if ($punto !== null) {
             $origen = ($pin['origen'] ?? '') === 'manual' ? 'manual' : 'google';
-            // Si el pin es manual se fuerza (también sobre coordenadas viejas de Google).
-            if ($origen === 'manual' || $cambioTexto) {
-                $this->direcciones->limpiarCoordenadas($idDireccion);
-            }
+            // El usuario eligió un lugar o movió el pin a propósito: manda sobre lo anterior.
+            $this->direcciones->limpiarCoordenadas($idDireccion);
             $this->direcciones->guardarCoordenadas($idDireccion, $punto, $origen, [
                 'place_id'             => self::texto($pin['place_id'] ?? null, 255),
                 'direccion_formateada' => self::texto($pin['direccion_formateada'] ?? null, 400),
