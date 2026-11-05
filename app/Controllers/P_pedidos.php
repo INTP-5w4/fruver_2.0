@@ -144,7 +144,7 @@ class P_pedidos extends BaseController
             return $this->response->setStatusCode(404)->setJSON(['error' => 'Pedido no encontrado']);
         }
 
-        $estatus      = (new Modelo_estatus())->ultimoPorFecha($id);
+        $estatus      = (new Modelo_estatus())->ultimo($id);
         $estadoActual = $estatus['estado'] ?? 'pedido_pendiente';
 
         return $this->response->setJSON([

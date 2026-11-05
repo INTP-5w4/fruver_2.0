@@ -216,7 +216,7 @@ class Modelo_pedido extends PdoModelo
     {
         $this->transaccion(function () use ($idPedido) {
             $estatus = new Modelo_estatus($this->pdo);
-            $actual  = $estatus->ultimoPorFecha($idPedido)['estado'] ?? null;
+            $actual  = $estatus->ultimo($idPedido)['estado'] ?? null;
 
             if (in_array($actual, self::ESTADOS_PROTEGIDOS, true)) {
                 throw new DomainException(
@@ -233,7 +233,7 @@ class Modelo_pedido extends PdoModelo
     /** Estado actual de un pedido según el último estatus por fecha. */
     public function estadoActual(int|string $idPedido): string
     {
-        return (new Modelo_estatus($this->pdo))->ultimoPorFecha($idPedido)['estado'] ?? 'pedido_pendiente';
+        return (new Modelo_estatus($this->pdo))->ultimo($idPedido)['estado'] ?? 'pedido_pendiente';
     }
 
     /**

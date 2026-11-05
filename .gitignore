@@ -126,3 +126,11 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+#-------------------------
+# Sesiones mal ubicadas (session.savePath vacío/"null" crea esta carpeta pública)
+#-------------------------
+public/null/
+
+# Evidencias de entrega (fotos privadas)
+writable/uploads/evidencias/*

@@ -42,7 +42,7 @@ class Modelo_entrega extends PdoModelo
     public function asignar(int $idPedido, int $idRepartidor): int
     {
         return (int) $this->transaccion(function () use ($idPedido, $idRepartidor): int {
-            $estadoPedido = (new Modelo_estatus($this->pdo))->ultimoPorId($idPedido)['estado'] ?? 'pedido_pendiente';
+            $estadoPedido = (new Modelo_estatus($this->pdo))->ultimo($idPedido)['estado'] ?? 'pedido_pendiente';
 
             if (! in_array($estadoPedido, ['pedido_confirmado', 'pedido_en_transito'], true)) {
                 throw new DomainException('Error: solo se puede asignar repartidor a un pedido confirmado.');
@@ -243,7 +243,7 @@ class Modelo_entrega extends PdoModelo
             }
 
             $m_estatus = new Modelo_estatus($this->pdo);
-            $estado    = $m_estatus->ultimoPorId((int) $entrega['id_pedido'])['estado'] ?? 'pedido_pendiente';
+            $estado    = $m_estatus->ultimo((int) $entrega['id_pedido'])['estado'] ?? 'pedido_pendiente';
 
             if ($estado === 'pedido_confirmado') {
                 $m_estatus->insert(['estado' => 'pedido_en_transito', 'id_pedido' => (int) $entrega['id_pedido']]);
@@ -295,7 +295,7 @@ class Modelo_entrega extends PdoModelo
             }
 
             $m_estatus = new Modelo_estatus($this->pdo);
-            $estado    = $m_estatus->ultimoPorId((int) $entrega['id_pedido'])['estado'] ?? 'pedido_pendiente';
+            $estado    = $m_estatus->ultimo((int) $entrega['id_pedido'])['estado'] ?? 'pedido_pendiente';
 
             if ($estado !== 'pedido_en_transito') {
                 throw new DomainException('Error: el pedido no está en tránsito.');
