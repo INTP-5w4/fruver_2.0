@@ -1,3 +1,12 @@
+# Fruver 2.0
+
+Sistema de pedidos, inventario y reparto de una frutería (CodeIgniter 4 + Shield).
+
+- **Rutas de reparto con Google Maps:** ver [`docs/RUTAS_REPARTO.md`](docs/RUTAS_REPARTO.md).
+- **Impresora térmica de tickets:** ver [`docs/IMPRESORA_TERMICA.md`](docs/IMPRESORA_TERMICA.md).
+
+---
+
 # CodeIgniter 4 Application Starter
 
 ## What is CodeIgniter?
