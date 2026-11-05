@@ -14,17 +14,12 @@ class Estatus extends BaseController
         'pedido_a_credito', 'pedido_pagado', 'pedido_cancelado', 'pedido_pendiente',
     ];
 
-    /** Mapa de transiciones (se conserva tal cual estaba en el proyecto). */
-    private const FLUJO = [
-        'pedido_pendiente'   => ['pedido_realizado', 'pedido_cancelado'],
-        'pedido_realizado'   => ['pedido_confirmado', 'pedido_cancelado'],
-        'pedido_confirmado'  => ['pedido_en_transito', 'pedido_cancelado'],
-        'pedido_en_transito' => ['pedido_entregado', 'pedido_cancelado'],
-        'pedido_entregado'   => ['pedido_credito', 'pedido_pagado'],
-        'pedido_credito'     => ['pedido_pagado'],
-        'pedido_pagado'      => [],
-        'pedido_cancelado'   => [],
-    ];
+    /**
+     * Mapa de transiciones: el MISMO que usan el panel de pedidos y las entregas
+     * (Modelo_pedido::TRANSICIONES). Antes este controlador tenía su propia copia con
+     * un estado inexistente ('pedido_credito' en lugar de 'pedido_a_credito').
+     */
+    private const FLUJO = Modelo_pedido::TRANSICIONES;
 
     private function texto(string $estado): string
     {
@@ -64,7 +59,7 @@ class Estatus extends BaseController
         }
 
         $m_estatus       = new Modelo_estatus();
-        $ultimo_registro = $m_estatus->ultimoPorId($id_pedido);
+        $ultimo_registro = $m_estatus->ultimo($id_pedido);
 
         if ($ultimo_registro) {
             $estado_actual = $ultimo_registro['estado'];
