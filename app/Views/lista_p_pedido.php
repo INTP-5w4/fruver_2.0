@@ -241,6 +241,15 @@
             </option>
           <?php endforeach; ?>
         </select>
+        <?php if (rutas_listas()): ?>
+        <label><b>Dirección de entrega</b></label>
+        <select id="ped_id_direccion" name="id_direccion" form="formCarrito" class="w3-select w3-border w3-margin-bottom"
+                data-direcciones-de="ped_id_cliente" data-api="<?= base_url('api_direcciones_cliente/') ?>">
+          <option value="">Dirección principal del cliente</option>
+        </select>
+        <label><b>Entregar antes de</b> <span class="w3-small">(opcional, para planear la ruta)</span></label>
+        <input type="time" id="ped_ventana_fin" name="ventana_fin" form="formCarrito" class="w3-input w3-border w3-margin-bottom">
+        <?php endif; ?>
       </div>
 
       <!-- PASO 2 -->
@@ -376,6 +385,15 @@
             </option>
         <?php endforeach; ?>
         </select>
+        <?php if (rutas_listas()): ?>
+        <label><b>Dirección de entrega</b></label>
+        <select id="eped_id_direccion" name="id_direccion" form="eFormCarrito" class="w3-select w3-border w3-margin-bottom"
+                data-direcciones-de="eped_id_cliente" data-api="<?= base_url('api_direcciones_cliente/') ?>">
+          <option value="">Dirección principal del cliente</option>
+        </select>
+        <label><b>Entregar antes de</b> <span class="w3-small">(opcional, para planear la ruta)</span></label>
+        <input type="time" id="eped_ventana_fin" name="ventana_fin" form="eFormCarrito" class="w3-input w3-border w3-margin-bottom">
+        <?php endif; ?>
     </div>
 
     <!-- PASO 2 -->
@@ -1068,6 +1086,11 @@ async function abrirEditarPedido(idPedido) {
         document.getElementById('eped_fecha').value         = data.pedido.fecha;
         document.getElementById('eped_id_cliente').value    = data.pedido.id_cliente;
         document.getElementById('eped_id_repartidor').value = data.pedido.id_repartidor;
+        if (window.FruverDireccionesPedido) {
+            FruverDireccionesPedido.cargar('eped_id_direccion', data.pedido.id_cliente, data.pedido.id_direccion);
+            var vf = document.getElementById('eped_ventana_fin');
+            if (vf) { vf.value = (data.pedido.ventana_fin || '').substring(0, 5); }
+        }
  
         carritoEditar = data.items.map(item => ({
             id:          item.id,
@@ -1198,5 +1221,6 @@ window.onclick = function (event) {
 
 </div><!-- /.lista-wrapper -->
 <script src="<?= base_url('js/impresion_ticket.js') ?>"></script>
+<script src="<?= base_url('js/direccion_pedido.js') ?>"></script>
 </body>
 </html>

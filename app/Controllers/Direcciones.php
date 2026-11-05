@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Rutas\CspMapas;
+use App\Libraries\Rutas\UbicadorDirecciones;
 use App\Models\Modelo_cliente;
 use App\Models\Modelo_direccion;
 use App\Models\PdoModelo;
@@ -16,6 +18,12 @@ class Direcciones extends BaseController
         'mun'        => 'required|max_length[200]',
         'edo'        => 'required|max_length[100]',
         'id_cliente' => 'required|is_natural_no_zero',
+        // Rutas de reparto (opcionales)
+        'cp'          => 'permit_empty|alpha_numeric|max_length[10]',
+        'referencias' => 'permit_empty|max_length[300]',
+        'geo_lat'     => 'permit_empty|decimal|greater_than_equal_to[-90]|less_than_equal_to[90]',
+        'geo_lng'     => 'permit_empty|decimal|greater_than_equal_to[-180]|less_than_equal_to[180]',
+        'geo_origen'  => 'permit_empty|in_list[google,manual]',
     ];
 
     private array $mensajes = [
@@ -25,6 +33,11 @@ class Direcciones extends BaseController
         'mun'        => ['required' => 'El Municipio es obligatorio.', 'max_length' => 'El Municipio admite máximo 200 caracteres.'],
         'edo'        => ['required' => 'El Estado es obligatorio.',    'max_length' => 'El Estado admite máximo 100 caracteres.'],
         'id_cliente' => ['required' => 'Selecciona un cliente.',       'is_natural_no_zero' => 'Selecciona un cliente válido.'],
+        'cp'          => ['alpha_numeric' => 'El código postal solo admite números y letras.', 'max_length' => 'El código postal admite máximo 10 caracteres.'],
+        'referencias' => ['max_length' => 'Las referencias admiten máximo 300 caracteres.'],
+        'geo_lat'     => ['decimal' => 'La ubicación del mapa no es válida.'],
+        'geo_lng'     => ['decimal' => 'La ubicación del mapa no es válida.'],
+        'geo_origen'  => ['in_list' => 'La ubicación del mapa no es válida.'],
     ];
 
     private function datosDelFormulario(): array
@@ -36,13 +49,57 @@ class Direcciones extends BaseController
             'municipio'  => $this->post('mun'),
             'estado'     => $this->post('edo'),
             'id_cliente' => (int) $this->request->getPost('id_cliente'),
+            // El modelo los ignora si todavía no se corre la migración de rutas.
+            'codigo_postal' => $this->post('cp') !== '' ? $this->post('cp') : null,
+            'referencias'   => $this->post('referencias') !== '' ? $this->post('referencias') : null,
         ];
+    }
+
+    /** Pin del mapa (autocompletado o movido a mano); null si el usuario no lo tocó. */
+    private function pinDelFormulario(): ?array
+    {
+        if ($this->post('geo_lat') === '' || $this->post('geo_lng') === '') {
+            return null;
+        }
+
+        return [
+            'lat'                  => $this->post('geo_lat'),
+            'lng'                  => $this->post('geo_lng'),
+            'origen'               => $this->post('geo_origen'),
+            'place_id'             => $this->post('geo_place_id'),
+            'direccion_formateada' => $this->post('geo_formateada'),
+        ];
+    }
+
+    /**
+     * Después de guardar: ubica la dirección (pin o Geocoding) y la marca como principal
+     * si se pidió o si el cliente no tenía otra. Devuelve un aviso o null.
+     */
+    private function despuesDeGuardar(Modelo_direccion $m, int $id, array $datos, bool $cambioTexto): ?string
+    {
+        if (! $m->tieneColumnasGeo()) {
+            return null;
+        }
+
+        $aviso = UbicadorDirecciones::crear($m)->ubicar($id, $datos, $this->pinDelFormulario(), $cambioTexto);
+
+        $tienePrincipal = false;
+        foreach ($m->deCliente((int) $datos['id_cliente']) as $d) {
+            $tienePrincipal = $tienePrincipal || ((int) $d['es_principal'] === 1 && (int) $d['id'] !== $id);
+        }
+        if ($this->request->getPost('principal') === '1' || ! $tienePrincipal) {
+            $m->marcarPrincipal($id);
+        }
+
+        return $aviso;
     }
 
     public function crea_direccion()
     {
         $m_cliente                  = new Modelo_cliente();
         $datos_clientes['clientes'] = $m_cliente->findAll();
+
+        CspMapas::permitir($this->response);
 
         return view('crea_direccion', $datos_clientes);
     }
@@ -54,10 +111,15 @@ class Direcciones extends BaseController
         }
 
         try {
-            (new Modelo_direccion())->insert($this->datosDelFormulario());
+            $m     = new Modelo_direccion();
+            $datos = $this->datosDelFormulario();
+            $id    = $m->insert($datos);
+            $aviso = $this->despuesDeGuardar($m, $id, $datos, true);
 
-            return redirect()->to($this->destino('lista_direccion'))
+            $r = redirect()->to($this->destino('lista_direccion'))
                 ->with('mensaje', 'Dirección registrada correctamente');
+
+            return $aviso !== null ? $r->with('aviso', $aviso) : $r;
         } catch (Throwable $e) {
             return redirect()->back()->withInput()
                 ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo registrar la dirección.'));
@@ -72,7 +134,11 @@ class Direcciones extends BaseController
 
         $clientes_lista = $m_cliente->findAll();
 
+        CspMapas::permitir($this->response);
+
         $datos = [
+            'resumenGeo'     => $m_direccion->resumenGeo(),
+            'conGeo'         => $m_direccion->tieneColumnasGeo(),
             'direcciones'    => $m_direccion->listar($buscar),
             'clientes'       => array_column($clientes_lista, null, 'id'),
             'clientes_lista' => $clientes_lista,
@@ -91,6 +157,8 @@ class Direcciones extends BaseController
         if (! $direccion) {
             return redirect()->to('lista_direccion');
         }
+
+        CspMapas::permitir($this->response);
 
         return view('modifica_direccion', [
             'direcciones' => $direccion,
@@ -132,12 +200,68 @@ class Direcciones extends BaseController
         }
 
         try {
-            (new Modelo_direccion())->update($id, $this->datosDelFormulario());
+            $m      = new Modelo_direccion();
+            $antes  = $m->find($id);
+            $datos  = $this->datosDelFormulario();
+            $m->update($id, $datos);
 
-            return redirect()->to('lista_direccion')->with('mensaje', 'Dirección actualizada correctamente');
+            $cambioTexto = $antes === null;
+            foreach (['calle', 'numero', 'colonia', 'municipio', 'estado', 'codigo_postal'] as $c) {
+                $cambioTexto = $cambioTexto || trim((string) ($antes[$c] ?? '')) !== trim((string) ($datos[$c] ?? ''));
+            }
+            $aviso = $this->despuesDeGuardar($m, (int) $id, $datos, $cambioTexto);
+
+            $r = redirect()->to('lista_direccion')->with('mensaje', 'Dirección actualizada correctamente');
+
+            return $aviso !== null ? $r->with('aviso', $aviso) : $r;
         } catch (Throwable $e) {
             return redirect()->to('lista_direccion')
                 ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo actualizar la dirección.'));
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // RUTAS DE REPARTO
+    // ─────────────────────────────────────────────────────────────
+
+    /** JSON con las direcciones de un cliente (selector de dirección en los pedidos). */
+    public function api_direcciones_cliente($idCliente = null)
+    {
+        if (! ctype_digit((string) $idCliente)) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'Cliente inválido']);
+        }
+
+        $m     = new Modelo_direccion();
+        $lista = array_map(static fn (array $d): array => [
+            'id'        => (int) $d['id'],
+            'texto'     => trim($d['calle'] . ' ' . $d['numero']) . ', ' . $d['colonia'] . ', ' . $d['municipio'],
+            'principal' => (int) ($d['es_principal'] ?? 0) === 1,
+            'ubicada'   => isset($d['lat']) && $d['lat'] !== null,
+        ], $m->deCliente((int) $idCliente));
+
+        return $this->response->setJSON(['direcciones' => $lista]);
+    }
+
+    /** Vuelve a ubicar una dirección con Google a partir de su texto. */
+    public function geocodificar($id = null)
+    {
+        $m = new Modelo_direccion();
+        $d = ctype_digit((string) $id) ? $m->find($id) : null;
+
+        if ($d === null || ! $m->tieneColumnasGeo()) {
+            return redirect()->to('lista_direccion');
+        }
+
+        if (($d['origen_coord'] ?? null) === 'manual' || ($d['origen_coord'] ?? null) === 'gps_entrega') {
+            return redirect()->to('lista_direccion')
+                ->with('aviso', 'Esta dirección ya tiene una ubicación confirmada (pin o GPS de entrega); edítala para cambiarla.');
+        }
+
+        $aviso = UbicadorDirecciones::crear($m)->ubicar((int) $id, $d, null, true);
+
+        return redirect()->to('lista_direccion')->with(
+            $aviso === null ? 'mensaje' : 'aviso',
+            $aviso ?? 'Dirección ubicada en el mapa.'
+        );
     }
 }

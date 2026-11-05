@@ -263,6 +263,53 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
             </fieldset>
         <?php endif; ?>
 
+        <?php if (! empty($pideDireccion)): ?>
+            <fieldset class="contacto entrega">
+                <legend>¿A dónde llevamos tu pedido?</legend>
+                <?php if (! empty($misDirecciones)): ?>
+                    <label class="entrega-elegir"><span class="rotulo">Dirección de entrega</span>
+                        <select name="id_direccion">
+                            <?php foreach ($misDirecciones as $d): ?>
+                                <option value="<?= (int) $d['id'] ?>" <?= (string) old('id_direccion') === (string) $d['id'] || (old('id_direccion') === null && ! empty($d['es_principal'])) ? 'selected' : '' ?>>
+                                    <?= esc(trim($d['calle'] . ' ' . $d['numero']) . ', ' . $d['colonia'] . ', ' . $d['municipio']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                            <option value="nueva" <?= old('id_direccion') === 'nueva' ? 'selected' : '' ?>>Otra dirección…</option>
+                        </select>
+                    </label>
+                    <p class="contacto-ayuda">Si eliges «Otra dirección…», llena los datos de abajo.</p>
+                <?php else: ?>
+                    <input type="hidden" name="id_direccion" value="nueva">
+                    <p class="contacto-ayuda">La guardamos para tus próximos pedidos.</p>
+                <?php endif; ?>
+                <label><span class="rotulo">Calle</span>
+                    <input type="text" name="dir_calle" value="<?= esc(old('dir_calle'), 'attr') ?>" maxlength="200" autocomplete="address-line1" <?= empty($misDirecciones) ? 'required' : '' ?>>
+                </label>
+                <label><span class="rotulo">Número</span>
+                    <input type="text" name="dir_num" value="<?= esc(old('dir_num'), 'attr') ?>" maxlength="50" <?= empty($misDirecciones) ? 'required' : '' ?>>
+                </label>
+                <label><span class="rotulo">Colonia</span>
+                    <input type="text" name="dir_col" value="<?= esc(old('dir_col'), 'attr') ?>" maxlength="200" <?= empty($misDirecciones) ? 'required' : '' ?>>
+                </label>
+                <label><span class="rotulo">Código postal <span class="opcional">(opcional)</span></span>
+                    <input type="text" name="dir_cp" value="<?= esc(old('dir_cp'), 'attr') ?>" maxlength="10" inputmode="numeric" autocomplete="postal-code">
+                </label>
+                <label><span class="rotulo">Municipio</span>
+                    <input type="text" name="dir_mun" value="<?= esc(old('dir_mun'), 'attr') ?>" maxlength="200" autocomplete="address-level2" <?= empty($misDirecciones) ? 'required' : '' ?>>
+                </label>
+                <label><span class="rotulo">Estado</span>
+                    <select name="dir_edo">
+                        <?php foreach ($estadosMx as $e): ?>
+                            <option value="<?= esc($e, 'attr') ?>" <?= (old('dir_edo') ?? 'Puebla') === $e ? 'selected' : '' ?>><?= esc($e) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </label>
+                <label class="entrega-ref"><span class="rotulo">Referencias <span class="opcional">(entre calles, color de fachada…)</span></span>
+                    <input type="text" name="dir_ref" value="<?= esc(old('dir_ref'), 'attr') ?>" maxlength="300">
+                </label>
+            </fieldset>
+        <?php endif; ?>
+
         <div class="total">
             <span>Total</span>
             <strong data-total><?= esc($carrito['total_texto'] ?? '$0.00') ?></strong>
