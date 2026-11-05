@@ -3,6 +3,9 @@
 namespace App\Controllers;
 
 use App\Libraries\Rutas\CspMapas;
+use App\Libraries\Rutas\ErrorProveedorRutas;
+use App\Libraries\Rutas\GeocodificadorOrs;
+use App\Libraries\Rutas\ServiciosMapa;
 use App\Libraries\Rutas\UbicadorDirecciones;
 use App\Models\Modelo_cliente;
 use App\Models\Modelo_direccion;
@@ -23,7 +26,7 @@ class Direcciones extends BaseController
         'referencias' => 'permit_empty|max_length[300]',
         'geo_lat'     => 'permit_empty|decimal|greater_than_equal_to[-90]|less_than_equal_to[90]',
         'geo_lng'     => 'permit_empty|decimal|greater_than_equal_to[-180]|less_than_equal_to[180]',
-        'geo_origen'  => 'permit_empty|in_list[google,manual]',
+        'geo_origen'  => 'permit_empty|in_list[google,osm,manual]',
     ];
 
     private array $mensajes = [
@@ -68,6 +71,7 @@ class Direcciones extends BaseController
             'origen'               => $this->post('geo_origen'),
             'place_id'             => $this->post('geo_place_id'),
             'direccion_formateada' => $this->post('geo_formateada'),
+            'precision'            => $this->post('geo_precision'),
         ];
     }
 
@@ -242,7 +246,7 @@ class Direcciones extends BaseController
         return $this->response->setJSON(['direcciones' => $lista]);
     }
 
-    /** Vuelve a ubicar una dirección con Google a partir de su texto. */
+    /** Vuelve a ubicar una dirección con el servicio de mapas a partir de su texto. */
     public function geocodificar($id = null)
     {
         $m = new Modelo_direccion();
@@ -263,5 +267,39 @@ class Direcciones extends BaseController
             $aviso === null ? 'mensaje' : 'aviso',
             $aviso ?? 'Dirección ubicada en el mapa.'
         );
+    }
+
+    /**
+     * Buscador de direcciones del formulario (proveedor openrouteservice).
+     *
+     * El navegador nunca recibe la llave: pregunta a este endpoint y el servidor consulta
+     * a openrouteservice. Límite por usuario para cuidar la cuota diaria gratuita.
+     */
+    public function buscar()
+    {
+        $q = $this->textoBusqueda('q');
+
+        if (mb_strlen($q) < 4) {
+            return $this->response->setJSON(['resultados' => []]);
+        }
+
+        $geo = ServiciosMapa::geocodificador();
+        if (! $geo instanceof GeocodificadorOrs) {
+            return $this->response->setStatusCode(404)->setJSON(['resultados' => [], 'mensaje' => 'El buscador requiere openrouteservice.']);
+        }
+
+        if (! service('throttler')->check('buscar_dir_' . (int) auth()->id(), 40, MINUTE)) {
+            return $this->response->setStatusCode(429)->setJSON(['resultados' => [], 'mensaje' => 'Demasiadas búsquedas; espera un momento.']);
+        }
+
+        try {
+            $resultados = $geo->sugerencias($q, 5);
+        } catch (ErrorProveedorRutas $e) {
+            log_message('error', 'Buscador de direcciones: ' . $e->getMessage());
+
+            return $this->response->setStatusCode(502)->setJSON(['resultados' => [], 'mensaje' => 'El servicio de mapas no respondió.']);
+        }
+
+        return $this->response->setJSON(['resultados' => $resultados]);
     }
 }

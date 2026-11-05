@@ -27,8 +27,8 @@ use Throwable;
  * Flujo:
  *  1. planeador: el admin elige fecha, repartidor, almacén y los pedidos.
  *  2. opciones (JSON): el servidor arma las paradas DESDE LA BASE DE DATOS (nunca
- *     confía en coordenadas del navegador), pide a Google 2–3 opciones y las guarda
- *     en sesión con un token.
+ *     confía en coordenadas del navegador), pide al servicio de mapas (openrouteservice
+ *     o Google) 2–3 opciones y las guarda en sesión con un token.
  *  3. guardar: con el token y la opción elegida crea la ruta y sus entregas.
  */
 class Rutas extends BaseController
@@ -67,8 +67,9 @@ class Rutas extends BaseController
             'almacenes'    => $almacenes,
             'almacenMapa'  => $almacenes[0] ?? null,
             'horaSalida'   => $cfg->horaSalida,
-            'maxParadas'   => min($cfg->maxParadas, 25),
-            'conGoogle'    => $cfg->conGoogle(),
+            'maxParadas'   => PlaneadorRutas::crear($cfg)->maxParadas(),
+            'conServicio'  => $cfg->conServicio(),
+            'proveedor'    => $cfg->nombreProveedor(),
             'conMapa'      => $cfg->conMapa(),
         ]);
     }
@@ -95,7 +96,7 @@ class Rutas extends BaseController
         }
 
         $ids = $this->idsPedido();
-        $max = min(config('Rutas')->maxParadas, 25);
+        $max = PlaneadorRutas::crear()->maxParadas();
         if ($ids === []) {
             return $this->json(false, 'Elige al menos un pedido.', [], 422);
         }
@@ -392,7 +393,7 @@ class Rutas extends BaseController
 
     /**
      * Lee las paradas de la BD; a las que no tienen coordenadas intenta ubicarlas
-     * con Google (una vez). Devuelve [filas por id, ids que siguen sin ubicar].
+     * con el servicio de mapas (una vez). Devuelve [filas por id, ids que siguen sin ubicar].
      *
      * @return array{0:array<int,array<string,mixed>>,1:list<int>}
      */
@@ -402,10 +403,11 @@ class Rutas extends BaseController
         $reintentar  = false;
         $m_direccion = new Modelo_direccion();
         $ubicador    = null;
+        $conBusqueda = config('Rutas')->conServicio();
 
         foreach ($ids as $id) {
             $f = $filas[$id] ?? null;
-            if ($f !== null && $f['id_direccion'] !== null && Punto::desde($f['lat'], $f['lng']) === null && config('Rutas')->conGoogle()) {
+            if ($f !== null && $f['id_direccion'] !== null && Punto::desde($f['lat'], $f['lng']) === null && $conBusqueda) {
                 $ubicador ??= UbicadorDirecciones::crear($m_direccion);
                 $d = $m_direccion->find((int) $f['id_direccion']);
                 if ($d !== null) {

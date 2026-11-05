@@ -87,13 +87,13 @@ final class VistasRutasTest extends CIUnitTestCase
                          'distancia_m' => 1000, 'duracion_s' => 600, 'estrategia' => 'rapida', 'proveedor' => 'google']],
             'repartidores' => [['id' => 2, 'nombre' => 'Julio', 'ape_pat' => 'César', 'vehiculo' => 'moto']],
             'almacenes' => [['id' => 1, 'nombre' => 'Bodega', 'lat' => '19.04', 'lng' => '-98.19']],
-            'almacenMapa' => null, 'horaSalida' => '09:00', 'maxParadas' => 25, 'conGoogle' => false, 'conMapa' => false,
+            'almacenMapa' => null, 'horaSalida' => '09:00', 'maxParadas' => 25, 'conServicio' => false, 'proveedor' => 'cálculo aproximado', 'conMapa' => false,
         ]);
 
         $this->assertStringContainsString('Calcular rutas óptimas', $html);
         $this->assertStringContainsString('Sin dirección', $html);
         $this->assertStringContainsString('"max":25', $html);
-        $this->assertStringContainsString('Google Maps no está configurado', $html);
+        $this->assertStringContainsString('No hay servicio de rutas configurado', $html);
     }
 
     public function testAlmacen(): void
@@ -137,5 +137,53 @@ final class VistasRutasTest extends CIUnitTestCase
         $this->assertStringContainsString('direcciones/geocodificar/4', $html);
         $this->assertStringContainsString('id="geo_editar"', $html);
         $this->assertStringContainsString('name="referencias"', $html);
+    }
+
+    private function conConfig(callable $ajuste): void
+    {
+        $cfg = new \Config\Rutas();
+        $ajuste($cfg);
+        \CodeIgniter\Config\Factories::injectMock('config', 'Rutas', $cfg);
+    }
+
+    protected function tearDown(): void
+    {
+        \CodeIgniter\Config\Factories::reset('config');
+        parent::tearDown();
+    }
+
+    public function testConfigDeMapaConOpenrouteservice(): void
+    {
+        $this->conConfig(static function ($c) { $c->llaveOrs = 'SECRETO-ORS'; });
+        $html = view('partials/mapa_config', ['almacenMapa' => ['lat' => '19.1', 'lng' => '-98.2']]);
+
+        $this->assertStringContainsString('data-proveedor="leaflet"', $html);
+        $this->assertStringContainsString('leaflet@1.9.4/dist/leaflet.js', $html);
+        $this->assertStringContainsString('integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="', $html);
+        $this->assertStringContainsString('direcciones&#x2F;buscar', $html); // esc attr codifica "/"
+        $this->assertStringContainsString('openrouteservice.org', $html);
+        $this->assertStringNotContainsString('SECRETO-ORS', $html, 'La llave de openrouteservice nunca va al navegador');
+    }
+
+    public function testConfigDeMapaConGoogleYSinMapa(): void
+    {
+        $this->conConfig(static function ($c) { $c->llaveServidor = 'SECRETO-SERVIDOR'; $c->llaveNavegador = 'NAVEGADOR'; });
+        $html = view('partials/mapa_config');
+        $this->assertStringContainsString('data-proveedor="google"', $html);
+        $this->assertStringContainsString('data-llave="NAVEGADOR"', $html);
+        $this->assertStringNotContainsString('SECRETO-SERVIDOR', $html);
+        $this->assertStringNotContainsString('leaflet.js', $html);
+
+        $this->conConfig(static function ($c) { $c->llaveServidor = 'SECRETO-SERVIDOR'; });
+        $html = view('partials/mapa_config');
+        $this->assertStringNotContainsString('fruver-mapas', $html, 'Google sin llave de navegador: sin mapa');
+    }
+
+    public function testConfigDeMapaSinLlavesUsaOpenStreetMapSinBuscador(): void
+    {
+        $this->conConfig(static function ($c) {});
+        $html = view('partials/mapa_config');
+        $this->assertStringContainsString('data-proveedor="leaflet"', $html);
+        $this->assertStringContainsString('data-buscar=""', $html);
     }
 }

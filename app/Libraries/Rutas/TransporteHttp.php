@@ -16,7 +16,8 @@ interface TransporteHttp
 
     /**
      * @param array<string,string> $parametros
+     * @param array<string,string> $encabezados
      * @return array{status:int,cuerpo:string}
      */
-    public function get(string $url, array $parametros, int $tiempoEsperaSeg): array;
+    public function get(string $url, array $parametros, int $tiempoEsperaSeg, array $encabezados = []): array;
 }

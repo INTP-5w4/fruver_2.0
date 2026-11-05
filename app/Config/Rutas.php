@@ -5,24 +5,48 @@ namespace Config;
 use CodeIgniter\Config\BaseConfig;
 
 /**
- * Rutas de reparto con Google Maps Platform.
+ * Rutas de reparto: proveedor de mapas, rutas y direcciones.
  *
- * Todos los valores se sobrescriben desde .env con el prefijo "rutas.":
+ * Tres proveedores posibles (rutas.proveedor en .env):
  *
- *     rutas.llaveServidor  = "AIza..."   # Routes API + Geocoding API (se usa SOLO en PHP)
- *     rutas.llaveNavegador = "AIza..."   # Maps JavaScript API + Places API (va en el HTML)
- *     rutas.mapId          = "abc123"    # Map ID para pines numerados (opcional)
+ *  - ors    : openrouteservice (HeiGIT) + mapas de OpenStreetMap con Leaflet.
+ *             Gratuito, sin tarjeta ni RFC: solo una cuenta en https://account.heigit.org
+ *               rutas.llaveOrs = "..."
+ *  - google : Google Maps Platform (requiere cuenta de facturación).
+ *               rutas.llaveServidor  = "AIza..."   # Routes API + Geocoding API (solo PHP)
+ *               rutas.llaveNavegador = "AIza..."   # Maps JavaScript API + Places API (HTML)
+ *               rutas.mapId          = "..."       # opcional
+ *  - local  : sin servicio externo. Mapa de OpenStreetMap para ubicar con pin y rutas
+ *             aproximadas (línea recta, sin tráfico).
  *
- * IMPORTANTE: son DOS llaves distintas.
- *  - La del servidor se restringe por IP del servidor y solo a Routes API y Geocoding API.
- *  - La del navegador es visible para cualquiera: restríngela por "HTTP referrer"
- *    (tu dominio) y solo a Maps JavaScript API y Places API (New).
+ * Si rutas.proveedor se deja vacío se elige solo: ors si hay rutas.llaveOrs, google si
+ * hay rutas.llaveServidor, local en otro caso.
  *
- * Sin llaves el módulo sigue funcionando: las rutas se calculan con el optimizador
- * local (aproximado, distancia en línea recta) y los formularios no muestran el mapa.
+ * Los botones "Navegar" abren Google Maps con enlaces públicos (Maps URLs): no usan llave
+ * ni facturación, funcionan con cualquier proveedor.
  */
 class Rutas extends BaseConfig
 {
+    /** ors | google | local | '' (automático). */
+    public string $proveedor = '';
+
+    // ── openrouteservice ──────────────────────────────────────────
+
+    /** Llave (token) de https://account.heigit.org. Se usa SOLO en PHP; nunca llega al navegador. */
+    public string $llaveOrs = '';
+
+    /** Dirección del servicio (la antigua api.openrouteservice.org se retira en noviembre de 2026). */
+    public string $urlOrs = 'https://api.heigit.org/openrouteservice';
+
+    // ── Mapa en el navegador (Leaflet) para ors y local ──────────
+
+    /** Capas del mapa. Los servidores de OpenStreetMap piden uso moderado y mostrar el crédito. */
+    public string $mapaTiles = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    public string $mapaAtribucion = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+
+    // ── Google Maps Platform (opcional) ──────────────────────────
+
     /** Llave para llamadas desde PHP (Routes API, Geocoding API). */
     public string $llaveServidor = '';
 
@@ -32,7 +56,9 @@ class Rutas extends BaseConfig
     /** Map ID de Google Cloud (habilita pines con número). Vacío = pines clásicos. */
     public string $mapId = '';
 
-    /** Región e idioma para resultados de Google. */
+    // ── Comunes ──────────────────────────────────────────────────
+
+    /** Región e idioma de los resultados. */
     public string $region = 'MX';
     public string $idioma = 'es-MX';
 
@@ -40,10 +66,7 @@ class Rutas extends BaseConfig
     public float $latCentro = 19.0433;
     public float $lngCentro = -98.1981;
 
-    /**
-     * Máximo de paradas por ruta. Routes API acepta hasta 25 paradas intermedias
-     * por solicitud; con más hay que dividir la ruta.
-     */
+    /** Máximo de paradas por ruta (Google acepta 25 intermedias; openrouteservice, 48). */
     public int $maxParadas = 25;
 
     /** Hora de salida por omisión (HH:MM) para calcular las horas estimadas. */
@@ -52,17 +75,17 @@ class Rutas extends BaseConfig
     /** Minutos que se estiman por parada (bajar, cobrar, entregar). */
     public int $minutosPorParada = 5;
 
-    /** Segundos máximos de espera a Google (la optimización tarda más que una ruta simple). */
+    /** Segundos máximos de espera al servicio externo. */
     public int $tiempoEsperaSeg = 15;
 
     /**
-     * Días que se conservan coordenadas obtenidas de Google (Términos de servicio:
-     * lat/lng de Geocoding/Places se pueden guardar máximo 30 días). Las coordenadas
-     * del pin manual o del GPS del repartidor son datos propios y no vencen.
+     * Días que se conservan coordenadas obtenidas de Google (sus Términos permiten
+     * guardarlas máximo 30 días). Las de OpenStreetMap, del pin manual o del GPS del
+     * repartidor no vencen.
      */
     public int $diasVigenciaGoogle = 30;
 
-    /** Velocidad media (km/h) para el optimizador local sin Google, por vehículo. */
+    /** Velocidad media (km/h) para el optimizador local, por vehículo. */
     public array $velocidadLocal = [
         'moto'      => 25,
         'auto'      => 22,
@@ -70,15 +93,72 @@ class Rutas extends BaseConfig
         'bicicleta' => 13,
     ];
 
-    /** ¿Hay llave de servidor para Routes/Geocoding? */
-    public function conGoogle(): bool
+    /** Proveedor efectivo: ors | google | local. */
+    public function proveedorRutas(): string
     {
-        return trim($this->llaveServidor) !== '';
+        $elegido = strtolower(trim($this->proveedor));
+
+        if ($elegido === 'ors') {
+            return $this->conOrs() ? 'ors' : 'local';
+        }
+        if ($elegido === 'google') {
+            return trim($this->llaveServidor) !== '' ? 'google' : 'local';
+        }
+        if ($elegido === 'local') {
+            return 'local';
+        }
+
+        if ($this->conOrs()) {
+            return 'ors';
+        }
+
+        return trim($this->llaveServidor) !== '' ? 'google' : 'local';
     }
 
-    /** ¿Hay llave para mostrar mapas en el navegador? */
+    /**
+     * Mapa del navegador: leaflet | google | '' (sin mapa).
+     * Con Google sus Términos exigen mostrar sus datos en un mapa de Google; sin llave
+     * de navegador no hay mapa. Con ors o local se usa Leaflet + OpenStreetMap (sin llave).
+     */
+    public function proveedorMapa(): string
+    {
+        if ($this->proveedorRutas() === 'google') {
+            return trim($this->llaveNavegador) !== '' ? 'google' : '';
+        }
+
+        return 'leaflet';
+    }
+
+    public function conOrs(): bool
+    {
+        return trim($this->llaveOrs) !== '';
+    }
+
+    /** ¿Hay un servicio externo de rutas (no solo el cálculo aproximado)? */
+    public function conServicio(): bool
+    {
+        return $this->proveedorRutas() !== 'local';
+    }
+
+    /** ¿Se usan las APIs de Google en el servidor? */
+    public function conGoogle(): bool
+    {
+        return $this->proveedorRutas() === 'google';
+    }
+
+    /** ¿Hay mapa en el navegador? */
     public function conMapa(): bool
     {
-        return trim($this->llaveNavegador) !== '';
+        return $this->proveedorMapa() !== '';
+    }
+
+    /** Nombre para mostrar al usuario. */
+    public function nombreProveedor(): string
+    {
+        return match ($this->proveedorRutas()) {
+            'ors'    => 'openrouteservice + OpenStreetMap',
+            'google' => 'Google Maps',
+            default  => 'cálculo aproximado (sin servicio de mapas)',
+        };
     }
 }

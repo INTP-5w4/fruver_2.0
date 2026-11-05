@@ -6,7 +6,7 @@ use InvalidArgumentException;
 use JsonException;
 
 /**
- * Texto de una dirección → coordenadas, con Google Geocoding API.
+ * Texto de una dirección → coordenadas, con Google Geocoding API (proveedor "google").
  *
  * Se usa como respaldo cuando la dirección no se capturó con el autocompletado
  * (direcciones viejas, pedidos de la tienda) y desde el comando
@@ -15,7 +15,7 @@ use JsonException;
  * Términos de Google: las lat/lng obtenidas aquí solo pueden guardarse 30 días;
  * el place_id sí puede guardarse sin límite.
  */
-final class Geocodificador
+final class Geocodificador implements GeocodificadorInterface
 {
     public const URL = 'https://maps.googleapis.com/maps/api/geocode/json';
 
@@ -31,13 +31,18 @@ final class Geocodificador
         }
     }
 
-    public static function crear(): ?self
+    public function origen(): string
     {
-        $cfg = config('Rutas');
+        return 'google';
+    }
 
-        return $cfg->conGoogle()
-            ? new self($cfg->llaveServidor, new TransporteCurl(), 'es', strtolower($cfg->region))
-            : null;
+    /**
+     * Geocodificador del proveedor configurado (Google, openrouteservice o ninguno).
+     * Se conserva aquí por compatibilidad; la lógica vive en ServiciosMapa.
+     */
+    public static function crear(): ?GeocodificadorInterface
+    {
+        return ServiciosMapa::geocodificador();
     }
 
     /** Arma el texto que se manda a Google desde una fila de `direccion`. */

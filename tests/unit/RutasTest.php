@@ -10,36 +10,9 @@ use App\Libraries\Rutas\Parada;
 use App\Libraries\Rutas\PlaneadorRutas;
 use App\Libraries\Rutas\Punto;
 use App\Libraries\Rutas\ResultadoRuta;
-use App\Libraries\Rutas\TransporteHttp;
 use App\Models\Modelo_pedido;
 use CodeIgniter\Test\CIUnitTestCase;
-
-/**
- * Transporte falso: guarda lo que se mandó y responde lo que se le indique.
- */
-final class TransporteFalso implements TransporteHttp
-{
-    public array $enviados = [];
-
-    /** @param list<array{status:int,cuerpo:string}> $respuestas */
-    public function __construct(private array $respuestas)
-    {
-    }
-
-    public function postJson(string $url, array $encabezados, array $cuerpo, int $tiempoEsperaSeg): array
-    {
-        $this->enviados[] = compact('url', 'encabezados', 'cuerpo');
-
-        return array_shift($this->respuestas) ?? ['status' => 500, 'cuerpo' => '{}'];
-    }
-
-    public function get(string $url, array $parametros, int $tiempoEsperaSeg): array
-    {
-        $this->enviados[] = compact('url', 'parametros');
-
-        return array_shift($this->respuestas) ?? ['status' => 500, 'cuerpo' => '{}'];
-    }
-}
+use Tests\Support\Rutas\TransporteFalso;
 
 /**
  * @internal
@@ -264,7 +237,7 @@ final class RutasTest extends CIUnitTestCase
 
         $this->assertSame(['aproximada'], array_keys($op));
         $this->assertCount(1, $http->enviados, 'No debe insistir con Google tras el primer error');
-        $this->assertStringContainsString('Google Maps no respondió', (string) $op['aproximada']->aviso);
+        $this->assertStringContainsString('El servicio de mapas no respondió', (string) $op['aproximada']->aviso);
     }
 
     public function testPlaneadorOfreceOpcionesConGoogle(): void

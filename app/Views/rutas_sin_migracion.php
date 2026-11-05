@@ -17,7 +17,7 @@
         <p>Ejecuta en la carpeta del proyecto:</p>
         <pre>php spark migrate</pre>
         <p>o, si prefieres phpMyAdmin, el script <code>database_cambios/rutas_reparto_cambios.sql</code>.
-           Después configura las llaves de Google Maps (ver <code>docs/RUTAS_REPARTO.md</code>).</p>
+           Después configura la llave de openrouteservice (ver <code>docs/RUTAS_REPARTO.md</code>).</p>
     </div>
 </div>
 </body>
