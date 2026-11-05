@@ -34,6 +34,11 @@
             class="btn-agregar">
         + Asignar repartidor
     </button>
+    <?php if (rutas_listas()): ?>
+        <a href="<?= base_url('rutas') ?>" class="btn-agregar" style="text-decoration:none; background:#1565c0;">
+            <i class="fa-solid fa-route"></i> Planear rutas con mapa
+        </a>
+    <?php endif; ?>
 </div>
 
 <form method="get" action="<?= base_url('lista_entrega') ?>" class="w3-margin-bottom">
@@ -70,6 +75,7 @@
                 <th>Entrega</th>
                 <th>Cobro</th>
                 <th>Incidencia</th>
+                <th>Ruta</th>
                 <th>Cancelar</th>
             </tr>
         </thead>
@@ -92,7 +98,12 @@
                             —
                         <?php endif; ?>
                     </td>
-                    <td><?= esc($e['incidencia'] ?? '—') ?></td>
+                    <td><?= esc($e['incidencia'] ?? '—') ?>
+                        <?php if (! empty($e['evidencia'])): ?>
+                            <br><a href="<?= base_url('evidencia_entrega/' . (int) $e['id']) ?>" target="_blank" rel="noopener"><i class="fa-solid fa-camera"></i> evidencia</a>
+                        <?php endif; ?>
+                    </td>
+                    <td><?php if (! empty($e['id_ruta'])): ?><a href="<?= base_url('rutas/' . (int) $e['id_ruta']) ?>">#<?= (int) $e['id_ruta'] ?> · parada <?= (int) $e['orden_ruta'] ?></a><?php else: ?>—<?php endif; ?></td>
                     <td>
                         <?php if (in_array($e['estado'], ['asignada', 'en_ruta'], true)): ?>
                             <form method="post" action="<?= base_url('cancela_entrega/' . (int) $e['id']) ?>" style="display:inline; margin:0;" onsubmit="return confirm('¿Cancelar esta entrega?');">

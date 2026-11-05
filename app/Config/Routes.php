@@ -47,6 +47,12 @@ $routes->group('repartidor', ['filter' => 'group:repartidor'], static function (
     $routes->post('entregas/(:num)/salir', 'Entregas::salir/$1');
     $routes->post('entregas/(:num)/entregar', 'Entregas::entregar/$1');
     $routes->post('entregas/(:num)/fallar', 'Entregas::fallar/$1');
+
+    // Rutas de reparto: solo rutas propias (se valida contra repartidor.id_user en el SQL).
+    $routes->get('ruta', 'Entregas::mi_ruta');
+    $routes->get('ruta/(:num)', 'Entregas::mi_ruta/$1');
+    $routes->post('ruta/(:num)/iniciar', 'Entregas::iniciar_ruta/$1');
+    $routes->post('ruta/(:num)/reoptimizar', 'Entregas::reoptimizar/$1');
 });
 
 // ───────────── PANEL (solo personal) ─────────────
@@ -130,6 +136,18 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->get('lista_entrega', 'Entregas::lista_entrega');
     $routes->post('asigna_entrega', 'Entregas::asigna_entrega');
     $routes->post('cancela_entrega/(:num)', 'Entregas::cancela_entrega/$1');
+
+    // ===== RUTAS DE REPARTO (Google Maps) =====
+    $routes->get('rutas', 'Rutas::planeador');
+    $routes->post('rutas/opciones', 'Rutas::opciones');
+    $routes->post('rutas/guardar', 'Rutas::guardar');
+    $routes->get('rutas/almacen', 'Rutas::almacen');
+    $routes->post('rutas/almacen', 'Rutas::guarda_almacen');
+    $routes->get('rutas/(:num)', 'Rutas::detalle/$1');
+    $routes->post('rutas/(:num)/cancelar', 'Rutas::cancelar/$1');
+    $routes->get('evidencia_entrega/(:num)', 'Entregas::evidencia/$1');
+    $routes->get('api_direcciones_cliente/(:num)', 'Direcciones::api_direcciones_cliente/$1');
+    $routes->post('direcciones/geocodificar/(:num)', 'Direcciones::geocodificar/$1');
 
     // ===== TICKET DEL PEDIDO POR WHATSAPP =====
     $routes->get('ticket_pedido/(:num)', 'Tickets::ver/$1');

@@ -126,6 +126,8 @@
                         mapa.setCenter(p);
                         mapa.setZoom(18);
                         llenarFormulario(form, componentes(lugar.addressComponents));
+                        var texto = form.querySelector('input[type="text"][name="direccion"]');
+                        if (texto && !texto.value && lugar.formattedAddress) { texto.value = lugar.formattedAddress; }
                         fijar(p, 'google', lugar.id, lugar.formattedAddress);
                     });
                 }

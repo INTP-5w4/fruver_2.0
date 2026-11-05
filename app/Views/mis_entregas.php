@@ -40,6 +40,13 @@
         <?php endif; ?>
     </div>
 
+    <?php if (! empty($rutasPendientes)): ?>
+        <a href="<?= base_url('repartidor/ruta') ?>" class="w3-panel w3-blue w3-round" style="display:block; text-decoration:none; padding:12px;">
+            <i class="fa-solid fa-route"></i> <b>Tienes <?= (int) $rutasPendientes ?> ruta<?= (int) $rutasPendientes > 1 ? 's' : '' ?> por hacer.</b>
+            Ver el orden de entregas y el mapa &rarr;
+        </a>
+    <?php endif; ?>
+
     <div class="w3-bar w3-margin-bottom">
         <?php
         $filtros = [
@@ -82,7 +89,18 @@
                 <i class="fa-solid fa-user"></i> <?= esc($e['cliente']) ?><br>
                 <i class="fa-solid fa-phone"></i>
                 <a href="tel:<?= esc($e['telefono_cliente'], 'attr') ?>"><?= esc($e['telefono_cliente']) ?></a>
+                <?php if (array_key_exists('calle', $e)): ?>
+                    <br><i class="fa-solid fa-location-dot"></i>
+                    <?= esc(\App\Models\Modelo_ruta::textoDireccion($e) ?: 'Sin dirección registrada') ?>
+                    <?php if (! empty($e['referencias'])): ?><br><small><i class="fa-solid fa-circle-info"></i> <?= esc($e['referencias']) ?></small><?php endif; ?>
+                    <?php if (isset($e['total_pedido'])): ?><br><i class="fa-solid fa-money-bill"></i> Cobrar $<?= esc(number_format((float) $e['total_pedido'], 2)) ?><?php endif; ?>
+                <?php endif; ?>
             </p>
+
+            <?php if (! empty($e['navegar']) && in_array($e['estado'], ['asignada', 'en_ruta'], true)): ?>
+                <p><a class="w3-button btn-navegar" style="background:#1a73e8;color:#fff;" href="<?= esc($e['navegar'], 'attr') ?>" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-diamond-turn-right"></i> Navegar con Google Maps</a></p>
+            <?php endif; ?>
 
             <?php if ($e['incidencia']): ?>
                 <p class="w3-text-red"><i class="fa-solid fa-triangle-exclamation"></i> <?= esc($e['incidencia']) ?></p>
