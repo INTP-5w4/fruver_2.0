@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Libraries\Rutas\Punto;
 use DomainException;
 
 /**
@@ -186,14 +187,17 @@ class Modelo_entrega extends PdoModelo
             $params[] = $estado;
         }
 
+        [$camposDir, $joinDir] = $this->sqlDireccion();
+
         return $this->paginarSql(
             "SELECT e.*, p.fecha AS fecha_pedido,
                     CONCAT_WS(' ', c.nombre, c.ape_pat, c.ape_mat) AS cliente,
-                    c.telefono AS telefono_cliente
+                    c.telefono AS telefono_cliente {$camposDir}
                FROM entrega e
                JOIN repartidor r ON r.id = e.id_repartidor
                JOIN pedido p     ON p.id = e.id_pedido
                JOIN cliente c    ON c.id = p.id_cliente
+               {$joinDir}
                {$where}
               ORDER BY (e.estado IN ('asignada','en_ruta')) DESC, e.fecha_asignacion DESC, e.id DESC",
             $params,
@@ -274,13 +278,14 @@ class Modelo_entrega extends PdoModelo
         ?float $monto = null,
         ?string $metodo = null,
         ?string $evidencia = null,
-        ?string $notas = null
+        ?string $notas = null,
+        ?Punto $gps = null
     ): bool {
         if ($monto !== null && ($monto < 0 || ! in_array($metodo, self::METODOS_COBRO, true))) {
             return false;
         }
 
-        return (bool) $this->transaccion(function () use ($idEntrega, $idUser, $monto, $metodo, $evidencia, $notas): bool {
+        return (bool) $this->transaccion(function () use ($idEntrega, $idUser, $monto, $metodo, $evidencia, $notas, $gps): bool {
             $entrega = $this->fila(
                 "SELECT e.id, e.id_pedido
                    FROM entrega e
@@ -317,8 +322,63 @@ class Modelo_entrega extends PdoModelo
                 ]
             );
 
+            if ($gps !== null) {
+                $this->guardarGps($idEntrega, (int) $entrega['id_pedido'], $gps);
+            }
+
             return true;
         });
+    }
+
+    /**
+     * Guarda el GPS del teléfono al entregar y, si la dirección del pedido no tiene
+     * coordenadas o solo tiene las de Google, las reemplaza: es un dato propio del
+     * negocio (no vence) y suele ser más exacto que la geocodificación.
+     * Un pin acomodado a mano no se toca.
+     */
+    private function guardarGps(int $idEntrega, int $idPedido, Punto $gps): void
+    {
+        if (! (new Modelo_ruta($this->pdo))->esquemaListo()) {
+            return;
+        }
+
+        $this->afectar('UPDATE entrega SET lat_entrega = ?, lng_entrega = ? WHERE id = ?', [$gps->lat, $gps->lng, $idEntrega]);
+
+        $idDireccion = $this->valor(
+            'SELECT d.id FROM pedido p JOIN direccion d ON d.id = ' . Modelo_ruta::SQL_DIRECCION_PEDIDO . ' WHERE p.id = ?',
+            [$idPedido]
+        );
+
+        if ($idDireccion !== null) {
+            $this->afectar(
+                "UPDATE direccion
+                    SET lat = ?, lng = ?, origen_coord = 'gps_entrega', precision_geo = 'GPS_ENTREGA', coord_actualizada_en = NOW()
+                  WHERE id = ? AND (origen_coord IS NULL OR origen_coord = 'google')",
+                [$gps->lat, $gps->lng, (int) $idDireccion]
+            );
+        }
+    }
+
+    /** Dirección (campos y JOIN) para las listas del repartidor, si ya existe la migración de rutas. */
+    private function sqlDireccion(): array
+    {
+        if (! (new Modelo_ruta($this->pdo))->esquemaListo()) {
+            return ['', ''];
+        }
+
+        return [
+            ', d.calle, d.numero, d.colonia, d.municipio, d.estado AS estado_dir, d.referencias, d.lat, d.lng, d.place_id,
+               (SELECT COALESCE(SUM(pp.total), 0) FROM producto_pedido pp WHERE pp.id_pedido = p.id) AS total_pedido',
+            'LEFT JOIN direccion d ON d.id = ' . Modelo_ruta::SQL_DIRECCION_PEDIDO,
+        ];
+    }
+
+    /** Ruta del archivo de evidencia de una entrega (para el personal). */
+    public function evidencia(int $idEntrega): ?string
+    {
+        $v = $this->valor('SELECT evidencia FROM entrega WHERE id = ?', [$idEntrega]);
+
+        return $v !== null && $v !== '' ? (string) $v : null;
     }
 
     /** en_ruta → fallida, con la incidencia obligatoria (el admin podrá reasignar). */

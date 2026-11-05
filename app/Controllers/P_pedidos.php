@@ -29,11 +29,23 @@ class P_pedidos extends BaseController
 
     private function cabecera(): array
     {
-        return [
+        $cab = [
             'fecha'         => $this->post('fecha'),
             'id_cliente'    => (int) $this->request->getPost('id_cliente'),
             'id_repartidor' => (int) $this->request->getPost('id_repartidor'),
         ];
+
+        // Rutas de reparto (solo si el formulario los trae, para no borrar lo ya elegido):
+        // el modelo valida que la dirección sea del cliente (si no, usa su principal)
+        // y que la hora límite sea una hora válida.
+        if ($this->request->getPost('id_direccion') !== null) {
+            $cab['id_direccion'] = (int) $this->request->getPost('id_direccion');
+        }
+        if ($this->request->getPost('ventana_fin') !== null) {
+            $cab['ventana_fin'] = $this->post('ventana_fin');
+        }
+
+        return $cab;
     }
 
     /** Estado enviado por el formulario, solo si es uno de los estados reales del pedido. */

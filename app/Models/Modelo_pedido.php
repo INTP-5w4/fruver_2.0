@@ -11,6 +11,72 @@ class Modelo_pedido extends PdoModelo
 
     protected array $camposPermitidos = ['fecha', 'id_cliente', 'id_repartidor'];
 
+    /** Columnas de la migración de rutas (2026-11-05-100000_AddRutasReparto). */
+    public const CAMPOS_RUTAS = ['id_direccion', 'ventana_inicio', 'ventana_fin'];
+
+    private static ?bool $conRutas = null;
+
+    public function __construct(?\PDO $pdo = null)
+    {
+        parent::__construct($pdo);
+
+        if ($this->tieneColumnasRutas()) {
+            $this->camposPermitidos = [...$this->camposPermitidos, ...self::CAMPOS_RUTAS];
+        }
+    }
+
+    /** ¿Ya existe pedido.id_direccion? Mientras no, todo funciona como antes. */
+    public function tieneColumnasRutas(): bool
+    {
+        if (self::$conRutas === null) {
+            try {
+                $this->filas('SELECT id_direccion FROM pedido LIMIT 0');
+                self::$conRutas = true;
+            } catch (\Throwable) {
+                self::$conRutas = false;
+            }
+        }
+
+        return self::$conRutas;
+    }
+
+    /**
+     * Completa la cabecera con la dirección de entrega: la solicitada (si es del cliente)
+     * o la principal del cliente. Sin la migración de rutas, quita esos campos.
+     */
+    private function conDireccion(array $cab, bool $modificando = false): array
+    {
+        if (! $this->tieneColumnasRutas()) {
+            return array_diff_key($cab, array_flip(self::CAMPOS_RUTAS));
+        }
+
+        // Al modificar sin que el formulario mande dirección se conserva la que tenía.
+        if (array_key_exists('id_cliente', $cab) && (array_key_exists('id_direccion', $cab) || ! $modificando)) {
+            $solicitada = isset($cab['id_direccion']) && (int) $cab['id_direccion'] > 0 ? (int) $cab['id_direccion'] : null;
+            $cab['id_direccion'] = (new Modelo_direccion($this->pdo))->resolverParaPedido((int) $cab['id_cliente'], $solicitada);
+        }
+
+        foreach (['ventana_inicio', 'ventana_fin'] as $campo) {
+            if (array_key_exists($campo, $cab)) {
+                $cab[$campo] = self::horaValida($cab[$campo]);
+            }
+        }
+
+        return $cab;
+    }
+
+    /** "14:30" / "14:30:00" → "14:30:00"; cualquier otra cosa → null. */
+    public static function horaValida(mixed $hora): ?string
+    {
+        $hora = trim((string) $hora);
+
+        if (preg_match('/^([01]\d|2[0-3]):([0-5]\d)(:[0-5]\d)?$/', $hora) !== 1) {
+            return null;
+        }
+
+        return strlen($hora) === 5 ? $hora . ':00' : $hora;
+    }
+
     /** Máquina de estados del pedido (flujo usado por el panel de administración). */
     public const TRANSICIONES = [
         'pedido_pendiente'   => ['pedido_realizado'],
@@ -138,7 +204,7 @@ class Modelo_pedido extends PdoModelo
                 }
             }
 
-            $idPedido = $this->insert($cab);
+            $idPedido = $this->insert($this->conDireccion($cab));
 
             $pp = new Modelo_productopedidos($this->pdo);
             foreach ($items as $item) {
@@ -171,7 +237,7 @@ class Modelo_pedido extends PdoModelo
     public function modificarPedidoCompleto(int|string $idPedido, array $cab, array $items, string $nuevoEstado, ?string $fechaEstatus): void
     {
         $this->transaccion(function () use ($idPedido, $cab, $items, $nuevoEstado, $fechaEstatus) {
-            $this->update($idPedido, $cab);
+            $this->update($idPedido, $this->conDireccion($cab, true));
 
             $pp = new Modelo_productopedidos($this->pdo);
 
@@ -409,17 +475,18 @@ class Modelo_pedido extends PdoModelo
      * mande el navegador solo aporta "qué producto" y "cuánta cantidad".
      *
      * @param array<int,int|float> $lineas  id_producto => cantidad
+     * @param int|null $idDireccion  dirección del cliente (null = su principal)
      * @return array{id:int,total:float}
      *
      * @throws DomainException por producto no disponible o stock insuficiente
      */
-    public function crearPedidoDeCliente(int $idCliente, array $lineas): array
+    public function crearPedidoDeCliente(int $idCliente, array $lineas, ?int $idDireccion = null): array
     {
         if ($lineas === []) {
             throw new DomainException('Tu carrito está vacío.');
         }
 
-        return $this->transaccion(function () use ($idCliente, $lineas) {
+        return $this->transaccion(function () use ($idCliente, $lineas, $idDireccion) {
             $catalogo = (new Modelo_producto($this->pdo))->catalogoPorIds(array_keys($lineas));
 
             $items = [];
@@ -458,11 +525,12 @@ class Modelo_pedido extends PdoModelo
                 ];
             }
 
-            $idPedido = $this->insert([
+            $idPedido = $this->insert($this->conDireccion([
                 'fecha'         => date('Y-m-d'),
                 'id_cliente'    => $idCliente,
                 'id_repartidor' => null, // lo asigna el personal al confirmar el pedido
-            ]);
+                'id_direccion'  => $idDireccion,
+            ]));
 
             $pp = new Modelo_productopedidos($this->pdo);
             foreach ($items as $item) {
