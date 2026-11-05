@@ -3,9 +3,9 @@
 namespace App\Libraries\Rutas;
 
 /**
- * Optimizador de respaldo SIN Google (sin costo, sin red).
+ * Optimizador de respaldo SIN servicio externo (sin costo, sin red).
  *
- * Se usa cuando no hay llave configurada, cuando Google falla o se agotó la cuota.
+ * Se usa cuando no hay llave configurada, cuando el servicio falla o se agotó la cuota.
  * Calcula distancias en línea recta (Haversine) multiplicadas por un factor de calles
  * y estima tiempos con una velocidad media por vehículo. El orden se obtiene con
  * "vecino más cercano" y se mejora con 2-opt. Es una APROXIMACIÓN: la pantalla lo avisa.
@@ -67,7 +67,7 @@ final class OptimizadorLocal implements OptimizadorInterface
             array_sum(array_column($tramos, 'duracion_s')),
             null,
             $op->regresar,
-            'Ruta aproximada: calculada sin Google Maps (distancias en línea recta, sin tráfico).',
+            'Ruta aproximada: calculada sin servicio de mapas (distancias en línea recta, sin tráfico).',
         );
     }
 

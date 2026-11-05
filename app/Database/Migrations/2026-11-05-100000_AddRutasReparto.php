@@ -95,8 +95,8 @@ class AddRutasReparto extends Migration
             'place_id'             => ['type' => 'VARCHAR', 'constraint' => 255, 'null' => true],
             'lat'                  => ['type' => 'DECIMAL', 'constraint' => '10,7', 'null' => true],
             'lng'                  => ['type' => 'DECIMAL', 'constraint' => '10,7', 'null' => true],
-            // google = Geocoding/Places (caché máx. 30 días) · manual = pin del usuario · gps_entrega = GPS del repartidor
-            'origen_coord'         => ['type' => 'ENUM', 'constraint' => ['google', 'manual', 'gps_entrega'], 'null' => true],
+            // google = Geocoding/Places (caché máx. 30 días) · osm = OpenStreetMap · manual = pin · gps_entrega = GPS del repartidor
+            'origen_coord'         => ['type' => 'ENUM', 'constraint' => ['google', 'osm', 'manual', 'gps_entrega'], 'null' => true],
             'precision_geo'        => ['type' => 'VARCHAR', 'constraint' => 30, 'null' => true],
             'coord_actualizada_en' => ['type' => 'DATETIME', 'null' => true],
             'es_principal'         => ['type' => 'TINYINT', 'constraint' => 1, 'default' => 0],

@@ -21,7 +21,7 @@
 
         if (!window.FruverMapas || !FruverMapas.disponible) {
             el.hidden = true;
-            if (aviso) { aviso.textContent = 'Mapa desactivado (falta rutas.llaveNavegador). Usa los botones «Navegar» de cada parada.'; aviso.hidden = false; }
+            if (aviso) { aviso.textContent = 'Mapa desactivado. Usa los botones «Navegar» de cada parada.'; aviso.hidden = false; }
             return;
         }
 
@@ -46,18 +46,16 @@
             });
             var linea = puntos.slice();
             if (d.regresa && puntos.length) { linea.push(puntos[0]); }
-            FruverMapas.dibujarRuta(mapa, d.polyline, linea, d.proveedor === 'google' ? '#1565c0' : '#ef6c00');
+            FruverMapas.dibujarRuta(mapa, d.polyline, linea, d.proveedor !== 'local' ? '#1565c0' : '#ef6c00');
             FruverMapas.encuadrar(mapa, puntos);
 
             // Punto azul con la ubicación del repartidor (solo si ya dio permiso).
             if (navigator.geolocation && navigator.permissions && navigator.permissions.query) {
                 navigator.permissions.query({ name: 'geolocation' }).then(function (st) {
                     if (st.state !== 'granted') { return; }
-                    var yo = null;
+                    var yo = FruverMapas.puntoUsuario(mapa);
                     navigator.geolocation.watchPosition(function (pos) {
-                        var p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-                        if (!yo) { yo = new google.maps.Circle({ map: mapa, center: p, radius: 12, fillColor: '#1a73e8', fillOpacity: 0.9, strokeColor: '#fff', strokeWeight: 2 }); }
-                        else { yo.setCenter(p); }
+                        yo.mover({ lat: pos.coords.latitude, lng: pos.coords.longitude });
                     }, function () {}, { enableHighAccuracy: true, maximumAge: 15000 });
                 }).catch(function () {});
             }

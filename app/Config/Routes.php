@@ -137,7 +137,7 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('asigna_entrega', 'Entregas::asigna_entrega');
     $routes->post('cancela_entrega/(:num)', 'Entregas::cancela_entrega/$1');
 
-    // ===== RUTAS DE REPARTO (Google Maps) =====
+    // ===== RUTAS DE REPARTO (openrouteservice / OpenStreetMap, o Google Maps) =====
     $routes->get('rutas', 'Rutas::planeador');
     $routes->post('rutas/opciones', 'Rutas::opciones');
     $routes->post('rutas/guardar', 'Rutas::guardar');
@@ -148,6 +148,7 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->get('evidencia_entrega/(:num)', 'Entregas::evidencia/$1');
     $routes->get('api_direcciones_cliente/(:num)', 'Direcciones::api_direcciones_cliente/$1');
     $routes->post('direcciones/geocodificar/(:num)', 'Direcciones::geocodificar/$1');
+    $routes->get('direcciones/buscar', 'Direcciones::buscar');
 
     // ===== TICKET DEL PEDIDO POR WHATSAPP =====
     $routes->get('ticket_pedido/(:num)', 'Tickets::ver/$1');

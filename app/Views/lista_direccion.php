@@ -94,14 +94,14 @@
                         <?php if ($d['lat'] === null): ?>
                             <span class="geo-tag geo-tag--no">Sin ubicar</span>
                         <?php elseif (($d['precision_geo'] ?? '') === 'APPROXIMATE'): ?>
-                            <span class="geo-tag geo-tag--aprox" title="Google la ubicó solo de forma aproximada: acomoda el pin">Aproximada</span>
+                            <span class="geo-tag geo-tag--aprox" title="Se ubicó solo de forma aproximada (calle o colonia): acomoda el pin">Aproximada</span>
                         <?php else: ?>
                             <span class="geo-tag geo-tag--ok" title="<?= esc((string) $d['origen_coord'], 'attr') ?>">Ubicada</span>
                         <?php endif; ?>
                         <?php if (! in_array($d['origen_coord'] ?? null, ['manual', 'gps_entrega'], true)): ?>
                             <form method="post" action="<?= base_url('direcciones/geocodificar/' . (int) $d['id']) ?>" style="display:inline; margin:0;">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="btn-icono" title="Ubicar con Google a partir del texto"><i class="fa-solid fa-location-crosshairs"></i></button>
+                                <button type="submit" class="btn-icono" title="Ubicar automáticamente a partir del texto"><i class="fa-solid fa-location-crosshairs"></i></button>
                             </form>
                         <?php endif; ?>
                     </td>

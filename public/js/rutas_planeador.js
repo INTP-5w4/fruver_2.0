@@ -2,7 +2,7 @@
  * Planeador de rutas (panel del administrador).
  *
  * 1. Se eligen pedidos (checkbox). 2. "Calcular" pide al servidor las opciones
- * (Google o aproximada). 3. Se comparan en tarjetas y en el mapa. 4. Se puede
+ * (openrouteservice, Google o aproximada). 3. Se comparan en tarjetas y en el mapa. 4. Se puede
  * arrastrar la lista para fijar un orden propio y recalcular. 5. "Asignar" guarda.
  *
  * El servidor recalcula todo con los datos de la base: este archivo solo envía
@@ -60,7 +60,7 @@
     // ── Mapa ───────────────────────────────────────────────
 
     function limpiarMapa() {
-        capas.forEach(function (c) { if (c.quitar) { c.quitar(); } else if (c.setMap) { c.setMap(null); } });
+        capas.forEach(function (c) { if (c && c.quitar) { c.quitar(); } });
         capas = [];
     }
 
@@ -103,7 +103,7 @@
 
         var linea = puntos.slice();
         if (datos.regresa) { linea.push(puntos[0]); }
-        capas.push(FruverMapas.dibujarRuta(mapa, op.polyline, linea, op.proveedor === 'google' ? '#1565c0' : '#ef6c00'));
+        capas.push(FruverMapas.dibujarRuta(mapa, op.polyline, linea, op.proveedor !== 'local' ? '#1565c0' : '#ef6c00'));
         FruverMapas.encuadrar(mapa, puntos);
     }
 
@@ -129,10 +129,10 @@
                 h.appendChild(document.createTextNode(' '));
                 h.appendChild(b);
             }
-            if (op.proveedor !== 'google') {
+            if (op.proveedor === 'local') {
                 var g = document.createElement('span');
                 g.className = 'ruta-badge ruta-badge--gris';
-                g.textContent = 'sin Google';
+                g.textContent = 'aproximada';
                 h.appendChild(document.createTextNode(' '));
                 h.appendChild(g);
             }
@@ -217,7 +217,7 @@
 
         btnCalc.disabled = true;
         if (btnManual) { btnManual.disabled = true; }
-        estado.textContent = 'Calculando con Google Maps…';
+        estado.textContent = 'Calculando la ruta…';
         estado.style.color = '';
 
         fetch(cfg.urlOpciones, {
@@ -344,7 +344,7 @@
     } else if (mapaEl) {
         mapaEl.hidden = true;
         var e = document.querySelector('[data-mapa-estado]');
-        if (e) { e.textContent = 'Mapa desactivado (falta rutas.llaveNavegador). Puedes planear igual: se muestran distancias y tiempos.'; e.hidden = false; }
+        if (e) { e.textContent = 'Mapa desactivado. Puedes planear igual: se muestran distancias y tiempos.'; e.hidden = false; }
     }
 
     actualizarContador();
