@@ -23,7 +23,10 @@
         <?= $this->renderSection('main') ?>
     </main>
 
-    <footer class="fv-auth-footer">FRUVER 2.0 · Frutas, verduras y hierbas</footer>
+    <footer class="fv-auth-footer">
+        FRUVER 2.0 · Frutas, verduras y hierbas ·
+        <a href="<?= site_url('aviso-de-privacidad') ?>">Aviso de privacidad</a>
+    </footer>
 
 <?= $this->renderSection('pageScripts') ?>
 </body>

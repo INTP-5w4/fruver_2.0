@@ -1,0 +1,30 @@
+/* comunicaciones.css — Comunicaciones voluntarias V1–V3 (panel del personal). */
+.com-wrapper { padding-top: 20px; }
+.com-titulo { margin: 0 0 6px; color: #007542; }
+.com-intro { max-width: 900px; color: #4a5680; }
+
+.com-pestanas { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.com-pestana {
+    padding: 8px 14px;
+    border: 1px solid rgba(0, 117, 66, 0.35);
+    border-radius: 50px;
+    color: #007542;
+    text-decoration: none;
+    background: #ffffff;
+}
+.com-pestana:hover { background: #f3faf3; }
+.com-pestana--activa { background: #007542; color: #ffffff; }
+.com-pestana--activa:hover { background: #007542; }
+
+.com-tarjeta {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(112, 144, 176, 0.15);
+}
+.com-subtitulo { margin: 0 0 10px; font-size: 1.1rem; color: #007542; }
+.com-ayuda { display: block; margin: 6px 0; font-size: 0.85rem; color: #6b7a99; }
+.com-form-correo { display: grid; gap: 8px; max-width: 520px; }
+.com-tabla { overflow-x: auto; }
+.com-texto { max-width: 420px; font-size: 0.9rem; }

@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Filters\ConsentimientoGuard;
 use App\Filters\SesionGuard;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
@@ -31,6 +32,7 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'sesionguard'   => SesionGuard::class,
+        'consentimiento' => ConsentimientoGuard::class,
     ];
 
     public array $required = [
@@ -61,6 +63,18 @@ class Filters extends BaseFilters
             'csrf',
             'invalidchars',
             'sesionguard',
+            // Toda cuenta con sesión debe haber aceptado la versión vigente del Aviso de Privacidad.
+            // Quedan fuera las pantallas del propio aviso y las de entrar, registrarse y salir.
+            'consentimiento' => ['except' => [
+                'aviso-de-privacidad*',
+                'privacidad/aceptar',
+                'login*',
+                'logout',
+                'register',
+                'auth/*',
+                'magic-link*',
+                '__hot-reload',
+            ]],
         ],
         'after' => [
             'secureheaders',

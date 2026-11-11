@@ -5,6 +5,7 @@ namespace App\Libraries;
 use PDO;
 use PDOException;
 use RuntimeException;
+use Throwable;
 
 /**
  * Conexión única (singleton) a MySQL usando PDO.
@@ -66,7 +67,43 @@ final class ConexionPdo
             throw new RuntimeException('No se pudo conectar a la base de datos.');
         }
 
+        self::identificarUsuario($pdo);
+
         return self::$instancia = $pdo;
+    }
+
+    /**
+     * Deja en la conexión quién está operando (@fruver_id_user, @fruver_usuario).
+     * Los triggers de trazabilidad (pedido_bitacora) lo copian en cada cambio de un pedido.
+     * Son variables de esta conexión: no se comparten con otras peticiones.
+     */
+    private static function identificarUsuario(PDO $pdo): void
+    {
+        $id     = null;
+        $nombre = 'Consola (spark)';
+
+        if (! is_cli()) {
+            $nombre = 'Sin sesión';
+
+            try {
+                $usuario = auth()->user();
+
+                if ($usuario !== null) {
+                    $id     = (int) $usuario->id;
+                    $roles  = $usuario->getGroups();
+                    sort($roles);
+                    $nombre = (string) ($usuario->username ?: $usuario->email)
+                        . ($roles !== [] ? ' (' . implode(', ', $roles) . ')' : '');
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'ConexionPdo: no se pudo identificar al usuario: ' . $e->getMessage());
+            }
+        }
+
+        $st = $pdo->prepare('SET @fruver_id_user = ?, @fruver_usuario = ?');
+        $st->bindValue(1, $id, $id === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
+        $st->bindValue(2, mb_substr($nombre, 0, 100));
+        $st->execute();
     }
 
     /** Solo para pruebas: permite reiniciar la conexión. */

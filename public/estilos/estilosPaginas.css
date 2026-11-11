@@ -726,3 +726,7 @@ body > div > table,
 
     .footer_container { flex-direction: column; gap: 6px; }
 }
+/* Historial (trazabilidad) dentro del detalle de un pedido */
+.bitacora-titulo { display: block; margin-top: 14px; }
+.bitacora-tabla td { vertical-align: top; }
+

@@ -3,8 +3,10 @@
 namespace App\Controllers;
 
 use App\Libraries\Carrito;
+use App\Libraries\Correo;
 use App\Libraries\Rutas\UbicadorDirecciones;
 use App\Models\Modelo_cliente;
+use App\Models\Modelo_consentimiento;
 use App\Models\Modelo_direccion;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_producto;
@@ -33,6 +35,9 @@ class Tienda extends BaseController
         'verduras' => 'Verduras',
     ];
 
+    /** Fila de recomendaciones personalizadas (finalidad voluntaria V4). */
+    public const PARA_TI = 'para_ti';
+
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
         parent::initController($request, $response, $logger);
@@ -51,9 +56,22 @@ class Tienda extends BaseController
 
         $this->cspEstricta();
 
+        $titulos = self::TITULOS;
+        $filas   = (new Modelo_producto())->catalogoAgrupado($buscar);
+
+        // V4 (voluntaria): "Para ti" con lo que más pide, solo si la cuenta lo autorizó.
+        if ($perfil !== null && $buscar === '' && $this->autorizaRecomendaciones((int) $usuario->id)) {
+            $paraTi = (new Modelo_producto())->recomendadosParaCliente((int) $perfil['id']);
+
+            if ($paraTi !== []) {
+                $titulos = [self::PARA_TI => 'Para ti'] + $titulos;
+                $filas[self::PARA_TI] = $paraTi;
+            }
+        }
+
         $datos = [
-            'titulos'    => self::TITULOS,
-            'filas'      => (new Modelo_producto())->catalogoAgrupado($buscar),
+            'titulos'    => $titulos,
+            'filas'      => $filas,
             'buscar'     => $buscar,
             'conSesion'  => $usuario !== null,
             'esPersonal' => $this->esPersonal(),
@@ -247,8 +265,23 @@ class Tienda extends BaseController
         }
 
         $carrito->vaciar();
+        $this->enviarComprobante((int) $pedido['id'], (string) $usuario->email);
 
         return redirect()->to('main_page_4')->with('pedido_ok', $pedido);
+    }
+
+    /** Comprobante del pedido al correo de la cuenta (solo si hay servidor de correo configurado). */
+    private function enviarComprobante(int $idPedido, string $correo): void
+    {
+        if (! Correo::configurado()) {
+            return;
+        }
+
+        $ticket = (new Modelo_pedido())->ticket($idPedido);
+
+        if ($ticket !== null) {
+            Correo::enviar($correo, 'FRUVER · Recibimos tu pedido #' . $idPedido, view('correos/pedido_confirmado', ['ticket' => $ticket]));
+        }
     }
         // ─────────────────────────────────────────────────────────────
     // VOLVER A PEDIR (carga un pedido anterior en el carrito)
@@ -368,6 +401,19 @@ class Tienda extends BaseController
         return $id;
     }
 
+    private function autorizaRecomendaciones(int $idUsuario): bool
+    {
+        try {
+            $modelo = new Modelo_consentimiento();
+
+            return $modelo->tablaExiste() && $modelo->autoriza($idUsuario, 'v4');
+        } catch (Throwable $e) {
+            log_message('error', 'Tienda: no se pudo leer el consentimiento V4: ' . $e->getMessage());
+
+            return false; // ante la duda, sin personalización
+        }
+    }
+
     private function volverATienda()
     {
         return redirect()->to('main_page_4')->with('abrir_carrito', true);
@@ -386,8 +432,8 @@ class Tienda extends BaseController
             $csp->clearDirective($directiva);
         }
 
-        $csp->addScriptSrc('self');
-        $csp->addStyleSrc(['self', 'https://fonts.googleapis.com']);
+        $csp->addScriptSrc(['self', 'nonce-' . $csp->getScriptNonce()]);
+        $csp->addStyleSrc(['self', 'https://fonts.googleapis.com', 'nonce-' . $csp->getStyleNonce()]);
     }
 
     /** Respuesta JSON estándar: estado del carrito + mensaje + token CSRF vigente. */

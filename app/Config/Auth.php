@@ -47,7 +47,7 @@ class Auth extends ShieldAuth
      */
     public array $views = [
         'login'                       => '\CodeIgniter\Shield\Views\login',
-        'register'                    => '\CodeIgniter\Shield\Views\register',
+        'register'                    => 'Auth/register', // incluye el Aviso de Privacidad
         'layout'                      => 'Auth/layout',
         'action_email_2fa'            => '\CodeIgniter\Shield\Views\email_2fa_show',
         'action_email_2fa_verify'     => '\CodeIgniter\Shield\Views\email_2fa_verify',
@@ -182,6 +182,15 @@ class Auth extends ShieldAuth
      * has been set up.
      */
     public bool $allowMagicLinkLogins = true;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // El enlace para recuperar el acceso llega por correo: sin servidor de correo
+        // configurado se oculta en el login en lugar de prometer un correo que no saldrá.
+        $this->allowMagicLinkLogins = $this->allowMagicLinkLogins && \App\Libraries\Correo::configurado();
+    }
 
     /**
      * --------------------------------------------------------------------

@@ -14,5 +14,6 @@
         <a href="<?= base_url('lista_estatus') ?>"    class="nav-item">Estatus</a>
         <a href="<?= base_url('lista_existencia') ?>" class="nav-item">Existencias</a>
         <a href="<?= base_url('lista_sugerencia') ?>" class="nav-item">Sugerencias</a>
+        <a href="<?= base_url('comunicaciones') ?>"   class="nav-item">Comunicaciones</a>
     </nav>
 </aside>

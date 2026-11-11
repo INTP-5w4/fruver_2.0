@@ -17,6 +17,9 @@ $conSesionHeader = auth()->loggedIn();
                 <a href="<?= base_url('crea_sugerencia') ?>" class="header-enlace" title="Enviar una sugerencia">
                     <i class="fa-regular fa-lightbulb"></i> Buzón de sugerencias
                 </a>
+                <a href="<?= base_url('privacidad/preferencias') ?>" class="header-enlace" title="Aviso y preferencias de privacidad">
+                    <i class="fa-solid fa-user-shield"></i> Privacidad
+                </a>
                 <?php if ($esBackend): ?>
                     <a href="<?= base_url('logout') ?>" class="header-logout" title="Cerrar sesión">
                         <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión

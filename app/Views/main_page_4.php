@@ -77,6 +77,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                     <a class="cuenta-enlace" href="<?= base_url('/') ?>">Panel</a>
                 <?php endif; ?>
                 <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>">Sugerencias</a>
+                <a class="cuenta-enlace" href="<?= base_url('privacidad/preferencias') ?>">Privacidad</a>
                 <a class="cuenta-enlace" href="<?= base_url('logout') ?>">Salir</a>
             <?php else: ?>
                 <a class="cuenta-enlace" href="<?= base_url('login') ?>">Iniciar sesión</a>
@@ -110,6 +111,9 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
     <?php if ($flashError): ?>
         <p class="aviso aviso-error" role="alert"><?= esc($flashError) ?></p>
     <?php endif; ?>
+    <?php if (session()->getFlashdata('mensaje')): ?>
+        <p class="aviso aviso-ok" role="status"><?= esc(session()->getFlashdata('mensaje')) ?></p>
+    <?php endif; ?>
     <?php if (is_array($avisosRecarga)): ?>
         <p class="aviso aviso-info" role="status">Cargamos tu pedido anterior en el carrito. Revísalo antes de confirmar.</p>
     <?php foreach ($avisosRecarga as $aviso): ?>
@@ -137,6 +141,12 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
         <section class="fila fila-<?= esc($clave, 'attr') ?>" id="fila-<?= esc($clave, 'attr') ?>" aria-labelledby="titulo-<?= esc($clave, 'attr') ?>">
             <div class="fila-cabeza">
                 <h2 id="titulo-<?= esc($clave, 'attr') ?>"><?= esc($titulo) ?></h2>
+                <?php if ($clave === \App\Controllers\Tienda::PARA_TI): ?>
+                    <p class="fila-nota">
+                        Según tus pedidos anteriores (lo autorizaste).
+                        <a href="<?= base_url('privacidad/preferencias') ?>">Cambiar</a>
+                    </p>
+                <?php endif; ?>
                 <p class="fila-conteo"><?= count($productos) ?> <?= count($productos) === 1 ? 'producto' : 'productos' ?></p>
                 <?php if (count($productos) > 1): ?>
                     <div class="fila-flechas">
@@ -322,6 +332,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
 
 <footer class="pie">
     <p>&copy; <?= date('Y') ?> Fruver. Todos los derechos reservados.</p>
+    <p><a href="<?= base_url('aviso-de-privacidad') ?>">Aviso de privacidad</a></p>
 </footer>
 
 <script type="application/json" id="tienda-config"><?= $configJson ?></script>

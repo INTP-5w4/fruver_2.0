@@ -135,6 +135,9 @@ button { cursor: pointer; }
 .fila-frutas   { --acento: #e8a010; --acento-texto: #1d2a1f; }
 .fila-hierbas  { --acento: #2bb5a0; --acento-texto: #10241f; }
 .fila-verduras { --acento: #2f7a1e; --acento-texto: #ffffff; }
+/* "Para ti" (recomendaciones V4, solo con consentimiento) */
+.fila-para_ti  { --acento: #c2410c; --acento-texto: #ffffff; }
+.fila-nota { margin: 0; color: var(--tinta-suave); font-size: 0.9rem; }
 
 .fila-cabeza { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; }
 .fila-cabeza h2 {
