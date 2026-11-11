@@ -2,11 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Clientes</title>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
 </head>
 <body class="w3-light-grey">
+<?php include 'Header.php'; ?>
 
 <!-- ✅ Mensajes de error y éxito -->
 <?php if (session()->getFlashdata('error')): ?>

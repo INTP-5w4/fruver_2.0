@@ -1,11 +1,11 @@
 /* auth.css — Estilo FRUVER para las vistas de Shield (login, registro, magic link).
    Autocontenido: implementa solo las clases que usan esas vistas (sin Bootstrap). */
 :root {
-    --fv-green: #00910a;
-    --fv-green-dark: #007542;
-    --fv-green-mid: #3AA346;
-    --fv-bg: #F4F7FE;
-    --fv-text: #2B3674;
+    --fv-green: #0b7d2e;
+    --fv-green-dark: #08481d;
+    --fv-green-mid: #0b7d2e;
+    --fv-bg: #f4f6ee;
+    --fv-text: #1d2a1f;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -17,7 +17,7 @@ body.fv-auth {
     flex-direction: column;
     background: var(--fv-bg);
     color: var(--fv-text);
-    font-family: 'Poppins', 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    font-family: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
     line-height: 1.5;
 }
 
@@ -178,3 +178,17 @@ body.fv-auth {
 .fv-auth .fv-auth-logo:hover,
 .fv-auth .fv-auth-volver { color: #ffffff; }
 .fv-auth .fv-auth-volver:hover { color: var(--fv-green); }
+
+/* ── Identidad Fruver (misma que la tienda y el panel) ─────── */
+.fv-auth-header { background: var(--fv-green-dark); }
+.fv-auth-logo, .card-title, .pv-doc h1, .pv-doc h2, .pv-doc h3, .pv-resumen h2, .pv-subtitulo {
+    font-family: 'Bricolage Grotesque', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    letter-spacing: -0.02em;
+}
+.fv-auth-logo { font-weight: 800; }
+.card { border-top: 0; border: 1px solid #d8dfcc; border-radius: 14px; box-shadow: 0 14px 36px rgba(8, 72, 29, 0.10); }
+.btn-primary { border-radius: 6px; background: var(--fv-green); letter-spacing: 0; }
+.btn-primary:hover, .btn-primary:focus { background: var(--fv-green-dark); }
+.form-control { border-color: #b9c6ad; border-radius: 6px; }
+.form-control:focus { border-color: var(--fv-green); box-shadow: 0 0 0 3px rgba(11, 125, 46, 0.16); }
+.fv-auth-footer { color: #4f5d53; }

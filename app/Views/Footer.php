@@ -1,22 +1,11 @@
 <footer class="footer">
     <div class="footer_container">
         <div class="footer_brand">
-            <span class="footer_logo">FRUVER</span>
-            <span class="footer_tagline">Sistema de gestión de inventario</span>
+            <span class="footer_logo">Fruver</span>
+            <span class="footer_tagline">Frutas, verduras y hierbas</span>
         </div>
         <div class="footer_copy">
-            &copy; <?= date('Y') ?> Fruver. Todos los derechos reservados.
+            &copy; <?= date('Y') ?> Fruver · <a href="<?= base_url('aviso-de-privacidad') ?>">Aviso de privacidad</a>
         </div>
     </div>
 </footer>
-
-<script>
-    setTimeout(() => {
-        const flash = document.querySelector('.flash-container');
-        if (flash) {
-            flash.style.transition = 'opacity 0.5s ease';
-            flash.style.opacity = '0';
-            setTimeout(() => flash.style.display = 'none', 500);
-        }
-    }, 3000);
-</script>

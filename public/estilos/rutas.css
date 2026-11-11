@@ -4,15 +4,15 @@
 .geo-caja { margin: 10px 0 14px; }
 .geo-buscador gmp-place-autocomplete,
 .geo-buscador gmp-placeautocomplete { width: 100%; margin-bottom: 8px; }
-.geo-mapa { width: 100%; height: 240px; border-radius: 8px; border: 1px solid #c8d6c8; background: #eef3ee; }
+.geo-mapa { width: 100%; height: 240px; border-radius: 8px; border: 1px solid var(--linea); background: #e9eee0; }
 .geo-ayuda { font-size: .85em; color: #555; margin: 4px 0 0; }
-.geo-estado { font-size: .85em; color: #8a5a00; background: #fff6e0; padding: 6px 8px; border-radius: 6px; margin: 6px 0 0; }
-.geo-caja.geo-ubicada .geo-ayuda::after { content: ' ✓ Ubicación lista'; color: #2e7d32; font-weight: 600; }
+.geo-estado { font-size: .85em; color: var(--mango-texto); background: var(--mango-claro); padding: 6px 8px; border-radius: 6px; margin: 6px 0 0; }
+.geo-caja.geo-ubicada .geo-ayuda::after { content: ' ✓ Ubicación lista'; color: var(--hoja); font-weight: 600; }
 .geo-check { display: flex; gap: 8px; align-items: center; margin: 8px 0; font-size: .95em; }
 
 /* Etiquetas de estado de ubicación */
 .geo-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: .8em; white-space: nowrap; }
-.geo-tag--ok { background: #e3f4e4; color: #1b5e20; }
+.geo-tag--ok { background: #e3f4e4; color: var(--hoja-oscura); }
 .geo-tag--aprox { background: #fff3cd; color: #7a5200; }
 .geo-tag--no { background: #fde2e1; color: #8e1c16; }
 
@@ -20,7 +20,7 @@
 .rutas-layout { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 16px; align-items: start; }
 .rutas-panel { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.12); padding: 14px; }
 .rutas-panel h3 { margin-top: 0; }
-.rutas-mapa { width: 100%; height: 70vh; min-height: 420px; border-radius: 10px; background: #eef3ee; position: sticky; top: 80px; }
+.rutas-mapa { width: 100%; height: 70vh; min-height: 420px; border-radius: 10px; background: #e9eee0; position: sticky; top: 80px; }
 .rutas-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
 .rutas-campos label { font-size: .85em; font-weight: 600; display: block; }
 .rutas-campos .w3-input, .rutas-campos .w3-select { padding: 6px; }
@@ -29,38 +29,80 @@
 .rutas-lista li.sin-ubicar { opacity: .65; }
 .rutas-lista li .detalle { flex: 1; font-size: .9em; line-height: 1.35; }
 .rutas-lista li .detalle small { color: #666; }
-.rutas-lista li .num { min-width: 26px; height: 26px; border-radius: 50%; background: #2e7d32; color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: .85em; }
+.rutas-lista li .num { min-width: 26px; height: 26px; border-radius: 50%; background: var(--hoja); color: #fff; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: .85em; }
 .rutas-lista li[draggable="true"] { cursor: grab; }
-.rutas-lista li.arrastrando { background: #e8f5e9; }
+.rutas-lista li.arrastrando { background: var(--hoja-clara); }
 
 .rutas-opciones { display: grid; gap: 10px; margin-top: 10px; }
 .ruta-opcion { border: 2px solid #dfe7df; border-radius: 10px; padding: 10px 12px; cursor: pointer; background: #fafdfa; }
-.ruta-opcion.activa { border-color: #2e7d32; background: #eef8ef; }
+.ruta-opcion.activa { border-color: var(--hoja); background: var(--hoja-clara); }
 .ruta-opcion h4 { margin: 0 0 4px; font-size: 1em; }
 .ruta-opcion .cifras { display: flex; gap: 14px; flex-wrap: wrap; font-size: .9em; }
 .ruta-opcion .cifras b { font-size: 1.15em; }
-.ruta-opcion .aviso { color: #8a5a00; font-size: .82em; margin: 6px 0 0; }
-.ruta-badge { font-size: .72em; padding: 1px 7px; border-radius: 9px; background: #2e7d32; color: #fff; vertical-align: middle; }
+.ruta-opcion .aviso { color: var(--mango-texto); font-size: .82em; margin: 6px 0 0; }
+.ruta-badge { font-size: .72em; padding: 1px 7px; border-radius: 9px; background: var(--hoja); color: #fff; vertical-align: middle; }
 .ruta-badge--gris { background: #888; }
 
-/* Mi ruta (repartidor, celular) */
-.mi-ruta { max-width: 760px; margin: 0 auto; padding: 12px; }
-.mi-ruta .resumen { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-.mi-ruta .mapa { width: 100%; height: 42vh; min-height: 260px; border-radius: 10px; margin: 10px 0; background: #eef3ee; }
-.parada { background: #fff; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.12); padding: 12px; margin-bottom: 12px; border-left: 6px solid #9e9e9e; }
-.parada.estado-asignada { border-left-color: #1565c0; }
-.parada.estado-en_ruta { border-left-color: #ef6c00; }
-.parada.estado-entregada { border-left-color: #2e7d32; opacity: .75; }
-.parada.estado-fallida { border-left-color: #c62828; opacity: .8; }
-.parada.siguiente { box-shadow: 0 0 0 3px #ffb74d, 0 1px 3px rgba(0,0,0,.12); }
-.parada .cab { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-.parada .dir { margin: 6px 0; font-size: 1.02em; }
-.parada .ref { color: #555; font-size: .9em; }
-.parada .acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-.btn-navegar { background: #1a73e8 !important; color: #fff !important; }
-.parada details { margin-top: 8px; }
-.parada details summary { cursor: pointer; font-weight: 600; }
+/* Mi ruta (repartidor, celular primero) */
+.mi-ruta { max-width: 760px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 14px; }
+.ruta-cabeza { display: grid; gap: 8px; padding: 16px; border-radius: var(--r-tarjeta); background: var(--hoja-oscura); color: #fff; }
+.ruta-cabeza-fila { display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.ruta-cabeza h1 { color: #fff; font-size: 24px; font-weight: 800; }
+.ruta-cabeza small { color: #b9d7c1; }
+.ruta-cabeza .btn-secundario { background: rgba(255,255,255,.1); color: #fff; border-color: rgba(255,255,255,.35); }
+.ruta-progreso { width: 100%; height: 8px; border: 0; border-radius: 4px; overflow: hidden; background: rgba(255,255,255,.18); -webkit-appearance: none; appearance: none; }
+.ruta-progreso::-webkit-progress-bar { background: rgba(255,255,255,.18); }
+.ruta-progreso::-webkit-progress-value { background: var(--mango); border-radius: 4px; }
+.ruta-progreso::-moz-progress-bar { background: var(--mango); border-radius: 4px; }
+.ruta-progreso-texto { font-size: 12.5px; color: #d6e8db; }
+.ruta-acciones { display: grid; gap: 8px; margin-top: 4px; }
+.ruta-acciones .btn-secundario { background: transparent; }
+.mi-ruta .mapa { width: 100%; height: 40vh; min-height: 240px; border-radius: var(--r-tarjeta); background: #e9eee0; border: 1px solid var(--linea); }
 
+.parada { display: grid; gap: 10px; padding: 14px; background: var(--superficie); border: 1px solid var(--linea); border-radius: 14px; }
+.parada.siguiente { border-color: var(--mango); box-shadow: 0 0 0 3px rgba(240, 179, 35, .35), 0 10px 24px rgba(8, 72, 29, .12); }
+.parada.estado-entregada, .parada.estado-cancelada { opacity: .72; }
+.parada-etiqueta { font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--mango-texto); }
+.parada .cab { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.parada .cab h2 { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 800; }
+.parada-num { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font: 700 13px/1 var(--f-texto); color: var(--hoja); border: 2px solid var(--hoja); }
+.parada.siguiente .parada-num { background: var(--mango); border-color: var(--mango); color: #3a2a00; }
+.parada.estado-entregada .parada-num { background: #9bb3a1; border-color: #9bb3a1; color: #fff; }
+.parada .dir { display: grid; gap: 2px; color: var(--tinta); font-size: 15px; }
+.parada .ref { color: var(--tinta-suave); font-size: 14px; }
+.parada-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.parada-datos > div { display: grid; padding: 9px 11px; border-radius: var(--r-control); background: var(--papel); }
+.parada-datos small { color: var(--tinta-suave); font-size: 12px; }
+.parada-datos strong { font: 800 20px/1.2 var(--f-titulo); }
+.parada-datos em { font-style: normal; font-size: 12.5px; font-weight: 600; color: var(--alerta); }
+.parada .acciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.parada details.registrar { border-top: 1px solid var(--linea-suave); padding-top: 10px; }
+.parada details summary { cursor: pointer; font-weight: 700; color: var(--hoja-oscura); min-height: 32px; display: flex; align-items: center; gap: 8px; }
+.form-entrega, .form-falla { display: grid; gap: 10px; margin-top: 10px; }
+.form-falla { padding-top: 12px; border-top: 1px dashed var(--linea); }
+.form-entrega label, .form-falla label { display: grid; gap: 4px; font-weight: 600; font-size: 14px; }
+.campos-dobles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opcional { font-weight: 400; color: var(--tinta-suave); }
+.btn-entregado { min-height: 54px; }
+.parada-nota { font-size: 14px; color: var(--tinta-suave); }
+.parada-nota--falla { color: var(--alerta); }
+.btn-navegar { background: var(--hoja) !important; color: #fff !important; }
+
+/* Mis entregas (repartidor) */
+.repartidor-pagina { max-width: 760px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 14px; }
+.repartidor-cabeza { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.repartidor-cabeza h1 { font-size: 26px; font-weight: 800; }
+.aviso-ruta { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: var(--r-tarjeta); background: var(--hoja-oscura); color: #fff; text-decoration: none; }
+.aviso-ruta:hover { background: var(--hoja); color: #fff; }
+.aviso-ruta b { display: block; font-size: 16px; }
+.aviso-ruta span { color: #d6e8db; font-size: 13.5px; }
+.aviso-ruta i { font-size: 20px; color: var(--mango); }
+.entrega { display: grid; gap: 8px; padding: 14px; background: var(--superficie); border: 1px solid var(--linea); border-radius: 14px; }
+.entrega-cab { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.entrega-cab h2 { font-size: 17px; font-weight: 800; }
+.entrega-datos { display: grid; gap: 4px; font-size: 14.5px; }
+.entrega-datos i { width: 18px; color: var(--hoja); }
+.entrega-datos small { color: var(--tinta-suave); }
 @media (max-width: 900px) {
     .rutas-layout { grid-template-columns: 1fr; }
     .rutas-mapa { position: static; height: 50vh; }
@@ -69,7 +111,7 @@
 /* Pines numerados (Leaflet) */
 .fv-pin-caja { background: none; border: none; }
 .fv-pin { width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
-          border: 2px solid #1b5e20; box-shadow: 0 1px 3px rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; }
+          border: 2px solid var(--hoja-oscura); box-shadow: 0 1px 3px rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; }
 .fv-pin span { transform: rotate(45deg); color: #fff; font: 700 12px/1 system-ui, sans-serif; }
 .leaflet-container { font: inherit; }
 
@@ -77,8 +119,8 @@
 .geo-busqueda { position: relative; margin-bottom: 8px; }
 .geo-busqueda input { width: 100%; margin: 0; }
 .geo-sugerencias { position: absolute; z-index: 1000; left: 0; right: 0; top: 100%; margin: 2px 0 0; padding: 0; list-style: none;
-                   background: #fff; border: 1px solid #c8d6c8; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); max-height: 240px; overflow: auto; }
+                   background: #fff; border: 1px solid var(--linea); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,.15); max-height: 240px; overflow: auto; }
 .geo-sugerencias li { padding: 8px 10px; cursor: pointer; font-size: .92em; border-bottom: 1px solid #eef2ee; }
-.geo-sugerencias li:hover, .geo-sugerencias li:focus { background: #eef8ef; outline: none; }
+.geo-sugerencias li:hover, .geo-sugerencias li:focus { background: var(--hoja-clara); outline: none; }
 .geo-sugerencias li.vacio { cursor: default; color: #666; }
-.geo-sugerencias small { color: #8a5a00; }
+.geo-sugerencias small { color: var(--mango-texto); }

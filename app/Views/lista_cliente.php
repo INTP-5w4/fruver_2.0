@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/cliente_preferencial.css') ?>">
     <title>Lista Clientes</title>
 </head>
@@ -13,7 +11,7 @@
     <?php include 'Header.php'; ?>
     <?php include 'sidebar.php'; ?>
 
-<div class="lista-wrapper" style="padding-top: 55px;">
+<div class="lista-wrapper">
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
@@ -46,10 +44,11 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 40px;">
+<div class="contenedor-boton">
+    <h1>Clientes</h1>
     <button onclick="document.getElementById('modalCrearCliente').style.display='block'"
             class="btn-agregar">
-        + Nuevo Cliente
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo cliente
     </button>
 </div>
 
@@ -99,9 +98,9 @@
                     <td class="pref-celda">
                         <?php $manual = in_array($c['preferencial_modo'], ['si', 'no'], true); ?>
                         <?php if ($c['es_preferencial']): ?>
-                            <span class="w3-tag w3-round w3-amber"><i class="fa-solid fa-star"></i> Preferencial</span>
+                            <span class="est est-preferencial">Preferencial</span>
                         <?php else: ?>
-                            <span class="w3-tag w3-round w3-light-grey">No preferencial</span>
+                            <span class="est est-pendiente">No preferencial</span>
                         <?php endif; ?>
                         <small class="pref-origen"><?= $manual ? 'manual' : 'por compras' ?></small>
                         <?php if ($manual && ! empty($c['preferencial_motivo'])): ?>

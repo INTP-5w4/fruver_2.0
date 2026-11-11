@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista Entregas</title>
 </head>
 <body>
@@ -29,10 +26,11 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 20px;">
+<div class="contenedor-boton">
+    <h1>Entregas</h1>
     <button onclick="document.getElementById('modalAsignarEntrega').style.display='block'"
             class="btn-agregar">
-        + Asignar repartidor
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Asignar repartidor
     </button>
     <?php if (rutas_listas()): ?>
         <a href="<?= base_url('rutas') ?>" class="btn-agregar" style="text-decoration:none; background:#1565c0;">
@@ -87,7 +85,7 @@
                     <td><?= esc($e['intento']) ?></td>
                     <td><?= esc($e['cliente']) ?></td>
                     <td><?= esc($e['repartidor']) ?></td>
-                    <td><?= esc(str_replace('_', ' ', $e['estado'])) ?></td>
+                    <td><?= estado_entrega($e['estado']) ?></td>
                     <td><?= esc($e['fecha_asignacion']) ?></td>
                     <td><?= esc($e['fecha_salida'] ?? '—') ?></td>
                     <td><?= esc($e['fecha_entrega'] ?? '—') ?></td>

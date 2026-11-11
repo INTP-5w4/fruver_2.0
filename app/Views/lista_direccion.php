@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <?= view('partials/mapa_config') ?>
     <script src="<?= base_url('js/geo_direccion.js') ?>" defer></script>
     <title>Lista Direcciones</title>
@@ -43,23 +41,23 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 20px;">
-<div class="contenedor-boton" style="padding-top: 80px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-    <button onclick="document.getElementById('modalCrearDireccion').style.display='block'"
-            class="btn-agregar">
-        + Nueva Dirección
+<div class="contenedor-boton">
+    <h1>Direcciones</h1>
+    <button type="button" onclick="document.getElementById('modalCrearDireccion').style.display='block'" class="btn-agregar">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva dirección
     </button>
-
-    <form method="get" action="<?= base_url('lista_direccion') ?>" style="display:flex; gap:8px; align-items:center;">
-        <input type="text" name="buscar" placeholder="Buscar por cliente, colonia, calle, municipio o estado..."
-               value="<?= esc($buscar ?? '') ?>"
-               class="modal-input" style="margin:0; width:400px;">
-        <button type="submit" class="btn-agregar" style="margin:0;">Buscar</button>
-        <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_direccion') ?>" class="btn-agregar" style="margin:0; background:#888; text-decoration:none;">✕ Limpiar</a>
-        <?php endif; ?>
-    </form>
 </div>
+
+<form method="get" action="<?= base_url('lista_direccion') ?>">
+    <div>
+        <input type="text" name="buscar" placeholder="Buscar por cliente, colonia, calle, municipio o estado…"
+               value="<?= esc($buscar ?? '', 'attr') ?>" class="w3-input w3-border" aria-label="Buscar dirección">
+        <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar</button>
+        <?php if (!empty($buscar)): ?>
+            <a href="<?= base_url('lista_direccion') ?>" class="w3-button w3-border">Limpiar búsqueda</a>
+        <?php endif; ?>
+    </div>
+</form>
 <div class="tabla-wrapper">
     <table>
         <thead>

@@ -2,11 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <?= view('partials/mapa_config', ['almacenMapa' => $almacenMapa]) ?>
     <script src="<?= base_url('js/geo_direccion.js') ?>" defer></script>
     <title>Almacén de salida</title>
@@ -14,7 +11,7 @@
 <body>
 <?php include 'Header.php'; ?>
 <?php include 'sidebar.php'; ?>
-<div class="lista-wrapper" style="padding-top:70px; max-width:900px;">
+<div class="lista-wrapper lista-angosta">
     <?php foreach (['error' => 'w3-red', 'mensaje' => 'w3-green'] as $clave => $clase): ?>
         <?php if (session()->getFlashdata($clave)): ?>
             <div class="w3-panel <?= $clase ?>"><p><?= esc(session()->getFlashdata($clave)) ?></p></div>

@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista de productos</title>
 </head>
 <body>
@@ -27,10 +25,11 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 20px;">
+<div class="contenedor-boton">
+    <h1>Productos</h1>
     <button onclick="document.getElementById('modalCrearProducto').style.display='block'"
             class="btn-agregar">
-        + Nuevo Producto
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo producto
     </button>
 </div>
 <form method="get" action="<?= base_url('lista_producto') ?>" class="w3-margin-bottom">
@@ -67,6 +66,7 @@
             </tr>
         </thead>
         <tbody>
+            <?php helper('tienda'); // tienda_img_url(): miniatura del producto ?>
             <?php foreach ($productos as $p): ?>
                 <tr>
                     <td><?= esc($p['id']) ?></td>
@@ -74,7 +74,14 @@
                     <td><?= esc($p['nombre']) ?></td>
                     <td><?= esc($p['descripcion']) ?></td>
                     <td><?= esc($p['categoria']) ?></td>
-                    <td><?= esc($p['img']) ?></td>
+                    <td>
+                        <?php $foto = tienda_img_url($p['img']); ?>
+                        <?php if ($foto !== ''): ?>
+                            <img src="<?= esc($foto, 'attr') ?>" alt="<?= esc($p['nombre'], 'attr') ?>" class="miniatura" width="44" height="44" loading="lazy">
+                        <?php else: ?>
+                            <span class="sin-foto">Sin foto</span>
+                        <?php endif; ?>
+                    </td>
                     <td>
                         <button onclick="abrirModal(
                                     '<?= esc($p['id'], 'js') ?>',

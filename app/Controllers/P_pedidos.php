@@ -178,7 +178,19 @@ class P_pedidos extends BaseController
         $pagina    = max(1, (int) $this->request->getGet('page'));
         $porPagina = 20;
 
-        $todos         = (new Modelo_productopedidos())->obtenerPedidosAgrupados($buscar);
+        $todos = (new Modelo_productopedidos())->obtenerPedidosAgrupados($buscar);
+
+        // Pestañas por estado: cuántos pedidos hay en cada uno y filtro (?estado=, lista blanca).
+        $conteoEstados = array_count_values(array_map(
+            static fn (array $p): string => (string) ($p['estado_actual'] ?? 'pedido_pendiente'),
+            $todos
+        ));
+        $estado = $this->request->getGet('estado');
+        $estado = is_string($estado) && isset(Modelo_pedido::TRANSICIONES[$estado]) ? $estado : '';
+        if ($estado !== '') {
+            $todos = array_values(array_filter($todos, static fn (array $p): bool => ($p['estado_actual'] ?? 'pedido_pendiente') === $estado));
+        }
+
         $total         = count($todos);
         $pagina_actual = array_slice($todos, ($pagina - 1) * $porPagina, $porPagina);
 
@@ -187,6 +199,8 @@ class P_pedidos extends BaseController
 
         return view('lista_p_pedido', [
             'buscar'                    => $buscar,
+            'estado'                    => $estado,
+            'conteoEstados'             => $conteoEstados,
             'pedidos_agrupados'         => $pagina_actual,
             'total_pedidos'             => $total,
             'pagina_actual'             => $pagina,

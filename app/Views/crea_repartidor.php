@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear Repartidor</title>
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <div class="modal-contenido" style="max-width:500px; margin:40px auto;">
 
         <header class="modal-header">
