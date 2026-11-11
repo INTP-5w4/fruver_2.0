@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea existencia</title>
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <form action="<?= base_url('guarda_existencia') ?>" method="post">
 <?= csrf_field() ?>
         <label for="e_total">Existencias totales</label><br>

@@ -16,6 +16,9 @@ $sinVolver ??= false;
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>FRUVER — <?= $this->renderSection('title') ?></title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="<?= base_url('estilos/auth.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/privacidad.css') ?>">
 </head>

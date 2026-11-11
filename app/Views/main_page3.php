@@ -2,188 +2,214 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FRUVER — Panel de Control</title>
-    <style>
-        /* Fix lupa — W3.CSS sobreescribe el padding del input */
-        .prod-search-input {
-            padding: 8px 12px 8px 34px !important;
-            box-sizing: border-box !important;
-        }
-    </style>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
+    <title>Inicio · Fruver</title>
     <link rel="stylesheet" href="<?= base_url('estilos/dashboard.css') ?>">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="<?= base_url('js/direccion_pedido.js') ?>" defer></script>
 </head>
 <body>
+<?php include 'Header.php'; ?>
+<?php include 'sidebar.php'; ?>
+<?php
+/*
+ * Inicio del personal: primero lo que cambió contra la semana pasada y lo que hay que
+ * atender hoy (Modelo_resumen::inicio), después las gráficas y el registro rápido.
+ */
+$r          = $resumen ?? [];
+$diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+$meses      = [1 => 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+$mesesCorto = [1 => 'ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+$diaHoy     = $diasSemana[(int) date('w')];
+$fechaLarga = ucfirst($diaHoy) . ' ' . date('j') . ' de ' . $meses[(int) date('n')];
+$horaActual = (int) date('G');
+$saludo     = $horaActual < 12 ? 'Buenos días' : ($horaActual < 19 ? 'Buenas tardes' : 'Buenas noches');
+$usuarioInicio = auth()->user();
+$nombreInicio  = $usuarioInicio !== null ? (string) $usuarioInicio->username : '';
+$dinero        = static fn ($v): string => '$' . number_format((float) $v, 0);
 
-    <?php include 'Header.php'; ?>
+/** [texto, clase] de la comparación contra el periodo anterior. */
+$comparar = static function (int|float|null $actual, int|float|null $antes, bool $menosEsMejor, callable $formato, string $contra): array {
+    if ($actual === null || $antes === null) {
+        return ['Sin datos para comparar', 'neutro'];
+    }
+    $dif = $actual - $antes;
+    if (abs($dif) < 0.005) {
+        return ['Igual que ' . $contra, 'neutro'];
+    }
+    $sube = $dif > 0;
+
+    return [
+        ($sube ? '▲ ' : '▼ ') . $formato(abs($dif)) . ($sube ? ' más' : ' menos') . ' que ' . $contra,
+        ($menosEsMejor ? ! $sube : $sube) ? 'bien' : 'mal',
+    ];
+};
+[$txtPedidos, $clsPedidos] = $comparar($r['pedidos_hoy'] ?? null, $r['pedidos_hace_7'] ?? null, false, static fn ($v) => (string) (int) $v, 'el ' . $diaHoy . ' pasado');
+[$txtVentas, $clsVentas]   = $comparar($r['ventas_semana'] ?? null, $r['ventas_semana_ant'] ?? null, false, $dinero, 'la semana pasada');
+[$txtMerma, $clsMerma]     = $comparar($r['merma_semana'] ?? null, $r['merma_semana_ant'] ?? null, true, $dinero, 'la semana pasada');
+$porCaducar = $r['por_caducar'] ?? [];
+
+// "Requiere atención": [gravedad, título, detalle, ruta, acción]
+$atencion = [];
+if (($r['fallidas_hoy'] ?? 0) > 0) {
+    $n = (int) $r['fallidas_hoy'];
+    $atencion[] = ['crit', $n . ($n === 1 ? ' entrega no se pudo hacer hoy' : ' entregas no se pudieron hacer hoy'), 'Revisa el motivo y vuelve a asignarla.', 'lista_entrega', 'Ver entregas'];
+}
+if (($r['sin_repartidor'] ?? 0) > 0) {
+    $n = (int) $r['sin_repartidor'];
+    $atencion[] = ['aviso', $n . ($n === 1 ? ' pedido confirmado sin repartidor' : ' pedidos confirmados sin repartidor'), 'Asígnales repartidor o arma una ruta.', 'lista_entrega', 'Asignar'];
+}
+if (($r['por_confirmar'] ?? 0) > 0) {
+    $n = (int) $r['por_confirmar'];
+    $atencion[] = ['aviso', $n . ($n === 1 ? ' pedido nuevo por confirmar' : ' pedidos nuevos por confirmar'), 'Llegaron de la tienda y esperan revisión.', 'lista_p_pedido?estado=pedido_realizado', 'Revisar'];
+}
+foreach (array_slice($porCaducar, 0, 3) as $cad) {
+    $dias  = (int) round((strtotime($cad['fecha_cad']) - strtotime(date('Y-m-d'))) / 86400);
+    $cuando = match (true) {
+        $dias <= 0 => 'caduca hoy',
+        $dias === 1 => 'caduca mañana',
+        default    => 'caduca el ' . $diasSemana[(int) date('w', strtotime($cad['fecha_cad']))] . ' ' . date('j', strtotime($cad['fecha_cad'])),
+    };
+    $atencion[] = ['aviso', ucfirst($cad['nombre']) . ' ' . $cuando, 'Entrada #' . $cad['id'], 'lista_entrada', 'Ver'];
+}
+if (($r['sugerencias_7d'] ?? 0) > 0) {
+    $n = (int) $r['sugerencias_7d'];
+    $atencion[] = ['info', $n . ($n === 1 ? ' sugerencia esta semana' : ' sugerencias esta semana'), 'Ideas del equipo y de clientes para mejorar Fruver.', 'lista_sugerencia', 'Leer'];
+}
+
+// Productos con menos existencias (ya se calculaba aquí)
+$bajos_stock = [];
+foreach ($productos as $p) {
+    $bajos_stock[] = ['nombre' => $p['nombre'], 'stock' => $stockPorProducto[$p['id']] ?? 0];
+}
+usort($bajos_stock, static fn ($a, $b) => $a['stock'] <=> $b['stock']);
+$top5_bajos = array_slice($bajos_stock, 0, 5);
+?>
     <div class="flash-container">
         <?php if (session()->getFlashdata('error')): ?>
-            <div class="w3-panel w3-red w3-animate-opacity">
-                <p><?= esc(session()->getFlashdata('error')) ?></p>
-            </div>
+            <div class="w3-panel w3-red"><p><?= esc(session()->getFlashdata('error')) ?></p></div>
         <?php endif; ?>
         <?php if (session()->getFlashdata('mensaje')): ?>
-            <div class="w3-panel w3-green w3-animate-opacity">
-                <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
-            </div>
+            <div class="w3-panel w3-green"><p><?= esc(session()->getFlashdata('mensaje')) ?></p></div>
         <?php endif; ?>
     </div>
 
-    <div class="dashboard-wrapper">
+    <main class="lista-wrapper inicio">
+        <div class="pagina-cabeza">
+            <div>
+                <span class="pagina-sub"><?= esc($fechaLarga) ?></span>
+                <h1 class="pagina-titulo"><?= esc($saludo) ?><?= $nombreInicio !== '' ? ', ' . esc($nombreInicio) : '' ?></h1>
+            </div>
+            <div class="pagina-acciones">
+                <a href="<?= base_url('entrada_rapida') ?>" class="btn btn-secundario"><i class="fa-solid fa-bolt" aria-hidden="true"></i>Entrada rápida</a>
+                <a href="<?= base_url('lista_p_pedido') ?>" class="btn btn-primario"><i class="fa-solid fa-receipt" aria-hidden="true"></i>Ver pedidos</a>
+            </div>
+        </div>
 
-        <aside class="sidebar">
-            <nav class="sidebar-nav">
-                <p class="nav-label">Módulos</p>
-                <a href="<?= base_url('lista_producto') ?>"   class="nav-item">Productos</a>
-                <a href="<?= base_url('lista_cliente') ?>"    class="nav-item">Clientes</a>
-                <a href="<?= base_url('lista_repartidor') ?>" class="nav-item">Repartidores</a>
-                <a href="<?= base_url('lista_direccion') ?>"  class="nav-item">Direcciones</a>
-                <a href="<?= base_url('lista_entrada') ?>"    class="nav-item">Entradas</a>
-                <a href="<?= base_url('lista_merma') ?>"      class="nav-item">Mermas</a>
-                <a href="<?= base_url('lista_pedido') ?>"     class="nav-item">Pedidos</a>
-                <a href="<?= base_url('lista_p_pedido') ?>"   class="nav-item">Productos por pedido</a>
-                <a href="<?= base_url('lista_estatus') ?>"    class="nav-item">Estatus</a>
-                <a href="<?= base_url('lista_existencia') ?>" class="nav-item">Existencias</a>
-                <a href="<?= base_url('lista_sugerencia') ?>" class="nav-item">Sugerencias</a>
-            </nav>
-        </aside>
+        <section class="inicio-kpis" aria-label="Indicadores">
+            <div class="kpi">
+                <span class="kpi-nombre">Pedidos hoy</span>
+                <strong class="kpi-valor num"><?= ($r['pedidos_hoy'] ?? null) === null ? '—' : (int) $r['pedidos_hoy'] ?></strong>
+                <span class="kpi-comp <?= $clsPedidos ?>"><?= esc($txtPedidos) ?></span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-nombre">Ventas de la semana</span>
+                <strong class="kpi-valor num"><?= ($r['ventas_semana'] ?? null) === null ? '—' : esc($dinero($r['ventas_semana'])) ?></strong>
+                <span class="kpi-comp <?= $clsVentas ?>"><?= esc($txtVentas) ?></span>
+            </div>
+            <div class="kpi">
+                <span class="kpi-nombre">Pérdida por merma (semana)</span>
+                <strong class="kpi-valor num"><?= ($r['merma_semana'] ?? null) === null ? '—' : esc($dinero($r['merma_semana'])) ?></strong>
+                <span class="kpi-comp <?= $clsMerma ?>"><?= esc($txtMerma) ?></span>
+            </div>
+            <div class="kpi<?= $porCaducar !== [] ? ' atencion' : '' ?>">
+                <span class="kpi-nombre">Por caducar</span>
+                <strong class="kpi-valor num"><?= count($porCaducar) ?> <?= count($porCaducar) === 1 ? 'entrada' : 'entradas' ?></strong>
+                <span class="kpi-comp <?= $porCaducar !== [] ? 'cuidado' : 'neutro' ?>">En los próximos 2 días</span>
+            </div>
+        </section>
 
-        <main class="dashboard-main">
-
-            <section class="kpi-grid">
-                <div class="kpi-card kpi--green">
-                    <div class="kpi-icon">📦</div>
-                    <div class="kpi-info">
-                        <span class="kpi-value"><?= count($productos) ?></span>
-                        <span class="kpi-label">Productos</span>
-                    </div>
-                    <a href="<?= base_url('lista_producto') ?>" class="kpi-link">Ver lista →</a>
-                </div>
-                <div class="kpi-card kpi--teal">
-                    <div class="kpi-icon">👤</div>
-                    <div class="kpi-info">
-                        <span class="kpi-value"><?= count($clientes) ?></span>
-                        <span class="kpi-label">Clientes</span>
-                    </div>
-                    <a href="<?= base_url('lista_cliente') ?>" class="kpi-link">Ver lista →</a>
-                </div>
-                <div class="kpi-card kpi--olive">
-                    <div class="kpi-icon">🚚</div>
-                    <div class="kpi-info">
-                        <span class="kpi-value"><?= count($repartidores) ?></span>
-                        <span class="kpi-label">Repartidores</span>
-                    </div>
-                    <a href="<?= base_url('lista_repartidor') ?>" class="kpi-link">Ver lista →</a>
-                </div>
-                <div class="kpi-card kpi--dark">
-                    <div class="kpi-icon">🧾</div>
-                    <div class="kpi-info">
-                        <span class="kpi-value"><?= count($pedidos) ?></span>
-                        <span class="kpi-label">Pedidos</span>
-                    </div>
-                    <a href="<?= base_url('lista_pedido') ?>" class="kpi-link">Ver lista →</a>
-                </div>
+        <div class="inicio-fila inicio-fila--principal">
+            <section class="tarjeta">
+                <div class="tarjeta-cab"><h2>Pedidos por semana</h2><small>Últimas 8 semanas</small></div>
+                <div class="grafica-caja"><canvas id="pedidosChart" aria-label="Pedidos por semana" role="img"></canvas></div>
             </section>
 
-            <section class="charts-row">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Pedidos por semana</h2>
-                        <span class="chart-badge">Últimas 8 semanas</span>
-                    </div>
-                    <div class="chart-area"><canvas id="pedidosChart"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Total en ventas</h2>
-                        <span class="chart-badge">Últimas 8 semanas</span>
-                    </div>
-                    <div class="chart-area"><canvas id="ventasChart"></canvas></div>
-                </div>
+            <section class="tarjeta">
+                <div class="tarjeta-cab"><h2>Requiere atención</h2><small><?= count($atencion) ?></small></div>
+                <?php if ($atencion === []): ?>
+                    <div class="vacio"><b>Todo en orden</b><span>No hay entregas fallidas, pedidos sin repartidor ni productos por caducar.</span></div>
+                <?php else: ?>
+                    <ul class="atencion-lista">
+                        <?php foreach ($atencion as [$gravedad, $titulo, $detalle, $ruta, $accion]): ?>
+                            <li class="atencion-item atencion-<?= esc($gravedad, 'attr') ?>">
+                                <div><b><?= esc($titulo) ?></b><span><?= esc($detalle) ?></span></div>
+                                <a href="<?= base_url($ruta) ?>" class="btn btn-chico <?= $gravedad === 'aviso' || $gravedad === 'crit' ? 'btn-primario' : 'btn-secundario' ?>"><?= esc($accion) ?></a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
             </section>
+        </div>
 
-            <section class="charts-row">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Top 5 productos más vendidos</h2>
-                        <span class="chart-badge">Histórico</span>
-                    </div>
-                    <div class="chart-area"><canvas id="topProductosChart"></canvas></div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Pérdidas por merma</h2>
-                        <span class="chart-badge">Últimas 8 semanas</span>
-                    </div>
-                    <div class="chart-area"><canvas id="mermaChart"></canvas></div>
-                </div>
+        <div class="inicio-fila">
+            <section class="tarjeta">
+                <div class="tarjeta-cab"><h2>Ventas por semana</h2><small>Últimas 8 semanas</small></div>
+                <div class="grafica-caja"><canvas id="ventasChart" aria-label="Ventas por semana" role="img"></canvas></div>
             </section>
-
-            <section class="bottom-row">
-                <div class="table-card">
-                    <div class="chart-header">
-                        <h2 class="chart-title">Productos con bajas existencias</h2>
-                        <span class="chart-badge">Top 5</span>
-                    </div>
-                    <?php
-                    // Ordenar productos por existencia (de menor a mayor)
-                    $bajos_stock = [];
-                    foreach ($productos as $p) {
-                        $stock = $stockPorProducto[$p['id']] ?? 0;
-                        $bajos_stock[] = ['nombre' => $p['nombre'], 'stock' => $stock];
-                    }
-                    usort($bajos_stock, fn($a, $b) => $a['stock'] <=> $b['stock']);
-                    $top5_bajos = array_slice($bajos_stock, 0, 5);
-                    ?>
-                    <table class="data-table">
-                        <thead>
-                            <tr><th>#</th><th>Producto</th><th>Stock</th><th>Estado</th></tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($top5_bajos as $i => $p): ?>
-                                <tr>
-                                    <td><?= esc($i + 1) ?></td>
-                                    <td><?= esc($p['nombre']) ?></td>
-                                    <td><?= esc($p['stock']) ?></td>
-                                    <td>
-                                        <?php if ($p['stock'] <= 5): ?>
-                                            <span class="badge badge--red">Bajo</span>
-                                        <?php elseif ($p['stock'] <= 15): ?>
-                                            <span class="badge badge--yellow">Medio</span>
-                                        <?php else: ?>
-                                            <span class="badge badge--green">OK</span>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="actions-card">
-                    <h2 class="chart-title" style="margin-bottom:1rem;">Acciones rápidas</h2>
-                    <div class="actions-grid">
-                        <button onclick="document.getElementById('modalProducto').style.display='block'"    class="action-btn" style="border:none;cursor:pointer;">+ Producto</button>
-                        <button onclick="document.getElementById('modalCliente').style.display='block'"     class="action-btn" style="border:none;cursor:pointer;">+ Cliente</button>
-                        <button onclick="document.getElementById('modalRepartidor').style.display='block'"  class="action-btn" style="border:none;cursor:pointer;">+ Repartidor</button>
-                        <button onclick="document.getElementById('modalDireccion').style.display='block'"   class="action-btn" style="border:none;cursor:pointer;">+ Dirección</button>
-                        <button onclick="document.getElementById('modalEntrada').style.display='block'"     class="action-btn" style="border:none;cursor:pointer;">+ Entrada</button>
-                        <button onclick="document.getElementById('modalMerma').style.display='block'"       class="action-btn" style="border:none;cursor:pointer;">+ Merma</button>
-                        <button onclick="document.getElementById('modalPpedido').style.display='block'"     class="action-btn" style="border:none;cursor:pointer;">+ Carrito</button>
-                        <button onclick="document.getElementById('modalExistencias').style.display='block'" class="action-btn" style="border:none;cursor:pointer;">+ Existencias</button>
-                    </div>
-                </div>
+            <section class="tarjeta">
+                <div class="tarjeta-cab"><h2>Pérdidas por merma</h2><small>Últimos 6 meses</small></div>
+                <div class="grafica-caja"><canvas id="mermaChart" aria-label="Pérdidas por merma por mes" role="img"></canvas></div>
             </section>
+        </div>
 
-        </main>
-    </div>
+        <div class="inicio-fila">
+            <section class="tarjeta">
+                <div class="tarjeta-cab"><h2>Productos más vendidos</h2><small>Histórico, en pesos</small></div>
+                <div class="grafica-caja"><canvas id="topProductosChart" aria-label="Cinco productos más vendidos" role="img"></canvas></div>
+            </section>
+            <section class="tarjeta">
+                <div class="tarjeta-cab"><h2>Menos existencias</h2><small>5 productos</small></div>
+                <table class="tabla-mini">
+                    <thead><tr><th>Producto</th><th class="der">Disponible</th><th>Nivel</th></tr></thead>
+                    <tbody>
+                        <?php foreach ($top5_bajos as $p): ?>
+                            <tr>
+                                <td><?= esc($p['nombre']) ?></td>
+                                <td class="der num"><?= esc($p['stock']) ?></td>
+                                <td>
+                                    <?php if ($p['stock'] <= 5): ?>
+                                        <span class="est est-fallida">Bajo</span>
+                                    <?php elseif ($p['stock'] <= 15): ?>
+                                        <span class="est est-en_ruta">Medio</span>
+                                    <?php else: ?>
+                                        <span class="est est-entregada">Suficiente</span>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <section class="tarjeta registro-rapido">
+            <div class="tarjeta-cab"><h2>Registro rápido</h2><small>Sin salir del inicio</small></div>
+            <div class="registro-botones">
+                <button type="button" onclick="document.getElementById('modalPpedido').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-receipt" aria-hidden="true"></i>Pedido</button>
+                <button type="button" onclick="document.getElementById('modalEntrada').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i>Entrada</button>
+                <button type="button" onclick="document.getElementById('modalExistencias').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>Existencias</button>
+                <button type="button" onclick="document.getElementById('modalMerma').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-arrow-trend-down" aria-hidden="true"></i>Merma</button>
+                <button type="button" onclick="document.getElementById('modalProducto').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-carrot" aria-hidden="true"></i>Producto</button>
+                <button type="button" onclick="document.getElementById('modalCliente').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-user-plus" aria-hidden="true"></i>Cliente</button>
+                <button type="button" onclick="document.getElementById('modalDireccion').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Dirección</button>
+                <button type="button" onclick="document.getElementById('modalRepartidor').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-id-badge" aria-hidden="true"></i>Repartidor</button>
+            </div>
+        </section>
+
+        <?php include 'Footer.php'; ?>
+    </main>
 
     <div id="modalCliente" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
@@ -981,120 +1007,127 @@
     </script>
 
     <?php
-    // Extraemos limpiamente los datos que el controlador ya agrupó desde SQL
-    
-    // 1. Pedidos por semana
-    $pedidos_labels = array_column($pedidosPorMes, 'semana');
-    $semanas_count  = array_column($pedidosPorMes, 'total');
+    // Datos de las gráficas (ya agrupados en SQL por el controlador), con etiquetas legibles.
+    $semanaTexto = static function (string $s) use ($mesesCorto): string {
+        if (preg_match('/^(\d{4})-W(\d{2})$/', $s, $m)) {
+            $d = (new DateTime())->setISODate((int) $m[1], (int) $m[2]);
 
-    // 2. Ventas por semana
-    $ventas_labels  = array_column($ventasPorMes, 'semana');
-    $semanas_ventas = array_column($ventasPorMes, 'ventas');
+            return $d->format('j') . ' ' . $mesesCorto[(int) $d->format('n')];
+        }
 
-    // 3. Top 5 productos
+        return $s;
+    };
+    $mesTexto = static fn (string $s): string => preg_match('/^(\d{4})-(\d{2})$/', $s, $m)
+        ? $mesesCorto[(int) $m[2]] . ' ' . $m[1]
+        : $s;
+
+    $pedidos_labels = array_map($semanaTexto, array_column($pedidosPorMes, 'semana'));
+    $semanas_count  = array_map('intval', array_column($pedidosPorMes, 'total'));
+    $ventas_labels  = array_map($semanaTexto, array_column($ventasPorMes, 'semana'));
+    $semanas_ventas = array_map('floatval', array_column($ventasPorMes, 'ventas'));
     $top5_labels    = array_column($topProductos, 'nombre');
-    $top5_data      = array_column($topProductos, 'total_vendido');
-
-    // 4. Mermas por mes
-    $mermas_labels  = array_column($perdidasMerma, 'mes');
-    $mermas_data    = array_column($perdidasMerma, 'perdida');
+    $top5_data      = array_map('floatval', array_column($topProductos, 'total_vendido'));
+    $mermas_labels  = array_map($mesTexto, array_column($perdidasMerma, 'mes'));
+    $mermas_data    = array_map('floatval', array_column($perdidasMerma, 'perdida'));
     ?>
 
     <script>
     (function () {
-        const colVerde  = 'rgba(0, 145, 10, 0.75)';
-        const colVerdeB = 'rgba(0, 145, 10, 1)';
-        const colLima   = 'rgba(155, 233, 49, 0.6)';
-        const colRojo   = 'rgba(246, 78, 96, 0.75)';
-        const colRojoB  = 'rgba(246, 78, 96, 1)';
+        if (!window.Chart) { return; }
 
-        const defOpts = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, grid: { color: '#f0f0f0' } }
-            }
+        // Paleta de Fruver (public/estilos/base.css)
+        const HOJA = '#0b7d2e', HOJA_SUAVE = '#b9dcc2', HOJA_FONDO = 'rgba(11, 125, 46, 0.10)';
+        const ALERTA = '#c2453c', ALERTA_SUAVE = '#ecb7b1', TINTA = '#4f5d53', LINEA = '#e8ecdf';
+
+        Chart.defaults.font.family = "Figtree, 'Segoe UI', system-ui, sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = TINTA;
+
+        const pesos = (v) => '$' + Number(v).toLocaleString('es-MX', { maximumFractionDigits: 0 });
+        // La última barra (el periodo más reciente) se resalta
+        const resaltarUltima = (datos, base, fuerte) => datos.map((_, i) => i === datos.length - 1 ? fuerte : base);
+
+        // Sin datos (o todo en cero): mensaje en lugar de una gráfica vacía
+        const hayDatos = (id, datos, mensaje) => {
+            if (datos.some((v) => Number(v) > 0)) { return true; }
+            const caja = document.getElementById(id).parentElement;
+            const p = document.createElement('p');
+            p.className = 'grafica-vacia';
+            p.textContent = mensaje;
+            caja.replaceChildren(p);
+            return false;
         };
 
-        // 1. Pedidos por semana
-        new Chart(document.getElementById('pedidosChart'), {
-            type: 'bar',
-            data: {
-                labels: <?= json_seguro($pedidos_labels) ?>,
-                datasets: [{
-                    label: 'Pedidos',
-                    data: <?= json_seguro($semanas_count) ?>,
-                    backgroundColor: colVerde,
-                    borderColor: colVerdeB,
-                    borderWidth: 1,
-                    borderRadius: 6,
-                }]
+        const opciones = (formato) => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { left: 6, right: 6 } },
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: formato ? { label: (c) => ' ' + formato(c.parsed.y ?? c.parsed.x) } : {} }
             },
-            options: defOpts
-        });
-
-        // 2. Total en ventas
-        new Chart(document.getElementById('ventasChart'), {
-            type: 'line',
-            data: {
-                labels: <?= json_seguro($ventas_labels) ?>,
-                datasets: [{
-                    label: 'Ventas ($)',
-                    data: <?= json_seguro($semanas_ventas) ?>,
-                    backgroundColor: colLima,
-                    borderColor: colVerdeB,
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: colVerdeB,
-                    pointRadius: 4,
-                }]
-            },
-            options: defOpts
-        });
-
-        // 3. Top 5 productos más vendidos (horizontal)
-        new Chart(document.getElementById('topProductosChart'), {
-            type: 'bar',
-            data: {
-                labels: <?= json_seguro($top5_labels) ?>,
-                datasets: [{
-                    label: 'Unidades',
-                    data: <?= json_seguro($top5_data) ?>,
-                    backgroundColor: colVerde,
-                    borderColor: colVerdeB,
-                    borderWidth: 1,
-                    borderRadius: 6,
-                }]
-            },
-            options: {
-                ...defOpts,
-                indexAxis: 'y',
-                scales: {
-                    x: { beginAtZero: true, grid: { color: '#f0f0f0' } },
-                    y: { grid: { display: false } }
-                }
+            scales: {
+                x: { grid: { display: false }, border: { color: LINEA } },
+                y: { beginAtZero: true, grid: { color: LINEA }, border: { display: false },
+                     ticks: formato ? { precision: 0, maxTicksLimit: 6, callback: (v) => formato(v) } : { precision: 0, maxTicksLimit: 6 } }
             }
         });
 
-        // 4. Pérdidas por merma
-        new Chart(document.getElementById('mermaChart'), {
-            type: 'bar',
-            data: {
-                labels: <?= json_seguro($mermas_labels) ?>,
-                datasets: [{
-                    label: 'Merma',
-                    data: <?= json_seguro($mermas_data) ?>,
-                    backgroundColor: colRojo,
-                    borderColor: colRojoB,
-                    borderWidth: 1,
-                    borderRadius: 6,
-                }]
-            },
-            options: defOpts
-        });
+        const pedidos = <?= json_seguro($semanas_count) ?>;
+        if (hayDatos('pedidosChart', pedidos, 'No hubo pedidos en las últimas 8 semanas.')) {
+            new Chart(document.getElementById('pedidosChart'), {
+                type: 'bar',
+                data: {
+                    labels: <?= json_seguro($pedidos_labels) ?>,
+                    datasets: [{ label: 'Pedidos', data: pedidos, backgroundColor: resaltarUltima(pedidos, HOJA_SUAVE, HOJA), borderRadius: 4, maxBarThickness: 40 }]
+                },
+                options: opciones(null)
+            });
+        }
+
+        const ventas = <?= json_seguro($semanas_ventas) ?>;
+        if (hayDatos('ventasChart', ventas, 'No hubo ventas en las últimas 8 semanas.')) {
+            new Chart(document.getElementById('ventasChart'), {
+                type: 'line',
+                data: {
+                    labels: <?= json_seguro($ventas_labels) ?>,
+                    datasets: [{ label: 'Ventas', data: ventas, borderColor: HOJA, backgroundColor: HOJA_FONDO,
+                                 borderWidth: 2, fill: true, tension: 0.35, pointBackgroundColor: HOJA, pointRadius: 3 }]
+                },
+                options: opciones(pesos)
+            });
+        }
+
+        const mermas = <?= json_seguro($mermas_data) ?>;
+        if (hayDatos('mermaChart', mermas, 'Sin pérdidas por merma en los últimos 6 meses.')) {
+            new Chart(document.getElementById('mermaChart'), {
+                type: 'bar',
+                data: {
+                    labels: <?= json_seguro($mermas_labels) ?>,
+                    datasets: [{ label: 'Pérdida', data: mermas, backgroundColor: resaltarUltima(mermas, ALERTA_SUAVE, ALERTA), borderRadius: 4, maxBarThickness: 40 }]
+                },
+                options: opciones(pesos)
+            });
+        }
+
+        const vendidos = <?= json_seguro($top5_data) ?>;
+        if (hayDatos('topProductosChart', vendidos, 'Todavía no hay ventas registradas.')) {
+            const top = opciones(pesos);
+            top.indexAxis = 'y';
+            top.scales = {
+                x: { beginAtZero: true, grid: { color: LINEA }, border: { display: false }, ticks: { maxTicksLimit: 5, callback: (v) => pesos(v) } },
+                y: { grid: { display: false }, border: { color: LINEA } }
+            };
+            top.plugins.tooltip.callbacks = { label: (c) => ' ' + pesos(c.parsed.x) };
+            new Chart(document.getElementById('topProductosChart'), {
+                type: 'bar',
+                data: {
+                    labels: <?= json_seguro($top5_labels) ?>,
+                    datasets: [{ label: 'Vendido', data: vendidos, backgroundColor: HOJA, borderRadius: 4, maxBarThickness: 26 }]
+                },
+                options: top
+            });
+        }
     })();
     </script>
 

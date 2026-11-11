@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifica merma</title>
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <form action="<?= base_url('modifica_merma') ?>" method="post">
 <?= csrf_field() ?>
         <input type="hidden" name="id" value="<?= esc($mermas['id']) ?>">

@@ -1,732 +1,430 @@
-/* ═══════════════════════════════════════════════════
-   FRUVER — estilosPaginas.css
-   ═══════════════════════════════════════════════════ */
-
-/* ── RESET BASE ── */
-html {
-    height: 100%;
-    box-sizing: border-box;
-}
-
-*, *::before, *::after {
-    box-sizing: inherit;
-}
+/* ═══════════════════════════════════════════════════════════════════
+   estilosPaginas.css — Estructura del panel de Fruver
+   Menú lateral, área de contenido, tablas, modales, avisos y pie.
+   Usa los tokens de base.css (se carga después de él).
+   Puntos de corte: 1024px, 768px y 480px.
+   ═══════════════════════════════════════════════════════════════════ */
 
 body {
     min-height: 100vh;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
-    background-color: #f7f7f7;
-    font-family: sans-serif;
+    padding-top: var(--alto-encabezado);
 }
 
-/* ═══════════════════════════════════════════════════
-   CONTENEDOR DE TABLA — scrollbar horizontal siempre
-   ═══════════════════════════════════════════════════ */
+/* ── MENÚ LATERAL ─────────────────────────────────── */
+.sidebar {
+    position: fixed;
+    top: var(--alto-encabezado);
+    left: 0;
+    bottom: 0;
+    width: var(--ancho-menu);
+    background: var(--hoja-oscura);
+    color: #cfe3d4;
+    overflow-y: auto;
+    z-index: 90;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+.sidebar-nav { display: grid; gap: 14px; padding: 16px 10px 24px; }
+.nav-grupo { display: grid; gap: 2px; }
+.nav-label {
+    padding: 0 10px 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #8fb79a;
+}
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 34px;
+    padding: 0 10px;
+    border-radius: var(--r-control);
+    color: #d9eadc;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color .15s, color .15s;
+}
+.nav-item i { width: 18px; text-align: center; font-size: 14px; color: #9fc6a9; }
+.nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.nav-item:hover i { color: #fff; }
+.nav-item.activo { background: var(--papel); color: var(--hoja-oscura); font-weight: 700; }
+.nav-item.activo i { color: var(--hoja); }
+.sidebar-fondo { display: none; }
+
+/* ── ÁREA DE CONTENIDO ────────────────────────────── */
+.lista-wrapper {
+    margin-left: var(--ancho-menu);
+    padding: 0 28px 40px;
+    min-height: calc(100vh - var(--alto-encabezado));
+    flex: 1 0 auto;
+}
+/* Vistas sin menú lateral (repartidor, buzón para clientes) */
+body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
+
+/* Barra de título + botón "+ Nuevo..." de las listas */
+.contenedor-boton {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 16px;
+    padding: 24px 0 16px !important; /* las vistas traen padding-top en línea distinto en cada una */
+}
+.contenedor-boton > h1,
+.contenedor-boton > h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+
+/* Títulos de las pantallas que aún usan su propia clase */
+.com-titulo, .er-titulo, .ticket-titulo, .sug-titulo,
+.lista-wrapper > h2:first-child, .lista-wrapper > div:first-of-type > h2 {
+    font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--tinta);
+}
+.lista-wrapper > h2:first-child { padding: 24px 0 16px !important; }
+
+/* Buscadores de las listas */
+.lista-wrapper > form[method="get"],
+.lista-wrapper form.buscador-lista { margin-bottom: 16px; }
+.lista-wrapper > form[method="get"] > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lista-wrapper > form[method="get"] .w3-input { max-width: 360px; }
+
+/* ── TABLAS ───────────────────────────────────────── */
 .tabla-wrapper {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
+    scrollbar-width: thin;
+    scrollbar-color: var(--hoja-suave) transparent;
 }
-
-/* Scrollbar visible y estilizada (Webkit) */
-.tabla-wrapper::-webkit-scrollbar {
-    height: 8px;
-}
-.tabla-wrapper::-webkit-scrollbar-track {
-    background: #e8f5e9;
-    border-radius: 4px;
-}
-.tabla-wrapper::-webkit-scrollbar-thumb {
-    background: #3AA346;
-    border-radius: 4px;
-}
-.tabla-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #007542;
-}
-
-/* ═══════════════════════════════════════════════════
-   TABLAS — estilos base
-   ═══════════════════════════════════════════════════ */
-table {
+.lista-wrapper table:not(.w3-table):not(.mini) {
     width: 100%;
-    min-width: max-content;      /* Nunca se comprime; activa la scrollbar */
     border-collapse: collapse;
-    margin-top: 0;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 117, 66, 0.15);
-    table-layout: auto;
+    background: var(--superficie);
 }
-
-thead {
-    background: linear-gradient(135deg, #007542, #3AA346);
-    color: white;
+.tabla-wrapper > table { min-width: max-content; }
+/* Tablas que no están dentro de .tabla-wrapper reciben su propio borde */
+.lista-wrapper > table:not(.w3-table),
+.contenedor-boton ~ table:not(.w3-table) {
+    display: block;
+    overflow-x: auto;
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
 }
-
-th {
-    padding: 14px 16px;
+.lista-wrapper th {
+    padding: 10px 14px;
     text-align: left;
-    font-weight: bold;
-    letter-spacing: 0.8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    font-size: 13px;
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--tinta-suave);
+    background: var(--superficie-2);
+    border-bottom: 1px solid var(--linea);
     white-space: nowrap;
 }
-
-th:last-child { border-right: none; }
-
-td {
-    padding: 12px 16px;
+.lista-wrapper td {
+    padding: 11px 14px;
     text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-    color: #333;
-    border-right: 1px solid rgba(0, 117, 66, 0.1);
+    border-bottom: 1px solid var(--linea-suave);
+    color: var(--tinta);
     white-space: nowrap;
-}
-
-td:last-child { border-right: none; }
-
-tbody tr:nth-child(even) {
-    background-color: #f9fff9;
-}
-
-/* Hover sólo en filas "normales" (no en la fila de detalle) */
-tbody tr.fila-pedido:hover td,
-tbody tr:not(.fila-detalle):hover td {
-    background-color: #f0fff4;
-    border-left: 3px solid #9BE931;
-}
-
-/* ═══════════════════════════════════════════════════
-   FILA DETALLE EXPANDIBLE (lista_p_pedido)
-   ═══════════════════════════════════════════════════ */
-.fila-detalle {
-    display: none;
-    background: #f0fff4;
-}
-
-.fila-detalle.abierto {
-    display: table-row;
-}
-
-.fila-detalle > td {
-    padding: 0;
-    border-top: none;
-    white-space: normal;        /* El detalle sí puede envolver texto */
-}
-
-.detalle-inner {
-    padding: 12px 24px 16px 40px;
-    border-left: 4px solid #3AA346;
-    overflow-x: auto;           /* Scrollbar propia del detalle si es muy ancho */
-}
-
-/* Tabla interior del detalle */
-.detalle-inner table {
-    margin-top: 8px;
-    box-shadow: none;
-    border-radius: 0;
-    min-width: 400px;           /* Ancho mínimo razonable para la sub-tabla */
-}
-
-.detalle-inner thead {
-    background: linear-gradient(135deg, #3AA346, #58BB43);
-}
-
-.detalle-inner th,
-.detalle-inner td {
-    font-size: 12px;
-    padding: 7px 12px;
-}
-
-/* Botón chevron expandir */
-.btn-expandir {
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: #007542;
-    font-size: 14px;
-    padding: 0 4px;
-    transition: transform 0.25s ease;
-    display: inline-flex;
-    align-items: center;
-}
-
-.btn-expandir.abierto {
-    transform: rotate(90deg);
-}
-
-/* Resumen de productos (celda recortada) */
-.resumen-productos {
-    font-size: 12px;
-    color: #555;
-    max-width: 220px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: inline-block;
     vertical-align: middle;
 }
+.lista-wrapper tbody tr:last-child td { border-bottom: 0; }
+.lista-wrapper tbody tr:not(.fila-detalle):hover td { background: #f6faf1; }
+.lista-wrapper td img { border-radius: var(--r-control); }
 
-/* Total del pedido */
-.total-pedido {
-    font-weight: bold;
-    color: #007542;
-    white-space: nowrap;
-}
-
-/* Cursor pointer en filas expandibles */
-.fila-pedido {
+/* Botones de acción sueltos dentro de las celdas (editar, borrar...) */
+.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir),
+.lista-wrapper td > form > button:not(.w3-button):not(.btn),
+.lista-wrapper td > a.accion {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border: 1px solid transparent !important; border-radius: var(--r-control);
+    background: transparent !important; color: var(--tinta-suave);
     cursor: pointer;
 }
+.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):hover,
+.lista-wrapper td > a.accion:hover { background: var(--hoja-clara) !important; color: var(--hoja-oscura); }
+.lista-wrapper td > form > button:not(.w3-button):not(.btn):hover { background: var(--alerta-claro) !important; color: var(--alerta); }
 
-/* ═══════════════════════════════════════════════════
-   CONTENEDOR BOTÓN Y BOTÓN AGREGAR
-   ═══════════════════════════════════════════════════ */
-.contenedor-boton {
-    padding: 10px 16px;
+/* ── FILA DE DETALLE (Productos por pedido) ───────── */
+.fila-pedido { cursor: pointer; }
+.fila-detalle { display: none; }
+.fila-detalle.abierto { display: table-row; }
+.fila-detalle > td { padding: 0 !important; white-space: normal; background: #f6faf1; }
+.detalle-inner { padding: 14px 24px 18px 52px; overflow-x: auto; }
+.detalle-inner > b { font-family: var(--f-titulo); font-size: 14px; }
+.detalle-inner table { margin-top: 8px; min-width: 420px; border: 1px solid var(--linea-suave); border-radius: var(--r-control); }
+.detalle-inner th, .detalle-inner td { font-size: 12.5px; padding: 7px 12px !important; }
+.btn-expandir {
+    border: none; background: none; cursor: pointer; color: var(--hoja);
+    width: 28px; height: 28px; border-radius: var(--r-control);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: transform .2s ease, background-color .15s;
 }
-
-.btn-agregar {
-    background: linear-gradient(135deg, #007542, #3AA346);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    letter-spacing: 0.5px;
-    transition: background 0.2s;
+.btn-expandir:hover { background: var(--hoja-clara); }
+.btn-expandir.abierto { transform: rotate(90deg); }
+.resumen-productos {
+    font-size: 13px; color: var(--tinta-suave);
+    max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: inline-block; vertical-align: middle;
 }
+.total-pedido { font-weight: 700; color: var(--tinta); white-space: nowrap; }
 
-.btn-agregar:hover {
-    background: linear-gradient(135deg, #3AA346, #58BB43);
+/* Productos por pedido: cliente y repartidor pueden ocupar dos líneas para que
+   el estado y las acciones quepan sin desplazarse a lo ancho */
+.lista-wrapper .tabla-wrapper > .tabla-pedidos { min-width: 0; }
+.tabla-pedidos > tbody > tr > td:nth-child(4),
+.tabla-pedidos > tbody > tr > td:nth-child(7) { white-space: normal; min-width: 130px; max-width: 200px; }
+.tabla-pedidos > tbody > tr > td:first-child { width: 40px; padding-right: 0; }
+.tabla-pedidos .resumen-productos { max-width: 190px; }
+.lista-wrapper .tabla-pedidos > thead > tr > th,
+.lista-wrapper .tabla-pedidos > tbody > tr:not(.fila-detalle) > td { padding-left: 10px; padding-right: 10px; }
+.tabla-pedidos .acciones-fila .btn-icono { width: 30px; height: 30px; }
+@media (max-width: 1024px) { .lista-wrapper .tabla-wrapper > .tabla-pedidos { min-width: max-content; } }
+
+/* Miniatura de producto en las listas */
+.miniatura { width: 44px; height: 44px; object-fit: cover; border-radius: var(--r-control); border: 1px solid var(--linea); display: block; }
+.sin-foto { font-size: 12.5px; color: var(--tinta-suave); }
+
+/* Columna de acciones con íconos (editar, imprimir, eliminar...) */
+.lista-wrapper .col-acciones { text-align: right; }
+.acciones-fila { display: flex; gap: 2px; justify-content: flex-end; align-items: center; }
+.acciones-fila form { display: inline-flex; margin: 0; }
+.paginacion-estado { align-self: center; padding: 0 8px; color: var(--tinta-suave); font-size: 13px; }
+.tabla-wrapper .paginacion { margin: 0; padding: 12px; border-top: 1px solid var(--linea-suave); position: sticky; left: 0; }
+
+/* Pestañas por estado (Productos por pedido) */
+.pestanas-estado {
+    display: flex; gap: 2px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--linea);
+    overflow-x: auto; scrollbar-width: none;
 }
-
-.btn-icono {
-    border: none;
-    cursor: pointer;
-    background: none;
+.pestanas-estado::-webkit-scrollbar { display: none; }
+.pestana {
+    display: inline-flex; align-items: center; gap: 7px; flex: none;
+    padding: 9px 12px; margin-bottom: -1px;
+    color: var(--tinta-suave); font-weight: 600; font-size: 14px; text-decoration: none;
+    border-bottom: 2px solid transparent;
 }
+.pestana b { font-size: 11.5px; font-weight: 700; line-height: 19px; padding: 0 7px; border-radius: var(--r-pildora); background: var(--linea-suave); color: var(--tinta-suave); }
+.pestana:hover { color: var(--hoja-oscura); }
+.pestana.activa { color: var(--hoja-oscura); border-bottom-color: var(--hoja); }
+.pestana.activa b { background: var(--hoja); color: #fff; }
 
-/* ═══════════════════════════════════════════════════
-   MODALES PROPIOS (.modal-*)
-   ═══════════════════════════════════════════════════ */
-.modal-contenido {
-    max-width: 500px;
-    margin: auto;
-    background: white;
-    border-radius: 8px;
+/* ── MODALES ──────────────────────────────────────── */
+.w3-modal { background-color: rgba(29, 42, 31, 0.55) !important; padding-top: 72px !important; }
+.w3-modal-content, .modal-contenido {
+    border-radius: 12px !important;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 117, 66, 0.2);
+    background: var(--superficie);
+    box-shadow: var(--sombra-flotante);
 }
-
+.w3-modal-content > form.w3-container { padding: 22px 22px 0 !important; }
+.w3-modal-content label { display: block; margin-bottom: 4px; font-size: 13.5px; color: var(--tinta); }
+.w3-modal-content > header,
+.w3-modal-content > div > header,
 .modal-header {
-    background: linear-gradient(135deg, #007542, #3AA346);
-    color: white;
-    padding: 16px;
     position: relative;
+    background: var(--hoja-oscura) !important;
+    color: #fff !important;
+    padding: 16px 20px;
 }
-
-.modal-header h2 {
-    margin: 0;
+.modal-header h2, .w3-modal-content header h2, .w3-modal-content header h3 { color: #fff; font-size: 19px; margin: 0; }
+.modal-header > form, .modal-header + form { color: var(--tinta); }
+.modal-cerrar, .w3-modal-content header .w3-display-topright {
+    position: absolute; right: 12px; top: 10px;
+    width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: var(--r-control); cursor: pointer; font-size: 22px; line-height: 1;
+    color: #fff; background: none; border: none;
 }
-
-.modal-cerrar {
-    position: absolute;
-    right: 16px;
-    top: 12px;
-    cursor: pointer;
-    font-size: 22px;
-    color: white;
-    background: none;
-    border: none;
-    line-height: 1;
+.modal-cerrar:hover { background: rgba(255, 255, 255, 0.14); }
+.modal-form { padding: 18px 20px 4px; background: var(--superficie); }
+.modal-header > .modal-form { margin: 14px -20px -16px; }
+.modal-form label { color: var(--tinta); font-weight: 600; display: block; margin-bottom: 4px; font-size: 13.5px; }
+.modal-input { display: block; width: 100%; margin-bottom: 14px; }
+/* Pie de los formularios en modal: antes una franja verde con botones blancos */
+.w3-modal footer.w3-container, .modal-footer {
+    display: flex !important; flex-direction: row-reverse; justify-content: flex-start; gap: 8px;
+    margin: 6px -22px 0; padding: 14px 22px !important;
+    background: var(--superficie-2) !important; color: var(--tinta) !important;
+    border-top: 1px solid var(--linea);
 }
-
-.modal-form {
-    padding: 16px;
-    background: white;
+.modal-footer { margin: 6px -20px 0; }
+.w3-modal footer .w3-right { float: none !important; }
+.w3-modal footer button[type="submit"].w3-button,
+.w3-modal footer .w3-button.w3-right {
+    background-color: var(--hoja) !important; color: #fff !important; border-color: var(--hoja) !important;
 }
+.w3-modal footer button[type="submit"].w3-button:hover,
+.w3-modal footer .w3-button.w3-right:hover { background-color: var(--hoja-oscura) !important; }
+.w3-modal table { min-width: unset !important; width: 100% !important; display: table !important; }
+.w3-modal th, .w3-modal td { white-space: normal !important; }
 
-.modal-form label {
-    color: #007542;
-    font-weight: bold;
-    display: block;
-    margin-bottom: 4px;
-}
-
-.modal-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 14px;
-    border: 1px solid #3AA346;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.modal-footer {
-    padding: 12px 16px;
-    display: flex;
-    gap: 8px;
-    background: #f9fff9;
-    border-top: 1px solid #e0efe0;
-}
-
-.btn-guardar,
-.btn-cancelar {
-    border: none;
-    padding: 8px 18px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #007542;
-    background: white;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    transition: background 0.15s;
-}
-
-.btn-guardar:hover,
-.btn-cancelar:hover {
-    background: #C1FF1C;
-    color: #007542;
-}
-
-/* ═══════════════════════════════════════════════════
-   PROTECCIÓN — tablas dentro de modales w3.css
-   ═══════════════════════════════════════════════════ */
-.w3-modal table {
-    min-width: unset !important;
-    width: 100% !important;
-}
-
-.w3-modal th,
-.w3-modal td {
-    white-space: normal !important;
-}
-
-/* ═══════════════════════════════════════════════════
-   ALERTAS FLASH
-   ═══════════════════════════════════════════════════ */
+/* ── AVISOS FLOTANTES (mensajes después de guardar) ── */
 .flash-container {
     position: fixed;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: calc(var(--alto-encabezado) + 14px);
+    right: 20px;
     z-index: 9998;
-    width: 60vw;
+    width: min(420px, calc(100vw - 32px));
+    display: grid;
+    gap: 8px;
     pointer-events: none;
+    transition: opacity .4s ease;
 }
-
+.flash-container.oculto { opacity: 0; }
 .flash-container .w3-panel {
-    border-radius: 12px;
-    padding: 20px 30px;
-    margin: 0;
-    text-align: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    border-radius: var(--r-tarjeta);
+    box-shadow: var(--sombra-flotante);
     pointer-events: auto;
 }
+.flash-container .w3-panel.w3-green { background: var(--tinta) !important; color: #fff !important; border-color: var(--tinta) !important; }
+.flash-container .w3-panel.w3-green::before { content: "✓"; color: #7fd99a; font-weight: 700; }
+.flash-container .w3-panel.w3-red { background: var(--alerta) !important; color: #fff !important; border-color: var(--alerta) !important; }
+.flash-container .w3-panel p { color: inherit; font-weight: 600; font-size: 14.5px; margin: 0; text-align: left; }
 
-.flash-container .w3-panel p {
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-    margin: 0;
+/* ── FORMULARIOS DE PÁGINA COMPLETA ───────────────── */
+.formulario-pagina, body > .modal-contenido {
+    width: min(560px, calc(100% - 32px)); max-width: 560px; margin: 32px auto !important;
+    background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; overflow: hidden;
 }
-
-/* ═══════════════════════════════════════════════════
-   FORMULARIO DE PÁGINA COMPLETA
-   ═══════════════════════════════════════════════════ */
-.formulario-pagina {
-    max-width: 500px;
-    margin: 40px auto;
-    padding: 0 16px;
+.formulario-pagina > .modal-footer, body > .modal-contenido .modal-footer { margin: 6px 0 0; }
+/* Pantallas antiguas cuyo formulario es hijo directo de <body> */
+body > form, body > .formulario-pagina > form {
+    width: min(560px, calc(100% - 32px));
+    margin: 32px auto;
+    padding: 24px;
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
+    display: grid;
+    gap: 6px;
 }
+body > form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+body > form select,
+body > form textarea {
+    width: 100%; min-height: 38px; padding: 8px 11px; margin-bottom: 8px;
+    border: 1px solid var(--borde-control); border-radius: var(--r-control); background: var(--superficie);
+}
+body > form button, body > form input[type="submit"] {
+    justify-self: start; min-height: 38px; padding: 0 18px; margin-top: 6px;
+    background: var(--hoja); color: #fff; border: 0; border-radius: var(--r-control); font-weight: 600; cursor: pointer;
+}
+body > form br { display: none; }
 
-/* ═══════════════════════════════════════════════════
-   FOOTER STICKY AL FONDO
-   ═══════════════════════════════════════════════════ */
+/* ── PAGINACIÓN ───────────────────────────────────── */
+.paginacion, .lista-wrapper .w3-bar:has(> a.w3-button) {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 20px;
+}
+.paginacion .w3-button { min-width: 38px; }
+
+/* ── PIE ──────────────────────────────────────────── */
 .footer {
-    background: #00910a;
     margin-top: auto;
     flex-shrink: 0;
     width: 100%;
-    box-shadow: 0 -2px 8px rgba(0, 117, 66, 0.2);
+    border-top: 1px solid var(--linea);
+    background: var(--papel);
 }
-
+body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
+.lista-wrapper .footer { margin: 40px -28px -40px; width: auto; }
 .footer_container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 32px;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    padding: 16px 28px;
 }
+.footer_brand { display: flex; align-items: baseline; gap: 10px; }
+.footer_logo { font-family: var(--f-titulo); font-weight: 800; color: var(--hoja-oscura); font-size: 16px; }
+.footer_tagline, .footer_copy { color: var(--tinta-suave); font-size: 13px; }
 
-.footer_brand {
-    display: flex;
-    flex-direction: column;
-}
-
-.footer_logo {
-    color: #ffffff;
-    font-size: 1.2em;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-.footer_tagline {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.75em;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-}
-
-.footer_copy {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.8em;
-    letter-spacing: 0.3px;
-}
-
-/* Alternativa global — afecta todas las tablas del body directo */
-body > div > table,
-.dashboard-main table:not(.w3-table),
-.contenedor-boton ~ table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* ── SIDEBAR FIXED ──────────────────────────────── */
-.sidebar {
-    position: fixed;
-    top: 55px;           /* igual a la altura del header */
-    left: 0;
-    width: 200px;
-    height: calc(100vh - 55px);
-    background: #ffffff;
-    border-right: 1px solid rgba(0, 117, 66, 0.15);
-    box-shadow: 2px 0 8px rgba(0, 117, 66, 0.08);
-    overflow-y: auto;
-    z-index: 90;         /* debajo del header (z-index:100) */
-}
-
-.sidebar-nav {
-    padding: 16px 0;
-}
-
-.nav-label {
-    padding: 8px 16px 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: #3AA346;
-    margin: 0;
-}
-
-.nav-item {
-    display: block;
-    padding: 10px 16px;
-    color: #333;
-    text-decoration: none;
-    font-size: 14px;
-    border-left: 3px solid transparent;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.nav-item:hover {
-    background: #f0fff4;
-    border-left-color: #3AA346;
-    color: #007542;
-}
-
-.nav-item.activo {
-    background: #e6ffed;
-    border-left-color: #007542;
-    color: #007542;
-    font-weight: 600;
-}
-
-/* ── WRAPPER para vistas de lista ───────────────── */
-.lista-wrapper {
-    margin-left: 200px;  /* ancho de la sidebar */
-    padding: 0 16px 32px;
-    min-height: calc(100vh - 55px);
-}
-/* ═══════════════════════════════════════════════════
-   BUSCADOR AUTOCOMPLETE DE PRODUCTO (modales)
-   Compartido por lista_p_pedido y cualquier vista
-   que cargue estilosPaginas.css
-   ═══════════════════════════════════════════════════ */
-.prod-search-wrap {
-    position: relative;
-    margin-bottom: 8px;
-}
-.prod-search-wrap .search-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-    pointer-events: none;
-}
-.prod-search-input {
-    width: 100%;
-    padding: 8px 12px 8px 34px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    font-size: 14px;
-    border-radius: 4px;
-}
-.prod-search-input:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 2px rgba(76,175,80,.2);
-}
+/* ── BUSCADOR DE PRODUCTOS EN MODALES ─────────────── */
+.prod-search-wrap { position: relative; margin-bottom: 8px; }
+.prod-search-wrap .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--tinta-suave); pointer-events: none; }
+.prod-search-input { width: 100%; padding-left: 34px !important; }
 .prod-resultados {
-    position: absolute;
-    z-index: 10000;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-top: none;
-    max-height: 220px;
-    overflow-y: auto;
-    width: 100%;
-    display: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+    position: absolute; z-index: 10000; width: 100%; display: none;
+    max-height: 220px; overflow-y: auto; margin-top: 4px;
+    background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--r-control);
+    box-shadow: var(--sombra-flotante);
 }
 .prod-resultados .prod-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    border-bottom: 1px solid #f0f0f0;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 8px 12px; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--linea-suave);
 }
-.prod-resultados .prod-item:hover,
-.prod-resultados .prod-item.activo { background: #e8f5e9; }
-.prod-resultados .prod-item .stock-pill {
-    font-size: 11px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-.prod-resultados .prod-item .stock-pill.con-stock { background:#d4edda; color:#155724; }
-.prod-resultados .prod-item .stock-pill.sin-stock  { background:#f8d7da; color:#721c24; }
-.prod-resultados .sin-resultados {
-    padding: 10px 12px;
-    color: #888;
-    font-size: 13px;
-}
+.prod-resultados .prod-item:hover, .prod-resultados .prod-item.activo { background: var(--hoja-clara); }
+.prod-resultados .prod-item .stock-pill { font-size: 11.5px; padding: 2px 8px; border-radius: var(--r-pildora); font-weight: 600; white-space: nowrap; }
+.prod-resultados .prod-item .stock-pill.con-stock { background: var(--hoja-clara); color: #0b6b28; }
+.prod-resultados .prod-item .stock-pill.sin-stock { background: var(--alerta-claro); color: var(--alerta); }
+.prod-resultados .sin-resultados { padding: 10px 12px; color: var(--tinta-suave); font-size: 13px; }
 .prod-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #f1f8f1;
-    border: 1px solid #a5d6a7;
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    font-size: 13px;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px 12px;
+    background: var(--hoja-clara); border: 1px solid var(--hoja-suave); border-radius: var(--r-control); font-size: 13px;
 }
 .prod-badge .badge-nombre { font-weight: 600; flex: 1; }
-.prod-badge .badge-stock  { font-size: 12px; color: #2e7d32; font-weight: 600; }
-.prod-badge .badge-limpiar {
-    cursor: pointer;
-    color: #c62828;
-    font-size: 16px;
-    line-height: 1;
-    background: none;
-    border: none;
-    padding: 0;
-}
-.prod-badge.sin-stock { border-color:#ef9a9a; background:#fff5f5; }
-.prod-badge.sin-stock .badge-stock { color:#c62828; }
-.search-hint { font-size: 12px; color: #999; margin-bottom: 8px; }
+.prod-badge .badge-stock { font-size: 12px; color: #0b6b28; font-weight: 600; }
+.prod-badge .badge-limpiar { cursor: pointer; color: var(--alerta); font-size: 16px; line-height: 1; background: none; border: none; padding: 0; }
+.prod-badge.sin-stock { border-color: var(--alerta-borde); background: var(--alerta-claro); }
+.prod-badge.sin-stock .badge-stock { color: var(--alerta); }
+.search-hint { font-size: 12px; color: var(--tinta-suave); margin-bottom: 8px; }
 
-/* ═══════════════════════════════════════════════════
-   RESPONSIVE — tabletas y celulares
-   Breakpoints: 1024px (tableta horizontal), 768px (tableta vertical
-   y celular), 480px (celular). El escritorio (>1024px) queda igual.
-
-   Algunas reglas llevan !important porque las vistas traen estilos en
-   línea (padding-top, max-height...) que no se pueden vencer de otra forma.
-   ═══════════════════════════════════════════════════ */
-
-/* ── TABLETA HORIZONTAL (≤1024px) ── */
-@media (max-width: 1024px) {
-    .sidebar { width: 180px; }
-
-    .lista-wrapper {
-        margin-left: 180px;
-        padding: 0 14px 28px;
-    }
-
-    .nav-item {
-        padding: 10px 14px;
-        font-size: 13px;
-    }
-
-    th { padding: 12px 14px; font-size: 12px; }
-    td { padding: 10px 14px; }
-
-    .flash-container { width: 80vw; }
-    .flash-container .w3-panel p { font-size: 18px; }
-
-    .footer_container { padding: 16px 24px; }
-}
-
-/* ── TABLETA VERTICAL Y CELULAR (≤768px) ── */
-@media (max-width: 768px) {
-    /* lista_cliente carga este archivo después de Header.css y le quita este desfase */
-    body { padding-top: 55px; }
-
-    /* La barra lateral fija pasa a ser una franja horizontal con scroll,
-       justo debajo del header. */
-    .sidebar {
-        position: static;
-        flex-shrink: 0;
-        width: 100%;
-        height: auto;
-        overflow: visible;
-        border-right: none;
-        border-bottom: 1px solid rgba(0, 117, 66, 0.15);
-        box-shadow: 0 2px 6px rgba(0, 117, 66, 0.08);
-    }
-
-    .sidebar-nav {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 6px 10px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-    .sidebar-nav::-webkit-scrollbar { display: none; }
-
-    .nav-label { display: none; }
-
-    .nav-item {
-        flex: 0 0 auto;
-        white-space: nowrap;
-        padding: 10px 14px;
-        border-left: none;
-        border-bottom: 3px solid transparent;
-        border-radius: 6px 6px 0 0;
-    }
-    .nav-item:hover { border-bottom-color: #3AA346; }
-    .nav-item.activo { border-bottom-color: #007542; }
-
-    .lista-wrapper {
-        margin-left: 0;
-        min-height: 0;
-        padding: 0 12px 24px;
-        padding-top: 12px !important;   /* anula paddings en línea (lista_cliente: 55px) */
-    }
-
-    /* Mensajes flash */
-    .flash-container { top: 62px; width: 92vw; }
-    .flash-container .w3-panel { padding: 14px 18px; border-radius: 10px; }
-    .flash-container .w3-panel p { font-size: 16px; }
-
-    /* Botón "+ Nuevo ..." (anula los padding-top en línea de 20/40/55/80px) */
-    .contenedor-boton { padding: 12px 0 !important; }
-    .contenedor-boton > .btn-agregar {
-        width: 100%;
-        padding: 12px 16px;
-        font-size: 15px;
-    }
-
-    /* Buscadores: el campo se estira y los botones bajan si no caben */
-    .lista-wrapper form[method="get"],
-    .lista-wrapper form[method="get"] > div {
-        flex-wrap: wrap;
-        width: 100%;
-    }
-    .lista-wrapper form[method="get"] input[type="text"] {
-        flex: 1 1 200px;
-        min-width: 0;
-    }
-
-    /* Tablas: siguen con scroll horizontal; se compactan y los botones de icono son tocables */
-    th { padding: 11px 12px; font-size: 12px; letter-spacing: 0.5px; }
-    td { padding: 10px 12px; font-size: 14px; }
-    td button:not(.btn-expandir) {
-        min-width: 40px;
-        min-height: 40px;
-        padding: 8px;
-        font-size: 16px;
-    }
-    .detalle-inner { padding: 10px 12px 14px 14px; }
-    .resumen-productos { max-width: 160px; }
-
-    /* Tabla directa en <body> (lista_estatus no usa .tabla-wrapper) */
-    body > table {
-        display: block;
-        min-width: 0;
-        max-width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    /* Modales: menos margen superior y alto acotado a la pantalla */
-    .w3-modal { padding-top: 56px !important; }
-    .w3-modal-content {
-        max-height: calc(100vh - 76px) !important;
-        max-height: calc(100dvh - 76px) !important;
-    }
-
-    /* Footer centrado */
-    .footer_container {
-        justify-content: center;
-        text-align: center;
-        padding: 16px;
-    }
-    .footer_brand { align-items: center; }
-
-    .formulario-pagina { margin: 24px auto; }
-    .prod-resultados { max-height: 180px; }
-}
-
-/* ── CELULAR (≤480px) ── */
-@media (max-width: 480px) {
-    .lista-wrapper { padding-left: 10px; padding-right: 10px; }
-
-    th { padding: 10px; font-size: 11px; }
-    td { padding: 9px 10px; font-size: 13px; }
-
-    .flash-container .w3-panel p { font-size: 15px; }
-
-    .w3-modal { padding-top: 40px !important; }
-    .w3-modal-content {
-        max-height: calc(100vh - 56px) !important;
-        max-height: calc(100dvh - 56px) !important;
-    }
-
-    /* iOS hace zoom al enfocar campos con fuente menor a 16px */
-    input, select, textarea,
-    .modal-input,
-    .prod-search-input { font-size: 16px; }
-
-    .btn-guardar,
-    .btn-cancelar { padding: 10px 16px; }
-
-    .modal-footer { flex-wrap: wrap; }
-    .modal-footer > * { flex: 1 1 120px; }
-
-    .footer_container { flex-direction: column; gap: 6px; }
-}
 /* Historial (trazabilidad) dentro del detalle de un pedido */
-.bitacora-titulo { display: block; margin-top: 14px; }
-.bitacora-tabla td { vertical-align: top; }
+.bitacora-titulo { display: block; margin-top: 16px; }
+.bitacora-tabla td { vertical-align: top; white-space: normal !important; }
 
+/* ═════════════════════ RESPONSIVE ═════════════════════ */
+@media (max-width: 1024px) {
+    :root { --ancho-menu: 200px; }
+    .lista-wrapper { padding: 0 20px 32px; }
+    .lista-wrapper .footer { margin: 32px -20px -32px; }
+}
+
+/* Celular y tableta vertical: el menú se vuelve un panel que se abre con el botón ☰ */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 272px;
+        transform: translateX(-100%);
+        transition: transform .22s ease;
+        box-shadow: var(--sombra-flotante);
+        z-index: 120;
+    }
+    body.menu-abierto .sidebar { transform: none; }
+    .sidebar-fondo {
+        position: fixed; inset: var(--alto-encabezado) 0 0 0; z-index: 110;
+        background: rgba(29, 42, 31, 0.45);
+    }
+    body.menu-abierto .sidebar-fondo { display: block; }
+    .nav-item { min-height: 42px; font-size: 15px; }
+
+    .lista-wrapper { margin-left: 0; padding: 0 16px 28px; padding-top: 0 !important; }
+    .lista-wrapper .footer { margin: 28px -16px -28px; }
+    body:has(> .sidebar) > .footer { padding-left: 0; }
+    .contenedor-boton > .btn-agregar { flex: 1 1 100%; justify-content: center; min-height: 44px; }
+    .lista-wrapper > form[method="get"] .w3-input { max-width: none; flex: 1 1 200px; }
+    .lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir),
+    .lista-wrapper td > form > button:not(.w3-button):not(.btn) { width: 42px; height: 42px; }
+    .detalle-inner { padding: 12px 14px 14px; }
+    .w3-modal { padding-top: 24px !important; }
+    .w3-modal-content, .modal-contenido { width: calc(100% - 24px) !important; max-height: calc(100dvh - 48px) !important; overflow-y: auto !important; }
+    .footer_container { justify-content: center; text-align: center; padding: 14px 16px; }
+}
+
+@media (max-width: 480px) {
+    .pagina-titulo, .contenedor-boton > h1, .contenedor-boton > h2 { font-size: 22px; }
+    /* iOS hace zoom al enfocar campos con letra menor a 16px */
+    input, select, textarea, .w3-input, .w3-select, .modal-input, .prod-search-input { font-size: 16px !important; }
+    .w3-modal footer.w3-container, .modal-footer { flex-direction: column-reverse; }
+    .w3-modal footer .w3-button, .modal-footer > * { width: 100%; }
+}
+
+/* Pantallas de formulario de una sola columna (p. ej. almacén de rutas) */
+.lista-angosta { max-width: 900px; }

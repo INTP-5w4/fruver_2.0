@@ -13,7 +13,7 @@
 .ticket-titulo {
     margin: 0;
     font-size: 24px;
-    color: #007542;
+    color: var(--hoja-oscura);
 }
 
 .ticket-card {
@@ -88,7 +88,7 @@
 }
 
 .ticket-copiado {
-    color: #2e7d32;
+    color: var(--hoja);
     font-size: 14px;
 }
 .ticket-nota {

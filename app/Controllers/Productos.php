@@ -9,6 +9,7 @@ use App\Models\Modelo_merma;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_producto;
 use App\Models\Modelo_repartidor;
+use App\Models\Modelo_resumen;
 use App\Models\PdoModelo;
 use Throwable;
 
@@ -76,6 +77,9 @@ class Productos extends BaseController
             'repartidores'      => $m_repartidor->findAll(),
             'pedidos'           => $m_pedido->findAll(),
             'entradas'          => $m_entrada->getEntradasConProducto(),
+
+            // Indicadores contra la semana anterior y lo que requiere atención hoy
+            'resumen' => (new Modelo_resumen())->inicio(),
 
             // Datos gráficos
             'pedidosPorMes' => $m_pedido->pedidosPorMes(),

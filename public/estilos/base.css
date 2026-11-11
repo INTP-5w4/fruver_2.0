@@ -1,0 +1,239 @@
+/* ═══════════════════════════════════════════════════════════════════
+   base.css — Identidad visual de Fruver (panel del personal y repartidor)
+
+   Mismos colores y tipografías que la tienda (tienda.css). Se carga con
+   app/Views/partials/estilos_panel.php, DESPUÉS de W3.CSS, en este orden:
+     base.css (tokens + componentes + adaptación de W3)
+     estilosPaginas.css (estructura del panel)
+     Header.css (barra superior)
+
+   Componentes nuevos:  .btn  .est  .tarjeta  .pagina-cabeza  .aviso  .vacio
+   Clases heredadas (w3-*, btn-agregar, btn-guardar...) se adaptan abajo, en
+   "ADAPTACIÓN", mientras se migran las vistas. W3.CSS usa !important en sus
+   colores, por eso esa sección también lo necesita.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    /* Color */
+    --hoja: #0b7d2e;
+    --hoja-oscura: #08481d;
+    --hoja-clara: #e3f3df;
+    --hoja-suave: #b9dcc2;
+    --papel: #f4f6ee;
+    --superficie: #ffffff;
+    --superficie-2: #f7f9f2;
+    --tinta: #1d2a1f;
+    --tinta-suave: #4f5d53;
+    --linea: #d8dfcc;
+    --linea-suave: #e8ecdf;
+    --borde-control: #b9c6ad;
+    --mango: #f0b323;
+    --mango-claro: #fdf0cf;
+    --mango-texto: #7a5300;
+    --alerta: #a8231b;
+    --alerta-claro: #fdecea;
+    --alerta-borde: #e3b3ae;
+    --info: #1f4fa8;
+    --info-claro: #e3ecfb;
+    --foco: #0b57d0;
+
+    /* Tipografía */
+    --f-titulo: 'Bricolage Grotesque', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    --f-texto: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+    /* Forma */
+    --r-control: 6px;
+    --r-tarjeta: 10px;
+    --r-pildora: 999px;
+    --sombra-flotante: 0 14px 36px rgba(8, 72, 29, 0.18);
+
+    /* Estructura */
+    --alto-encabezado: 56px;
+    --ancho-menu: 224px;
+}
+
+/* ── Reset (el proyecto ya trabajaba con márgenes en cero) ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+    background: var(--papel);
+    color: var(--tinta);
+    font: 15px/1.5 var(--f-texto);
+    -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, h5 { font-family: var(--f-titulo); color: var(--tinta); letter-spacing: -0.01em; line-height: 1.2; text-wrap: balance; }
+input, select, textarea, button { font: inherit; color: inherit; }
+img { max-width: 100%; }
+a { color: var(--hoja); }
+a:hover { color: var(--hoja-oscura); }
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+.num, td, .total-pedido { font-variant-numeric: tabular-nums; }
+code { font-size: 0.9em; }
+
+/* ═════════════════════ COMPONENTES ═════════════════════ */
+
+/* Botones: 4 tipos (primario, secundario, peligro, ícono) en 2 tamaños */
+.btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    min-height: 38px; padding: 0 16px;
+    border: 1px solid transparent; border-radius: var(--r-control);
+    font-weight: 600; font-size: 14px; line-height: 1; text-decoration: none; white-space: nowrap;
+    cursor: pointer; transition: background-color .15s, border-color .15s, color .15s;
+}
+.btn-primario { background: var(--hoja); color: #fff; }
+.btn-primario:hover { background: var(--hoja-oscura); color: #fff; }
+.btn-secundario { background: var(--superficie); color: var(--hoja-oscura); border-color: var(--borde-control); }
+.btn-secundario:hover { background: var(--superficie-2); color: var(--hoja-oscura); border-color: var(--hoja); }
+.btn-peligro { background: var(--superficie); color: var(--alerta); border-color: var(--alerta-borde); }
+.btn-peligro:hover { background: var(--alerta-claro); color: var(--alerta); }
+.btn-icono {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; padding: 0;
+    border: 1px solid transparent; border-radius: var(--r-control);
+    background: transparent; color: var(--tinta-suave); cursor: pointer;
+}
+.btn-icono:hover { background: var(--hoja-clara); color: var(--hoja-oscura); }
+.btn-icono.peligro:hover { background: var(--alerta-claro); color: var(--alerta); }
+.btn-chico { min-height: 30px; padding: 0 11px; font-size: 13px; }
+.btn-grande { min-height: 50px; padding: 0 20px; font-size: 16px; border-radius: var(--r-tarjeta); }
+.btn-bloque { width: 100%; }
+
+/* Insignias de estado (pedido y entrega) */
+.est {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 24px; padding: 0 10px; border-radius: var(--r-pildora);
+    font-size: 12.5px; font-weight: 600; white-space: nowrap; line-height: 1;
+}
+.est::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.est-pendiente,  .est-cancelada { background: #eceee8; color: var(--tinta-suave); }
+.est-realizado,  .est-asignada  { background: var(--info-claro); color: var(--info); }
+.est-confirmado                 { background: #d9f0ea; color: #0f6b5c; }
+.est-en_transito, .est-en_ruta  { background: var(--mango-claro); color: var(--mango-texto); }
+.est-entregado,  .est-entregada { background: var(--hoja-clara); color: #0b6b28; }
+.est-a_credito                  { background: #eee6f8; color: #6a3fa0; }
+.est-pagado                     { background: var(--hoja); color: #fff; }
+.est-cancelado,  .est-fallida   { background: var(--alerta-claro); color: var(--alerta); }
+.est-preferencial { background: var(--mango-claro); color: var(--mango-texto); }
+.est-preferencial::before { content: "★"; width: auto; height: auto; background: none; font-size: 11px; }
+
+/* Tarjeta: solo para separar un bloque, sin sombra */
+.tarjeta {
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
+    padding: 18px;
+}
+
+/* Encabezado de página: título a la izquierda, acciones a la derecha */
+.pagina-cabeza {
+    display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+    gap: 12px 16px; padding: 24px 0 16px;
+}
+.pagina-titulo { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.pagina-sub { display: block; color: var(--tinta-suave); font-size: 13px; margin-bottom: 2px; }
+.pagina-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Avisos dentro de la página */
+.aviso { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r-tarjeta); border: 1px solid transparent; }
+.aviso-ok { background: var(--hoja-clara); color: var(--hoja-oscura); border-color: var(--hoja-suave); }
+.aviso-error { background: var(--alerta-claro); color: var(--alerta); border-color: var(--alerta-borde); }
+.aviso-atencion { background: var(--mango-claro); color: var(--mango-texto); border-color: #f0d68a; }
+.aviso-info { background: var(--info-claro); color: var(--info); border-color: #c5d6f3; }
+
+/* Estado vacío */
+.vacio { display: grid; gap: 4px; padding: 28px 20px; text-align: center; color: var(--tinta-suave); border: 1px dashed var(--linea); border-radius: var(--r-tarjeta); background: var(--superficie); }
+.vacio b { color: var(--tinta); font-size: 15px; }
+
+/* ═════════════════════ ADAPTACIÓN ═════════════════════
+   Clases que las vistas ya usan, llevadas a la nueva identidad. */
+
+/* Botones de W3 */
+.w3-button {
+    border-radius: var(--r-control) !important;
+    font-weight: 600; font-size: 14px;
+    padding: 9px 16px;
+    transition: background-color .15s, border-color .15s, color .15s;
+}
+.w3-button.w3-small { padding: 6px 11px; font-size: 13px; }
+.w3-button.w3-green, .w3-button.w3-blue, .w3-button.w3-teal {
+    background-color: var(--hoja) !important; color: #fff !important; border: 1px solid var(--hoja) !important;
+}
+.w3-button.w3-green:hover, .w3-button.w3-blue:hover, .w3-button.w3-teal:hover {
+    background-color: var(--hoja-oscura) !important; color: #fff !important;
+}
+.w3-button.w3-white, .w3-button.w3-border, .w3-button.w3-light-grey, .w3-button.w3-grey {
+    background-color: var(--superficie) !important; color: var(--hoja-oscura) !important;
+    border: 1px solid var(--borde-control) !important;
+}
+.w3-button.w3-white:hover, .w3-button.w3-border:hover, .w3-button.w3-light-grey:hover, .w3-button.w3-grey:hover {
+    background-color: var(--superficie-2) !important; color: var(--hoja-oscura) !important; border-color: var(--hoja) !important;
+}
+.w3-button.w3-red, .w3-button.w3-orange {
+    background-color: var(--superficie) !important; color: var(--alerta) !important;
+    border: 1px solid var(--alerta-borde) !important;
+}
+.w3-button.w3-red:hover, .w3-button.w3-orange:hover { background-color: var(--alerta-claro) !important; color: var(--alerta) !important; }
+.w3-button:not(.w3-green):not(.w3-blue):not(.w3-teal):not(.w3-white):not(.w3-border):not(.w3-light-grey):not(.w3-grey):not(.w3-red):not(.w3-orange):hover {
+    background-color: var(--hoja-clara) !important; color: var(--hoja-oscura) !important;
+}
+
+/* Botones propios anteriores */
+.btn-agregar, .btn-guardar {
+    display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 16px;
+    background: var(--hoja); color: #fff; border: 1px solid var(--hoja); border-radius: var(--r-control);
+    font-weight: 600; font-size: 14px; letter-spacing: 0; box-shadow: none; cursor: pointer; text-decoration: none;
+}
+.btn-agregar:hover, .btn-guardar:hover { background: var(--hoja-oscura); color: #fff; }
+.btn-cancelar {
+    display: inline-flex; align-items: center; min-height: 38px; padding: 0 16px;
+    background: var(--superficie); color: var(--hoja-oscura); border: 1px solid var(--borde-control);
+    border-radius: var(--r-control); font-weight: 600; font-size: 14px; box-shadow: none; cursor: pointer;
+}
+.btn-cancelar:hover { background: var(--superficie-2); color: var(--hoja-oscura); }
+.btn-enlace { text-decoration: none; }
+
+/* Campos */
+.w3-input, .w3-select, .modal-input, .prod-search-input, textarea.w3-input {
+    background: var(--superficie);
+    border: 1px solid var(--borde-control) !important;
+    border-radius: var(--r-control);
+    padding: 8px 11px;
+    min-height: 38px;
+    font-size: 14px;
+    color: var(--tinta);
+}
+.w3-input:focus, .w3-select:focus, .modal-input:focus, .prod-search-input:focus {
+    outline: none;
+    border-color: var(--hoja) !important;
+    box-shadow: 0 0 0 3px rgba(11, 125, 46, 0.16);
+}
+input[type="file"].w3-input { border-style: dashed !important; }
+label b { font-weight: 600; }
+
+/* Paneles y textos de color de W3 */
+.w3-panel.w3-green, .w3-panel.w3-pale-green { background: var(--hoja-clara) !important; color: var(--hoja-oscura) !important; border: 1px solid var(--hoja-suave) !important; }
+.w3-panel.w3-red, .w3-panel.w3-pale-red { background: var(--alerta-claro) !important; color: var(--alerta) !important; border: 1px solid var(--alerta-borde) !important; }
+.w3-panel.w3-pale-yellow, .w3-panel.w3-yellow, .w3-panel.w3-amber { background: var(--mango-claro) !important; color: var(--mango-texto) !important; border: 1px solid #f0d68a !important; }
+.w3-panel.w3-blue, .w3-panel.w3-pale-blue, .w3-panel.w3-light-blue { background: var(--info-claro) !important; color: var(--info) !important; border: 1px solid #c5d6f3 !important; }
+.w3-panel { border-radius: var(--r-tarjeta); padding: 12px 16px; }
+.w3-text-red { color: var(--alerta) !important; }
+.w3-text-green { color: var(--hoja) !important; }
+.w3-text-grey, .w3-text-gray { color: var(--tinta-suave) !important; }
+.w3-card, .w3-card-2, .w3-card-4 { box-shadow: none !important; border: 1px solid var(--linea); border-radius: var(--r-tarjeta); }
+
+/* Etiquetas de W3 que quedan */
+.w3-tag { border-radius: var(--r-pildora) !important; padding: 3px 10px; font-size: 12.5px; font-weight: 600; }
+.w3-tag.w3-amber { background: var(--mango-claro) !important; color: var(--mango-texto) !important; }
+.w3-tag.w3-light-grey, .w3-tag.w3-blue-gray { background: #eceee8 !important; color: var(--tinta-suave) !important; }
+
+/* Fondos de página de W3 (pantallas antiguas) */
+body.w3-light-grey, body.w3-white { background: var(--papel) !important; }
+
+/* Tablas de W3 */
+.w3-table td, .w3-table th { padding: 8px 10px; }
+.w3-bordered tr, .w3-table-all tr { border-bottom: 1px solid var(--linea-suave) !important; }
+.w3-striped tbody tr:nth-child(even) { background: var(--superficie-2) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+}

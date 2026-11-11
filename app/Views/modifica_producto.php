@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar producto</title>
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <form action="<?= base_url('modifica_producto') ?>" method="post" enctype="multipart/form-data">
 <?= csrf_field() ?>
         <input type="hidden" name="id" value="<?= esc($productos['id']) ?>">

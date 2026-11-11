@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
     <title>Ticket del pedido #<?= (int) $ticket['id'] ?></title>
 </head>
@@ -39,7 +36,7 @@
         <div><dt>Cliente</dt><dd><?= esc($ticket['cliente']) ?></dd></div>
         <div><dt>Teléfono</dt><dd><?= esc($ticket['telefono'] ?: '—') ?></dd></div>
         <div><dt>Fecha</dt><dd><?= esc($ticket['fecha'] ?? '—') ?></dd></div>
-        <div><dt>Estado</dt><dd><span class="w3-tag w3-round w3-blue-gray"><?= esc(str_replace('_', ' ', $ticket['estado'])) ?></span></dd></div>
+        <div><dt>Estado</dt><dd><?= estado_pedido($ticket['estado']) ?></dd></div>
         <div><dt>Productos</dt><dd><?= count($ticket['items']) ?></dd></div>
         <div><dt>Total</dt><dd><b>$<?= esc(number_format($ticket['total'], 2)) ?></b></dd></div>
     </dl>

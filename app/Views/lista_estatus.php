@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <title>Lista estatus</title>
 </head>
 <body>
@@ -29,10 +26,11 @@
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 20px;">
+<div class="contenedor-boton">
+    <h1>Estatus de pedidos</h1>
     <button onclick="document.getElementById('modalCrearEstatus').style.display='block'"
             class="btn-agregar">
-        + Nuevo Estatus
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo estatus
     </button>
 </div>
 
@@ -49,7 +47,7 @@
             <?php foreach($estatus as $e): ?>
                 <tr>
                     <td><?= esc($e['id']) ?></td>
-                    <td><?= esc($e['estado']) ?></td>
+                    <td><?= estado_pedido($e['estado']) ?></td>
                     <td><?= esc($e['fecha']) ?></td>
                     <td><?= esc($e['id_pedido']) ?></td>
                     <td>

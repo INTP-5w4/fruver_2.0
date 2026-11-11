@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea Entrada</title>
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <div class="formulario-pagina">
 <form action="<?= base_url('guarda_entrada')?>" method="post">
 <?= csrf_field() ?>

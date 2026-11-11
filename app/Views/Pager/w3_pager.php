@@ -1,21 +1,15 @@
-<div class="w3-bar" style="text-align:center; margin-top:20px;">
-
-    <!-- Botón anterior -->
+<nav class="paginacion" aria-label="Páginas">
     <?php if ($pager->hasPrevious()) : ?>
-        <a href="<?= $pager->getPreviousPage() ?>" class="w3-button">&laquo;</a>
+        <a href="<?= $pager->getPreviousPage() ?>" class="w3-button w3-border" aria-label="Página anterior">&laquo;</a>
     <?php endif; ?>
 
-    <!-- Números -->
     <?php foreach ($pager->links() as $link) : ?>
-        <a href="<?= $link['uri'] ?>"
-           class="w3-button <?= $link['active'] ? 'w3-green' : '' ?>">
+        <a href="<?= $link['uri'] ?>" class="w3-button <?= $link['active'] ? 'w3-green' : 'w3-border' ?>"<?= $link['active'] ? ' aria-current="page"' : '' ?>>
             <?= $link['title'] ?>
         </a>
     <?php endforeach; ?>
 
-    <!-- Botón siguiente -->
     <?php if ($pager->hasNext()) : ?>
-        <a href="<?= $pager->getNextPage() ?>" class="w3-button">&raquo;</a>
+        <a href="<?= $pager->getNextPage() ?>" class="w3-button w3-border" aria-label="Página siguiente">&raquo;</a>
     <?php endif; ?>
-
-</div>
+</nav>

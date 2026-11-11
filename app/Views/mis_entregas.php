@@ -1,113 +1,89 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <title>Mis entregas</title>
+    <link rel="stylesheet" href="<?= base_url('estilos/rutas.css') ?>">
+    <title>Mis entregas · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
 
-<div class="lista-wrapper" style="max-width:900px; margin:0 auto; padding:16px;">
+<div class="flash-container">
+    <?php if (session()->getFlashdata('error')): ?>
+        <div class="w3-panel w3-red"><p><?= esc(session()->getFlashdata('error')) ?></p></div>
+    <?php endif; ?>
+    <?php if (session()->getFlashdata('mensaje')): ?>
+        <div class="w3-panel w3-green"><p><?= esc(session()->getFlashdata('mensaje')) ?></p></div>
+    <?php endif; ?>
+</div>
 
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <h2 style="margin:0;">Mis entregas</h2>
-        <div>
-            <a href="<?= base_url('crea_sugerencia') ?>" class="w3-button w3-border">
-                <i class="fa-regular fa-lightbulb"></i> Enviar sugerencia
-            </a>
-            <a href="<?= base_url('logout') ?>" class="w3-button w3-border">
-                <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
-            </a>
-        </div>
-    </div>
-
-    <div class="flash-container">
-        <?php if (session()->getFlashdata('error')): ?>
-            <div class="w3-panel w3-red w3-animate-opacity">
-                <p><?= esc(session()->getFlashdata('error')) ?></p>
-            </div>
-        <?php endif; ?>
-
-        <?php if (session()->getFlashdata('mensaje')): ?>
-            <div class="w3-panel w3-green w3-animate-opacity">
-                <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
-            </div>
-        <?php endif; ?>
+<main class="repartidor-pagina">
+    <div class="repartidor-cabeza">
+        <h1>Mis entregas</h1>
     </div>
 
     <?php if (! empty($rutasPendientes)): ?>
-        <a href="<?= base_url('repartidor/ruta') ?>" class="w3-panel w3-blue w3-round" style="display:block; text-decoration:none; padding:12px;">
-            <i class="fa-solid fa-route"></i> <b>Tienes <?= (int) $rutasPendientes ?> ruta<?= (int) $rutasPendientes > 1 ? 's' : '' ?> por hacer.</b>
-            Ver el orden de entregas y el mapa &rarr;
+        <a href="<?= base_url('repartidor/ruta') ?>" class="aviso-ruta">
+            <i class="fa-solid fa-route" aria-hidden="true"></i>
+            <span><b>Tienes <?= (int) $rutasPendientes ?> ruta<?= (int) $rutasPendientes > 1 ? 's' : '' ?> por hacer</b>
+                <span>Ver el orden de entregas y el mapa →</span></span>
         </a>
     <?php endif; ?>
 
-    <div class="w3-bar w3-margin-bottom">
-        <?php
-        $filtros = [
-            ''          => 'Todas',
-            'asignada'  => 'Asignadas',
-            'en_ruta'   => 'En ruta',
-            'entregada' => 'Entregadas',
-            'fallida'   => 'Fallidas',
-        ];
-        foreach ($filtros as $valor => $texto):
-            $activo = ($estado ?? '') === $valor;
-        ?>
+    <?php
+    $filtros = [
+        ''          => 'Todas',
+        'asignada'  => 'Asignadas',
+        'en_ruta'   => 'En ruta',
+        'entregada' => 'Entregadas',
+        'fallida'   => 'No entregadas',
+    ];
+    ?>
+    <nav class="pestanas-estado" aria-label="Filtrar entregas">
+        <?php foreach ($filtros as $valor => $texto): ?>
+            <?php $activo = ($estado ?? '') === $valor; ?>
             <a href="<?= base_url('repartidor/entregas' . ($valor === '' ? '' : '?estado=' . $valor)) ?>"
-               class="w3-bar-item w3-button <?= $activo ? 'w3-green' : 'w3-light-grey' ?>">
-                <?= esc($texto) ?>
-            </a>
+               class="pestana<?= $activo ? ' activa' : '' ?>"<?= $activo ? ' aria-current="page"' : '' ?>><?= esc($texto) ?></a>
         <?php endforeach; ?>
-    </div>
+    </nav>
 
     <?php if (empty($entregas)): ?>
-        <div class="w3-panel w3-pale-yellow w3-border">
-            <p>No tienes entregas<?= ($estado ?? '') !== '' ? ' con este estado' : ' asignadas por ahora' ?>.</p>
+        <div class="vacio">
+            <b>No tienes entregas<?= ($estado ?? '') !== '' ? ' con este estado' : ' asignadas por ahora' ?></b>
+            <span>Cuando el personal te asigne un pedido aparecerá aquí.</span>
         </div>
     <?php endif; ?>
 
     <?php foreach ($entregas as $e): ?>
-        <div class="w3-card w3-white w3-margin-bottom w3-padding">
-            <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-                <strong>Pedido #<?= esc($e['id_pedido']) ?> · intento <?= esc($e['intento']) ?></strong>
-                <span class="w3-tag w3-round <?= match ($e['estado']) {
-                    'asignada'  => 'w3-blue',
-                    'en_ruta'   => 'w3-orange',
-                    'entregada' => 'w3-green',
-                    'fallida'   => 'w3-red',
-                    default     => 'w3-grey',
-                } ?>"><?= esc(str_replace('_', ' ', $e['estado'])) ?></span>
+        <article class="entrega">
+            <div class="entrega-cab">
+                <h2>Pedido #<?= esc($e['id_pedido']) ?> <small class="opcional">· intento <?= esc($e['intento']) ?></small></h2>
+                <?= estado_entrega($e['estado']) ?>
             </div>
 
-            <p style="margin:8px 0;">
-                <i class="fa-solid fa-user"></i> <?= esc($e['cliente']) ?><br>
-                <i class="fa-solid fa-phone"></i>
-                <a href="tel:<?= esc($e['telefono_cliente'], 'attr') ?>"><?= esc($e['telefono_cliente']) ?></a>
+            <div class="entrega-datos">
+                <span><i class="fa-solid fa-user" aria-hidden="true"></i> <?= esc($e['cliente']) ?></span>
+                <span><i class="fa-solid fa-phone" aria-hidden="true"></i> <a href="tel:<?= esc($e['telefono_cliente'], 'attr') ?>"><?= esc($e['telefono_cliente']) ?></a></span>
                 <?php if (array_key_exists('calle', $e)): ?>
-                    <br><i class="fa-solid fa-location-dot"></i>
-                    <?= esc(\App\Models\Modelo_ruta::textoDireccion($e) ?: 'Sin dirección registrada') ?>
-                    <?php if (! empty($e['referencias'])): ?><br><small><i class="fa-solid fa-circle-info"></i> <?= esc($e['referencias']) ?></small><?php endif; ?>
-                    <?php if (isset($e['total_pedido'])): ?><br><i class="fa-solid fa-money-bill"></i> Cobrar $<?= esc(number_format((float) $e['total_pedido'], 2)) ?><?php endif; ?>
+                    <span><i class="fa-solid fa-location-dot" aria-hidden="true"></i> <?= esc(\App\Models\Modelo_ruta::textoDireccion($e) ?: 'Sin dirección registrada') ?></span>
+                    <?php if (! empty($e['referencias'])): ?><small><i class="fa-solid fa-circle-info" aria-hidden="true"></i> <?= esc($e['referencias']) ?></small><?php endif; ?>
+                    <?php if (isset($e['total_pedido'])): ?><span><i class="fa-solid fa-money-bill" aria-hidden="true"></i> Cobrar <b>$<?= esc(number_format((float) $e['total_pedido'], 2)) ?></b></span><?php endif; ?>
                 <?php endif; ?>
-            </p>
+            </div>
 
             <?php if (! empty($e['navegar']) && in_array($e['estado'], ['asignada', 'en_ruta'], true)): ?>
-                <p><a class="w3-button btn-navegar" style="background:#1a73e8;color:#fff;" href="<?= esc($e['navegar'], 'attr') ?>" target="_blank" rel="noopener">
-                    <i class="fa-solid fa-diamond-turn-right"></i> Navegar con Google Maps</a></p>
+                <a class="btn btn-primario btn-grande" href="<?= esc($e['navegar'], 'attr') ?>" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-diamond-turn-right" aria-hidden="true"></i>Navegar</a>
             <?php endif; ?>
 
             <?php if ($e['incidencia']): ?>
-                <p class="w3-text-red"><i class="fa-solid fa-triangle-exclamation"></i> <?= esc($e['incidencia']) ?></p>
+                <p class="aviso aviso-error"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> <?= esc($e['incidencia']) ?></p>
             <?php endif; ?>
 
             <?php if ($e['estado'] === 'entregada'): ?>
-                <p>
+                <p class="parada-nota">
                     Entregada el <?= esc($e['fecha_entrega']) ?>
                     <?php if ($e['monto_cobrado'] !== null): ?>
                         · Cobrado $<?= esc(number_format((float) $e['monto_cobrado'], 2)) ?> (<?= esc($e['metodo_cobro']) ?>)
@@ -118,44 +94,50 @@
             <?php if ($e['estado'] === 'asignada'): ?>
                 <form method="post" action="<?= base_url('repartidor/entregas/' . (int) $e['id'] . '/salir') ?>">
                     <?= csrf_field() ?>
-                    <button type="submit" class="w3-button w3-blue">
-                        <i class="fa-solid fa-truck"></i> Salir a entregar
+                    <button type="submit" class="btn btn-primario btn-grande btn-bloque">
+                        <i class="fa-solid fa-truck" aria-hidden="true"></i>Salir a entregar
                     </button>
                 </form>
             <?php endif; ?>
 
             <?php if ($e['estado'] === 'en_ruta'): ?>
-                <form method="post" action="<?= base_url('repartidor/entregas/' . (int) $e['id'] . '/entregar') ?>" class="w3-margin-bottom">
+                <form method="post" action="<?= base_url('repartidor/entregas/' . (int) $e['id'] . '/entregar') ?>" class="form-entrega">
                     <?= csrf_field() ?>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <input type="number" name="monto" min="0" step="0.01" placeholder="Monto cobrado (opcional)" class="w3-input w3-border" style="max-width:220px;">
-                        <select name="metodo" class="w3-select w3-border" style="max-width:180px;">
-                            <option value="">Método de cobro</option>
-                            <option value="efectivo">Efectivo</option>
-                            <option value="transferencia">Transferencia</option>
-                            <option value="tarjeta">Tarjeta</option>
-                        </select>
-                        <input type="text" name="notas" maxlength="500" placeholder="Notas (opcional)" class="w3-input w3-border" style="flex:1; min-width:180px;">
+                    <div class="campos-dobles">
+                        <label>Monto cobrado <span class="opcional">(opcional)</span>
+                            <input type="number" name="monto" min="0" step="0.01" inputmode="decimal" class="w3-input w3-border">
+                        </label>
+                        <label>Forma de pago
+                            <select name="metodo" class="w3-select w3-border">
+                                <option value="">Elegir</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option>
+                                <option value="tarjeta">Tarjeta</option>
+                            </select>
+                        </label>
                     </div>
-                    <button type="submit" class="w3-button w3-green w3-margin-top">
-                        <i class="fa-solid fa-circle-check"></i> Marcar entregada
+                    <label>Notas <span class="opcional">(opcional)</span>
+                        <input type="text" name="notas" maxlength="500" class="w3-input w3-border">
+                    </label>
+                    <button type="submit" class="btn btn-primario btn-grande btn-bloque btn-entregado">
+                        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>Marcar entregada
                     </button>
                 </form>
 
-                <form method="post" action="<?= base_url('repartidor/entregas/' . (int) $e['id'] . '/fallar') ?>">
+                <form method="post" action="<?= base_url('repartidor/entregas/' . (int) $e['id'] . '/fallar') ?>" class="form-falla">
                     <?= csrf_field() ?>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                        <input type="text" name="incidencia" maxlength="500" required placeholder="¿Qué pasó? (cliente ausente, dirección incorrecta...)" class="w3-input w3-border" style="flex:1; min-width:220px;">
-                        <button type="submit" class="w3-button w3-red">
-                            <i class="fa-solid fa-circle-xmark"></i> No se pudo entregar
-                        </button>
-                    </div>
+                    <label>¿No se pudo entregar? Cuéntanos qué pasó
+                        <input type="text" name="incidencia" maxlength="500" required placeholder="Cliente ausente, dirección incorrecta…" class="w3-input w3-border">
+                    </label>
+                    <button type="submit" class="btn btn-peligro btn-grande btn-bloque">
+                        <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>No se pudo entregar
+                    </button>
                 </form>
             <?php endif; ?>
-        </div>
+        </article>
     <?php endforeach; ?>
 
     <?= $pager->links('default', 'w3_pager') ?>
-</div>
+</main>
 </body>
 </html>

@@ -21,7 +21,7 @@
 .sugerencia-card h1 {
     margin: 0 0 8px;
     font-size: 26px;
-    color: #007542;
+    color: var(--hoja-oscura);
 }
 
 .sugerencia-intro {
@@ -73,7 +73,7 @@
 .sug-titulo {
     margin: 0;
     font-size: 24px;
-    color: #007542;
+    color: var(--hoja-oscura);
 }
 
 /* <a> con el aspecto de .btn-agregar */
@@ -99,7 +99,7 @@
     border: 2px solid transparent;
 }
 .sug-pildora:hover { filter: brightness(0.96); }
-.sug-pildora--activa { border-color: #007542; }
+.sug-pildora--activa { border-color: var(--hoja-oscura); }
 
 .sug-filtros {
     display: flex;
@@ -123,7 +123,7 @@
 /* Celdas de texto largo: se permite el salto de línea (la tabla base usa nowrap) */
 .sug-celda-titulo { min-width: 180px; max-width: 280px; white-space: normal; word-break: break-word; }
 .sug-celda-desc   { min-width: 260px; max-width: 440px; white-space: normal; word-break: break-word; }
-.sug-celda-desc summary { cursor: pointer; color: #007542; font-size: 13px; margin-top: 4px; }
+.sug-celda-desc summary { cursor: pointer; color: var(--hoja-oscura); font-size: 13px; margin-top: 4px; }
 .sug-texto { margin-top: 6px; padding: 8px 10px; background: #f1f8f1; border-radius: 6px; }
 
 .sug-vacio { text-align: center; padding: 28px 16px; color: #777; }

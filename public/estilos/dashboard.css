@@ -1,660 +1,80 @@
-/* =========================================
-   VARIABLES DE COLOR Y ESTILO (Basado en la UI)
-   ========================================= */
-:root {
-    --bg-main: #F4F7FE;
-    --bg-sidebar: #00910a;
-    --bg-card: #FFFFFF;
-    --accent-green: #72F03B;
-    --accent-green-hover: #5bd42a;
-    --text-dark: #2B3674;
-    --text-muted: #ffffff;
-    --text-muted2: #005420;
-    --shadow-soft: 0px 18px 40px rgba(112, 144, 176, 0.12);
-    --btn-hov: #baff75;
-    --radius-card: 20px;
-    --radius-pill: 50px;
+/* ═══════════════════════════════════════════════════════════════════
+   dashboard.css — Inicio del personal (app/Views/main_page3.php)
+   Usa los tokens de base.css. La estructura general está en estilosPaginas.css.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.inicio { display: grid; gap: 16px; align-content: start; }
+.inicio > .pagina-cabeza { padding-bottom: 4px; }
+
+/* Indicadores */
+.inicio-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.kpi {
+    display: grid; gap: 4px; align-content: start;
+    padding: 16px 18px;
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
+}
+.kpi-nombre { color: var(--tinta-suave); font-weight: 600; font-size: 13.5px; }
+.kpi-valor { font: 800 30px/1.1 var(--f-titulo); letter-spacing: -0.02em; color: var(--tinta); }
+.kpi-comp { font-size: 12.5px; font-weight: 600; }
+.kpi-comp.bien { color: #0b6b28; }
+.kpi-comp.mal { color: var(--alerta); }
+.kpi-comp.neutro { color: var(--tinta-suave); }
+.kpi-comp.cuidado { color: var(--mango-texto); }
+.kpi.atencion { background: #fff9e8; border-color: #f0d68a; }
+
+/* Filas de tarjetas */
+.inicio-fila { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.inicio-fila--principal { grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); }
+.inicio .tarjeta { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.tarjeta-cab { display: flex; align-items: baseline; gap: 10px; }
+.tarjeta-cab h2 { font-size: 17px; font-weight: 700; }
+.tarjeta-cab small { margin-left: auto; color: var(--tinta-suave); font-size: 12.5px; }
+.grafica-caja { position: relative; height: 250px; }
+.grafica-vacia {
+    height: 100%; display: grid; place-items: center; text-align: center; padding: 16px;
+    color: var(--tinta-suave); border: 1px dashed var(--linea); border-radius: var(--r-control);
 }
 
-body {
-    font-family: 'DM Sans', sans-serif;
-    background-color: var(--bg-main);
-    color: var(--text-dark);
-    margin: 0;
-    padding: 0;
+/* Requiere atención */
+.atencion-lista { list-style: none; display: grid; }
+.atencion-item {
+    display: grid; grid-template-columns: 4px minmax(0, 1fr) auto; gap: 12px; align-items: center;
+    padding: 11px 0;
+    border-top: 1px solid var(--linea-suave);
 }
+.atencion-item:first-child { border-top: 0; padding-top: 2px; }
+.atencion-item::before { content: ""; align-self: stretch; border-radius: 4px; background: #9bb3a1; }
+.atencion-crit::before { background: var(--alerta); }
+.atencion-aviso::before { background: var(--mango); }
+.atencion-item div { display: grid; gap: 1px; min-width: 0; }
+.atencion-item b { font-weight: 600; font-size: 14px; }
+.atencion-item span { color: var(--tinta-suave); font-size: 12.5px; }
 
-/* =========================================
-   LAYOUT PRINCIPAL
-   ========================================= */
-.dashboard-wrapper {
-    display: flex;
-    min-height: calc(100vh - 55px);
-    margin-top: 55px;   /* altura del header fijo */
-    padding: 20px;
-    box-sizing: border-box;
-    gap: 20px;
-}
+/* Tabla corta (menos existencias) */
+.tabla-mini { width: 100%; border-collapse: collapse; }
+.lista-wrapper .tabla-mini th { background: none; padding: 6px 0; border-bottom: 1px solid var(--linea); }
+.lista-wrapper .tabla-mini td { padding: 9px 0; border-bottom: 1px solid var(--linea-suave); white-space: normal; }
+.lista-wrapper .tabla-mini tbody tr:hover td { background: none; }
+.tabla-mini .der { text-align: right; padding-right: 16px !important; }
 
-/* =========================================
-   SIDEBAR — solo para el dashboard (main_page)
-   En estilosPaginas.css ya hay un .sidebar para las vistas de lista.
-   Aquí lo tratamos como sticky dentro del flex.
-   ========================================= */
-.dashboard-wrapper .sidebar {
-    /* Resetear el fixed de estilosPaginas cuando estamos en dashboard */
-    position: sticky;
-    top: 75px;               /* debajo del header */
-    align-self: flex-start;
-    width: 220px;
-    min-width: 220px;
-    max-height: calc(100vh - 95px);
-    overflow-y: auto;
-    background-color: var(--bg-sidebar);
-    border-radius: var(--radius-card);
-    padding: 30px 15px;
-    box-shadow: var(--shadow-soft);
-    /* Sobrescribir estilosPaginas.css que lo pone fixed */
-    left: unset;
-    border-right: none;
-    z-index: 10;
-}
+/* Registro rápido */
+.registro-botones { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.registro-botones .btn { justify-content: flex-start; }
+.registro-botones .btn i { color: var(--hoja); }
 
-.dashboard-wrapper .nav-label {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin: 20px 0 10px 15px;
-    padding: 0;
-    background: none;
-}
+.inicio > .footer { margin-top: 12px; }
 
-.dashboard-wrapper .nav-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-weight: 500;
-    border-radius: var(--radius-pill);
-    margin-bottom: 5px;
-    transition: all 0.3s ease;
-    border-left: none;
-    font-size: 14px;
-}
-
-.dashboard-wrapper .nav-item:hover,
-.dashboard-wrapper .nav-item:focus {
-    background-color: var(--btn-hov);
-    color: var(--text-muted2);
-    box-shadow: 0 4px 15px rgba(114, 240, 59, 0.4);
-    transform: translateX(5px);
-    border-left: none;
-}
-
-/* =========================================
-   CONTENIDO PRINCIPAL
-   ========================================= */
-.dashboard-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    overflow-y: auto;
-    min-width: 0;  /* evita overflow en flex */
-}
-
-/* =========================================
-   HEADER
-   ========================================= */
-.page-header {
-    background-color: var(--accent-green);
-    border-radius: var(--radius-pill);
-    padding: 15px 30px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 4px 15px rgba(114, 240, 59, 0.2);
-}
-
-.page-title {
-    margin: 0;
-    font-family: 'Syne', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--bg-sidebar);
-}
-
-.page-subtitle {
-    margin: 0;
-    font-size: 0.9rem;
-    color: rgba(17, 28, 45, 0.7);
-    font-weight: 500;
-}
-
-/* =========================================
-   TARJETAS KPI
-   ========================================= */
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-.kpi-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-card);
-    padding: 25px;
-    box-shadow: var(--shadow-soft);
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border: 1px solid rgba(0,0,0,0.02);
-    transition: transform 0.2s;
-}
-
-.kpi-card:hover {
-    transform: translateY(-5px);
-}
-
-/* Variantes de color — todas usan fondo blanco */
-.kpi-card.kpi--dark,
-.kpi-card.kpi--green,
-.kpi-card.kpi--teal,
-.kpi-card.kpi--olive {
-    background-color: var(--bg-card);
-    color: var(--text-dark);
-}
-.kpi-card.kpi--dark .kpi-label,
-.kpi-card.kpi--green .kpi-label,
-.kpi-card.kpi--teal .kpi-label,
-.kpi-card.kpi--olive .kpi-label { color: var(--text-muted2); }
-
-.kpi-icon {
-    font-size: 2rem;
-    background: var(--bg-main);
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.kpi-info { display: flex; flex-direction: column; }
-.kpi-value { font-size: 1.8rem; font-weight: 700; line-height: 1.2; }
-.kpi-label { font-size: 0.85rem; color: var(--text-muted2); font-weight: 500; }
-.kpi-link { display: none; }
-
-/* =========================================
-   GRÁFICOS — 4 cards en 2 columnas (2fr 1fr)
-   ========================================= */
-.charts-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-}
-
-.bottom-row {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
-}
-
-.chart-card,
-.chart-card--wide,
-.table-card,
-.actions-card {
-    background: var(--bg-card);
-    border-radius: var(--radius-card);
-    padding: 25px;
-    box-shadow: var(--shadow-soft);
-}
-
-/* El canvas de Chart.js necesita un contenedor con altura definida */
-.chart-area {
-    position: relative;
-    height: 220px;
-    width: 100%;
-}
-
-.chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.chart-title {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin: 0;
-}
-
-.chart-badge {
-    background: var(--bg-sidebar);
-    color: var(--text-muted);
-    padding: 5px 12px;
-    border-radius: var(--radius-pill);
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* =========================================
-   BOTONES DE ACCIÓN
-   ========================================= */
-.actions-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 10px;
-}
-
-.action-btn {
-    background-color: var(--bg-sidebar);
-    color: white;
-    padding: 12px;
-    border-radius: var(--radius-pill);
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: 0.3s;
-}
-
-.action-btn:hover {
-    background-color: var(--btn-hov);
-    color: var(--bg-sidebar);
-    box-shadow: 0 4px 10px rgba(114, 240, 59, 0.3);
-}
-
-/* =========================================
-   TABLAS MODERNAS (dentro del dashboard)
-   ========================================= */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.data-table th {
-    text-align: left;
-    color: var(--text-muted2);
-    font-weight: 500;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #edf2f7;
-}
-
-.data-table td {
-    padding: 15px 0;
-    border-bottom: 1px solid #edf2f7;
-    font-weight: 500;
-}
-
-.badge {
-    padding: 5px 10px;
-    border-radius: var(--radius-pill);
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-.badge--red    { background: #ffe2e5; color: #f64e60; }
-.badge--yellow { background: #fff4de; color: #ffa800; }
-.badge--green  { background: #c9f7f5; color: #1bc5bd; }
-
-/* =========================================
-   FOOTER
-   ========================================= */
-.footer {
-    background: #00910a;
-    margin-top: 40px;
-    padding: 0;
-    box-shadow: 0 -2px 8px rgba(0, 117, 66, 0.2);
-}
-
-.footer_container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 32px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.footer_brand { display: flex; flex-direction: column; }
-
-.footer_logo {
-    color: #ffffff;
-    font-size: 1.2em;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-.footer_tagline {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.75em;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-}
-
-.footer_copy {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.8em;
-    letter-spacing: 0.3px;
-}
-
-/* =========================================
-   FLASH MESSAGES
-   ========================================= */
-.flash-container {
-    position: fixed;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9998;
-    width: 60vw;
-    pointer-events: none;
-}
-
-.flash-container .w3-panel {
-    border-radius: 12px;
-    padding: 20px 30px;
-    margin: 0;
-    text-align: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    pointer-events: auto;
-}
-
-.flash-container .w3-panel p {
-    color: white;
-    font-weight: bold;
-    font-size: 24px;
-    margin: 0;
-}
-
-/* =========================================
-   BUSCADOR AUTOCOMPLETE (modales)
-   ========================================= */
-.prod-search-wrap {
-    position: relative;
-    margin-bottom: 8px;
-}
-.prod-search-wrap .search-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-    pointer-events: none;
-}
-.prod-search-input {
-    width: 100%;
-    padding: 8px 12px 8px 34px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    font-size: 14px;
-    border-radius: 4px;
-}
-.prod-search-input:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 2px rgba(76,175,80,.2);
-}
-.prod-resultados {
-    position: absolute;
-    z-index: 10000;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-top: none;
-    max-height: 220px;
-    overflow-y: auto;
-    width: 100%;
-    display: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,.15);
-}
-.prod-resultados .prod-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    border-bottom: 1px solid #f0f0f0;
-}
-.prod-resultados .prod-item:hover,
-.prod-resultados .prod-item.activo { background: #e8f5e9; }
-.prod-resultados .prod-item .stock-pill {
-    font-size: 11px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-.prod-resultados .prod-item .stock-pill.con-stock { background:#d4edda; color:#155724; }
-.prod-resultados .prod-item .stock-pill.sin-stock  { background:#f8d7da; color:#721c24; }
-.prod-resultados .sin-resultados {
-    padding: 10px 12px;
-    color: #888;
-    font-size: 13px;
-}
-.prod-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #f1f8f1;
-    border: 1px solid #a5d6a7;
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    font-size: 13px;
-}
-.prod-badge .badge-nombre { font-weight: 600; flex: 1; }
-.prod-badge .badge-stock  { font-size: 12px; color: #2e7d32; font-weight: 600; }
-.prod-badge .badge-limpiar {
-    cursor: pointer;
-    color: #c62828;
-    font-size: 16px;
-    line-height: 1;
-    background: none;
-    border: none;
-    padding: 0;
-}
-.prod-badge.sin-stock { border-color:#ef9a9a; background:#fff5f5; }
-.prod-badge.sin-stock .badge-stock { color:#c62828; }
-.search-hint { font-size: 12px; color: #999; margin-bottom: 8px; }
-
-/* =========================================
-   RESPONSIVE — tabletas y celulares
-   Breakpoints: 1024px (tableta horizontal), 768px (tableta vertical
-   y celular), 480px (celular). El escritorio (>1024px) queda igual.
-
-   Algunas reglas llevan !important porque los modales de la vista traen
-   estilos en línea (padding-top, max-height) que no se pueden vencer de otra forma.
-   ========================================= */
-
-/* ── TABLETA HORIZONTAL (≤1024px) ── */
 @media (max-width: 1024px) {
-    .dashboard-wrapper {
-        padding: 16px;
-        gap: 16px;
-    }
-
-    .dashboard-wrapper .sidebar {
-        width: 190px;
-        min-width: 190px;
-        padding: 24px 12px;
-    }
-
-    .dashboard-wrapper .nav-item {
-        padding: 10px 16px;
-        font-size: 13px;
-    }
-
-    .dashboard-main { gap: 16px; }
-
-    /* 4 tarjetas: 2x2 en lugar de 3 + 1 */
-    .kpi-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-    }
-
-    .charts-row,
-    .bottom-row {
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-    }
-
-    .chart-header {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .flash-container { width: 80vw; }
-    .flash-container .w3-panel p { font-size: 20px; }
+    .inicio-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .inicio-fila--principal { grid-template-columns: 1fr; }
 }
-
-/* ── TABLETA VERTICAL Y CELULAR (≤768px) ── */
 @media (max-width: 768px) {
-    /* Layout en una columna: la barra lateral pasa a ser una franja de botones con scroll */
-    .dashboard-wrapper {
-        flex-direction: column;
-        min-height: 0;
-        padding: 12px;
-        gap: 12px;
-    }
-
-    .dashboard-wrapper .sidebar {
-        position: static;
-        align-self: stretch;
-        width: 100%;
-        min-width: 0;
-        max-height: none;
-        overflow: visible;
-        padding: 10px;
-        border-radius: 16px;
-    }
-
-    .dashboard-wrapper .sidebar-nav {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-    .dashboard-wrapper .sidebar-nav::-webkit-scrollbar { display: none; }
-
-    .dashboard-wrapper .nav-label { display: none; }
-
-    .dashboard-wrapper .nav-item {
-        flex: 0 0 auto;
-        white-space: nowrap;
-        margin: 0;
-        padding: 10px 16px;
-    }
-
-    .dashboard-wrapper .nav-item:hover,
-    .dashboard-wrapper .nav-item:focus { transform: none; }
-
-    .dashboard-main {
-        overflow: visible;
-        gap: 12px;
-    }
-
-    .charts-row,
-    .bottom-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .kpi-grid { gap: 12px; }
-
-    .chart-card,
-    .chart-card--wide,
-    .table-card,
-    .actions-card {
-        padding: 18px;
-        border-radius: 16px;
-    }
-
-    .table-card { overflow-x: auto; }
-
-    .chart-area { height: 200px; }
-    .chart-title { font-size: 1.05rem; }
-
-    .data-table th,
-    .data-table td { padding-right: 8px; }
-
-    .action-btn { min-height: 44px; }
-
-    .page-header {
-        flex-wrap: wrap;
-        gap: 6px;
-        padding: 12px 20px;
-        border-radius: 28px;
-    }
-
-    /* Mensajes flash */
-    .flash-container { top: 62px; width: 92vw; }
-    .flash-container .w3-panel { padding: 14px 18px; border-radius: 10px; }
-    .flash-container .w3-panel p { font-size: 16px; }
-
-    /* Modales: menos margen superior y alto acotado a la pantalla */
-    .w3-modal { padding-top: 56px !important; }
-    .w3-modal-content {
-        max-height: calc(100vh - 76px) !important;
-        max-height: calc(100dvh - 76px) !important;
-    }
-
-    .footer { margin-top: 24px; }
-    .footer_container {
-        justify-content: center;
-        text-align: center;
-        padding: 16px;
-    }
-    .footer_brand { align-items: center; }
-
-    .prod-resultados { max-height: 180px; }
+    .inicio-fila { grid-template-columns: 1fr; }
+    .grafica-caja { height: 220px; }
 }
-
-/* ── CELULAR (≤480px) ── */
 @media (max-width: 480px) {
-    .dashboard-wrapper { padding: 10px; }
-
-    /* Tarjetas KPI en 2 columnas, con el icono arriba del dato */
-    .kpi-card {
-        flex-direction: column;
-        justify-content: center;
-        gap: 8px;
-        padding: 14px 10px;
-        text-align: center;
-    }
-    .kpi-icon {
-        width: 44px;
-        height: 44px;
-        font-size: 1.4rem;
-    }
-    .kpi-info { align-items: center; }
-    .kpi-value { font-size: 1.5rem; }
-    .kpi-label { font-size: 0.8rem; }
-
-    .chart-card,
-    .chart-card--wide,
-    .table-card,
-    .actions-card { padding: 14px; }
-
-    .chart-area { height: 180px; }
-    .chart-badge { font-size: 0.72rem; padding: 4px 10px; }
-
-    .w3-modal { padding-top: 40px !important; }
-    .w3-modal-content {
-        max-height: calc(100vh - 56px) !important;
-        max-height: calc(100dvh - 56px) !important;
-    }
-
-    /* iOS hace zoom al enfocar campos con fuente menor a 16px */
-    input, select, textarea,
-    .prod-search-input { font-size: 16px; }
-
-    .flash-container .w3-panel p { font-size: 15px; }
-
-    .footer_container { flex-direction: column; gap: 6px; }
+    .inicio-kpis { grid-template-columns: 1fr; }
+    .kpi-valor { font-size: 26px; }
 }

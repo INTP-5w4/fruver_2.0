@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea Direccion</title>
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
     <?= view('partials/mapa_config') ?>
     <script src="<?= base_url('js/geo_direccion.js') ?>" defer></script>
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <div class="formulario-pagina">
 
         <header class="modal-header">
