@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Modelo_bitacora_pedido;
 use App\Models\Modelo_cliente;
 use App\Models\Modelo_entrada;
 use App\Models\Modelo_estatus;
@@ -200,6 +201,8 @@ class P_pedidos extends BaseController
             // Precio preferencial: clientes que lo tienen y porcentaje de descuento (requerimiento #7)
             'idsPreferenciales'         => (new Modelo_cliente())->idsPreferenciales(),
             'descuentoPreferencial'     => Modelo_cliente::DESCUENTO_PREFERENCIAL,
+            // Trazabilidad: quién capturó y quién modificó cada pedido de esta página.
+            'bitacora'                  => (new Modelo_bitacora_pedido())->dePedidos(array_column($pagina_actual, 'id_pedido')),
         ]);
     }
 

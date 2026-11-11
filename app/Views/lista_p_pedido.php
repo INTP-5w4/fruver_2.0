@@ -175,6 +175,27 @@
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+
+                    <?php $movimientos = $bitacora[(int) $pedido['id_pedido']] ?? []; ?>
+                    <?php if ($movimientos !== []): ?>
+                        <!-- Trazabilidad (Aviso de Privacidad 3.2): quién capturó y quién modificó el pedido -->
+                        <b class="bitacora-titulo">Historial del pedido #<?= esc($pedido['id_pedido']) ?>:</b>
+                        <table class="w3-table w3-bordered w3-small bitacora-tabla">
+                            <thead>
+                                <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($movimientos as $m): ?>
+                                <tr>
+                                    <td><?= esc(date('d/m/Y H:i', strtotime((string) $m['fecha']))) ?></td>
+                                    <td><?= esc($m['usuario']) ?></td>
+                                    <td><?= esc(\App\Models\Modelo_bitacora_pedido::ACCIONES[$m['accion']] ?? $m['accion']) ?></td>
+                                    <td><?= esc($m['detalle'] ?? '') ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
                 </div>
             </td>
         </tr>

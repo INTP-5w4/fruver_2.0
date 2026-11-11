@@ -1,0 +1,176 @@
+/* privacidad.css — Avisos, aceptación y preferencias de privacidad.
+   Se carga junto con auth.css (usa sus variables, tarjeta, alertas y botones). */
+
+@media (min-width: 768px) {
+    .col-md-7 { width: 58.333%; }
+}
+
+.pv-main { padding: 2rem 1rem 1rem; }
+.pv-contenedor {
+    max-width: 860px;
+    margin: 0 auto;
+    display: grid;
+    gap: 1.5rem;
+}
+
+/* ── Resumen del aviso ─────────────────────────────────────── */
+.pv-resumen {
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    background: #f3faf3;
+    border: 1px solid rgba(0, 117, 66, 0.2);
+    border-radius: 12px;
+    font-size: 0.95rem;
+}
+.pv-resumen h2 {
+    margin: 0 0 .5rem;
+    font-size: 1.1rem;
+    color: var(--fv-green-dark);
+}
+.pv-resumen ul { margin: .5rem 0; padding-left: 1.2rem; }
+.pv-resumen li { margin-bottom: .35rem; }
+.pv-enlaces { margin: .5rem 0 0; }
+.pv-version { color: #6b7a99; font-size: .85rem; }
+
+/* ── Formato de consentimiento ─────────────────────────────── */
+.pv-bloque {
+    margin: 0 0 1.25rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(0, 117, 66, 0.2);
+    border-radius: 12px;
+}
+.pv-bloque legend {
+    padding: 0 .4rem;
+    font-weight: 700;
+    color: var(--fv-green-dark);
+}
+.pv-opcional { font-weight: 400; color: #6b7a99; font-size: .9em; }
+.pv-nota { margin: .5rem 0; font-size: .88rem; color: #4a5680; }
+
+.pv-check {
+    display: flex;
+    gap: .6rem;
+    align-items: flex-start;
+    margin: .6rem 0;
+    cursor: pointer;
+}
+.pv-check input[type="checkbox"] {
+    flex: 0 0 auto;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: .2rem;
+    accent-color: var(--fv-green);
+}
+.pv-check small {
+    display: block;
+    margin-top: .15rem;
+    color: #6b7a99;
+}
+.pv-canales { display: flex; flex-wrap: wrap; gap: 0 1.5rem; }
+.pv-check-linea { align-items: center; }
+.pv-check-linea input[type="checkbox"] { margin-top: 0; }
+
+.pv-campo { display: grid; gap: .3rem; margin-top: .75rem; }
+.pv-campo input {
+    max-width: 260px;
+    padding: .55rem .75rem;
+    font: inherit;
+    color: var(--fv-text);
+    border: 1px solid rgba(0, 117, 66, 0.25);
+    border-radius: 10px;
+}
+.pv-campo input:focus {
+    outline: 0;
+    border-color: var(--fv-green-mid);
+    box-shadow: 0 0 0 0.2rem rgba(58, 163, 70, 0.2);
+}
+
+.pv-error {
+    margin: .2rem 0 .6rem;
+    color: #842029;
+    font-size: .88rem;
+    font-weight: 600;
+}
+
+.pv-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .75rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+.btn-secundario {
+    padding: 10px 20px;
+    color: var(--fv-green-dark);
+    background: #ffffff;
+    border: 1px solid rgba(0, 117, 66, 0.45);
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+}
+.btn-secundario:hover { background: #f3faf3; }
+
+.pv-revocar {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed rgba(0, 117, 66, 0.3);
+}
+
+/* ── Preferencias ──────────────────────────────────────────── */
+.pv-estado {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: .75rem;
+    margin: 0 0 1.5rem;
+}
+.pv-estado div {
+    padding: .75rem 1rem;
+    background: #f3faf3;
+    border-radius: 10px;
+}
+.pv-estado dt { font-size: .8rem; color: #6b7a99; }
+.pv-estado dd { margin: .2rem 0 0; font-weight: 700; }
+.pv-subtitulo { margin-top: 0; color: var(--fv-green-dark); font-size: 1.2rem; }
+
+/* ── Documentos ────────────────────────────────────────────── */
+.pv-doc h2 { margin-top: 2rem; color: var(--fv-green-dark); font-size: 1.25rem; scroll-margin-top: 1rem; }
+.pv-doc h3 { margin-top: 1.25rem; color: var(--fv-green-dark); font-size: 1.05rem; }
+.pv-doc li { margin-bottom: .35rem; }
+.pv-subtitulo-doc { margin: -.5rem 0 .5rem; font-style: italic; }
+.pv-meta {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--fv-green-dark);
+    font-size: .88rem;
+    font-style: italic;
+}
+.pv-indice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem .9rem;
+    font-size: .88rem;
+}
+
+.pv-tabla { overflow-x: auto; margin: .75rem 0; }
+.pv-tabla table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+}
+.pv-tabla th,
+.pv-tabla td {
+    padding: .45rem .6rem;
+    text-align: left;
+    vertical-align: top;
+    border: 1px solid #c9d6c9;
+}
+.pv-tabla th { background: #e6f2e2; }
+
+.alert-info { color: #084298; background: #cfe2ff; border-color: #b6d4fe; }
+.pv-contenedor code { font-size: .9em; }
+
+@media (max-width: 767px) {
+    .pv-main { padding: 1rem .75rem; }
+    .card-body { padding: 1.25rem 1rem; }
+    .pv-acciones { justify-content: stretch; }
+    .pv-acciones .btn { flex: 1 1 100%; }
+}

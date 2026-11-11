@@ -174,6 +174,76 @@ class Modelo_pedido extends PdoModelo
     }
 
     // ─────────────────────────────────────────────────────────────
+    // HISTORIAL POR CLIENTE (finalidades voluntarias V2 y V3: solo con consentimiento)
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Productos que más pide cada cliente (por número de pedidos en que aparecen).
+     *
+     * @param list<int> $idsCliente
+     *
+     * @return array<int, list<string>> id_cliente => nombres (máximo $porCliente)
+     */
+    public function productosFrecuentes(array $idsCliente, int $porCliente = 3): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $idsCliente), static fn (int $i): bool => $i > 0)));
+        if ($ids === []) {
+            return [];
+        }
+
+        $marcas = implode(',', array_fill(0, count($ids), '?'));
+        $salida = [];
+
+        foreach ($this->filas(
+            "SELECT p.id_cliente, pr.nombre, COUNT(DISTINCT p.id) AS veces, MAX(p.fecha) AS ultima
+               FROM pedido p
+               JOIN producto_pedido pp ON pp.id_pedido = p.id
+               JOIN producto pr        ON pr.id = pp.id_producto
+              WHERE p.id_cliente IN ({$marcas})
+           GROUP BY p.id_cliente, pp.id_producto, pr.nombre
+           ORDER BY p.id_cliente, veces DESC, ultima DESC",
+            $ids
+        ) as $fila) {
+            $id = (int) $fila['id_cliente'];
+            if (count($salida[$id] ?? []) < $porCliente) {
+                $salida[$id][] = (string) $fila['nombre'];
+            }
+        }
+
+        return $salida;
+    }
+
+    /**
+     * Último pedido de cada cliente (el que se evalúa en una encuesta).
+     *
+     * @param list<int> $idsCliente
+     *
+     * @return array<int, array{id:int, fecha:string}>
+     */
+    public function ultimosDeClientes(array $idsCliente): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $idsCliente), static fn (int $i): bool => $i > 0)));
+        if ($ids === []) {
+            return [];
+        }
+
+        $marcas = implode(',', array_fill(0, count($ids), '?'));
+        $salida = [];
+
+        foreach ($this->filas(
+            "SELECT p.id_cliente, p.id, p.fecha
+               FROM pedido p
+               JOIN (SELECT id_cliente, MAX(id) AS ultimo FROM pedido WHERE id_cliente IN ({$marcas}) GROUP BY id_cliente) u
+                 ON u.ultimo = p.id",
+            $ids
+        ) as $fila) {
+            $salida[(int) $fila['id_cliente']] = ['id' => (int) $fila['id'], 'fecha' => (string) $fila['fecha']];
+        }
+
+        return $salida;
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // PEDIDOS COMPLETOS (cabecera + líneas + estatus) — todo en una transacción
     // ─────────────────────────────────────────────────────────────
 

@@ -59,6 +59,14 @@
             <label><b>Teléfono</b></label>
             <input type="text" name="tel" class="w3-input w3-border w3-margin-bottom" required>
 
+            <!-- LFPDPPP: quien da sus datos en persona o por teléfono también debe conocer el aviso. -->
+            <p class="w3-small w3-text-grey">
+                Antes de guardar, informa al cliente que sus datos se tratan conforme al
+                <a href="<?= base_url('aviso-de-privacidad') ?>" target="_blank" rel="noopener">Aviso de Privacidad</a>
+                (solo para registrar y entregar sus pedidos). Las promociones, recordatorios y encuestas requieren
+                que el cliente las autorice desde su propia cuenta.
+            </p>
+
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
                 <button type="button"

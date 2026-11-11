@@ -215,6 +215,29 @@ class Modelo_producto extends PdoModelo
     }
 
     /**
+     * "Para ti": productos con stock que el cliente ha pedido más veces (y más recientemente).
+     * Finalidad voluntaria V4: el controlador solo lo llama si la cuenta la autorizó.
+     *
+     * @return list<array<string,mixed>> mismas columnas que el catálogo
+     */
+    public function recomendadosParaCliente(int $idCliente, int $limite = 12): array
+    {
+        return $this->filas(
+            'SELECT cat.*
+               FROM (' . $this->sqlCatalogo() . ') cat
+               JOIN (SELECT pp.id_producto, COUNT(DISTINCT ped.id) AS veces, MAX(ped.id) AS ultimo
+                       FROM pedido ped
+                       JOIN producto_pedido pp ON pp.id_pedido = ped.id
+                      WHERE ped.id_cliente = ?
+                   GROUP BY pp.id_producto) h ON h.id_producto = cat.id
+              WHERE cat.stock > 0
+           ORDER BY h.veces DESC, h.ultimo DESC
+              LIMIT ' . max(1, min(24, $limite)),
+            [$idCliente]
+        );
+    }
+
+    /**
      * Datos vigentes (precio, unidad, stock) de varios productos a la vez, indexados por id.
      * Se usa para volver a calcular el carrito en el servidor: el precio NUNCA se toma
      * de lo que mande el navegador.

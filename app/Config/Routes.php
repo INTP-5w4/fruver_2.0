@@ -21,7 +21,24 @@ use CodeIgniter\Router\RouteCollection;
 $routes->get('/', 'Productos::main_page');
 $routes->get('main_page_4', 'Tienda::index');
 
-service('auth')->routes($routes);
+// El registro usa un controlador propio que exige el Aviso de Privacidad (LFPDPPP).
+service('auth')->routes($routes, ['except' => ['register']]);
+$routes->get('register', '\App\Controllers\Auth\RegisterController::registerView', ['as' => 'register']);
+$routes->post('register', '\App\Controllers\Auth\RegisterController::registerAction');
+
+// ───────────── PRIVACIDAD ─────────────
+// Los avisos son públicos: deben poder leerse antes de crear una cuenta.
+$routes->get('aviso-de-privacidad', 'Privacidad::aviso');
+$routes->get('aviso-de-privacidad/consentimiento', 'Privacidad::consentimiento');
+
+// Aceptación del aviso y preferencias de las finalidades voluntarias (cualquier rol).
+$routes->group('privacidad', ['filter' => 'session'], static function (RouteCollection $routes) {
+    $routes->get('aceptar', 'Privacidad::aceptar');
+    $routes->post('aceptar', 'Privacidad::guardaAceptacion');
+    $routes->get('preferencias', 'Privacidad::preferencias');
+    $routes->post('preferencias', 'Privacidad::guardaPreferencias');
+    $routes->post('revocar', 'Privacidad::revocar');
+});
 
 // ───────────── TIENDA (cliente con sesión) ─────────────
 $routes->group('tienda', ['filter' => 'session'], static function (RouteCollection $routes) {
@@ -160,6 +177,10 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->get('impresora', 'Tickets::configuracion');
     $routes->post('impresora/prueba', 'Tickets::prueba');
     $routes->post('impresora/conexion', 'Tickets::conexion');
+
+    // ===== COMUNICACIONES VOLUNTARIAS (V1–V3; solo a quien las autorizó) =====
+    $routes->get('comunicaciones', 'Comunicaciones::index');
+    $routes->post('comunicaciones/correo', 'Comunicaciones::enviarCorreo');
 
     // ===== SUGERENCIAS (lectura del personal; el formulario es para todos y va más arriba) =====
     $routes->get('lista_sugerencia', 'Sugerencias::lista_sugerencia');
