@@ -96,7 +96,10 @@ final class VistasRutasTest extends CIUnitTestCase
         $this->assertStringContainsString('Calcular rutas óptimas', $html);
         $this->assertStringContainsString('Sin dirección', $html);
         $this->assertStringContainsString('"max":25', $html);
-        $this->assertStringContainsString('No hay servicio de rutas configurado', $html);
+        // Sin sesión (o como admin) se ve el aviso sencillo; el técnico (.env, llaves) es solo para superadmin/developer.
+        $this->assertStringContainsString('Las rutas se calculan de forma aproximada', $html);
+        $this->assertStringNotContainsString('rutas.llaveOrs', $html);
+        $this->assertStringNotContainsString('.env', $html);
     }
 
     public function testAlmacen(): void

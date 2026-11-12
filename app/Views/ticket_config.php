@@ -20,12 +20,18 @@
         <div class="w3-panel w3-pale-yellow w3-leftbar w3-border-yellow">
             <p>
                 Modo <b>navegador</b>: los tickets se abren en una vista de 58/80&nbsp;mm para imprimir con el
-                controlador normal de la impresora. Para imprimir directo en la térmica (sin diálogo), configura
-                <code>impresora.conexion</code> en el archivo <code>.env</code>.
+                controlador normal de la impresora.
+                <?php if (es_tecnico()): ?>
+                    Para imprimir directo en la térmica (sin diálogo), configura
+                    <code>impresora.conexion</code> en el archivo <code>.env</code>.
+                <?php else: ?>
+                    Para imprimir directo en la térmica (sin diálogo), pide al administrador del sistema que la configure.
+                <?php endif; ?>
             </p>
         </div>
     <?php endif; ?>
 
+    <?php if (es_tecnico()): /* Datos de la conexión (puerto, IP, codificación…): solo superadmin/developer. */ ?>
     <table class="w3-table w3-bordered" style="max-width:640px;">
         <tbody>
         <?php foreach ($resumen as $etiqueta => $valor): ?>
@@ -36,6 +42,7 @@
         <?php endforeach; ?>
         </tbody>
     </table>
+    <?php endif; ?>
 
     <div style="margin:20px 0;">
         <button type="button" class="w3-button w3-blue" data-url="<?= base_url('impresora/conexion') ?>"
@@ -51,11 +58,15 @@
 
     <div class="w3-panel w3-light-grey">
         <p><b>Si los acentos o la ñ salen mal en la hoja de prueba:</b></p>
+        <?php if (es_tecnico()): ?>
         <ul>
             <li>Prueba <code>impresora.codificacion = cp850</code> o <code>cp437</code> en el <code>.env</code>.</li>
             <li>Si salen caracteres chinos o símbolos raros, activa <code>impresora.cancelarKanji = true</code>.</li>
             <li>Si nada funciona, usa <code>impresora.codificacion = ascii</code> (imprime sin acentos en cualquier impresora).</li>
         </ul>
+        <?php else: ?>
+        <p>Guarda la hoja de prueba y avisa al administrador del sistema para que ajuste la impresora.</p>
+        <?php endif; ?>
     </div>
 
 </div>

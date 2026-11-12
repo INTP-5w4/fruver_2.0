@@ -48,3 +48,29 @@ if (! function_exists('estado_entrega')) {
         return '<span class="est est-' . $clave . '">' . esc($textos[$clave] ?? ucfirst(str_replace('_', ' ', $clave))) . '</span>';
     }
 }
+
+if (! function_exists('es_tecnico')) {
+    /**
+     * ¿La persona en sesión es superadmin o developer? Solo ellos ven los detalles técnicos
+     * (archivos, comandos, llaves, rutas del servidor). El resto del personal ve un mensaje
+     * sencillo que le pide avisar al administrador del sistema.
+     */
+    function es_tecnico(): bool
+    {
+        try {
+            $usuario = auth()->user();
+        } catch (Throwable) {
+            return false;
+        }
+
+        return $usuario !== null && $usuario->inGroup('superadmin', 'developer');
+    }
+}
+
+if (! function_exists('mensaje_tecnico')) {
+    /** El texto técnico para superadmin/developer; el sencillo para todos los demás. */
+    function mensaje_tecnico(string $tecnico, string $sencillo): string
+    {
+        return es_tecnico() ? $tecnico : $sencillo;
+    }
+}

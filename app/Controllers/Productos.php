@@ -4,8 +4,8 @@ namespace App\Controllers;
 
 use App\Models\Modelo_cliente;
 use App\Models\Modelo_entrada;
+use App\Models\Modelo_analitica;
 use App\Models\Modelo_existencia;
-use App\Models\Modelo_merma;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_producto;
 use App\Models\Modelo_repartidor;
@@ -59,7 +59,6 @@ class Productos extends BaseController
         $m_pedido     = new Modelo_pedido();
         $m_entrada    = new Modelo_entrada();
         $m_existencia = new Modelo_existencia();
-        $m_merma      = new Modelo_merma();
 
         // Última entrada de cada producto: autocompleta precio y unidad de venta
         $uVentaSugerida = [];
@@ -69,9 +68,10 @@ class Productos extends BaseController
             $precioSugerido[$id] = $datos_ent['precio_venta_u'];
         }
 
+        $analitica = new Modelo_analitica();
+
         $datos = [
             // Datos generales
-            'productosLowStock' => $m_producto->productosLowStock(),
             'productos'         => $m_producto->findAll(),
             'clientes'          => $m_cliente->findAll(),
             'repartidores'      => $this->repartidores(),
@@ -81,11 +81,14 @@ class Productos extends BaseController
             // Indicadores contra la semana anterior y lo que requiere atención hoy
             'resumen' => (new Modelo_resumen())->inicio(),
 
-            // Datos gráficos
-            'pedidosPorMes' => $m_pedido->pedidosPorMes(),
-            'ventasPorMes'  => $m_pedido->totalVentasPorMes(),
-            'topProductos'  => $m_producto->topProductos(),
-            'perdidasMerma' => $m_merma->perdidasPorMes(),
+            // Analíticas: ganancia, merma, reabasto y clientes (Modelo_analitica)
+            'ganancia'          => $analitica->gananciaSemana(),
+            'porCobrar'         => $analitica->porCobrar(),
+            'ventasSemanales'   => $analitica->ventasSemanales(),
+            'gananciaProducto'  => $analitica->gananciaPorProducto(),
+            'mermaProducto'     => $analitica->mermaPorProducto(),
+            'reabastecer'       => $analitica->reabastecer(),
+            'clientesSinVolver' => $analitica->clientesSinVolver(),
 
             // Inventario
             'uVentaSugeridaPorProducto' => $uVentaSugerida,

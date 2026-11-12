@@ -149,7 +149,7 @@ class Tickets extends BaseController
 
     public function prueba(): ResponseInterface
     {
-        return $this->accionDiagnostico(static fn (ServicioTicket $s) => $s->imprimirPrueba());
+        return $this->accionDiagnostico(static fn (ServicioTicket $s) => $s->imprimirPrueba(es_tecnico()));
     }
 
     public function conexion(): ResponseInterface
@@ -173,7 +173,7 @@ class Tickets extends BaseController
                 'ok'         => false,
                 'tipo'       => 'no_configurada',
                 'mensaje'    => 'La conexión está en modo "navegador": no hay impresora directa que probar.',
-                'sugerencia' => 'Configura impresora.conexion en el archivo .env (red, windows, puerto o cups).',
+                'sugerencia' => mensaje_tecnico('Configura impresora.conexion en el archivo .env (red, windows, puerto o cups).', 'Pide al administrador del sistema que configure la impresora.'),
             ], 422);
         }
 
@@ -200,7 +200,7 @@ class Tickets extends BaseController
             'ok'         => false,
             'tipo'       => $tipo,
             'mensaje'    => $e->getMessage(),
-            'sugerencia' => $e->sugerencia(),
+            'sugerencia' => $this->sugerenciaPara($e),
         ];
 
         // Si el pedido es válido, se ofrece imprimirlo desde el navegador como salida de emergencia.
@@ -209,6 +209,24 @@ class Tickets extends BaseController
         }
 
         return $this->json($datos, $estado);
+    }
+
+    /**
+     * Sugerencia del error de impresora. Las que hablan de configuración del servidor (.env,
+     * impresora.*, writable, CUPS, puertos) solo las ve superadmin/developer; el resto del
+     * personal ve una indicación sencilla.
+     */
+    private function sugerenciaPara(ImpresoraException $e): string
+    {
+        $sugerencia = $e->sugerencia();
+        $deConfiguracion = in_array($e->tipo(), ['no_configurada', 'config_invalida'], true)
+            || preg_match('~\.env|impresora\.[a-z]|writable|cups|lpstat|sudo|/dev/|COM[0-9]|LPT[0-9]~i', $sugerencia) === 1;
+
+        if (! $deConfiguracion || es_tecnico()) {
+            return $sugerencia;
+        }
+
+        return 'Revisa que la impresora esté encendida y conectada. Si sigue fallando, avisa al administrador del sistema.';
     }
 
     /** Respuesta JSON con el token CSRF vigente (por si se regenera en Config\Security). */
