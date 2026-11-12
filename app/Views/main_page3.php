@@ -5,7 +5,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inicio · Fruver</title>
-    <link rel="stylesheet" href="<?= base_url('estilos/dashboard.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/dashboard.css') . '?v=' . @filemtime(FCPATH . 'estilos/dashboard.css') ?>">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="<?= base_url('js/direccion_pedido.js') ?>" defer></script>
 </head>
@@ -14,8 +14,12 @@
 <?php include 'sidebar.php'; ?>
 <?php
 /*
- * Inicio del personal: primero lo que cambió contra la semana pasada y lo que hay que
- * atender hoy (Modelo_resumen::inicio), después las gráficas y el registro rápido.
+ * Inicio del personal:
+ *  1. Indicadores de la semana: ventas, ganancia estimada, merma y dinero por cobrar.
+ *  2. Ventas por semana y lo que requiere atención hoy.
+ *  3. Dónde se gana y dónde se pierde: ganancia y merma por producto.
+ *  4. Qué hacer: qué reabastecer y a qué clientes invitar a volver.
+ * Datos: Modelo_resumen::inicio() y Modelo_analitica (todo de solo lectura).
  */
 $r          = $resumen ?? [];
 $diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
@@ -45,9 +49,28 @@ $comparar = static function (int|float|null $actual, int|float|null $antes, bool
         ($menosEsMejor ? ! $sube : $sube) ? 'bien' : 'mal',
     ];
 };
-[$txtPedidos, $clsPedidos] = $comparar($r['pedidos_hoy'] ?? null, $r['pedidos_hace_7'] ?? null, false, static fn ($v) => (string) (int) $v, 'el ' . $diaHoy . ' pasado');
 [$txtVentas, $clsVentas]   = $comparar($r['ventas_semana'] ?? null, $r['ventas_semana_ant'] ?? null, false, $dinero, 'la semana pasada');
 [$txtMerma, $clsMerma]     = $comparar($r['merma_semana'] ?? null, $r['merma_semana_ant'] ?? null, true, $dinero, 'la semana pasada');
+$ganancia = $ganancia ?? null;
+[$txtGanancia, $clsGanancia] = $comparar($ganancia['actual'] ?? null, $ganancia['anterior'] ?? null, false, $dinero, 'la semana pasada');
+$porCobrar = $porCobrar ?? null;
+
+// Periodo de las listas por producto (Modelo_analitica::conRespaldo)
+$periodoTexto = static fn (string $periodo): string => match ($periodo) {
+    'reciente'  => 'Últimos 30 días',
+    'historico' => 'Todo el historial · sin movimiento en 30 días',
+    default     => 'Sin datos',
+};
+// Unidad corta: "Kilogramo" → "kg"
+$unidadCorta = static fn (string $u): string => match (mb_strtolower(trim($u))) {
+    'kilogramo', 'kilogramos', 'kg' => 'kg',
+    'gramo', 'gramos'               => 'g',
+    'litro', 'litros'               => 'L',
+    'pieza', 'piezas'               => 'pzas',
+    ''                              => '',
+    default                         => mb_strtolower(trim($u)),
+};
+$cantidad = static fn (float $v): string => number_format($v, $v >= 10 || abs($v - round($v)) < 0.05 ? 0 : 1);
 $porCaducar = $r['por_caducar'] ?? [];
 
 // "Requiere atención": [gravedad, título, detalle, ruta, acción]
@@ -73,18 +96,20 @@ foreach (array_slice($porCaducar, 0, 3) as $cad) {
     };
     $atencion[] = ['aviso', ucfirst($cad['nombre']) . ' ' . $cuando, 'Entrada #' . $cad['id'], 'lista_entrada', 'Ver'];
 }
+if (($gananciaProducto['periodo'] ?? '') === 'reciente') {
+    foreach ($gananciaProducto['filas'] as $g) {
+        if ($g['ganancia'] !== null && $g['ganancia'] < 0) {
+            $atencion[] = ['aviso', ucfirst($g['nombre']) . ' se vendió por debajo de su costo',
+                'Vendiste ' . $dinero($g['ventas']) . ' y costó ' . $dinero($g['costo']) . ' en los últimos 30 días. Revisa su precio de venta.',
+                'lista_entrada', 'Revisar precio'];
+        }
+    }
+}
 if (($r['sugerencias_7d'] ?? 0) > 0) {
     $n = (int) $r['sugerencias_7d'];
     $atencion[] = ['info', $n . ($n === 1 ? ' sugerencia esta semana' : ' sugerencias esta semana'), 'Ideas del equipo y de clientes para mejorar Fruver.', 'lista_sugerencia', 'Leer'];
 }
 
-// Productos con menos existencias (ya se calculaba aquí)
-$bajos_stock = [];
-foreach ($productos as $p) {
-    $bajos_stock[] = ['nombre' => $p['nombre'], 'stock' => $stockPorProducto[$p['id']] ?? 0];
-}
-usort($bajos_stock, static fn ($a, $b) => $a['stock'] <=> $b['stock']);
-$top5_bajos = array_slice($bajos_stock, 0, 5);
 ?>
     <div class="flash-container">
         <?php if (session()->getFlashdata('error')): ?>
@@ -107,39 +132,51 @@ $top5_bajos = array_slice($bajos_stock, 0, 5);
             </div>
         </div>
 
-        <section class="inicio-kpis" aria-label="Indicadores">
-            <div class="kpi">
-                <span class="kpi-nombre">Pedidos hoy</span>
-                <strong class="kpi-valor num"><?= ($r['pedidos_hoy'] ?? null) === null ? '—' : (int) $r['pedidos_hoy'] ?></strong>
-                <span class="kpi-comp <?= $clsPedidos ?>"><?= esc($txtPedidos) ?></span>
-            </div>
+        <section class="inicio-kpis" aria-label="Indicadores de la semana">
             <div class="kpi">
                 <span class="kpi-nombre">Ventas de la semana</span>
                 <strong class="kpi-valor num"><?= ($r['ventas_semana'] ?? null) === null ? '—' : esc($dinero($r['ventas_semana'])) ?></strong>
                 <span class="kpi-comp <?= $clsVentas ?>"><?= esc($txtVentas) ?></span>
             </div>
             <div class="kpi">
+                <span class="kpi-nombre">Ganancia estimada (semana)</span>
+                <strong class="kpi-valor num"><?= $ganancia === null ? '—' : esc($dinero($ganancia['actual'])) ?></strong>
+                <span class="kpi-comp <?= $clsGanancia ?>"><?= esc($txtGanancia) ?></span>
+                <?php if ($ganancia !== null && $ganancia['margen'] !== null): ?>
+                    <span class="kpi-extra">Margen <?= number_format($ganancia['margen'], 0) ?>% sobre lo vendido</span>
+                <?php endif; ?>
+                <?php if ($ganancia !== null && $ganancia['sin_costo'] > 0): ?>
+                    <span class="kpi-extra"><?= esc($dinero($ganancia['sin_costo'])) ?> vendidos sin costo registrado</span>
+                <?php endif; ?>
+            </div>
+            <div class="kpi">
                 <span class="kpi-nombre">Pérdida por merma (semana)</span>
                 <strong class="kpi-valor num"><?= ($r['merma_semana'] ?? null) === null ? '—' : esc($dinero($r['merma_semana'])) ?></strong>
                 <span class="kpi-comp <?= $clsMerma ?>"><?= esc($txtMerma) ?></span>
             </div>
-            <div class="kpi<?= $porCaducar !== [] ? ' atencion' : '' ?>">
-                <span class="kpi-nombre">Por caducar</span>
-                <strong class="kpi-valor num"><?= count($porCaducar) ?> <?= count($porCaducar) === 1 ? 'entrada' : 'entradas' ?></strong>
-                <span class="kpi-comp <?= $porCaducar !== [] ? 'cuidado' : 'neutro' ?>">En los próximos 2 días</span>
-            </div>
+            <a class="kpi kpi-enlace<?= ($porCobrar['pedidos'] ?? 0) > 0 ? ' atencion' : '' ?>" href="<?= base_url('lista_p_pedido?estado=pedido_a_credito') ?>">
+                <span class="kpi-nombre">Por cobrar (a crédito)</span>
+                <strong class="kpi-valor num"><?= $porCobrar === null ? '—' : esc($dinero($porCobrar['monto'])) ?></strong>
+                <span class="kpi-comp <?= ($porCobrar['pedidos'] ?? 0) > 0 ? 'cuidado' : 'neutro' ?>">
+                    <?php if (($porCobrar['pedidos'] ?? 0) > 0): ?>
+                        <?= (int) $porCobrar['pedidos'] ?> <?= (int) $porCobrar['pedidos'] === 1 ? 'pedido pendiente de pago' : 'pedidos pendientes de pago' ?>
+                    <?php else: ?>
+                        Nada pendiente de cobro
+                    <?php endif; ?>
+                </span>
+            </a>
         </section>
 
         <div class="inicio-fila inicio-fila--principal">
             <section class="tarjeta">
-                <div class="tarjeta-cab"><h2>Pedidos por semana</h2><small>Últimas 8 semanas</small></div>
-                <div class="grafica-caja"><canvas id="pedidosChart" aria-label="Pedidos por semana" role="img"></canvas></div>
+                <div class="tarjeta-cab"><h2>Ventas por semana</h2><small>Últimas 8 semanas · barras: ventas, línea: pedidos</small></div>
+                <div class="grafica-caja"><canvas id="ventasChart" aria-label="Ventas y pedidos por semana" role="img"></canvas></div>
             </section>
 
             <section class="tarjeta">
                 <div class="tarjeta-cab"><h2>Requiere atención</h2><small><?= count($atencion) ?></small></div>
                 <?php if ($atencion === []): ?>
-                    <div class="vacio"><b>Todo en orden</b><span>No hay entregas fallidas, pedidos sin repartidor ni productos por caducar.</span></div>
+                    <div class="vacio"><b>Todo en orden</b><span>No hay entregas fallidas, pedidos sin repartidor, productos por caducar ni ventas por debajo del costo.</span></div>
                 <?php else: ?>
                     <ul class="atencion-lista">
                         <?php foreach ($atencion as [$gravedad, $titulo, $detalle, $ruta, $accion]): ?>
@@ -155,42 +192,77 @@ $top5_bajos = array_slice($bajos_stock, 0, 5);
 
         <div class="inicio-fila">
             <section class="tarjeta">
-                <div class="tarjeta-cab"><h2>Ventas por semana</h2><small>Últimas 8 semanas</small></div>
-                <div class="grafica-caja"><canvas id="ventasChart" aria-label="Ventas por semana" role="img"></canvas></div>
+                <div class="tarjeta-cab"><h2>Ganancia por producto</h2><small><?= esc($periodoTexto($gananciaProducto['periodo'])) ?></small></div>
+                <div class="grafica-caja"><canvas id="gananciaChart" aria-label="Ganancia estimada por producto" role="img"></canvas></div>
+                <?php $sinCosto = array_column(array_filter($gananciaProducto['filas'], static fn ($g) => $g['ganancia'] === null), 'nombre'); ?>
+                <?php if ($sinCosto !== []): ?>
+                    <p class="tarjeta-nota">Sin costo registrado (no se puede calcular su ganancia): <?= esc(implode(', ', $sinCosto)) ?>. Registra su entrada con el precio de compra.</p>
+                <?php endif; ?>
             </section>
             <section class="tarjeta">
-                <div class="tarjeta-cab"><h2>Pérdidas por merma</h2><small>Últimos 6 meses</small></div>
-                <div class="grafica-caja"><canvas id="mermaChart" aria-label="Pérdidas por merma por mes" role="img"></canvas></div>
+                <div class="tarjeta-cab"><h2>Dónde se pierde por merma</h2><small><?= esc($periodoTexto($mermaProducto['periodo'])) ?></small></div>
+                <div class="grafica-caja"><canvas id="mermaChart" aria-label="Pérdida por merma por producto" role="img"></canvas></div>
+                <p class="tarjeta-nota">Costo de lo que se tiró. Si un producto se repite aquí, conviene comprar menos o venderlo antes.</p>
             </section>
         </div>
 
         <div class="inicio-fila">
             <section class="tarjeta">
-                <div class="tarjeta-cab"><h2>Productos más vendidos</h2><small>Histórico, en pesos</small></div>
-                <div class="grafica-caja"><canvas id="topProductosChart" aria-label="Cinco productos más vendidos" role="img"></canvas></div>
+                <div class="tarjeta-cab"><h2>Qué reabastecer</h2><small><?= ($reabastecer['periodo'] ?? '') === 'reciente' ? 'Ritmo de venta de los últimos 90 días' : esc($periodoTexto($reabastecer['periodo'] ?? '')) ?></small></div>
+                <?php if (($reabastecer['filas'] ?? []) === []): ?>
+                    <div class="vacio"><b>Sin ventas para calcular</b><span>Cuando haya pedidos, aquí verás para cuántos días alcanza cada producto.</span></div>
+                <?php else: ?>
+                    <table class="tabla-mini">
+                        <thead><tr><th>Producto</th><th class="der">Disponible</th><th class="der">Se vende por semana</th><th>Alcanza para</th></tr></thead>
+                        <tbody>
+                            <?php foreach ($reabastecer['filas'] as $p): ?>
+                                <?php $u = $unidadCorta($p['unidad']); ?>
+                                <tr>
+                                    <td><?= esc($p['nombre']) ?></td>
+                                    <td class="der num"><?= esc($cantidad($p['disponible'])) ?> <?= esc($u) ?></td>
+                                    <td class="der num"><?= esc($cantidad($p['por_semana'])) ?> <?= esc($u) ?></td>
+                                    <td>
+                                        <?php if ($p['disponible'] <= 0): ?>
+                                            <span class="est est-fallida">Agotado</span>
+                                        <?php elseif ($p['dias'] === null): ?>
+                                            <span class="est est-pendiente">Sin ventas</span>
+                                        <?php elseif ($p['dias'] < 7): ?>
+                                            <span class="est est-en_ruta"><?= (int) max(1, floor($p['dias'])) ?> <?= floor($p['dias']) <= 1 ? 'día' : 'días' ?></span>
+                                        <?php elseif ($p['dias'] <= 60): ?>
+                                            <span class="est est-entregada"><?= (int) floor($p['dias']) ?> días</span>
+                                        <?php else: ?>
+                                            <span class="est est-entregada">Más de 2 meses</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <p class="tarjeta-nota">Solo productos que se han vendido. "Alcanza para" = lo disponible entre lo que se vende al día.</p>
+                <?php endif; ?>
             </section>
             <section class="tarjeta">
-                <div class="tarjeta-cab"><h2>Menos existencias</h2><small>5 productos</small></div>
-                <table class="tabla-mini">
-                    <thead><tr><th>Producto</th><th class="der">Disponible</th><th>Nivel</th></tr></thead>
-                    <tbody>
-                        <?php foreach ($top5_bajos as $p): ?>
-                            <tr>
-                                <td><?= esc($p['nombre']) ?></td>
-                                <td class="der num"><?= esc($p['stock']) ?></td>
-                                <td>
-                                    <?php if ($p['stock'] <= 5): ?>
-                                        <span class="est est-fallida">Bajo</span>
-                                    <?php elseif ($p['stock'] <= 15): ?>
-                                        <span class="est est-en_ruta">Medio</span>
-                                    <?php else: ?>
-                                        <span class="est est-entregada">Suficiente</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+                <div class="tarjeta-cab"><h2>Clientes que no han vuelto</h2><small>Sin pedir en 30 días o más</small></div>
+                <?php if ($clientesSinVolver === []): ?>
+                    <div class="vacio"><b>Todos han vuelto</b><span>Ningún cliente lleva más de 30 días sin pedir.</span></div>
+                <?php else: ?>
+                    <table class="tabla-mini">
+                        <thead><tr><th>Cliente</th><th>Último pedido</th><th class="der">Ha comprado</th></tr></thead>
+                        <tbody>
+                            <?php foreach ($clientesSinVolver as $c): ?>
+                                <tr>
+                                    <td><?= esc($c['nombre']) ?></td>
+                                    <td>Hace <?= (int) $c['dias'] ?> días</td>
+                                    <td class="der num"><?= esc($dinero($c['total'])) ?> <small class="tarjeta-nota-inline">(<?= (int) $c['pedidos'] ?> <?= $c['pedidos'] === 1 ? 'pedido' : 'pedidos' ?>)</small></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <div class="tarjeta-pie">
+                        <span class="tarjeta-nota">Los que más han comprado aparecen primero.</span>
+                        <a href="<?= base_url('comunicaciones?finalidad=v2') ?>" class="btn btn-chico btn-secundario"><i class="fa-brands fa-whatsapp" aria-hidden="true"></i>Invitar a volver</a>
+                    </div>
+                <?php endif; ?>
             </section>
         </div>
 
@@ -614,8 +686,6 @@ $top5_bajos = array_slice($bajos_stock, 0, 5);
         </div>
     </div>
 
-    <?php include 'Footer.php'; ?>
-
     <script>
     // Escapa texto antes de insertarlo con innerHTML (anti XSS)
     function escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -1007,28 +1077,19 @@ $top5_bajos = array_slice($bajos_stock, 0, 5);
     </script>
 
     <?php
-    // Datos de las gráficas (ya agrupados en SQL por el controlador), con etiquetas legibles.
-    $semanaTexto = static function (string $s) use ($mesesCorto): string {
-        if (preg_match('/^(\d{4})-W(\d{2})$/', $s, $m)) {
-            $d = (new DateTime())->setISODate((int) $m[1], (int) $m[2]);
+    // Datos de las gráficas (ya calculados en Modelo_analitica), con etiquetas legibles.
+    $semana_labels  = array_map(static fn (array $w): string => date('j', strtotime($w['inicio'])) . ' ' . $mesesCorto[(int) date('n', strtotime($w['inicio']))], $ventasSemanales);
+    $semana_ventas  = array_column($ventasSemanales, 'ventas');
+    $semana_pedidos = array_column($ventasSemanales, 'pedidos');
 
-            return $d->format('j') . ' ' . $mesesCorto[(int) $d->format('n')];
-        }
+    $conCosto        = array_values(array_filter($gananciaProducto['filas'], static fn ($g) => $g['ganancia'] !== null));
+    $ganancia_labels = array_column($conCosto, 'nombre');
+    $ganancia_data   = array_map(static fn ($g) => round($g['ganancia'], 2), $conCosto);
+    $ganancia_info   = array_map(static fn ($g) => ['ventas' => round($g['ventas'], 2), 'costo' => round($g['costo'], 2), 'margen' => round($g['margen'], 1)], $conCosto);
 
-        return $s;
-    };
-    $mesTexto = static fn (string $s): string => preg_match('/^(\d{4})-(\d{2})$/', $s, $m)
-        ? $mesesCorto[(int) $m[2]] . ' ' . $m[1]
-        : $s;
-
-    $pedidos_labels = array_map($semanaTexto, array_column($pedidosPorMes, 'semana'));
-    $semanas_count  = array_map('intval', array_column($pedidosPorMes, 'total'));
-    $ventas_labels  = array_map($semanaTexto, array_column($ventasPorMes, 'semana'));
-    $semanas_ventas = array_map('floatval', array_column($ventasPorMes, 'ventas'));
-    $top5_labels    = array_column($topProductos, 'nombre');
-    $top5_data      = array_map('floatval', array_column($topProductos, 'total_vendido'));
-    $mermas_labels  = array_map($mesTexto, array_column($perdidasMerma, 'mes'));
-    $mermas_data    = array_map('floatval', array_column($perdidasMerma, 'perdida'));
+    $merma_labels = array_column($mermaProducto['filas'], 'nombre');
+    $merma_data   = array_map(static fn ($m) => round($m['perdida'], 2), $mermaProducto['filas']);
+    $merma_info   = array_map(static fn ($m) => $cantidad($m['cantidad']) . ' ' . $unidadCorta($m['unidad']), $mermaProducto['filas']);
     ?>
 
     <script>
@@ -1073,59 +1134,75 @@ $top5_bajos = array_slice($bajos_stock, 0, 5);
             }
         });
 
-        const pedidos = <?= json_seguro($semanas_count) ?>;
-        if (hayDatos('pedidosChart', pedidos, 'No hubo pedidos en las últimas 8 semanas.')) {
-            new Chart(document.getElementById('pedidosChart'), {
+        const horizontal = (formato) => {
+            const o = opciones(formato);
+            o.indexAxis = 'y';
+            o.scales = {
+                x: { grid: { color: LINEA }, border: { display: false }, ticks: { maxTicksLimit: 5, callback: (v) => pesos(v) } },
+                y: { grid: { display: false }, border: { color: LINEA } }
+            };
+            return o;
+        };
+
+        // Ventas ($, barras) y pedidos (línea) por semana
+        const ventas = <?= json_seguro($semana_ventas) ?>;
+        const pedidos = <?= json_seguro($semana_pedidos) ?>;
+        if (hayDatos('ventasChart', ventas.concat(pedidos), 'No hubo ventas en las últimas 8 semanas.')) {
+            const o = opciones(null);
+            o.plugins.legend = { display: true, position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } };
+            o.plugins.tooltip.callbacks = { label: (c) => ' ' + c.dataset.label + ': ' + (c.dataset.yAxisID === 'y' ? pesos(c.parsed.y) : c.parsed.y) };
+            o.scales.y.ticks = { maxTicksLimit: 6, callback: (v) => pesos(v) };
+            o.scales.y2 = { position: 'right', beginAtZero: true, grid: { display: false }, border: { display: false }, ticks: { precision: 0, maxTicksLimit: 6 } };
+            new Chart(document.getElementById('ventasChart'), {
+                data: {
+                    labels: <?= json_seguro($semana_labels) ?>,
+                    datasets: [
+                        { type: 'bar', label: 'Ventas', data: ventas, yAxisID: 'y', backgroundColor: resaltarUltima(ventas, HOJA_SUAVE, HOJA), borderRadius: 4, maxBarThickness: 40, order: 2 },
+                        { type: 'line', label: 'Pedidos', data: pedidos, yAxisID: 'y2', borderColor: TINTA, backgroundColor: TINTA, borderWidth: 2, tension: 0.3, pointRadius: 3, order: 1 }
+                    ]
+                },
+                options: o
+            });
+        }
+
+        // Ganancia por producto (rojo = se vendió por debajo de su costo)
+        const ganancia = <?= json_seguro($ganancia_data) ?>;
+        const gananciaInfo = <?= json_seguro($ganancia_info) ?>;
+        if (hayDatos('gananciaChart', ganancia.map(Math.abs), 'Todavía no hay ventas con costo registrado.')) {
+            const o = horizontal(pesos);
+            o.plugins.tooltip.callbacks = {
+                label: (c) => ' Ganancia: ' + pesos(c.parsed.x),
+                afterLabel: (c) => {
+                    const i = gananciaInfo[c.dataIndex];
+                    return ['Vendido: ' + pesos(i.ventas), 'Costo: ' + pesos(i.costo), 'Margen: ' + i.margen + '%'];
+                }
+            };
+            new Chart(document.getElementById('gananciaChart'), {
                 type: 'bar',
                 data: {
-                    labels: <?= json_seguro($pedidos_labels) ?>,
-                    datasets: [{ label: 'Pedidos', data: pedidos, backgroundColor: resaltarUltima(pedidos, HOJA_SUAVE, HOJA), borderRadius: 4, maxBarThickness: 40 }]
+                    labels: <?= json_seguro($ganancia_labels) ?>,
+                    datasets: [{ label: 'Ganancia', data: ganancia, backgroundColor: ganancia.map((v) => v < 0 ? ALERTA : HOJA), borderRadius: 4, maxBarThickness: 26 }]
                 },
-                options: opciones(null)
+                options: o
             });
         }
 
-        const ventas = <?= json_seguro($semanas_ventas) ?>;
-        if (hayDatos('ventasChart', ventas, 'No hubo ventas en las últimas 8 semanas.')) {
-            new Chart(document.getElementById('ventasChart'), {
-                type: 'line',
-                data: {
-                    labels: <?= json_seguro($ventas_labels) ?>,
-                    datasets: [{ label: 'Ventas', data: ventas, borderColor: HOJA, backgroundColor: HOJA_FONDO,
-                                 borderWidth: 2, fill: true, tension: 0.35, pointBackgroundColor: HOJA, pointRadius: 3 }]
-                },
-                options: opciones(pesos)
-            });
-        }
-
-        const mermas = <?= json_seguro($mermas_data) ?>;
-        if (hayDatos('mermaChart', mermas, 'Sin pérdidas por merma en los últimos 6 meses.')) {
+        // Pérdida por merma por producto
+        const merma = <?= json_seguro($merma_data) ?>;
+        const mermaInfo = <?= json_seguro($merma_info) ?>;
+        if (hayDatos('mermaChart', merma, 'Sin pérdidas por merma registradas.')) {
+            const o = horizontal(pesos);
+            o.plugins.tooltip.callbacks = {
+                label: (c) => ' Pérdida: ' + pesos(c.parsed.x),
+                afterLabel: (c) => 'Se tiraron: ' + mermaInfo[c.dataIndex]
+            };
             new Chart(document.getElementById('mermaChart'), {
                 type: 'bar',
                 data: {
-                    labels: <?= json_seguro($mermas_labels) ?>,
-                    datasets: [{ label: 'Pérdida', data: mermas, backgroundColor: resaltarUltima(mermas, ALERTA_SUAVE, ALERTA), borderRadius: 4, maxBarThickness: 40 }]
+                    labels: <?= json_seguro($merma_labels) ?>,
+                    datasets: [{ label: 'Pérdida', data: merma, backgroundColor: ALERTA_SUAVE, hoverBackgroundColor: ALERTA, borderRadius: 4, maxBarThickness: 26 }]
                 },
-                options: opciones(pesos)
-            });
-        }
-
-        const vendidos = <?= json_seguro($top5_data) ?>;
-        if (hayDatos('topProductosChart', vendidos, 'Todavía no hay ventas registradas.')) {
-            const top = opciones(pesos);
-            top.indexAxis = 'y';
-            top.scales = {
-                x: { beginAtZero: true, grid: { color: LINEA }, border: { display: false }, ticks: { maxTicksLimit: 5, callback: (v) => pesos(v) } },
-                y: { grid: { display: false }, border: { color: LINEA } }
-            };
-            top.plugins.tooltip.callbacks = { label: (c) => ' ' + pesos(c.parsed.x) };
-            new Chart(document.getElementById('topProductosChart'), {
-                type: 'bar',
-                data: {
-                    labels: <?= json_seguro($top5_labels) ?>,
-                    datasets: [{ label: 'Vendido', data: vendidos, backgroundColor: HOJA, borderRadius: 4, maxBarThickness: 26 }]
-                },
-                options: top
+                options: o
             });
         }
     })();

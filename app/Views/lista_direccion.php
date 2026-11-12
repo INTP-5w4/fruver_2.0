@@ -44,7 +44,7 @@ $reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion
             <p><b><?= (int) ($resumenGeo['total'] - $resumenGeo['ubicadas']) ?></b> de <?= (int) $resumenGeo['total'] ?> direcciones aún no están ubicadas en el mapa
                (no podrán entrar a una ruta).
                <?php if (! empty($conBusqueda)): ?>
-                   Usa el botón <i class="fa-solid fa-location-crosshairs"></i> de cada fila, o ejecuta <code>php spark direcciones:geocodificar</code>.
+                   Usa el botón <i class="fa-solid fa-location-crosshairs"></i> de cada fila<?php if (es_tecnico()): ?>, o ejecuta <code>php spark direcciones:geocodificar</code><?php endif; ?>.
                <?php else: ?>
                    Usa el botón <i class="fa-solid fa-location-crosshairs"></i> de cada fila y toca el mapa en la entrada de la casa.
                <?php endif; ?></p>

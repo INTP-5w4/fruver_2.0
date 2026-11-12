@@ -50,8 +50,8 @@ class Modelo_resumen extends PdoModelo
         ));
 
         $merma = $this->intentar(fn () => $this->fila(
-            'SELECT COALESCE(SUM(CASE WHEN m.fecha >= ? THEN m.cantidad * e.precio_compra_u END), 0) AS actual,
-                    COALESCE(SUM(CASE WHEN m.fecha <  ? THEN m.cantidad * e.precio_compra_u END), 0) AS anterior
+            'SELECT COALESCE(SUM(CASE WHEN m.fecha >= ? THEN m.cantidad * ' . Modelo_entrada::sqlCostoUnidadVenta() . ' END), 0) AS actual,
+                    COALESCE(SUM(CASE WHEN m.fecha <  ? THEN m.cantidad * ' . Modelo_entrada::sqlCostoUnidadVenta() . ' END), 0) AS anterior
                FROM merma m
                JOIN entrada e ON e.id = m.id_entrada
               WHERE m.fecha BETWEEN ? AND ? OR m.fecha BETWEEN ? AND ?',

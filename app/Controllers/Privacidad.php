@@ -58,7 +58,7 @@ class Privacidad extends BaseController
 
         if (! $modelo->tablaExiste()) {
             return redirect()->to(site_url($this->inicio()))
-                ->with('error', 'Falta ejecutar la migración de privacidad (php spark migrate).');
+                ->with('error', mensaje_tecnico('Falta ejecutar la migración de privacidad (php spark migrate).', 'Esta sección aún no está activada. Avisa al administrador del sistema.'));
         }
 
         if ($modelo->aceptoVersion((int) $usuario->id, $cfg->version)) {
@@ -118,7 +118,7 @@ class Privacidad extends BaseController
 
         if (! $modelo->tablaExiste()) {
             return redirect()->to(site_url($this->inicio()))
-                ->with('error', 'Falta ejecutar la migración de privacidad (php spark migrate).');
+                ->with('error', mensaje_tecnico('Falta ejecutar la migración de privacidad (php spark migrate).', 'Esta sección aún no está activada. Avisa al administrador del sistema.'));
         }
 
         $vigente = $modelo->vigente((int) $usuario->id);

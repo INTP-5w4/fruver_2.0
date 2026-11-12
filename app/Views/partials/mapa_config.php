@@ -23,6 +23,7 @@ $atribucion  = $cfgRutas->mapaAtribucion
           data-lng="<?= esc((string) ($almacenMapa['lng'] ?? $cfgRutas->lngCentro), 'attr') ?>"
           data-idioma="<?= esc($cfgRutas->idioma, 'attr') ?>"
           data-region="<?= esc($cfgRutas->region, 'attr') ?>"
+          data-tecnico="<?= function_exists('es_tecnico') && es_tecnico() ? '1' : '0' ?>"
     <?php if ($mapaProv === 'google'): ?>
           data-llave="<?= esc($cfgRutas->llaveNavegador, 'attr') ?>"
           data-map-id="<?= esc($cfgRutas->mapId, 'attr') ?>"

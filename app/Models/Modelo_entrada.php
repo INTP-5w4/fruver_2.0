@@ -13,6 +13,19 @@ class Modelo_entrada extends PdoModelo
     ];
 
     /**
+     * SQL del costo de UNA unidad de venta de la entrada (alias $a).
+     *
+     * precio_compra_u es el precio de la unidad de compra (una caja) y equivalente dice cuántas
+     * unidades de venta trae (20 kg). La merma y las ventas se registran en unidades de venta,
+     * así que su costo es precio_compra_u / equivalente: un kilo de una caja de $400 con 20 kg
+     * cuesta $20, no $400.
+     */
+    public static function sqlCostoUnidadVenta(string $a = 'e'): string
+    {
+        return "(CASE WHEN {$a}.equivalente > 0 THEN {$a}.precio_compra_u / {$a}.equivalente ELSE {$a}.precio_compra_u END)";
+    }
+
+    /**
      * Lista paginada de entradas con el nombre de su producto y búsqueda opcional.
      *
      * @return list<array<string,mixed>>

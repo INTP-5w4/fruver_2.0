@@ -32,10 +32,15 @@
 
     <?php if (! $conServicio): ?>
         <div class="w3-panel w3-pale-yellow w3-border">
+            <?php if (es_tecnico()): ?>
             <p><b>No hay servicio de rutas configurado.</b> Las rutas se calcularán de forma aproximada
                (línea recta, sin tráfico) y las direcciones solo se pueden ubicar con el pin.
                Para rutas reales y búsqueda de direcciones, agrega <code>rutas.llaveOrs</code> (cuenta gratuita de openrouteservice)
                al archivo <code>.env</code> (ver <code>docs/RUTAS_REPARTO.md</code>).</p>
+            <?php else: ?>
+            <p><b>Las rutas se calculan de forma aproximada</b> (línea recta, sin tráfico) y las direcciones se ubican
+               tocando el mapa. Para rutas exactas, pide al administrador del sistema que active el servicio de mapas.</p>
+            <?php endif; ?>
         </div>
     <?php else: ?>
         <p class="w3-small w3-text-grey" style="margin:4px 0 0;">Servicio de rutas: <?= esc($proveedor) ?></p>

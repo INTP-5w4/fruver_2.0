@@ -79,7 +79,7 @@ class Rutas extends BaseController
     {
         $m_ruta = new Modelo_ruta();
         if (! $m_ruta->esquemaListo()) {
-            return $this->json(false, 'Falta correr la migración de rutas (php spark migrate).', [], 409);
+            return $this->json(false, mensaje_tecnico('Falta correr la migración de rutas (php spark migrate).', 'Las rutas de reparto aún no están activadas. Avisa al administrador del sistema.'), [], 409);
         }
 
         $reglas = [
@@ -148,7 +148,12 @@ class Rutas extends BaseController
                 ? ['manual' => $planeador->calcular($origen, $paradas, $op->con('manual'))]
                 : $planeador->opciones($origen, $paradas, $op);
         } catch (InvalidArgumentException $e) {
-            return $this->json(false, $e->getMessage(), [], 422);
+            // "Falta la llave … (rutas.llave…)" es un detalle de configuración: solo para superadmin/developer.
+            $mensaje = str_contains($e->getMessage(), 'rutas.llave')
+                ? mensaje_tecnico($e->getMessage(), 'El servicio de mapas no está disponible. Avisa al administrador del sistema.')
+                : $e->getMessage();
+
+            return $this->json(false, $mensaje, [], 422);
         } catch (Throwable $e) {
             return $this->json(false, PdoModelo::mensajeSeguro($e, 'No se pudo calcular la ruta.'), [], 500);
         }

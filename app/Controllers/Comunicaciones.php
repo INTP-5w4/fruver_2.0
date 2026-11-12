@@ -45,7 +45,7 @@ class Comunicaciones extends BaseController
         $bloqueado = FiltroGroserias::crear()->contiene($mensaje);
 
         if (! $modelo->tablaExiste()) {
-            return redirect()->to(site_url('/'))->with('error', 'Falta ejecutar la migración de privacidad (php spark migrate).');
+            return redirect()->to(site_url('/'))->with('error', mensaje_tecnico('Falta ejecutar la migración de privacidad (php spark migrate).', 'Esta sección aún no está activada. Avisa al administrador del sistema.'));
         }
 
         helper('whatsapp');
@@ -99,7 +99,7 @@ class Comunicaciones extends BaseController
         $volver    = redirect()->to(site_url('comunicaciones') . '?' . http_build_query(['finalidad' => $finalidad, 'mensaje' => $mensaje]));
 
         if (! Correo::configurado()) {
-            return $volver->with('error', 'No hay servidor de correo configurado (ver docs/PRIVACIDAD.md).');
+            return $volver->with('error', mensaje_tecnico('No hay servidor de correo configurado (ver docs/PRIVACIDAD.md).', 'El envío por correo aún no está activado. Avisa al administrador del sistema.'));
         }
         if (mb_strlen($mensaje) < 10 || mb_strlen($asunto) < 3) {
             return $volver->with('error', 'Escribe un asunto y un mensaje (al menos 10 caracteres).');

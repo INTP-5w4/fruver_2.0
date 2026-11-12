@@ -136,9 +136,10 @@ class ServicioTicket
      * @return array{ok:bool,mensaje:string,advertencias:list<string>}
      * @throws ImpresoraException
      */
-    public function imprimirPrueba(): array
+    /** @param bool $detalleTecnico con los parámetros de .env en la hoja (solo superadmin/developer) */
+    public function imprimirPrueba(bool $detalleTecnico = true): array
     {
-        $aviso = $this->enviar($this->construirPrueba());
+        $aviso = $this->enviar($this->construirPrueba($detalleTecnico));
 
         return ['ok' => true, 'mensaje' => 'Hoja de prueba enviada a la impresora.', 'advertencias' => $aviso];
     }
@@ -271,7 +272,7 @@ class ServicioTicket
         $esc->linea('Impreso: ' . date('d/m/Y H:i'))->alinear('izquierda');
     }
 
-    private function construirPrueba(): string
+    private function construirPrueba(bool $detalleTecnico = true): string
     {
         $c   = $this->config;
         $esc = new EscPos($c->columnasEfectivas(), $c->codificacion, $c->cancelarKanji);
@@ -295,9 +296,9 @@ class ServicioTicket
 
         $esc->linea('Acentos y n (deben verse bien):')
             ->linea('áéíóú ÁÉÍÓÚ ñ Ñ ü Ü ¿? ¡!')
-            ->linea('Si salen simbolos raros, cambia')
-            ->linea('impresora.codificacion o activa')
-            ->linea('impresora.cancelarKanji en .env')
+            ->linea($detalleTecnico ? 'Si salen simbolos raros, cambia' : 'Si salen simbolos raros,')
+            ->linea($detalleTecnico ? 'impresora.codificacion o activa' : 'avisa al administrador')
+            ->linea($detalleTecnico ? 'impresora.cancelarKanji en .env' : 'del sistema.')
             ->separador()
             ->alinear('izquierda')->linea('Izquierda')
             ->alinear('centro')->linea('Centro')

@@ -34,7 +34,8 @@ foreach ($cfg->finalidades as $clave => $f) {
     <?php if ($pendientes !== []): ?>
         <div class="alert alert-info" role="note">
             <strong>Pendiente para el negocio:</strong> el aviso publicado aún muestra datos de ejemplo
-            (<?= esc(implode(', ', $pendientes)) ?>). Complétalos en <code>app/Config/Privacidad.php</code>.
+            (<?= esc(implode(', ', $pendientes)) ?>).
+            <?php if (es_tecnico()): ?>Complétalos en <code>app/Config/Privacidad.php</code>.<?php else: ?>Pide al administrador del sistema que los complete.<?php endif; ?>
         </div>
     <?php endif; ?>
 

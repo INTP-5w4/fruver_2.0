@@ -119,7 +119,7 @@ $def = $cfg->finalidades[$finalidad];
         <div class="com-canal">
         <h4 class="com-canal-titulo"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Correo electrónico (<?= (int) $porCorreo ?>)</h4>
         <?php if (! $correoListo): ?>
-            <p class="com-ayuda">No hay servidor de correo configurado. Ver <code>docs/PRIVACIDAD.md</code>.</p>
+            <p class="com-ayuda"><?php if (es_tecnico()): ?>No hay servidor de correo configurado. Ver <code>docs/PRIVACIDAD.md</code>.<?php else: ?>El envío por correo aún no está activado. Si lo necesitas, avisa al administrador del sistema.<?php endif; ?></p>
         <?php elseif ($porCorreo === 0): ?>
             <p class="com-ayuda">Nadie eligió el correo para esta finalidad.</p>
         <?php else: ?>

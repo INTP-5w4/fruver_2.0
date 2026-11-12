@@ -31,9 +31,14 @@
     <?php endif; ?>
     <?php if (! $conPreferencial): ?>
         <div class="w3-panel w3-pale-yellow w3-border">
+            <?php if (es_tecnico()): ?>
             <p><b>Falta ejecutar la migración</b> para poder cambiar el estado preferencial de un cliente
                (<code>php spark migrate</code> o <code>database_cambios/preferencial_cambios.sql</code>).
                Mientras tanto se decide solo por compras.</p>
+            <?php else: ?>
+            <p><b>El cambio manual de cliente preferencial aún no está activado.</b>
+               Mientras tanto se decide solo por compras. Si lo necesitas, avisa al administrador del sistema.</p>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 

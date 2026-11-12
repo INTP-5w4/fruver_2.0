@@ -34,7 +34,9 @@
             buscar: a('data-buscar', ''),
             // google
             llave: a('data-llave', ''),
-            mapId: a('data-map-id', '')
+            mapId: a('data-map-id', ''),
+            // 1 = superadmin/developer: los errores de configuración muestran el detalle técnico
+            tecnico: a('data-tecnico', '0') === '1'
         };
     }
 
@@ -159,7 +161,9 @@
                 document.head.appendChild(s);
             });
             window.gm_authFailure = function () {
-                estado('Google Maps rechazó la llave del navegador (revisa rutas.llaveNavegador y sus restricciones).');
+                estado(cfg.tecnico
+                    ? 'Google Maps rechazó la llave del navegador (revisa rutas.llaveNavegador y sus restricciones).'
+                    : 'El mapa no está disponible por ahora. Avisa al administrador del sistema.');
             };
             return promesaGoogle;
         },

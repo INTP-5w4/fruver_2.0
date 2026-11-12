@@ -14,7 +14,7 @@ class Modelo_merma extends PdoModelo
     {
         return $this->filas(
             "SELECT DATE_FORMAT(m.fecha, '%x-W%v') AS semana,
-                    SUM(m.cantidad * e.precio_compra_u) AS perdida
+                    SUM(m.cantidad * " . Modelo_entrada::sqlCostoUnidadVenta() . ") AS perdida
                FROM merma m
                JOIN entrada e ON e.id = m.id_entrada
               WHERE m.fecha >= ?
@@ -29,7 +29,7 @@ class Modelo_merma extends PdoModelo
     {
         return $this->filas(
             "SELECT DATE_FORMAT(m.fecha, '%Y-%m') AS mes,
-                    SUM(m.cantidad * e.precio_compra_u) AS perdida
+                    SUM(m.cantidad * " . Modelo_entrada::sqlCostoUnidadVenta() . ") AS perdida
                FROM merma m
                JOIN entrada e ON e.id = m.id_entrada
               WHERE m.fecha >= ?
