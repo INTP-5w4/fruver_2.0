@@ -209,9 +209,9 @@ class Tienda extends BaseController
         // Primer pedido: se piden los datos de contacto y se guardan como perfil de cliente.
         if ($perfil === null) {
             $reglas = [
-                'nom'     => 'required|max_length[100]',
-                'ape_pat' => 'required|max_length[100]',
-                'ape_mat' => 'permit_empty|max_length[100]',
+                'nom'     => 'required|max_length[100]|sin_groserias',
+                'ape_pat' => 'required|max_length[100]|sin_groserias',
+                'ape_mat' => 'permit_empty|max_length[100]|sin_groserias',
                 'tel'     => 'required|numeric|min_length[7]|max_length[12]',
             ];
             $mensajes = [
@@ -354,13 +354,13 @@ class Tienda extends BaseController
         }
 
         $reglas = [
-            'dir_calle' => 'required|max_length[200]',
-            'dir_num'   => 'required|max_length[50]',
-            'dir_col'   => 'required|max_length[200]',
-            'dir_mun'   => 'required|max_length[200]',
+            'dir_calle' => 'required|max_length[200]|sin_groserias',
+            'dir_num'   => 'required|max_length[50]|sin_groserias',
+            'dir_col'   => 'required|max_length[200]|sin_groserias',
+            'dir_mun'   => 'required|max_length[200]|sin_groserias',
             'dir_edo'   => 'required|in_list[' . implode(',', Modelo_direccion::ESTADOS_MX) . ']',
             'dir_cp'    => 'permit_empty|alpha_numeric|max_length[10]',
-            'dir_ref'   => 'permit_empty|max_length[300]',
+            'dir_ref'   => 'permit_empty|max_length[300]|sin_groserias',
         ];
         $mensajes = [
             'dir_calle' => ['required' => 'Escribe la calle de entrega.'],

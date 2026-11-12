@@ -15,7 +15,7 @@ class Mermas extends BaseController
         return [
             $campoCantidad => 'required|numeric|greater_than[0]|less_than[100000000]',
             'fecha'        => 'required|valid_date[Y-m-d]',
-            'notas'        => 'permit_empty|max_length[500]',
+            'notas'        => 'permit_empty|max_length[500]|sin_groserias',
             'id_entrada'   => 'required|is_natural_no_zero',
         ];
     }

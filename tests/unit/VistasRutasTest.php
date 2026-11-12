@@ -13,7 +13,8 @@ final class VistasRutasTest extends CIUnitTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        helper(['url', 'form', 'rutas']);
+        // Los mismos helpers que BaseController carga para todos los controladores (las vistas los usan).
+        helper(['form', 'url', 'seguridad', 'rutas', 'ui']);
 
         // El header consulta la sesión de Shield, que lee ajustes de la BD: en pruebas
         // se usan ajustes en memoria.
@@ -55,7 +56,9 @@ final class VistasRutasTest extends CIUnitTestCase
             'almacenMapa' => ['lat' => 19.04, 'lng' => -98.19],
         ]);
 
-        $this->assertStringContainsString('Reoptimizar desde aquí', $html);
+        // Textos del rediseño visual: "Reordenar desde aquí" (antes "Reoptimizar desde aquí").
+        $this->assertStringContainsString('Reordenar desde aquí', $html);
+        $this->assertStringContainsString('repartidor/ruta/3/reoptimizar', $html);
         $this->assertStringContainsString('Salir a ruta (1)', $html);
         $this->assertStringContainsString('name="volver_ruta" value="3"', $html);
         $this->assertStringContainsString('Ana &lt;b&gt;López&lt;/b&gt;', $html);
@@ -119,8 +122,10 @@ final class VistasRutasTest extends CIUnitTestCase
 
         $this->assertStringContainsString('Tienes 1 ruta por hacer', $html);
         $this->assertStringContainsString('Reforma 12, Centro, Puebla, Puebla', $html);
-        $this->assertStringContainsString('Navegar con Google Maps', $html);
-        $this->assertStringContainsString('Cobrar $245.50', $html);
+        $this->assertStringContainsString('Navegar</a>', $html);
+        // El enlace va escapado como atributo (las / quedan como &#x2F;).
+        $this->assertStringContainsString(esc($e['navegar'], 'attr'), $html);
+        $this->assertStringContainsString('Cobrar <b>$245.50</b>', $html);
     }
 
     public function testListaDireccionConMapa(): void
@@ -131,12 +136,23 @@ final class VistasRutasTest extends CIUnitTestCase
         $html = view('lista_direccion', [
             'direcciones' => [$d], 'clientes' => [7 => $d], 'clientes_lista' => [$d], 'buscar' => '', 'pager' => $this->pager(),
             'resumenGeo' => ['total' => 1, 'ubicadas' => 0, 'aproximadas' => 0], 'conGeo' => true,
+            'conBusqueda' => true,
         ]);
 
         $this->assertStringContainsString('Sin ubicar', $html);
+        // Con openrouteservice o Google, el botón ⊕ ubica la dirección automáticamente.
         $this->assertStringContainsString('direcciones/geocodificar/4', $html);
         $this->assertStringContainsString('id="geo_editar"', $html);
         $this->assertStringContainsString('name="referencias"', $html);
+
+        // Sin llave de mapas, el botón ⊕ abre el mapa para poner el pin a mano.
+        $sinLlave = view('lista_direccion', [
+            'direcciones' => [$d], 'clientes' => [7 => $d], 'clientes_lista' => [$d], 'buscar' => '', 'pager' => $this->pager(),
+            'resumenGeo' => ['total' => 1, 'ubicadas' => 0, 'aproximadas' => 0], 'conGeo' => true,
+            'conBusqueda' => false,
+        ]);
+        $this->assertStringNotContainsString('direcciones/geocodificar/4', $sinLlave);
+        $this->assertStringContainsString('ubicarEnMapa(4)', $sinLlave);
     }
 
     private function conConfig(callable $ajuste): void

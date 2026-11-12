@@ -15,15 +15,15 @@ use Throwable;
 class Direcciones extends BaseController
 {
     private array $reglas = [
-        'col'        => 'required|max_length[200]',
-        'calle'      => 'required|max_length[200]',
-        'num'        => 'required|max_length[50]',
-        'mun'        => 'required|max_length[200]',
+        'col'        => 'required|max_length[200]|sin_groserias',
+        'calle'      => 'required|max_length[200]|sin_groserias',
+        'num'        => 'required|max_length[50]|sin_groserias',
+        'mun'        => 'required|max_length[200]|sin_groserias',
         'edo'        => 'required|max_length[100]',
         'id_cliente' => 'required|is_natural_no_zero',
         // Rutas de reparto (opcionales)
         'cp'          => 'permit_empty|alpha_numeric|max_length[10]',
-        'referencias' => 'permit_empty|max_length[300]',
+        'referencias' => 'permit_empty|max_length[300]|sin_groserias',
         'geo_lat'     => 'permit_empty|decimal|greater_than_equal_to[-90]|less_than_equal_to[90]',
         'geo_lng'     => 'permit_empty|decimal|greater_than_equal_to[-180]|less_than_equal_to[180]',
         'geo_origen'  => 'permit_empty|in_list[google,osm,manual]',

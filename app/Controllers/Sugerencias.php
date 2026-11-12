@@ -121,8 +121,8 @@ class Sugerencias extends BaseController
         // 1) Validación en servidor (longitudes y valoración dentro de la lista blanca).
         $validacion = service('validation');
         $validacion->setRules([
-            'titulo'      => 'required|min_length[3]|max_length[' . Modelo_sugerencia::TITULO_MAX . ']',
-            'descripcion' => 'required|min_length[10]|max_length[' . Modelo_sugerencia::DESCRIPCION_MAX . ']',
+            'titulo'      => 'required|min_length[3]|max_length[' . Modelo_sugerencia::TITULO_MAX . ']|sin_groserias',
+            'descripcion' => 'required|min_length[10]|max_length[' . Modelo_sugerencia::DESCRIPCION_MAX . ']|sin_groserias',
             'valoracion'  => 'required|in_list[' . implode(',', Modelo_sugerencia::VALORACIONES) . ']',
         ], [
             'titulo' => [

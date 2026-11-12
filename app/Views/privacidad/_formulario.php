@@ -70,7 +70,7 @@ $marca = static fn (string $campo): string => ! empty($valores[$campo]) ? ' chec
     <?= $error('canales') ?>
 
     <label class="pv-campo" for="tel_contacto">
-        <span>Teléfono para llamadas o mensajería <span class="pv-opcional">(solo si elegiste esos canales)</span></span>
+        <span>Teléfono para llamadas o WhatsApp <span class="pv-opcional">(solo si elegiste esos canales)</span></span>
         <input type="tel" id="tel_contacto" name="tel_contacto" maxlength="14" inputmode="numeric" autocomplete="tel-national"
                value="<?= esc((string) ($valores['tel_contacto'] ?? ''), 'attr') ?>" placeholder="10 dígitos"
                <?= isset($errores['tel_contacto']) ? 'aria-describedby="err-tel_contacto"' : '' ?>>

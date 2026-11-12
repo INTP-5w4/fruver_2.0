@@ -27,7 +27,8 @@
 .com-ayuda { display: block; margin: 6px 0; font-size: 0.85rem; color: #6b7a99; }
 .com-form-correo { display: grid; gap: 8px; max-width: 520px; }
 .com-tabla { overflow-x: auto; }
-.com-texto { max-width: 420px; font-size: 0.9rem; }
+/* El mensaje baja de línea dentro de su columna (las tablas del panel no parten el texto). */
+.lista-wrapper td.com-texto { white-space: normal; overflow-wrap: anywhere; min-width: 260px; max-width: 420px; font-size: 0.9rem; }
 
 /* ¿Cómo funciona? */
 .com-como summary { cursor: pointer; font-weight: 700; color: var(--hoja-oscura); }
@@ -54,3 +55,57 @@
 .com-abierto { margin-top: 6px; }
 .com-abierto[hidden] { display: none; }
 .com-fila-abierta td { background: #f6faf1; }
+
+/* Enviar a todos (WhatsApp uno tras otro + correo de una vez) */
+.com-todos-canales { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; margin-top: 10px; }
+.com-canal { min-width: 0; padding: 12px 14px; border: 1px solid var(--linea); border-radius: 10px; background: #fbfcf8; }
+.com-canal-titulo { margin: 0 0 8px; font-size: 1rem; color: var(--hoja-oscura); display: flex; align-items: center; gap: 6px; }
+.com-canal .fa-whatsapp { color: #1a9e4a; }
+.com-cola { display: grid; gap: 8px; justify-items: start; }
+.com-cola[hidden] { display: none; }
+.com-cola .w3-button { max-width: 100%; white-space: normal; text-align: left; }
+.com-cola .w3-button:disabled { opacity: .7; cursor: default; }
+.com-cola-avance { width: 100%; height: 6px; border-radius: 999px; background: var(--hoja-clara, #e3f3df); overflow: hidden; }
+.com-cola-avance span { display: block; height: 100%; width: 0; background: var(--hoja, #0b7d2e); transition: width .25s; }
+.com-enlace { padding: 0; border: 0; background: none; color: var(--hoja); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85rem; }
+.com-enlace[hidden] { display: none; }
+
+/* Mensaje en la tabla: vista previa de 2 líneas; el completo se abre en una ventana. */
+.lista-wrapper td.com-texto { min-width: 220px; max-width: 360px; }
+.com-previa {
+    margin: 0; cursor: pointer;
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+    overflow: hidden; overflow-wrap: anywhere; white-space: normal;
+}
+/* Gana a la regla de los botones de acción en celdas (estilosPaginas.css), que los deja de 34px. */
+.lista-wrapper td.com-texto > button.com-enlace[data-com-ver]:not(.w3-button) { width: auto; height: auto; padding: 2px 0; justify-content: flex-start; color: var(--hoja); }
+.com-texto .com-enlace { margin-top: 4px; display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-weight: 600; white-space: nowrap; overflow-wrap: normal; }
+.com-texto .com-enlace:hover { text-decoration: underline; }
+
+/* Ventana con el mensaje completo */
+.com-dialogo {
+    width: min(560px, calc(100vw - 32px)); max-height: calc(100vh - 48px);
+    margin: auto; inset: 0; padding: 0; border: 0; border-radius: 14px; overflow: hidden;
+    box-shadow: 0 18px 48px rgba(8, 72, 29, .25);
+}
+.com-dialogo[open] { display: flex; flex-direction: column; }
+.com-dialogo::backdrop { background: rgba(10, 30, 15, .45); }
+.com-dialogo-cabeza {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 14px 18px; background: var(--hoja-oscura, #08481d); color: #fff;
+}
+.com-dialogo-cabeza h3 { margin: 0; font-size: 1.05rem; color: #fff; overflow-wrap: anywhere; }
+.com-dialogo-cerrar { border: 0; background: none; color: #fff; font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; }
+.com-dialogo-cuerpo { padding: 16px 18px; overflow-y: auto; }
+.com-dialogo-texto {
+    margin: 0; padding: 12px 14px; border-radius: 10px; background: #f6faf1; border: 1px solid var(--linea);
+    line-height: 1.55; overflow-wrap: anywhere; white-space: normal;
+}
+.com-dialogo-pie { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding: 12px 18px; border-top: 1px solid var(--linea); }
+
+/* Groserías: aviso y botones desactivados */
+.com-groseria { margin: 8px 0; }
+.com-groseria[hidden] { display: none; }
+a[aria-disabled="true"] { opacity: .45; pointer-events: none; cursor: not-allowed; }
+.com-form-correo [type="submit"]:disabled { opacity: .5; cursor: not-allowed; }
+.com-dialogo-pie [hidden] { display: none !important; }
