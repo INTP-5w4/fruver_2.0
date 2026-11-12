@@ -145,7 +145,7 @@ class Entregas extends BaseController
         $reglas = [
             'monto'  => 'permit_empty|decimal|greater_than_equal_to[0]|less_than[100000000]',
             'metodo' => 'permit_empty|in_list[efectivo,transferencia,tarjeta]',
-            'notas'  => 'permit_empty|max_length[500]',
+            'notas'  => 'permit_empty|max_length[500]|sin_groserias',
         ];
 
         if (! $this->validate($reglas)) {
@@ -186,7 +186,7 @@ class Entregas extends BaseController
 
     public function fallar($id = null)
     {
-        if (! $this->validate(['incidencia' => 'required|max_length[500]'])) {
+        if (! $this->validate(['incidencia' => 'required|max_length[500]|sin_groserias'])) {
             return redirect()->to($this->volver())
                 ->with('error', 'Describe qué pasó (máximo 500 caracteres).');
         }

@@ -152,7 +152,7 @@ class Modelo_consentimiento extends PdoModelo
             "SELECT c.id_user, c.canal_telefono, c.canal_mensajeria, c.canal_correo, c.telefono_contacto,
                     c.created_at AS autorizado_en,
                     u.username, i.secret AS correo,
-                    cl.id AS id_cliente, cl.nombre, cl.ape_pat
+                    cl.id AS id_cliente, cl.nombre, cl.ape_pat, cl.telefono AS telefono_perfil
                FROM consentimiento c
                JOIN (SELECT id_user, MAX(id) AS ultimo FROM consentimiento GROUP BY id_user) v ON v.ultimo = c.id
                JOIN users u ON u.id = c.id_user AND u.deleted_at IS NULL

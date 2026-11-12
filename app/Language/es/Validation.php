@@ -47,6 +47,8 @@ return [
     'numeric'               => 'El campo {field} solo puede contener números.',
     'regex_match'           => 'El campo {field} no tiene el formato correcto.',
     'required'              => 'El campo {field} es obligatorio.',
+    'usuario_sin_groserias' => 'Ese nombre de usuario no está permitido. Elige otro sin groserías.',
+    'sin_groserias'         => 'Lo que escribiste tiene palabras que no están permitidas. Revísalo y escríbelo de otra forma.',
     'required_with'         => 'El campo {field} es obligatorio cuando {param} tiene un valor.',
     'required_without'      => 'El campo {field} es obligatorio cuando {param} no tiene un valor.',
     'string'                => 'El campo {field} debe ser un texto válido.',

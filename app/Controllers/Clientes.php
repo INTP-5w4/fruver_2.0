@@ -11,9 +11,9 @@ class Clientes extends BaseController
 {
     private array $configuracion = [
         'reglas' => [
-            'nom'     => 'required|max_length[100]',
-            'ape_pat' => 'required|max_length[100]',
-            'ape_mat' => 'required|max_length[100]',
+            'nom'     => 'required|max_length[100]|sin_groserias',
+            'ape_pat' => 'required|max_length[100]|sin_groserias',
+            'ape_mat' => 'required|max_length[100]|sin_groserias',
             'tel'     => 'required|numeric|max_length[12]',
         ],
         'errores' => [

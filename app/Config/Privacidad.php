@@ -109,7 +109,7 @@ class Privacidad extends BaseConfig
      */
     public array $canales = [
         'canal_telefono'   => 'Teléfono / llamada',
-        'canal_mensajeria' => 'Mensajería',
+        'canal_mensajeria' => 'Mensajería (WhatsApp)',
         'canal_correo'     => 'Correo electrónico',
     ];
 

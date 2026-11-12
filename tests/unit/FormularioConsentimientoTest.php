@@ -100,5 +100,18 @@ final class FormularioConsentimientoTest extends CIUnitTestCase
         $this->assertTrue($valores['canal_correo']);
         $this->assertFalse($valores['aviso_leido']);
         $this->assertSame('', $valores['tel_contacto']);
+        $this->assertFalse($valores['canal_mensajeria'], 'Ya eligió canal: no se agrega WhatsApp');
+    }
+
+    public function testWhatsAppVieneMarcadoSiNoHayCanalElegido(): void
+    {
+        $nuevo = FormularioConsentimiento::valoresFormulario($this->cfg, null, null);
+        $this->assertTrue($nuevo['canal_mensajeria']);
+        $this->assertFalse($nuevo['canal_telefono']);
+        $this->assertFalse($nuevo['v1'], 'Las finalidades nunca vienen marcadas');
+
+        // Lo que la persona envió (aunque sea sin canal) se respeta tal cual.
+        $enviado = FormularioConsentimiento::valoresFormulario($this->cfg, null, ['v1' => '1']);
+        $this->assertFalse($enviado['canal_mensajeria']);
     }
 }

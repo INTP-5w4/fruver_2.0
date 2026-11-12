@@ -327,8 +327,8 @@ class Rutas extends BaseController
     {
         $reglas = [
             'id'        => 'permit_empty|is_natural_no_zero',
-            'nombre'    => 'required|max_length[100]',
-            'direccion' => 'required|max_length[300]',
+            'nombre'    => 'required|max_length[100]|sin_groserias',
+            'direccion' => 'required|max_length[300]|sin_groserias',
             'geo_lat'   => 'required|decimal|greater_than_equal_to[-90]|less_than_equal_to[90]',
             'geo_lng'   => 'required|decimal|greater_than_equal_to[-180]|less_than_equal_to[180]',
         ];

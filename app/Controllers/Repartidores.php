@@ -10,12 +10,12 @@ class Repartidores extends BaseController
 {
     private array $configuracion = [
         'reglas' => [
-            'nom'     => 'required|max_length[100]',
-            'ape_pat' => 'required|max_length[100]',
-            'ape_mat' => 'required|max_length[100]',
+            'nom'     => 'required|max_length[100]|sin_groserias',
+            'ape_pat' => 'required|max_length[100]|sin_groserias',
+            'ape_mat' => 'required|max_length[100]|sin_groserias',
             'tel'     => 'required|numeric|max_length[12]',
-            'dir'     => 'required|max_length[500]',
-            'not'     => 'permit_empty|max_length[500]',
+            'dir'     => 'required|max_length[500]|sin_groserias',
+            'not'     => 'permit_empty|max_length[500]|sin_groserias',
         ],
         'errores' => [
             'nom' => [

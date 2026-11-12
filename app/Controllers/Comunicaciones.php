@@ -3,9 +3,11 @@
 namespace App\Controllers;
 
 use App\Libraries\Correo;
+use App\Libraries\FiltroGroserias;
 use App\Models\Modelo_consentimiento;
 use App\Models\Modelo_pedido;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * Comunicaciones voluntarias (Aviso de Consentimiento, finalidades V1–V3). Solo personal.
@@ -39,6 +41,8 @@ class Comunicaciones extends BaseController
         $finalidad = $this->finalidad($this->request->getGet('finalidad'));
         $mensaje   = $this->texto($this->request->getGet('mensaje'), self::MENSAJE_MAX);
         $mensaje   = $mensaje !== '' ? $mensaje : self::PLANTILLAS[$finalidad];
+        // Con groserías no se arma ningún enlace de WhatsApp (y el correo lo rechaza enviarCorreo()).
+        $bloqueado = FiltroGroserias::crear()->contiene($mensaje);
 
         if (! $modelo->tablaExiste()) {
             return redirect()->to(site_url('/'))->with('error', 'Falta ejecutar la migración de privacidad (php spark migrate).');
@@ -48,14 +52,25 @@ class Comunicaciones extends BaseController
 
         $filas = [];
         foreach ($this->destinatarios($modelo, $finalidad) as $d) {
-            $texto   = $this->personalizar($mensaje, $d);
-            $tel     = $d['telefono_contacto'] !== null ? whatsapp_telefono((string) $d['telefono_contacto']) : null;
+            $texto = $this->personalizar($mensaje, $d);
+
+            // Teléfono de la persona: el que dio para contacto; si no, el de su perfil de cliente.
+            $telefono = trim((string) ($d['telefono_contacto'] ?? ''));
+            if (whatsapp_telefono($telefono) === null) {
+                $telefono = trim((string) ($d['telefono_perfil'] ?? ''));
+            }
+            $tel        = whatsapp_telefono($telefono);
+            $mensajeria = (int) $d['canal_mensajeria'] === 1;
+
             $filas[] = $d + [
                 'texto'      => $texto,
                 'reemplazos' => $this->reemplazos($d),
                 'tel_wa'     => $tel,
-                'whatsapp'   => (int) $d['canal_mensajeria'] === 1 && $tel !== null ? whatsapp_url($tel, $texto) : null,
-                'llamar'    => (int) $d['canal_telefono'] === 1 ? (string) $d['telefono_contacto'] : null,
+                // WhatsApp solo a quien eligió mensajería (lo que declara el Aviso de Privacidad).
+                'whatsapp'   => $mensajeria && $tel !== null && ! $bloqueado ? whatsapp_url($tel, $texto) : null,
+                'puede_wa'   => $mensajeria && $tel !== null,
+                'sin_wa'     => ! $mensajeria ? 'No eligió WhatsApp' : ($tel === null ? 'Sin teléfono válido' : null),
+                'llamar'     => (int) $d['canal_telefono'] === 1 && $telefono !== '' ? $telefono : null,
                 'por_correo' => (int) $d['canal_correo'] === 1 && ! empty($d['correo']),
             ];
         }
@@ -68,6 +83,8 @@ class Comunicaciones extends BaseController
             'mensaje'      => $mensaje,
             'filas'        => $filas,
             'porCorreo'    => count(array_filter($filas, static fn (array $f): bool => $f['por_correo'])),
+            'porWhatsapp'  => count(array_filter($filas, static fn (array $f): bool => $f['puede_wa'])),
+            'bloqueado'    => $bloqueado,
             'correoListo'  => Correo::configurado(),
             'asunto'       => 'FRUVER · ' . $cfg->finalidades[$finalidad]['titulo'],
             'pie'          => $this->pie(),
@@ -86,6 +103,9 @@ class Comunicaciones extends BaseController
         }
         if (mb_strlen($mensaje) < 10 || mb_strlen($asunto) < 3) {
             return $volver->with('error', 'Escribe un asunto y un mensaje (al menos 10 caracteres).');
+        }
+        if (FiltroGroserias::crear()->contiene($mensaje) || FiltroGroserias::crear()->contiene($asunto)) {
+            return $volver->with('error', 'El mensaje o el asunto tienen palabras que no están permitidas. Corrígelo antes de enviar.');
         }
 
         // Un envío por minuto por persona del personal: evita dobles clics y envíos masivos accidentales.
@@ -122,6 +142,18 @@ class Comunicaciones extends BaseController
         }
 
         return $volver->with('mensaje', $texto);
+    }
+
+    /**
+     * GET comunicaciones/revisar?texto=… → {"ok": true|false}. Lo usa comunicaciones.js mientras
+     * se escribe el mensaje: con groserías se desactivan los botones de envío. La lista de
+     * palabras se queda en el servidor (no se manda al navegador).
+     */
+    public function revisar(): ResponseInterface
+    {
+        $texto = $this->texto($this->request->getGet('texto'), self::MENSAJE_MAX);
+
+        return $this->response->setJSON(['ok' => ! FiltroGroserias::crear()->contiene($texto)]);
     }
 
     // ─────────────────────────────────────────────────────────────

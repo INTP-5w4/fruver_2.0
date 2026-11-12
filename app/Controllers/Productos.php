@@ -17,8 +17,8 @@ class Productos extends BaseController
 {
     /** Reglas de los campos de texto (crear y modificar). */
     private const REGLAS_TEXTO = [
-        'nom'  => 'required|max_length[200]',
-        'desc' => 'required|max_length[300]',
+        'nom'  => 'required|max_length[200]|sin_groserias',
+        'desc' => 'required|max_length[300]|sin_groserias',
         'cat'  => 'required|in_list[frutas,verduras,hierbas]',
     ];
 

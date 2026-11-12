@@ -96,6 +96,16 @@ final class FormularioConsentimiento
                 : (int) ($vigente[$campo] ?? 0) === 1;
         }
 
+        // Canal por omisión: WhatsApp, mientras la persona no haya elegido ninguno. Solo cuenta
+        // si además acepta alguna finalidad (esas casillas nunca vienen marcadas).
+        $algunCanal = false;
+        foreach (array_keys($cfg->canales) as $canal) {
+            $algunCanal = $algunCanal || $valores[$canal];
+        }
+        if ($enviado === null && ! $algunCanal && isset($valores['canal_mensajeria'])) {
+            $valores['canal_mensajeria'] = true;
+        }
+
         $tel = $enviado !== null ? ($enviado['tel_contacto'] ?? '') : ($vigente['telefono_contacto'] ?? '');
         $valores['tel_contacto'] = is_string($tel) ? $tel : '';
 

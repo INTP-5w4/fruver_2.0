@@ -111,6 +111,7 @@ return [
     // Formato de usuario y correo (mensajes propios de FRUVER; ver app/Config/Auth.php)
     'errorUsernameFormato' => 'El nombre de usuario solo puede llevar letras sin acento, números y punto (sin espacios).',
     'errorUsernameUnico'   => 'Ese nombre de usuario ya está en uso. Elige otro.',
+    'errorUsernameGroseria' => 'Ese nombre de usuario no está permitido. Elige otro sin groserías.',
     'errorEmailUnico'      => 'Ya existe una cuenta con ese correo. Inicia sesión o usa otro correo.',
 
     // Grupos
