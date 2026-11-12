@@ -1,27 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista Repartidores</title>
+    <title>Repartidores</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
     <?php include 'sidebar.php'; ?>
-
+<?php
+// Si el servidor rechazó el formulario, se reabre el mismo modal con lo que se había escrito
+// y el error se muestra dentro de él. El de edición manda un "id" oculto; el de alta no.
+$hayOld   = session()->has('_ci_old_input');
+$editando = $hayOld && old('id') !== null;
+$reabrir  = $hayOld ? ($editando ? 'modalEditarRepartidor' : 'modalCrearRepartidor') : null;
+$conCuenta ??= false;
+$nuevos    ??= 0;
+?>
 <div class="lista-wrapper">
-    
+
 <div class="flash-container">
-    <?php if (session()->getFlashdata('error')): ?>
+    <?php if (session()->getFlashdata('error') && $reabrir === null): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
             <p><?= esc(session()->getFlashdata('error')) ?></p>
-        </div>
-    <?php endif; ?>
-
-    <?php if (session()->getFlashdata('error2')): ?>
-        <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= esc(session()->getFlashdata('error2')) ?></p>
         </div>
     <?php endif; ?>
 
@@ -34,26 +36,26 @@
 
 <div class="contenedor-boton">
     <h1>Repartidores</h1>
-    <button onclick="document.getElementById('modalCrearRepartidor').style.display='block'"
-            class="btn-agregar">
+    <button type="button" onclick="abrirModalRepartidor('modalCrearRepartidor')" class="btn-agregar">
         <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo repartidor
     </button>
 </div>
-<form method="get" action="<?= base_url('lista_repartidor') ?>" class="w3-margin-bottom">
-    <div style="display:flex; gap:8px;">
-        <input
-            type="text"
-            name="buscar"
-            value="<?= esc($buscar ?? '') ?>"
-            placeholder="Buscar por id..."
-            class="w3-input w3-border"
-            style="max-width:350px;"
-        >
-        <button type="submit" class="w3-button w3-green">
-            <i class="fa-solid fa-magnifying-glass"></i> Buscar
-        </button>
-        <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_repartidor') ?>" class="w3-button w3-red">✕ Limpiar</a>
+
+<?php if ($nuevos > 0): ?>
+    <div class="aviso aviso-info aviso-lista" role="status">
+        <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+        <span><?= $nuevos === 1 ? 'Se dio de alta 1 repartidor' : 'Se dieron de alta ' . (int) $nuevos . ' repartidores' ?>
+            a partir de cuentas del grupo "repartidor". Completa sus datos con <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>.</span>
+    </div>
+<?php endif; ?>
+
+<form method="get" action="<?= base_url('lista_repartidor') ?>">
+    <div>
+        <input type="text" name="buscar" value="<?= esc($buscar ?? '', 'attr') ?>"
+               placeholder="Buscar por id, nombre, teléfono o cuenta…" class="w3-input w3-border" aria-label="Buscar repartidor">
+        <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar</button>
+        <?php if (! empty($buscar)): ?>
+            <a href="<?= base_url('lista_repartidor') ?>" class="w3-button w3-border">Limpiar búsqueda</a>
         <?php endif; ?>
     </div>
 </form>
@@ -64,44 +66,55 @@
             <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>Apellido Paterno</th>
-                <th>Apellido Materno</th>
-                <th>Telefono</th>
+                <th>Teléfono</th>
                 <th>Dirección</th>
+                <th>Vehículo</th>
+                <?php if ($conCuenta): ?><th>Cuenta de acceso</th><?php endif; ?>
                 <th>Notas</th>
-                <th>Editar</th>
-                <th>Eliminar</th>
+                <th class="col-acciones">Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($repartidores as $r): ?>
+                <?php $incompleto = \App\Models\Modelo_repartidor::faltanDatos($r); ?>
                 <tr>
-                    <td><?= esc($r['id']) ?></td>
-                    <td><?= esc($r['nombre']) ?></td>
-                    <td><?= esc($r['ape_pat']) ?></td>
-                    <td><?= esc($r['ape_mat']) ?></td>
-                    <td><?= esc($r['telefono']) ?></td>
-                    <td><?= esc($r['direccion']) ?></td>
-                    <td><?= esc($r['notas']) ?></td>
+                    <td><?= (int) $r['id'] ?></td>
                     <td>
-                        <button data-vehiculo="<?= esc($r['vehiculo'] ?? 'moto', 'attr') ?>" onclick="document.getElementById('edit_vehiculo').value = this.dataset.vehiculo; abrirModal(
-                                    '<?= esc($r['id'], 'js') ?>',
-                                    '<?= esc($r['nombre'], 'js') ?>',
-                                    '<?= esc($r['ape_pat'], 'js') ?>',
-                                    '<?= esc($r['ape_mat'], 'js') ?>',
-                                    '<?= esc($r['telefono'], 'js') ?>',
-                                    '<?= esc($r['direccion'], 'js') ?>',
-                                    '<?= esc($r['notas'], 'js') ?>'
-                                )"
-                                class="btn-icono">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
+                        <?= esc(trim($r['nombre'] . ' ' . $r['ape_pat'] . ' ' . ($r['ape_mat'] ?? ''))) ?>
+                        <?php if ($incompleto): ?><span class="est est-pendiente" title="Alta automática: completa teléfono y dirección">Faltan datos</span><?php endif; ?>
                     </td>
-                    <td>
-                        <form method="post" action="<?= base_url('borra_id_repartidor/' . (int) $r['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
-<?= csrf_field() ?>
-<button type="submit" class="btn-icono"><i class="fa-solid fa-trash-can"></i></button>
-</form>
+                    <td><?= esc($r['telefono'] !== '' ? $r['telefono'] : '—') ?></td>
+                    <td class="celda-texto"><?= esc($r['direccion'] !== '' ? $r['direccion'] : '—') ?></td>
+                    <td><?= esc(\App\Models\Modelo_repartidor::VEHICULOS[$r['vehiculo'] ?? 'moto'] ?? '—') ?></td>
+                    <?php if ($conCuenta): ?>
+                        <td>
+                            <?php if (! empty($r['cuenta'])): ?>
+                                <span class="est est-entregado" title="Ve y actualiza sus entregas con esta cuenta"><?= esc($r['cuenta']) ?></span>
+                            <?php else: ?>
+                                <span class="est est-cancelada" title="Sin cuenta no puede ver sus entregas. Ponle una cuenta en el grupo repartidor.">Sin cuenta</span>
+                            <?php endif; ?>
+                        </td>
+                    <?php endif; ?>
+                    <td class="celda-texto"><?= esc($r['notas'] ?? '') ?></td>
+                    <td class="col-acciones">
+                        <div class="acciones-fila">
+                            <button type="button" class="btn-icono" title="Editar repartidor" aria-label="Editar repartidor <?= (int) $r['id'] ?>"
+                                    data-id="<?= (int) $r['id'] ?>"
+                                    data-nom="<?= esc((string) $r['nombre'], 'attr') ?>"
+                                    data-ape_pat="<?= esc((string) $r['ape_pat'], 'attr') ?>"
+                                    data-ape_mat="<?= esc((string) ($r['ape_mat'] ?? ''), 'attr') ?>"
+                                    data-tel="<?= esc((string) $r['telefono'], 'attr') ?>"
+                                    data-dir="<?= esc((string) $r['direccion'], 'attr') ?>"
+                                    data-not="<?= esc((string) ($r['notas'] ?? ''), 'attr') ?>"
+                                    data-vehiculo="<?= esc((string) ($r['vehiculo'] ?? 'moto'), 'attr') ?>"
+                                    onclick="editarRepartidor(this)">
+                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                            </button>
+                            <form method="post" action="<?= base_url('borra_id_repartidor/' . (int) $r['id']) ?>" class="form-borrar" onsubmit="return confirm('¿Eliminar este repartidor?');">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn-icono peligro" title="Eliminar repartidor" aria-label="Eliminar repartidor <?= (int) $r['id'] ?>"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -109,102 +122,53 @@
     </table>
     <?= $pager->links('default', 'w3_pager') ?>
 </div>
-    <!-- MODAL CREAR REPARTIDOR -->
-    <div id="modalCrearRepartidor" class="w3-modal" style="display:none;">
-        <div class="modal-contenido w3-animate-zoom">
 
+    <!-- MODAL CREAR REPARTIDOR -->
+    <div id="modalCrearRepartidor" class="w3-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-crear-repartidor">
+        <div class="modal-contenido w3-animate-zoom">
             <header class="modal-header">
-                <span onclick="document.getElementById('modalCrearRepartidor').style.display='none'"
-                      class="modal-cerrar">&times;</span>
-                <h2>Registrar Repartidor</h2>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <h2 id="titulo-crear-repartidor">Registrar repartidor</h2>
             </header>
 
             <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="modal-form">
-<?= csrf_field() ?>
+                <?= csrf_field() ?>
+                <?php if ($reabrir === 'modalCrearRepartidor' && session()->getFlashdata('error')): ?>
+                    <div class="aviso aviso-error" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
+                <?php endif; ?>
 
-                <label><b>Nombre*</b></label>
-                <input type="text" name="nom" class="modal-input" required value="<?= old('nom') ?>">
-
-                <label><b>Apellido Paterno*</b></label>
-                <input type="text" name="ape_pat" class="modal-input" required value="<?= old('ape_pat') ?>">
-
-                <label><b>Apellido Materno*</b></label>
-                <input type="text" name="ape_mat" class="modal-input" required value="<?= old('ape_mat') ?>">
-
-                <label><b>Teléfono*</b></label>
-                <input type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required value="<?= old('tel') ?>">
-
-                <label><b>Dirección*</b></label>
-                <input type="text" name="dir" class="modal-input" required value="<?= old('dir') ?>">
-
-                <label><b>Notas</b></label>
-                <textarea name="not" class="modal-input" rows="4" value="<?= old('not') ?>"></textarea>
-
-                <label><b>Vehículo</b> <span class="w3-small">(para calcular la ruta)</span></label>
-                <select name="vehiculo" class="modal-input">
-                    <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
-                        <option value="<?= esc($valor) ?>" <?= old('vehiculo') === $valor ? 'selected' : '' ?>><?= esc($texto) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <?= view('partials/form_repartidor', ['sufijo' => '_crear', 'conOld' => $hayOld && ! $editando]) ?>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button"
-                            onclick="document.getElementById('modalCrearRepartidor').style.display='none'"
-                            class="btn-cancelar">Cancelar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
                 </footer>
-
             </form>
         </div>
     </div>
 
     <!-- MODAL EDITAR REPARTIDOR -->
-    <div id="modalEditarRepartidor" class="w3-modal" style="display:none;">
+    <div id="modalEditarRepartidor" class="w3-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-editar-repartidor">
         <div class="modal-contenido w3-animate-zoom">
-
             <header class="modal-header">
-                <span onclick="document.getElementById('modalEditarRepartidor').style.display='none'"
-                      class="modal-cerrar">&times;</span>
-                <h2>Editar Repartidor</h2>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <h2 id="titulo-editar-repartidor">Editar repartidor</h2>
             </header>
 
             <form action="<?= base_url('modifica_repartidor') ?>" method="post" class="modal-form">
-<?= csrf_field() ?>
+                <?= csrf_field() ?>
+                <?php if ($reabrir === 'modalEditarRepartidor' && session()->getFlashdata('error')): ?>
+                    <div class="aviso aviso-error" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
+                <?php endif; ?>
 
-                <input type="hidden" name="id" id="edit_id">
+                <input type="hidden" name="id" id="id_editar" value="<?= $editando ? (int) old('id', null, false) : '' ?>">
 
-                <label><b>Nombre*</b></label>
-                <input type="text" name="nom" id="edit_nom" class="modal-input" required>
-
-                <label><b>Apellido Paterno*</b></label>
-                <input type="text" name="ape_pat" id="edit_ape_pat" class="modal-input" required>
-
-                <label><b>Apellido Materno*</b></label>
-                <input type="text" name="ape_mat" id="edit_ape_mat" class="modal-input" required>
-
-                <label><b>Teléfono*</b></label>
-                <input type="text" name="tel" id="edit_tel" class="modal-input" required>
-
-                <label><b>Dirección*</b></label>
-                <input type="text" name="dir" id="edit_dir" class="modal-input" required>
-
-                <label><b>Notas</b></label>
-                <textarea name="not" id="edit_not" rows="4" class="modal-input"></textarea>
-
-                <label><b>Vehículo</b> <span class="w3-small">(para calcular la ruta)</span></label>
-                <select name="vehiculo" id="edit_vehiculo" class="modal-input">
-                    <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
-                        <option value="<?= esc($valor) ?>"><?= esc($texto) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <?= view('partials/form_repartidor', ['sufijo' => '_editar', 'conOld' => $editando]) ?>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button"
-                            onclick="document.getElementById('modalEditarRepartidor').style.display='none'"
-                            class="btn-cancelar">Cancelar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
                 </footer>
-
             </form>
         </div>
     </div>
@@ -213,31 +177,35 @@
 </div><!-- /.lista-wrapper -->
 
     <script>
-        function abrirModal(id, nombre, ape_pat, ape_mat, telefono, direccion, notas) {
-            document.getElementById('edit_id').value = id;
-            document.getElementById('edit_nom').value = nombre;
-            document.getElementById('edit_ape_pat').value = ape_pat;
-            document.getElementById('edit_ape_mat').value = ape_mat;
-            document.getElementById('edit_tel').value = telefono;
-            document.getElementById('edit_dir').value = direccion;
-            document.getElementById('edit_not').value = notas;
-            document.getElementById('modalEditarRepartidor').style.display = 'block';
+        function abrirModalRepartidor(id) {
+            document.getElementById(id).style.display = 'block';
         }
 
-        window.onclick = function(event) {
-            const modalEditar = document.getElementById('modalEditarRepartidor');
-            const modalCrear = document.getElementById('modalCrearRepartidor');
-            if (event.target === modalEditar) modalEditar.style.display = 'none';
-            if (event.target === modalCrear) modalCrear.style.display = 'none';
-        };
-        // Si hay un error, abrimos el modal de crear cliente automáticamente
-    <?php if (session()->has('error')): ?>
-        document.getElementById('modalCrearRepartidor').style.display = 'block';
-    <?php endif; ?>
-        // Si hay un error, abrimos el modal de crear cliente automáticamente
-    <?php if (session()->has('error2')): ?>
-        document.getElementById('modalEditarRepartidor').style.display = 'block';
-    <?php endif; ?>
+        /** Llena el modal de edición con los datos de la fila (botón con data-*) y lo abre. */
+        function editarRepartidor(boton) {
+            document.getElementById('id_editar').value = boton.dataset.id;
+            ['nom', 'ape_pat', 'ape_mat', 'tel', 'dir', 'not', 'vehiculo'].forEach(function (campo) {
+                var el = document.getElementById(campo + '_editar');
+                el.value = boton.dataset[campo] || (campo === 'vehiculo' ? 'moto' : '');
+                el.classList.remove('campo-con-error');
+                el.removeAttribute('aria-invalid');
+            });
+            abrirModalRepartidor('modalEditarRepartidor');
+        }
+
+        document.addEventListener('click', function (ev) {
+            var cerrar = ev.target.closest('[data-cerrar-modal]');
+            if (cerrar) { cerrar.closest('.w3-modal').style.display = 'none'; return; }
+            if (ev.target.classList && ev.target.classList.contains('w3-modal')) { ev.target.style.display = 'none'; }
+        });
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key !== 'Escape') { return; }
+            document.querySelectorAll('.w3-modal').forEach(function (m) { m.style.display = 'none'; });
+        });
+
+        <?php if ($reabrir !== null): ?>
+        abrirModalRepartidor('<?= $reabrir ?>');
+        <?php endif; ?>
     </script>
 
 </body>

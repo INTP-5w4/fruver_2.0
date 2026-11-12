@@ -12,9 +12,16 @@
         <?php include 'Header.php'; ?>
     <?php include 'sidebar.php'; ?>
 
+<?php
+// Si el servidor rechazó el formulario, se reabre el mismo modal con lo que se había escrito
+// y el error se muestra dentro de él. El de edición manda un "id" oculto; el de alta no.
+$hayOld   = session()->has('_ci_old_input');
+$editando = $hayOld && old('id') !== null;
+$reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion') : null;
+?>
 <div class="lista-wrapper">
  <div class="flash-container">
-    <?php if (session()->getFlashdata('error')): ?>
+    <?php if (session()->getFlashdata('error') && $reabrir === null): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
             <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
@@ -35,15 +42,19 @@
     <?php if (! empty($conGeo) && $resumenGeo['total'] > $resumenGeo['ubicadas']): ?>
         <div class="w3-panel w3-pale-yellow w3-border">
             <p><b><?= (int) ($resumenGeo['total'] - $resumenGeo['ubicadas']) ?></b> de <?= (int) $resumenGeo['total'] ?> direcciones aún no están ubicadas en el mapa
-               (no podrán entrar a una ruta). Usa el botón <i class="fa-solid fa-location-crosshairs"></i> de cada fila,
-               o ejecuta <code>php spark direcciones:geocodificar</code>.</p>
+               (no podrán entrar a una ruta).
+               <?php if (! empty($conBusqueda)): ?>
+                   Usa el botón <i class="fa-solid fa-location-crosshairs"></i> de cada fila, o ejecuta <code>php spark direcciones:geocodificar</code>.
+               <?php else: ?>
+                   Usa el botón <i class="fa-solid fa-location-crosshairs"></i> de cada fila y toca el mapa en la entrada de la casa.
+               <?php endif; ?></p>
         </div>
     <?php endif; ?>
 </div>
 
 <div class="contenedor-boton">
     <h1>Direcciones</h1>
-    <button type="button" onclick="document.getElementById('modalCrearDireccion').style.display='block'" class="btn-agregar">
+    <button type="button" onclick="abrirModalDireccion('modalCrearDireccion')" class="btn-agregar">
         <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva dirección
     </button>
 </div>
@@ -97,30 +108,35 @@
                             <span class="geo-tag geo-tag--ok" title="<?= esc((string) $d['origen_coord'], 'attr') ?>">Ubicada</span>
                         <?php endif; ?>
                         <?php if (! in_array($d['origen_coord'] ?? null, ['manual', 'gps_entrega'], true)): ?>
-                            <form method="post" action="<?= base_url('direcciones/geocodificar/' . (int) $d['id']) ?>" style="display:inline; margin:0;">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="btn-icono" title="Ubicar automáticamente a partir del texto"><i class="fa-solid fa-location-crosshairs"></i></button>
-                            </form>
+                            <?php if (! empty($conBusqueda)): ?>
+                                <form method="post" action="<?= base_url('direcciones/geocodificar/' . (int) $d['id']) ?>" style="display:inline; margin:0;">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="btn-icono" title="Ubicar automáticamente a partir del texto" aria-label="Ubicar automáticamente la dirección <?= (int) $d['id'] ?>"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i></button>
+                                </form>
+                            <?php else: ?>
+                                <?php // Sin servicio de búsqueda configurado: se abre el mapa para colocar el pin a mano. ?>
+                                <button type="button" class="btn-icono" title="Ubicar en el mapa (colocar el pin)" aria-label="Ubicar en el mapa la dirección <?= (int) $d['id'] ?>"
+                                        onclick="ubicarEnMapa(<?= (int) $d['id'] ?>)"><i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i></button>
+                            <?php endif; ?>
                         <?php endif; ?>
                     </td>
                     <?php endif; ?>
                     <td>
-                        <button data-lat="<?= esc((string) ($d['lat'] ?? ''), 'attr') ?>"
+                        <button type="button" class="btn-icono" title="Editar dirección" aria-label="Editar dirección <?= (int) $d['id'] ?>"
+                                data-id="<?= (int) $d['id'] ?>"
+                                data-colonia="<?= esc((string) $d['colonia'], 'attr') ?>"
+                                data-calle="<?= esc((string) $d['calle'], 'attr') ?>"
+                                data-numero="<?= esc((string) $d['numero'], 'attr') ?>"
+                                data-municipio="<?= esc((string) $d['municipio'], 'attr') ?>"
+                                data-estado="<?= esc((string) $d['estado'], 'attr') ?>"
+                                data-cliente="<?= (int) $d['id_cliente'] ?>"
+                                data-lat="<?= esc((string) ($d['lat'] ?? ''), 'attr') ?>"
                                 data-lng="<?= esc((string) ($d['lng'] ?? ''), 'attr') ?>"
                                 data-cp="<?= esc((string) ($d['codigo_postal'] ?? ''), 'attr') ?>"
                                 data-ref="<?= esc((string) ($d['referencias'] ?? ''), 'attr') ?>"
                                 data-principal="<?= ! empty($d['es_principal']) ? '1' : '0' ?>"
-                                onclick="prepararGeoEdicion(this); abrirModal(
-                                    '<?= esc($d['id'], 'js') ?>',
-                                    '<?= esc($d['colonia'], 'js') ?>',
-                                    '<?= esc($d['calle'], 'js') ?>',
-                                    '<?= esc($d['numero'], 'js') ?>',
-                                    '<?= esc($d['municipio'], 'js') ?>',
-                                    '<?= esc($d['estado'], 'js') ?>',
-                                    '<?= esc($d['id_cliente'], 'js') ?>'
-                                )"
-                                class="btn-icono">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                                onclick="editarDireccion(this)">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                         </button>
                     </td>
                     <td>
@@ -136,119 +152,63 @@
     <?= $pager->links('default', 'w3_pager') ?>
 </div>
     <!-- MODAL CREAR DIRECCIÓN -->
-    <div id="modalCrearDireccion" class="w3-modal" style="display:none;">
+    <div id="modalCrearDireccion" class="w3-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-crear-direccion">
         <div class="modal-contenido w3-animate-zoom">
 
             <header class="modal-header">
-                <span onclick="document.getElementById('modalCrearDireccion').style.display='none'"
-                      class="modal-cerrar">&times;</span>
-                <h2>Registrar Dirección</h2>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <h2 id="titulo-crear-direccion">Registrar dirección</h2>
             </header>
 
             <form action="<?= base_url('guarda_direccion') ?>" method="post" class="modal-form">
-<?= csrf_field() ?>
-
-                <label><b>Colonia*</b></label>
-                <input type="text" placeholder="Ej: Centro" name="col" class="modal-input" required>
-
-                <label><b>Calle*</b></label>
-                <input type="text" placeholder="Ej: Benito Juárez" name="calle" class="modal-input" required>
-
-                <label><b>Número*</b></label>
-                <input type="text" placeholder="Ej: 59" name="num" class="modal-input" required>
-
-                <label><b>Municipio*</b></label>
-                <input type="text" placeholder="Ej: Rafael Lara Grajales" name="mun" class="modal-input" required>
-
-                <label><b>Estado*</b></label>
-                <select name="edo" class="modal-input" required>
-                    <?php
-                    $estados = ["Aguascalientes","Baja California","Baja California Sur","Campeche","Chiapas","Chihuahua","Ciudad de Mexico","Coahuila","Colima","Durango","Estado de Mexico","Guanajuato","Guerrero","Hidalgo","Jalisco","Michoacán","Morelos","Nayarit","Nuevo Leon","Oaxaca","Puebla","Queretaro","Quintana Roo","San Luis Potosi","Sinaloa","Sonora","Tabasco","Tamaulipas","Tlaxcala","Veracruz","Yucatan","Zacatecas"];
-                    foreach ($estados as $e): ?>
-                        <option value="<?= esc($e) ?>"><?= esc($e) ?></option>
-                    <?php endforeach; ?>
-                </select>
-
-                <?php if (! empty($conGeo)): ?>
-                    <?= view('partials/campos_extra_direccion', ['idSufijo' => '_crear']) ?>
-                    <?= view('partials/geo_direccion', ['geoId' => 'geo_crear']) ?>
+                <?= csrf_field() ?>
+                <?php if ($reabrir === 'modalCrearDireccion' && session()->getFlashdata('error')): ?>
+                    <div class="aviso aviso-error" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
                 <?php endif; ?>
 
-                <label><b>Cliente*</b></label>
-                <select name="id_cliente" class="modal-input" required>
-                    <?php foreach ($clientes as $cliente): ?>
-                        <option value="<?= esc($cliente['id']) ?>">
-                            <?= esc($cliente['nombre'].' '.$cliente['ape_pat'].' '.$cliente['ape_mat']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <?= view('partials/form_direccion', [
+                    'clientes' => $clientes_lista,
+                    'conGeo'   => ! empty($conGeo),
+                    'sufijo'   => '_crear',
+                    'conOld'   => $hayOld && ! $editando,
+                ]) ?>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button"
-                            onclick="document.getElementById('modalCrearDireccion').style.display='none'"
-                            class="btn-cancelar">Cancelar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
                 </footer>
-
             </form>
         </div>
     </div>
 
     <!-- MODAL EDITAR DIRECCIÓN -->
-    <div id="modalEditarDireccion" class="w3-modal" style="display:none;">
+    <div id="modalEditarDireccion" class="w3-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-editar-direccion">
         <div class="modal-contenido w3-animate-zoom">
 
             <header class="modal-header">
-                <span onclick="document.getElementById('modalEditarDireccion').style.display='none'"
-                      class="modal-cerrar">&times;</span>
-                <h2>Editar Dirección</h2>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <h2 id="titulo-editar-direccion">Editar dirección</h2>
             </header>
 
             <form action="<?= base_url('modifica_direccion') ?>" method="post" class="modal-form">
-<?= csrf_field() ?>
-
-                <input type="hidden" name="id" id="edit_id">
-
-                <label><b>Colonia*</b></label>
-                <input type="text" name="col" id="edit_col" class="modal-input" required>
-
-                <label><b>Calle*</b></label>
-                <input type="text" name="calle" id="edit_calle" class="modal-input" required>
-
-                <label><b>Número*</b></label>
-                <input type="text" name="num" id="edit_num" class="modal-input" required>
-
-                <label><b>Municipio*</b></label>
-                <input type="text" name="mun" id="edit_mun" class="modal-input" required>
-
-                <label><b>Estado*</b></label>
-                <select name="edo" id="edit_edo" class="modal-input" required>
-                    <?php foreach ($estados as $e): ?>
-                        <option value="<?= esc($e) ?>"><?= esc($e) ?></option>
-                    <?php endforeach; ?>
-                </select>
-
-                <?php if (! empty($conGeo)): ?>
-                    <?= view('partials/campos_extra_direccion', ['idSufijo' => '_editar']) ?>
-                    <?= view('partials/geo_direccion', ['geoId' => 'geo_editar']) ?>
+                <?= csrf_field() ?>
+                <?php if ($reabrir === 'modalEditarDireccion' && session()->getFlashdata('error')): ?>
+                    <div class="aviso aviso-error" role="alert"><i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i><span><?= esc(session()->getFlashdata('error')) ?></span></div>
                 <?php endif; ?>
 
-                <label><b>Cliente*</b></label>
-                <select name="id_cliente" id="edit_id_cliente" class="modal-input" required>
-                    <?php foreach ($clientes as $cliente): ?>
-                        <option value="<?= esc($cliente['id']) ?>">
-                            <?= esc($cliente['nombre'].' '.$cliente['ape_pat'].' '.$cliente['ape_mat']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <input type="hidden" name="id" id="id_editar" value="<?= $editando ? (int) old('id', null, false) : '' ?>">
+
+                <?= view('partials/form_direccion', [
+                    'clientes' => $clientes_lista,
+                    'conGeo'   => ! empty($conGeo),
+                    'sufijo'   => '_editar',
+                    'conOld'   => $editando,
+                ]) ?>
 
                 <footer class="modal-footer">
                     <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button"
-                            onclick="document.getElementById('modalEditarDireccion').style.display='none'"
-                            class="btn-cancelar">Cancelar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
                 </footer>
-
             </form>
         </div>
     </div>
@@ -257,32 +217,70 @@
 </div><!-- /.lista-wrapper -->
 
     <script>
-        function prepararGeoEdicion(boton) {
-            var cp = document.getElementById('cp_editar');
-            if (!cp) { return; }
-            cp.value = boton.dataset.cp || '';
-            document.getElementById('referencias_editar').value = boton.dataset.ref || '';
-            document.getElementById('principal_editar').checked = boton.dataset.principal === '1';
-            if (window.FruverGeo) { FruverGeo.posicionar(document.getElementById('geo_editar'), boton.dataset.lat, boton.dataset.lng); }
+        function abrirModalDireccion(id) {
+            document.getElementById(id).style.display = 'block';
         }
 
-        function abrirModal(id, colonia, calle, numero, municipio, estado, id_cliente) {
-            document.getElementById('edit_id').value = id;
-            document.getElementById('edit_col').value = colonia;
-            document.getElementById('edit_calle').value = calle;
-            document.getElementById('edit_num').value = numero;
-            document.getElementById('edit_mun').value = municipio;
-            document.getElementById('edit_edo').value = estado;
-            document.getElementById('edit_id_cliente').value = id_cliente;
-            document.getElementById('modalEditarDireccion').style.display = 'block';
+        /** Llena el modal de edición con los datos de la fila (botón con data-*) y lo abre. */
+        /** Botón ⊕ sin servicio de búsqueda: abre la edición y lleva al mapa para colocar el pin. */
+        function ubicarEnMapa(id) {
+            var boton = document.querySelector('button[data-id="' + id + '"]');
+            if (!boton) { return; }
+            editarDireccion(boton);
+            var geo = document.getElementById('geo_editar');
+            if (!geo) { return; }
+            setTimeout(function () {
+                geo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                var estado = geo.querySelector('[data-mapa-estado]');
+                if (estado) {
+                    estado.textContent = 'Toca el mapa en la entrada de la casa (o arrastra el pin) y pulsa Guardar.';
+                    estado.hidden = false;
+                }
+            }, 250);
         }
 
-        window.onclick = function(event) {
-            const modalEditar = document.getElementById('modalEditarDireccion');
-            const modalCrear = document.getElementById('modalCrearDireccion');
-            if (event.target === modalEditar) modalEditar.style.display = 'none';
-            if (event.target === modalCrear) modalCrear.style.display = 'none';
-        };
+        function editarDireccion(boton) {
+            var d = boton.dataset;
+            var poner = function (campo, valor) {
+                var el = document.getElementById(campo + '_editar');
+                if (!el) { return; }
+                el.classList.remove('campo-con-error');
+                el.removeAttribute('aria-invalid');
+                if (el.type === 'checkbox') { el.checked = valor === '1'; return; }
+                if (el.tagName === 'SELECT' && valor !== '' && !Array.prototype.some.call(el.options, function (o) { return o.value === valor; })) {
+                    // Estado escrito distinto en una dirección antigua: se agrega para no perderlo.
+                    el.add(new Option(valor, valor));
+                }
+                el.value = valor;
+            };
+            document.getElementById('id_editar').value = d.id;
+            poner('col', d.colonia);
+            poner('calle', d.calle);
+            poner('num', d.numero);
+            poner('mun', d.municipio);
+            poner('edo', d.estado);
+            poner('id_cliente', d.cliente);
+            poner('cp', d.cp);
+            poner('referencias', d.ref);
+            poner('principal', d.principal);
+            abrirModalDireccion('modalEditarDireccion');
+            var geo = document.getElementById('geo_editar');
+            if (geo && window.FruverGeo) { FruverGeo.posicionar(geo, d.lat, d.lng); }
+        }
+
+        document.addEventListener('click', function (ev) {
+            var cerrar = ev.target.closest('[data-cerrar-modal]');
+            if (cerrar) { cerrar.closest('.w3-modal').style.display = 'none'; return; }
+            if (ev.target.classList && ev.target.classList.contains('w3-modal')) { ev.target.style.display = 'none'; }
+        });
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key !== 'Escape') { return; }
+            document.querySelectorAll('.w3-modal').forEach(function (m) { m.style.display = 'none'; });
+        });
+
+        <?php if ($reabrir !== null): ?>
+        abrirModalDireccion('<?= $reabrir ?>');
+        <?php endif; ?>
     </script>
 
 </body>

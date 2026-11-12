@@ -197,4 +197,5 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('guarda_pedido_completo', 'P_pedidos::guarda_pedido_completo');
     $routes->post('modifica_pedido_completo', 'P_pedidos::modifica_pedido_completo');
     $routes->post('borra_pedido_completo/(:num)', 'P_pedidos::borra_pedido_completo/$1');
+    $routes->post('pedido/(:num)/estado', 'P_pedidos::cambia_estado/$1'); // cambio rápido de estatus
 });

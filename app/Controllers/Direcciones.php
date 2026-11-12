@@ -143,6 +143,8 @@ class Direcciones extends BaseController
         $datos = [
             'resumenGeo'     => $m_direccion->resumenGeo(),
             'conGeo'         => $m_direccion->tieneColumnasGeo(),
+            // Sin openrouteservice ni Google no hay búsqueda automática: el botón ⊕ abre el mapa para poner el pin.
+            'conBusqueda'    => config('Rutas')->conServicio(),
             'direcciones'    => $m_direccion->listar($buscar),
             'clientes'       => array_column($clientes_lista, null, 'id'),
             'clientes_lista' => $clientes_lista,

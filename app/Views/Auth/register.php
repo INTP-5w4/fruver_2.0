@@ -22,6 +22,26 @@ if (session()->has('_ci_old_input')) {
     }
 }
 $valores = \App\Libraries\Privacidad\FormularioConsentimiento::valoresFormulario($cfg, null, $enviado);
+
+// Errores de Shield que van debajo de su campo; los demás (si hubiera) arriba del formulario.
+$camposCuenta = ['email', 'username', 'password', 'password_confirm'];
+$erroresCampo = array_intersect_key($erroresSh, array_flip($camposCuenta));
+$erroresSh    = array_diff_key($erroresSh, $erroresCampo);
+$errorCampo   = static fn (string $campo): string => isset($erroresCampo[$campo])
+    ? '<p class="campo-error" id="err-' . $campo . '">' . esc($erroresCampo[$campo]) . '</p>'
+    : '';
+$describe = static fn (string $campo): string => isset($erroresCampo[$campo])
+    ? ' aria-describedby="err-' . $campo . '" aria-invalid="true"'
+    : '';
+
+// Reglas de Shield (Config\Auth) que el navegador puede mostrar y revisar mientras se escribe.
+$auth        = config('Auth');
+$minPassword = (int) $auth->minimumPasswordLength;
+$notasPassword = json_encode([
+    'No uses tu correo ni tu nombre de usuario',
+    'Evita contraseñas comunes (123456, qwerty, tu nombre…)',
+    'Una frase de varias palabras es más segura y fácil de recordar',
+], JSON_UNESCAPED_UNICODE);
 ?>
 <?= $this->extend(config('Auth')->views['layout']) ?>
 
@@ -55,24 +75,34 @@ $valores = \App\Libraries\Privacidad\FormularioConsentimiento::valoresFormulario
                     <?= csrf_field() ?>
 
                     <div class="form-floating mb-2">
-                        <input type="email" class="form-control" id="floatingEmailInput" name="email" inputmode="email" autocomplete="email" placeholder="<?= lang('Auth.email') ?>" value="<?= old('email') ?>" required>
+                        <input type="email" class="form-control<?= isset($erroresCampo['email']) ? ' campo-con-error' : '' ?>" id="floatingEmailInput" name="email" inputmode="email" autocomplete="email"
+                               maxlength="254" placeholder="<?= lang('Auth.email') ?>" value="<?= old('email') ?>" required<?= $describe('email') ?>>
                         <label for="floatingEmailInput"><?= lang('Auth.email') ?></label>
                     </div>
+                    <?= $errorCampo('email') ?>
 
                     <div class="form-floating mb-4">
-                        <input type="text" class="form-control" id="floatingUsernameInput" name="username" inputmode="text" autocomplete="username" placeholder="<?= lang('Auth.username') ?>" value="<?= old('username') ?>" required>
+                        <input type="text" class="form-control<?= isset($erroresCampo['username']) ? ' campo-con-error' : '' ?>" id="floatingUsernameInput" name="username" inputmode="text" autocomplete="username"
+                               minlength="3" maxlength="30" pattern="[A-Za-z0-9.]+" data-regla-patron="Solo letras sin acento, números y punto (sin espacios)"
+                               placeholder="<?= lang('Auth.username') ?>" value="<?= old('username') ?>" required<?= $describe('username') ?>>
                         <label for="floatingUsernameInput"><?= lang('Auth.username') ?></label>
                     </div>
+                    <?= $errorCampo('username') ?>
 
                     <div class="form-floating mb-2">
-                        <input type="password" class="form-control" id="floatingPasswordInput" name="password" inputmode="text" autocomplete="new-password" placeholder="<?= lang('Auth.password') ?>" required>
+                        <input type="password" class="form-control<?= isset($erroresCampo['password']) ? ' campo-con-error' : '' ?>" id="floatingPasswordInput" name="password" inputmode="text" autocomplete="new-password"
+                               minlength="<?= $minPassword ?>" data-reglas="<?= esc($notasPassword, 'attr') ?>"
+                               placeholder="<?= lang('Auth.password') ?>" required<?= $describe('password') ?>>
                         <label for="floatingPasswordInput"><?= lang('Auth.password') ?></label>
                     </div>
+                    <?= $errorCampo('password') ?>
 
                     <div class="form-floating mb-4">
-                        <input type="password" class="form-control" id="floatingPasswordConfirmInput" name="password_confirm" inputmode="text" autocomplete="new-password" placeholder="<?= lang('Auth.passwordConfirm') ?>" required>
+                        <input type="password" class="form-control<?= isset($erroresCampo['password_confirm']) ? ' campo-con-error' : '' ?>" id="floatingPasswordConfirmInput" name="password_confirm" inputmode="text" autocomplete="new-password"
+                               data-coincide="password" placeholder="<?= lang('Auth.passwordConfirm') ?>" required<?= $describe('password_confirm') ?>>
                         <label for="floatingPasswordConfirmInput"><?= lang('Auth.passwordConfirm') ?></label>
                     </div>
+                    <?= $errorCampo('password_confirm') ?>
 
                     <?= view('privacidad/_resumen', ['cfg' => $cfg]) ?>
 

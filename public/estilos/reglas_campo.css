@@ -1,0 +1,47 @@
+/* reglas_campo.css — Panel con las reglas del campo enfocado (public/js/reglas_campo.js).
+   Autocontenido: se usa en el panel, la tienda, el acceso (Shield) y privacidad. */
+
+/* El margen superior lo ajusta el script para quedar a 6px del campo, tenga o no margen. */
+.regla-campo {
+    margin: 6px 0 14px;
+    padding: 8px 11px 9px;
+    background: #f7f9f2;
+    border: 1px solid #d8dfcc;
+    border-left: 3px solid #0b7d2e;
+    border-radius: 6px;
+    color: #1d2a1f;
+    font-size: 12.5px;
+    line-height: 1.45;
+    text-align: left;
+    animation: regla-campo-entra .12s ease-out;
+}
+.regla-campo-titulo { margin: 0 0 3px; font-weight: 700; font-size: 12px; color: #08481d; }
+.regla-campo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.regla-campo li { display: flex; gap: 6px; align-items: baseline; margin: 0; padding: 0; overflow-wrap: anywhere; }
+.regla-campo li::before { flex: none; width: 1em; text-align: center; font-weight: 700; }
+.regla-campo li.pendiente { color: #4f5d53; }
+.regla-campo li.pendiente::before { content: "•"; }
+.regla-campo li.nota { color: #4f5d53; font-style: italic; }
+.regla-campo li.nota::before { content: "i"; font-style: normal; font-family: Georgia, serif; }
+.regla-campo li.ok { color: #0b6b28; }
+.regla-campo li.ok::before { content: "✓"; }
+.regla-campo li.mal { color: #a8231b; font-weight: 600; }
+.regla-campo li.mal::before { content: "✗"; }
+
+.regla-campo-sr {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* Campo que no cumple sus reglas (después de salir de él o al enviar) */
+input.campo-con-error, select.campo-con-error, textarea.campo-con-error {
+    border-color: #a8231b !important;
+    box-shadow: 0 0 0 3px rgba(168, 35, 27, 0.12) !important;
+}
+
+@keyframes regla-campo-entra { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .regla-campo { animation: none; } }
+
+/* Error que devolvió el servidor, debajo de su campo */
+.campo-error { margin: -2px 0 12px; color: #a8231b; font-size: 13px; font-weight: 600; }
+.mb-4:has(+ .campo-error) { margin-bottom: .5rem; }

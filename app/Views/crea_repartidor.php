@@ -1,51 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Repartidor</title>
+    <title>Registrar repartidor</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
-    <div class="modal-contenido" style="max-width:500px; margin:40px auto;">
+    <div class="formulario-pagina">
 
         <header class="modal-header">
-            <h2>Registrar Repartidor</h2>
+            <h2>Registrar repartidor</h2>
         </header>
 
         <form action="<?= base_url('guarda_repartidor') ?>" method="post" class="modal-form">
-<?= csrf_field() ?>
+            <?= csrf_field() ?>
+            <?= view('partials/aviso_formulario') ?>
 
-            <label><b>Nombre</b></label>
-            <input type="text" name="nom" class="modal-input" required>
-
-            <label><b>Apellido Paterno</b></label>
-            <input type="text" name="ape_pat" class="modal-input" required>
-
-            <label><b>Apellido Materno</b></label>
-            <input type="text" name="ape_mat" class="modal-input" required>
-
-            <label><b>Teléfono</b></label>
-            <input type="text" name="tel" class="modal-input" required>
-
-            <label><b>Dirección</b></label>
-            <input type="text" name="dir" class="modal-input" required>
-
-            <label><b>Notas</b></label>
-            <textarea name="not" class="modal-input" rows="4" required></textarea>
-
-            <label><b>Vehículo</b> <span class="w3-small">(para calcular la ruta)</span></label>
-            <select name="vehiculo" class="modal-input">
-                <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
-                    <option value="<?= esc($valor) ?>" <?= old('vehiculo') === $valor ? 'selected' : '' ?>><?= esc($texto) ?></option>
-                <?php endforeach; ?>
-            </select>
+            <?= view('partials/form_repartidor', ['sufijo' => '_crea']) ?>
 
             <footer class="modal-footer">
                 <button type="submit" class="btn-guardar">Guardar</button>
+                <a href="<?= base_url('lista_repartidor') ?>" class="btn-cancelar btn-enlace">Cancelar</a>
             </footer>
-
         </form>
     </div>
 </body>

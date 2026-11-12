@@ -239,6 +239,11 @@ class Auth extends ShieldAuth
             'min_length[3]',
             'regex_match[/\A[a-zA-Z0-9\.]+\z/]',
         ],
+        // Mensajes propios en español (app/Language/es/Auth.php). Shield agrega is_unique al registrar.
+        'errors' => [
+            'regex_match' => 'Auth.errorUsernameFormato',
+            'is_unique'   => 'Auth.errorUsernameUnico',
+        ],
     ];
 
     /**
@@ -256,6 +261,9 @@ class Auth extends ShieldAuth
             'required',
             'max_length[254]',
             'valid_email',
+        ],
+        'errors' => [
+            'is_unique' => 'Auth.errorEmailUnico',
         ],
     ];
 

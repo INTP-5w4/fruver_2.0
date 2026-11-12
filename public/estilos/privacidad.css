@@ -11,6 +11,7 @@
     margin: 0 auto;
     display: grid;
     gap: 1.5rem;
+    grid-template-columns: minmax(0, 1fr); /* las tablas anchas se desplazan dentro, sin ensanchar la página */
 }
 
 /* ── Resumen del aviso ─────────────────────────────────────── */
@@ -173,4 +174,13 @@
     .card-body { padding: 1.25rem 1rem; }
     .pv-acciones { justify-content: stretch; }
     .pv-acciones .btn { flex: 1 1 100%; }
+}
+
+/* ── Dentro de la ventana modal (?modal=1, ver public/js/aviso_modal.js) ── */
+body.pv-en-modal { min-height: 0; }
+.pv-en-modal .pv-main { padding: 1rem .75rem 1.5rem; }
+.pv-en-modal .pv-doc { box-shadow: none; }
+@media (max-width: 600px) {
+    .pv-en-modal .pv-main { padding: .5rem .25rem 1rem; }
+    .pv-en-modal .card-body { padding: 1.25rem 1rem; }
 }

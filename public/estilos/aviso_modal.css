@@ -1,0 +1,101 @@
+/* aviso_modal.css — Ventana del aviso de privacidad (public/js/aviso_modal.js).
+   Autocontenido: se usa en el panel, la tienda, el acceso (Shield) y privacidad. */
+
+html.pv-dialogo-abierto { overflow: hidden; }
+
+.pv-dialogo {
+    width: min(900px, calc(100vw - 32px));
+    height: min(860px, calc(100dvh - 48px));
+    max-width: none;
+    max-height: none;
+    margin: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #1d2a1f;
+    box-shadow: 0 24px 60px rgba(8, 72, 29, 0.28);
+    overflow: hidden;
+    font-family: 'Figtree', 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+.pv-dialogo[open] { display: flex; flex-direction: column; }
+.pv-dialogo::backdrop { background: rgba(29, 42, 31, 0.6); }
+
+.pv-dialogo-cabeza {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 12px 12px 20px;
+    background: #08481d;
+    color: #ffffff;
+}
+.pv-dialogo-cabeza h2 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    color: #ffffff;
+    font-family: 'Bricolage Grotesque', 'Trebuchet MS', 'Segoe UI', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+}
+.pv-dialogo a.pv-dialogo-pestana {
+    flex: none;
+    color: #d6e8db;
+    font-size: 13px;
+    text-decoration: underline;
+    white-space: nowrap;
+}
+.pv-dialogo a.pv-dialogo-pestana:hover { color: #ffffff; }
+.pv-dialogo-cerrar {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #ffffff;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+}
+.pv-dialogo-cerrar:hover { background: rgba(255, 255, 255, 0.14); }
+.pv-dialogo-cerrar:focus-visible, .pv-dialogo-listo:focus-visible, .pv-dialogo-pestana:focus-visible {
+    outline: 3px solid #f0b323;
+    outline-offset: 2px;
+}
+
+.pv-dialogo-marco {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    border: 0;
+    background: #f4f6ee;
+}
+
+.pv-dialogo-pie {
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 14px;
+    background: #f7f9f2;
+    border-top: 1px solid #d8dfcc;
+}
+.pv-dialogo-listo {
+    min-height: 40px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 6px;
+    background: #0b7d2e;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+.pv-dialogo-listo:hover { background: #08481d; }
+
+@media (max-width: 600px) {
+    .pv-dialogo { width: 100vw; height: 100dvh; border-radius: 0; }
+    .pv-dialogo a.pv-dialogo-pestana { display: none; }
+    .pv-dialogo-listo { width: 100%; min-height: 46px; }
+}

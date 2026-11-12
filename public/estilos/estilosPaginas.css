@@ -184,7 +184,7 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
 .tabla-pedidos > tbody > tr > td:nth-child(4),
 .tabla-pedidos > tbody > tr > td:nth-child(7) { white-space: normal; min-width: 130px; max-width: 200px; }
 .tabla-pedidos > tbody > tr > td:first-child { width: 40px; padding-right: 0; }
-.tabla-pedidos .resumen-productos { max-width: 190px; }
+.tabla-pedidos .resumen-productos { max-width: 150px; }
 .lista-wrapper .tabla-pedidos > thead > tr > th,
 .lista-wrapper .tabla-pedidos > tbody > tr:not(.fila-detalle) > td { padding-left: 10px; padding-right: 10px; }
 .tabla-pedidos .acciones-fila .btn-icono { width: 30px; height: 30px; }
@@ -220,7 +220,23 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
 .pestana.activa b { background: var(--hoja); color: #fff; }
 
 /* ── MODALES ──────────────────────────────────────── */
-.w3-modal { background-color: rgba(29, 42, 31, 0.55) !important; padding-top: 72px !important; }
+/* El fondo va por encima del menú lateral (z 90/120) y de la barra superior (z 130):
+   antes quedaba debajo y el menú tapaba la mitad izquierda del formulario. */
+.w3-modal {
+    z-index: 200 !important;
+    background-color: rgba(29, 42, 31, 0.55) !important;
+    padding: 56px 16px 40px !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+/* Ancho fijo y centrado: .modal-contenido no es una clase de W3 y ocupaba toda la pantalla;
+   .w3-modal-content de W3 crece a 900px en pantallas grandes. */
+.w3-modal > .w3-modal-content,
+.w3-modal > .modal-contenido {
+    width: 100% !important;
+    max-width: 600px;
+    margin: 0 auto !important;
+}
 .w3-modal-content, .modal-contenido {
     border-radius: 12px !important;
     overflow: hidden;
@@ -237,7 +253,7 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
     color: #fff !important;
     padding: 16px 20px;
 }
-.modal-header h2, .w3-modal-content header h2, .w3-modal-content header h3 { color: #fff; font-size: 19px; margin: 0; }
+.modal-header h2, .modal-header h3, .w3-modal-content header h2, .w3-modal-content header h3 { color: #fff; font-size: 19px; margin: 0; padding-right: 40px; overflow-wrap: anywhere; }
 .modal-header > form, .modal-header + form { color: var(--tinta); }
 .modal-cerrar, .w3-modal-content header .w3-display-topright {
     position: absolute; right: 12px; top: 10px;
@@ -246,10 +262,16 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
     color: #fff; background: none; border: none;
 }
 .modal-cerrar:hover { background: rgba(255, 255, 255, 0.14); }
-.modal-form { padding: 18px 20px 4px; background: var(--superficie); }
+.modal-form { padding: 18px 20px 4px; background: var(--superficie); min-width: 0; }
 .modal-header > .modal-form { margin: 14px -20px -16px; }
 .modal-form label { color: var(--tinta); font-weight: 600; display: block; margin-bottom: 4px; font-size: 13.5px; }
-.modal-input { display: block; width: 100%; margin-bottom: 14px; }
+.modal-input { display: block; width: 100%; max-width: 100%; margin-bottom: 14px; }
+/* Campos sueltos de W3 dentro de un formulario de modal (p. ej. Entregas) */
+.modal-form > .w3-input, .modal-form > .w3-select, .modal-form > select, .modal-form > textarea {
+    display: block; width: 100%; max-width: 100%; margin-bottom: 14px;
+}
+.modal-form textarea { resize: vertical; min-height: 80px; }
+.modal-form .campo-ayuda { margin: -8px 0 14px; font-size: 12.5px; color: var(--tinta-suave); }
 /* Pie de los formularios en modal: antes una franja verde con botones blancos */
 .w3-modal footer.w3-container, .modal-footer {
     display: flex !important; flex-direction: row-reverse; justify-content: flex-start; gap: 8px;
@@ -273,7 +295,7 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
     position: fixed;
     top: calc(var(--alto-encabezado) + 14px);
     right: 20px;
-    z-index: 9998;
+    z-index: 150; /* sobre la barra superior (130), debajo de los modales (200) */
     width: min(420px, calc(100vw - 32px));
     display: grid;
     gap: 8px;
@@ -299,9 +321,15 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
     width: min(560px, calc(100% - 32px)); max-width: 560px; margin: 32px auto !important;
     background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; overflow: hidden;
 }
-.formulario-pagina > .modal-footer, body > .modal-contenido .modal-footer { margin: 6px 0 0; }
+.formulario-pagina > .modal-footer { margin: 6px 0 0; }
+/* Formularios de página completa: el <form class="modal-form"> va dentro de la tarjeta,
+   sin una segunda tarjeta encima (antes se veía una caja dentro de otra). */
+.formulario-pagina > form.modal-form, body > .modal-contenido > form.modal-form {
+    width: auto; margin: 0; border: 0; border-radius: 0; display: block; padding: 20px 22px 0;
+}
+.formulario-pagina .modal-footer, body > .modal-contenido .modal-footer { margin: 6px -22px 0; }
 /* Pantallas antiguas cuyo formulario es hijo directo de <body> */
-body > form, body > .formulario-pagina > form {
+body > form, body > .formulario-pagina > form:not(.modal-form) {
     width: min(560px, calc(100% - 32px));
     margin: 32px auto;
     padding: 24px;
@@ -311,7 +339,7 @@ body > form, body > .formulario-pagina > form {
     display: grid;
     gap: 6px;
 }
-body > form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+body > form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
 body > form select,
 body > form textarea {
     width: 100%; min-height: 38px; padding: 8px 11px; margin-bottom: 8px;
@@ -413,8 +441,10 @@ body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
     .lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir),
     .lista-wrapper td > form > button:not(.w3-button):not(.btn) { width: 42px; height: 42px; }
     .detalle-inner { padding: 12px 14px 14px; }
-    .w3-modal { padding-top: 24px !important; }
-    .w3-modal-content, .modal-contenido { width: calc(100% - 24px) !important; max-height: calc(100dvh - 48px) !important; overflow-y: auto !important; }
+    .w3-modal { padding: 12px 10px 24px !important; }
+    body > .modal-contenido, .formulario-pagina { width: calc(100% - 20px) !important; margin: 16px auto !important; }
+    .modal-form, .formulario-pagina > form.modal-form, body > .modal-contenido > form.modal-form { padding: 16px 16px 0; }
+    .modal-footer, .formulario-pagina .modal-footer, body > .modal-contenido .modal-footer { margin: 6px -16px 0; padding: 12px 16px !important; }
     .footer_container { justify-content: center; text-align: center; padding: 14px 16px; }
 }
 
@@ -428,3 +458,49 @@ body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
 
 /* Pantallas de formulario de una sola columna (p. ej. almacén de rutas) */
 .lista-angosta { max-width: 900px; }
+
+/* ── Ayudas de formularios y listas ───────────────── */
+.modal-form > .aviso { margin-bottom: 14px; }
+.modal-form .opcional { font-weight: 400; color: var(--tinta-suave); font-size: 12.5px; }
+.aviso-lista { margin-bottom: 16px; }
+/* Celdas con texto largo (dirección, notas): bajan de renglón en vez de ensanchar la tabla */
+.lista-wrapper td.celda-texto { white-space: normal; min-width: 160px; max-width: 280px; overflow-wrap: anywhere; }
+.lista-wrapper td .est { margin-left: 6px; vertical-align: middle; }
+.lista-wrapper td .est:first-child { margin-left: 0; }
+
+/* ── Búsqueda mientras se escribe (public/js/busqueda_viva.js) ── */
+.buscador-lista [hidden] { display: none !important; }
+.buscador-lista .w3-input { flex: 1 1 260px; max-width: 420px; }
+.buscador-estado { font-size: 13px; color: var(--tinta-suave); }
+[data-busqueda-resultados] { transition: opacity .15s; }
+[data-busqueda-resultados].buscando { opacity: .55; }
+
+/* ── Cambio rápido de estatus (Productos por pedido, public/js/cambio_estado.js) ── */
+.lista-wrapper td.celda-estado { white-space: normal; }
+.estado-rapido { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.cambio-estado { display: inline-flex; margin: 0; }
+/* Selector con forma de píldora, como las insignias: sin el estilo nativo del navegador y con su propia flecha. */
+.lista-wrapper .cambio-estado select {
+    -webkit-appearance: none; appearance: none;
+    height: 26px; min-height: 0; width: auto; max-width: 132px; margin: 0;
+    padding: 0 26px 0 11px;
+    font-family: inherit; font-size: 12px; font-weight: 600; line-height: 24px; color: var(--tinta-suave);
+    cursor: pointer; text-overflow: ellipsis;
+    background-color: var(--superficie);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230b7d2e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 10px 6px;
+    border: 1px solid var(--borde-control); border-radius: var(--r-pildora);
+    box-shadow: 0 1px 0 rgba(8, 72, 29, .04);
+    transition: border-color .15s, background-color .15s, color .15s;
+}
+.lista-wrapper .cambio-estado select:hover {
+    border-color: var(--hoja); background-color: var(--hoja-clara); color: var(--hoja-oscura);
+}
+.lista-wrapper .cambio-estado select:focus { outline: none; }
+.lista-wrapper .cambio-estado select:focus-visible {
+    border-color: var(--hoja); color: var(--hoja-oscura);
+    box-shadow: 0 0 0 3px rgba(11, 125, 46, .22);
+}
+.lista-wrapper .cambio-estado select option { font-weight: 500; color: #1f2a22; background: #fff; }
+.estado-rapido.guardando { opacity: .55; pointer-events: none; }
+.lista-wrapper tr.fila-movida td { opacity: .5; }

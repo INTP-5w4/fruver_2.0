@@ -32,7 +32,7 @@ class Pedidos extends BaseController
     {
         $datos = [
             'clientes'     => (new Modelo_cliente())->findAll(),
-            'repartidores' => (new Modelo_repartidor())->findAll(),
+            'repartidores' => $this->repartidores(),
         ];
 
         return view('crea_pedido', $datos);
@@ -65,7 +65,7 @@ class Pedidos extends BaseController
 
             // Clientes y repartidores indexados por id
             'clientes'     => array_column((new Modelo_cliente())->findAll(), null, 'id'),
-            'repartidores' => array_column((new Modelo_repartidor())->findAll(), null, 'id'),
+            'repartidores' => array_column($this->repartidores(), null, 'id'),
 
             // Productos pedidos
             'pps' => (new Modelo_productopedidos())->findAll(),
@@ -85,7 +85,7 @@ class Pedidos extends BaseController
         return view('modifica_pedido', [
             'pedidos'      => $pedido,
             'clientes'     => (new Modelo_cliente())->findAll(),
-            'repartidores' => (new Modelo_repartidor())->findAll(),
+            'repartidores' => $this->repartidores(),
         ]);
     }
 

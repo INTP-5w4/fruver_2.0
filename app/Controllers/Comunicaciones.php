@@ -51,8 +51,10 @@ class Comunicaciones extends BaseController
             $texto   = $this->personalizar($mensaje, $d);
             $tel     = $d['telefono_contacto'] !== null ? whatsapp_telefono((string) $d['telefono_contacto']) : null;
             $filas[] = $d + [
-                'texto'     => $texto,
-                'whatsapp'  => (int) $d['canal_mensajeria'] === 1 && $tel !== null ? whatsapp_url($tel, $texto) : null,
+                'texto'      => $texto,
+                'reemplazos' => $this->reemplazos($d),
+                'tel_wa'     => $tel,
+                'whatsapp'   => (int) $d['canal_mensajeria'] === 1 && $tel !== null ? whatsapp_url($tel, $texto) : null,
                 'llamar'    => (int) $d['canal_telefono'] === 1 ? (string) $d['telefono_contacto'] : null,
                 'por_correo' => (int) $d['canal_correo'] === 1 && ! empty($d['correo']),
             ];
@@ -68,6 +70,7 @@ class Comunicaciones extends BaseController
             'porCorreo'    => count(array_filter($filas, static fn (array $f): bool => $f['por_correo'])),
             'correoListo'  => Correo::configurado(),
             'asunto'       => 'FRUVER · ' . $cfg->finalidades[$finalidad]['titulo'],
+            'pie'          => $this->pie(),
         ]);
     }
 
@@ -151,23 +154,39 @@ class Comunicaciones extends BaseController
         }, $lista);
     }
 
-    /** Sustituye {nombre}, {productos}, {pedido} y {tienda}, y agrega cómo darse de baja. */
+    /**
+     * Valores de las etiquetas {nombre}, {productos}, {pedido} y {tienda} para una persona.
+     * Los usa personalizar() y también la vista (data-reemplazos), para que el mensaje se
+     * actualice en el navegador mientras se escribe, con exactamente el mismo resultado.
+     *
+     * @return array<string,string>
+     */
+    private function reemplazos(array $d): array
+    {
+        return [
+            '{nombre}'    => (string) ($d['nombre'] ?? '') !== '' ? (string) $d['nombre'] : (string) $d['username'],
+            '{productos}' => $d['productos'] !== [] ? implode(', ', $d['productos']) : 'tus productos de siempre',
+            '{pedido}'    => $d['pedido'] !== null
+                ? 'pedido #' . $d['pedido']['id'] . ' del ' . date('d/m/Y', strtotime($d['pedido']['fecha']))
+                : 'último pedido',
+            '{tienda}'    => site_url('main_page_4'),
+        ];
+    }
+
+    /** Texto fijo que se agrega al final de todo mensaje (cómo dejar de recibirlos). */
+    private function pie(): string
+    {
+        return "\n\nPara dejar de recibir estos mensajes entra a " . site_url('privacidad/preferencias')
+            . ' o respóndenos BAJA.';
+    }
+
+    /**
+     * Sustituye las etiquetas y agrega cómo darse de baja. strtr() es una sustitución de texto
+     * simple, en una sola pasada: no ejecuta nada ni vuelve a revisar lo que insertó.
+     */
     private function personalizar(string $plantilla, array $d): string
     {
-        $productos = $d['productos'] !== [] ? implode(', ', $d['productos']) : 'tus productos de siempre';
-        $pedido    = $d['pedido'] !== null
-            ? 'pedido #' . $d['pedido']['id'] . ' del ' . date('d/m/Y', strtotime($d['pedido']['fecha']))
-            : 'último pedido';
-
-        $texto = strtr($plantilla, [
-            '{nombre}'    => (string) ($d['nombre'] ?? '') !== '' ? (string) $d['nombre'] : (string) $d['username'],
-            '{productos}' => $productos,
-            '{pedido}'    => $pedido,
-            '{tienda}'    => site_url('main_page_4'),
-        ]);
-
-        return $texto . "\n\nPara dejar de recibir estos mensajes entra a " . site_url('privacidad/preferencias')
-            . ' o respóndenos BAJA.';
+        return strtr($plantilla, $this->reemplazos($d)) . $this->pie();
     }
 
     private function finalidad(mixed $valor): string

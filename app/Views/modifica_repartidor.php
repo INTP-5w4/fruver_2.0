@@ -1,43 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Title</title>
+    <title>Modificar repartidor</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
-    <form action="<?= base_url('modifica_repartidor')?>" method="post">
-<?= csrf_field() ?>
-        <input type="hidden" name="id" value="<?= esc($repartidores['id']) ?>">
+    <div class="formulario-pagina">
 
-        <label for="nom">Nombre</label><br>
-        <input type="text" name="nom" id="" value="<?= esc($repartidores['nombre']) ?>"><br>
+        <header class="modal-header">
+            <h2>Modificar repartidor</h2>
+        </header>
 
-        <label for="ape_pat">Apellido Paterno</label><br>
-        <input type="text" name="ape_pat" id="" value="<?= esc($repartidores['ape_pat']) ?>"><br>
+        <form action="<?= base_url('modifica_repartidor') ?>" method="post" class="modal-form">
+            <?= csrf_field() ?>
+            <?= view('partials/aviso_formulario') ?>
 
-        <label for="ape_mat">Apellido materno</label><br>
-        <input type="text" name="ape_mat" id="" value="<?= esc($repartidores['ape_mat']) ?>"><br>
+            <input type="hidden" name="id" value="<?= (int) $repartidores['id'] ?>">
 
-        <label for="tel">Telefono</label><br>
-        <input type="text" name="tel" id="" value="<?= esc($repartidores['telefono']) ?>"><br>
+            <?= view('partials/form_repartidor', ['rep' => $repartidores, 'sufijo' => '_modifica']) ?>
 
-        <label for="dir">Dirección</label><br>
-        <input type="text" name="dir" id="" value="<?= esc($repartidores['direccion']) ?>"><br>
-
-        <label for="not">Notas</label><br>
-        <textarea name="not" id=""><?= esc($repartidores['notas']) ?></textarea><br>
-
-        <label for="vehiculo">Vehículo</label><br>
-        <select name="vehiculo" id="vehiculo">
-            <?php foreach (\App\Models\Modelo_repartidor::VEHICULOS as $valor => $texto): ?>
-                <option value="<?= esc($valor) ?>" <?= ($repartidores['vehiculo'] ?? 'moto') === $valor ? 'selected' : '' ?>><?= esc($texto) ?></option>
-            <?php endforeach; ?>
-        </select><br>
-
-        <input type="submit" value="Enviar">
-    </form>
+            <footer class="modal-footer">
+                <button type="submit" class="btn-guardar">Guardar</button>
+                <a href="<?= base_url('lista_repartidor') ?>" class="btn-cancelar btn-enlace">Cancelar</a>
+            </footer>
+        </form>
+    </div>
 </body>
 </html>
