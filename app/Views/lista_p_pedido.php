@@ -5,6 +5,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
+    <script src="<?= base_url('js/cambio_estado.js') . '?v=' . @filemtime(FCPATH . 'js/cambio_estado.js') ?>" defer></script>
     <style>
         .hint-pref { color:#2e7d32; font-size:12px; margin:4px 0 0; }
         .barra-pref { display:flex; flex-wrap:wrap; align-items:center; gap:8px; background:#e8f5e9;
@@ -120,8 +121,26 @@ $enlacePestana = static function (string $clave) use ($buscar): string {
             </td>
             <td class="total-pedido">$<?= number_format($pedido['total_pedido'], 2) ?></td>
             <td><?= esc($pedido['nombre_repartidor'].' '.$pedido['ape_pat_repartidor'].' '.$pedido['ape_mat_repartidor']) ?></td>
-            <td>
-                <?= estado_pedido($pedido['estado_actual'] ?? 'pedido_pendiente') ?>
+            <?php
+                $estadoFila  = $pedido['estado_actual'] ?? 'pedido_pendiente';
+                $siguientes  = \App\Models\Modelo_pedido::TRANSICIONES[$estadoFila] ?? [];
+            ?>
+            <td class="celda-estado" onclick="event.stopPropagation()">
+                <div class="estado-rapido" data-estado-rapido>
+                    <?= estado_pedido($estadoFila) ?>
+                    <?php if ($siguientes !== []): ?>
+                        <form method="post" action="<?= base_url('pedido/' . (int) $pedido['id_pedido'] . '/estado') ?>" class="cambio-estado" data-cambio-estado>
+                            <?= csrf_field() ?>
+                            <select name="estado" aria-label="Cambiar el estatus del pedido <?= (int) $pedido['id_pedido'] ?>" title="Cambiar estatus">
+                                <option value="" selected disabled>Cambiar a…</option>
+                                <?php foreach ($siguientes as $sig): ?>
+                                    <option value="<?= esc($sig, 'attr') ?>"><?= esc(estado_pedido_texto($sig)) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <noscript><button type="submit" class="btn btn-chico btn-secundario">Cambiar</button></noscript>
+                        </form>
+                    <?php endif; ?>
+                </div>
             </td>
             <td class="col-acciones" onclick="event.stopPropagation()">
                 <div class="acciones-fila">

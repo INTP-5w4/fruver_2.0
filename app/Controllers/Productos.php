@@ -74,7 +74,7 @@ class Productos extends BaseController
             'productosLowStock' => $m_producto->productosLowStock(),
             'productos'         => $m_producto->findAll(),
             'clientes'          => $m_cliente->findAll(),
-            'repartidores'      => $m_repartidor->findAll(),
+            'repartidores'      => $this->repartidores(),
             'pedidos'           => $m_pedido->findAll(),
             'entradas'          => $m_entrada->getEntradasConProducto(),
 

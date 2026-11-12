@@ -146,6 +146,59 @@ class P_pedidos extends BaseController
     }
 
     // ─────────────────────────────────────────────────────────────
+    // CAMBIO RÁPIDO DE ESTATUS (selector de la columna "Estatus")
+    // ─────────────────────────────────────────────────────────────
+    /**
+     * Pasa el pedido al estado elegido si el flujo lo permite (Modelo_pedido::TRANSICIONES).
+     * Con fetch (public/js/cambio_estado.js) responde JSON; sin JavaScript, regresa a la lista.
+     */
+    public function cambia_estado($id = null)
+    {
+        $nuevo = $this->estadoValido();
+        $ajax  = $this->request->isAJAX();
+
+        $falla = function (string $mensaje, int $codigo = 422) use ($ajax) {
+            return $ajax
+                ? $this->response->setStatusCode($codigo)->setJSON(['ok' => false, 'mensaje' => $mensaje])
+                : redirect()->back()->with('error', $mensaje);
+        };
+
+        if (! ctype_digit((string) $id) || $nuevo === null) {
+            return $falla('Elige un estatus válido.');
+        }
+
+        try {
+            (new Modelo_pedido())->cambiarEstado((int) $id, $nuevo);
+        } catch (DomainException $e) {
+            $mensaje = str_starts_with($e->getMessage(), 'transicion:')
+                ? 'Un pedido "' . estado_pedido_texto(substr($e->getMessage(), 11)) . '" no puede pasar a "'
+                    . estado_pedido_texto($nuevo) . '". Recarga la página: alguien pudo haberlo cambiado.'
+                : $e->getMessage();
+
+            return $falla($mensaje, 409);
+        } catch (Throwable $e) {
+            return $falla(PdoModelo::mensajeSeguro($e, 'No se pudo cambiar el estatus.'), 500);
+        }
+
+        $mensaje = 'Pedido #' . (int) $id . ': ahora está "' . estado_pedido_texto($nuevo) . '".';
+
+        if (! $ajax) {
+            return redirect()->back()->with('mensaje', $mensaje);
+        }
+
+        return $this->response->setJSON([
+            'ok'         => true,
+            'mensaje'    => $mensaje,
+            'estado'     => $nuevo,
+            'insignia'   => estado_pedido($nuevo),
+            'siguientes' => array_map(
+                static fn (string $e): array => ['valor' => $e, 'texto' => estado_pedido_texto($e)],
+                Modelo_pedido::TRANSICIONES[$nuevo] ?? []
+            ),
+        ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // API PEDIDO (JSON para el modal de edición)
     // ─────────────────────────────────────────────────────────────
     public function api_pedido($id = null)
@@ -208,7 +261,7 @@ class P_pedidos extends BaseController
             'total_paginas'             => (int) ceil($total / $porPagina),
             'productos'                 => (new Modelo_producto())->findAll(),
             'clientes'                  => (new Modelo_cliente())->findAll(),
-            'repartidores'              => (new Modelo_repartidor())->findAll(),
+            'repartidores'              => $this->repartidores(),
             'stockPorProducto'          => (new Modelo_existencia())->stockDisponiblePorProducto(),
             'precioSugeridoPorProducto' => array_map(fn ($e) => $e['precio_venta_u'], $ultimasEntradas),
             'uVentaSugeridaPorProducto' => array_map(fn ($e) => $e['u_venta'], $ultimasEntradas),

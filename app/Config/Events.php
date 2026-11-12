@@ -53,3 +53,24 @@ Events::on('pre_system', static function (): void {
         }
     }
 });
+
+/*
+ * --------------------------------------------------------------------
+ * Repartidores automáticos
+ * --------------------------------------------------------------------
+ * Al iniciar sesión, una cuenta del grupo "repartidor" que todavía no tiene ficha en la
+ * tabla `repartidor` recibe una, ya enlazada, para que vea sus entregas desde el primer
+ * día. El personal completa sus datos en Repartidores. (También se revisa al abrir
+ * Repartidores, Entregas, Rutas y los formularios de pedido.)
+ */
+Events::on('login', static function ($usuario): void {
+    if (! is_object($usuario) || ! method_exists($usuario, 'inGroup') || ! $usuario->inGroup('repartidor')) {
+        return;
+    }
+
+    try {
+        (new \App\Models\Modelo_repartidor())->sincronizarCuentas((int) $usuario->id);
+    } catch (\Throwable $e) {
+        log_message('error', 'No se pudo crear la ficha de repartidor al iniciar sesión: ' . $e->getMessage());
+    }
+});

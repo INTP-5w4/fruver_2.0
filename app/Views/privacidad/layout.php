@@ -6,9 +6,11 @@
  *
  * @var string $volver    ruta de inicio del rol
  * @var bool   $sinVolver oculta el enlace de regreso (pantalla de aceptación obligatoria)
+ * @var bool   $modal     solo el documento, sin encabezado ni pie (ventana de aviso_modal.js)
  */
 $volver    ??= 'main_page_4';
 $sinVolver ??= false;
+$modal     ??= false;
 ?>
 <!doctype html>
 <html lang="es">
@@ -21,9 +23,15 @@ $sinVolver ??= false;
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="<?= base_url('estilos/auth.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/privacidad.css') ?>">
+    <?= view('partials/scripts_formularios') ?>
 </head>
-<body class="fv-auth">
+<body class="fv-auth<?= $modal ? ' pv-en-modal' : '' ?>">
 
+<?php if ($modal): ?>
+    <main class="fv-auth-main pv-main">
+        <?= $this->renderSection('main') ?>
+    </main>
+<?php else: ?>
     <header class="fv-auth-header">
         <a href="<?= site_url('main_page_4') ?>" class="fv-auth-logo">FRUVER</a>
         <?php if (! $sinVolver): ?>
@@ -49,5 +57,6 @@ $sinVolver ??= false;
             · <a href="<?= site_url('privacidad/preferencias') ?>">Mis preferencias de privacidad</a>
         <?php endif; ?>
     </footer>
+<?php endif; ?>
 </body>
 </html>

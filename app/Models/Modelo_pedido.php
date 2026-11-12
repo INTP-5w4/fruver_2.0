@@ -366,6 +366,34 @@ class Modelo_pedido extends PdoModelo
         });
     }
 
+    /**
+     * Cambio rápido de estatus (Productos por pedido): agrega un registro a `estatus` si el
+     * paso está permitido por TRANSICIONES. Bloquea la fila del pedido mientras decide, para
+     * que dos personas no lo cambien a la vez desde estados distintos.
+     *
+     * @return string estado anterior
+     *
+     * @throws \DomainException si el pedido no existe o el paso no está permitido
+     */
+    public function cambiarEstado(int $idPedido, string $nuevoEstado): string
+    {
+        return $this->transaccion(function () use ($idPedido, $nuevoEstado): string {
+            if ($this->fila('SELECT id FROM pedido WHERE id = ? FOR UPDATE', [$idPedido]) === null) {
+                throw new \DomainException('El pedido no existe.');
+            }
+
+            $actual = $this->estadoActual($idPedido);
+
+            if (! in_array($nuevoEstado, self::TRANSICIONES[$actual] ?? [], true)) {
+                throw new \DomainException('transicion:' . $actual);
+            }
+
+            (new Modelo_estatus($this->pdo))->insert(['estado' => $nuevoEstado, 'id_pedido' => $idPedido]);
+
+            return $actual;
+        });
+    }
+
     /** Estado actual de un pedido según el último estatus por fecha. */
     public function estadoActual(int|string $idPedido): string
     {

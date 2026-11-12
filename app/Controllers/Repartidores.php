@@ -108,10 +108,20 @@ class Repartidores extends BaseController
         $buscar       = $this->textoBusqueda();
         $m_repartidor = new Modelo_repartidor();
 
+        // Cuentas nuevas del grupo "repartidor" → ficha de repartidor automática.
+        $nuevos = 0;
+        try {
+            $nuevos = $m_repartidor->sincronizarCuentas();
+        } catch (Throwable $e) {
+            log_message('error', 'No se pudieron sincronizar las cuentas de repartidor: ' . $e->getMessage());
+        }
+
         $datos = [
             'repartidores' => $m_repartidor->listar($buscar),
             'pager'        => $m_repartidor->pager,
             'buscar'       => $buscar,
+            'conCuenta'    => $m_repartidor->tieneCuenta(),
+            'nuevos'       => $nuevos,
         ];
 
         return view('lista_repartidor', $datos);

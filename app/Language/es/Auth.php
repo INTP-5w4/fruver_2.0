@@ -25,21 +25,21 @@ return [
     'badToken'              => 'El token de acceso no es válido.',
     'oldToken'              => 'El token de acceso ha caducado.',
     'noUserEntity'          => 'Se debe proporcionar una entidad de usuario para la validación de contraseña.',
-    'invalidEmail'          => '(To be translated) Unable to verify the email address "{0}" matches the email on record.',
+    'invalidEmail'          => 'No se pudo verificar que el correo "{0}" coincida con el registrado.',
     'unableSendEmailToUser' => 'Lo siento, hubo un problema al enviar el correo electrónico. No pudimos enviar un correo electrónico a "{0}".',
     'throttled'             => 'Se han realizado demasiadas solicitudes desde esta dirección IP. Puedes intentarlo de nuevo en {0} segundos.',
     'notEnoughPrivilege'    => 'No tienes los permisos necesarios para realizar la operación deseada.',
     // JWT Exceptions
-    'invalidJWT'     => '(To be translated) The token is invalid.',
-    'expiredJWT'     => '(To be translated) The token has expired.',
-    'beforeValidJWT' => '(To be translated) The token is not yet available.',
+    'invalidJWT'     => 'El token no es válido.',
+    'expiredJWT'     => 'El token ha caducado.',
+    'beforeValidJWT' => 'El token todavía no es válido.',
 
     'email'           => 'Correo Electrónico',
     'username'        => 'Nombre de usuario',
     'password'        => 'Contraseña',
-    'passwordConfirm' => 'Contraseña (otra vez)',
+    'passwordConfirm' => 'Confirmar contraseña',
     'haveAccount'     => '¿Ya tienes una cuenta?',
-    'token'           => '(To be translated) Token',
+    'token'           => 'Token',
 
     // Botones
     'confirm' => 'Confirmar',
@@ -54,14 +54,14 @@ return [
     'login'              => 'Iniciar sesión',
     'needAccount'        => '¿Necesitas una cuenta?',
     'rememberMe'         => 'Recordarme',
-    'forgotPassword'     => '¿Olvidaste tu contraseña',
+    'forgotPassword'     => '¿Olvidaste tu contraseña?',
     'useMagicLink'       => 'Usar un enlace de inicio de sesión',
     'magicLinkSubject'   => 'Tu enlace de inicio de sesión',
     'magicTokenNotFound' => 'No se puede verificar el enlace.',
     'magicLinkExpired'   => 'Lo siento, el enlace ha caducado.',
     'checkYourEmail'     => '¡Revisa tu correo electrónico!',
     'magicLinkDetails'   => 'Acabamos de enviarte un correo electrónico con un enlace de inicio de sesión. Solo es válido durante {0} minutos.',
-    'magicLinkDisabled'  => '(To be translated) Use of MagicLink is currently not allowed.',
+    'magicLinkDisabled'  => 'Por ahora no se permite iniciar sesión con enlace.',
     'successLogout'      => 'Has cerrado sesión correctamente.',
     'backToLogin'        => 'Volver al inicio de sesión',
 
@@ -77,7 +77,7 @@ return [
     'errorPasswordPwned'        => 'La contraseña {0} se ha expuesto debido a una violación de datos y se ha visto {1, number} veces en {2} de contraseñas comprometidas.',
     'suggestPasswordPwned'      => 'Nunca se debe usar {0} como contraseña. Si lo está utilizando en algún lugar, cambie su contraseña de inmediato.',
     'errorPasswordEmpty'        => 'Se requiere una contraseña.',
-    'errorPasswordTooLongBytes' => 'La contraseña no puede tener más de {param} caracteres',
+    'errorPasswordTooLongBytes' => 'La contraseña es demasiado larga: máximo {param} bytes (las letras con acento o ñ cuentan doble).',
     'passwordChangeSuccess'     => 'Contraseña cambiada correctamente',
     'userDoesNotExist'          => 'La contraseña no se cambió. El usuario no existe',
     'resetTokenExpired'         => 'Lo siento. Su token de reinicio ha caducado.',
@@ -107,6 +107,11 @@ return [
     'invalidActivateToken'  => 'El código era incorrecto.',
     'needActivate'          => 'Debes completar tu registro confirmando el código enviado a tu dirección de correo electrónico.',
     'activationBlocked'     => 'Debes activar tu cuenta antes de iniciar sesión.',
+
+    // Formato de usuario y correo (mensajes propios de FRUVER; ver app/Config/Auth.php)
+    'errorUsernameFormato' => 'El nombre de usuario solo puede llevar letras sin acento, números y punto (sin espacios).',
+    'errorUsernameUnico'   => 'Ese nombre de usuario ya está en uso. Elige otro.',
+    'errorEmailUnico'      => 'Ya existe una cuenta con ese correo. Inicia sesión o usa otro correo.',
 
     // Grupos
     'unknownGroup' => '{0} no es un grupo válido.',

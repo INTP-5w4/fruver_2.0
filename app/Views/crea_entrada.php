@@ -1,102 +1,30 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crea Entrada</title>
+    <title>Registrar entrada</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
     <div class="formulario-pagina">
-<form action="<?= base_url('guarda_entrada')?>" method="post">
-<?= csrf_field() ?>
-        <label>Fecha de entrada</label><br>
-        <input type="date" name="f_ent" id=""><br>
-        
-        <label>Fecha de caducidad</label><br>
-        <input type="date" name="f_cad" id=""><br>
-        
-        <label>Cantidad</label><br>
-        <input type="number" name="cant" id=""><br>
-        
-        <label>Unidad de compra</label><br>
-        <select name="u_com" id="">
-            <option value="Caja">Caja</option>
-            <option value="Arpilla">Arpilla</option>
-            <option value="Bulto">Bulto</option>
-            <option value="Tonelada">Tonelada</option>
-        </select><br>
-        
-        <label>Unidad de Venta</label><br>
-        <select name="u_ven" id="">
-            <option value="Kilogramo">Kilogramo</option>
-            <option value="Litro">Litro</option>
-            <option value="Caja">Caja</option>
-            <option value="Domo">Domo</option>
-            <option value="Pieza">Pieza</option>
-            <option value="Ramo">Ramo</option>
-        </select><br>
-        <label for="equivalente">Equivalente</label><br>
-        <input type="number" name="equi" id="equivalente"><br>
-        
-        <label for="conversion">Conversion</label><br>
-        <input type="number" name="conv" id="conversion" readonly><br>
 
-        <label>Precio por unidad de compra</label><br>
-        <input type="number" name="p_compra" id=""><br>
-        
-        <label>ID del producto</label><br>
-        <select name="id_producto" id="">
-            <?php foreach ($frutas as $p): ?>
-            <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
-            <?php endforeach; ?>
-        </select><br>
         <header class="modal-header">
-            <h2>Registrar Entrada</h2>
+            <h2>Registrar entrada</h2>
         </header>
 
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="modal-form">
-<?= csrf_field() ?>
+            <?= csrf_field() ?>
+            <?= view('partials/aviso_formulario') ?>
 
-            <label><b>Fecha de entrada</b></label>
-            <input type="date" name="f_ent" class="modal-input" required>
 
-            <label><b>Fecha de caducidad</b></label>
-            <input type="date" name="f_cad" class="modal-input">
-
-            <label><b>Cantidad</b></label>
-            <input type="number" name="cant" class="modal-input" required>
-
-            <label><b>Unidad de compra</b></label>
-            <select name="u_com" class="modal-input" required>
-                <option value="Caja">Caja</option>
-                <option value="Arpilla">Arpilla</option>
-                <option value="Bulto">Bulto</option>
-                <option value="Tonelada">Tonelada</option>
-            </select>
-
-            <label><b>Unidad de venta</b></label>
-            <select name="u_ven" class="modal-input" required>
-                <option value="Kilogramo">Kilogramo</option>
-                <option value="Litro">Litro</option>
-                <option value="Caja">Caja</option>
-            </select>
-
-            <label><b>Precio de compra</b></label>
-            <input type="number" name="p_compra" class="modal-input" required>
-
-            <label><b>Producto</b></label>
-            <select name="id_producto" class="modal-input" required>
-                <?php foreach ($productos as $p): ?>
-                    <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
+            <?= view('partials/form_entrada', ['productos' => $productos]) ?>
 
             <footer class="modal-footer">
                 <button type="submit" class="btn-guardar">Guardar</button>
+                <a href="<?= base_url('lista_entrada') ?>" class="btn-cancelar btn-enlace">Cancelar</a>
             </footer>
-
         </form>
     </div>
 </body>

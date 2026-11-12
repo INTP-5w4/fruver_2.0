@@ -28,3 +28,29 @@
 .com-form-correo { display: grid; gap: 8px; max-width: 520px; }
 .com-tabla { overflow-x: auto; }
 .com-texto { max-width: 420px; font-size: 0.9rem; }
+
+/* ¿Cómo funciona? */
+.com-como summary { cursor: pointer; font-weight: 700; color: var(--hoja-oscura); }
+.com-como summary .com-ayuda { display: inline; margin-left: 6px; font-weight: 400; }
+/* Pasos numerados dentro del cuadro (sin la numeración del navegador, que se salía por la izquierda). */
+.com-como ol {
+    list-style: none; counter-reset: paso;
+    margin: 12px 0 0; padding: 0; display: grid; gap: 8px; max-width: 900px;
+}
+.com-como li {
+    counter-increment: paso; position: relative;
+    padding-left: 32px; line-height: 1.5; overflow-wrap: anywhere;
+}
+.com-como li::before {
+    content: counter(paso);
+    position: absolute; left: 0; top: 1px;
+    width: 22px; height: 22px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; line-height: 1;
+    background: var(--hoja-clara, #e3f3df); color: var(--hoja-oscura, #08481d);
+}
+.com-vivo { display: block; margin-top: 4px; color: var(--hoja); font-weight: 600; }
+.com-vivo[hidden] { display: none; }
+.com-abierto { margin-top: 6px; }
+.com-abierto[hidden] { display: none; }
+.com-fila-abierta td { background: #f6faf1; }

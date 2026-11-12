@@ -28,26 +28,27 @@
 
 <div class="contenedor-boton">
     <h1>Entregas</h1>
-    <button onclick="document.getElementById('modalAsignarEntrega').style.display='block'"
-            class="btn-agregar">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i> Asignar repartidor
-    </button>
-    <?php if (rutas_listas()): ?>
-        <a href="<?= base_url('rutas') ?>" class="btn-agregar" style="text-decoration:none; background:#1565c0;">
-            <i class="fa-solid fa-route"></i> Planear rutas con mapa
-        </a>
-    <?php endif; ?>
+    <div class="pagina-acciones">
+        <?php if (rutas_listas()): ?>
+            <a href="<?= base_url('rutas') ?>" class="btn btn-secundario">
+                <i class="fa-solid fa-route" aria-hidden="true"></i> Planear rutas con mapa
+            </a>
+        <?php endif; ?>
+        <button type="button" onclick="document.getElementById('modalAsignarEntrega').style.display='block'" class="btn-agregar">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Asignar repartidor
+        </button>
+    </div>
 </div>
 
 <form method="get" action="<?= base_url('lista_entrega') ?>" class="w3-margin-bottom">
-    <div style="display:flex; gap:8px;">
+    <div>
         <input
             type="text"
             name="buscar"
             value="<?= esc($buscar ?? '') ?>"
             placeholder="Buscar por pedido, estado, repartidor o cliente..."
             class="w3-input w3-border"
-            style="max-width:350px;"
+
         >
         <button type="submit" class="w3-button w3-green">
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
@@ -120,47 +121,66 @@
 </div>
 
     <!-- MODAL ASIGNAR REPARTIDOR -->
-    <div id="modalAsignarEntrega" class="w3-modal" style="display:none;">
+    <div id="modalAsignarEntrega" class="w3-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-asignar-entrega">
         <div class="modal-contenido w3-animate-zoom">
 
             <header class="modal-header">
-                <span onclick="document.getElementById('modalAsignarEntrega').style.display='none'"
-                      class="modal-cerrar">&times;</span>
-                <h3>Asignar repartidor</h3>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <h2 id="titulo-asignar-entrega">Asignar repartidor</h2>
             </header>
 
             <form action="<?= base_url('asigna_entrega') ?>" method="post" class="modal-form">
                 <?= csrf_field() ?>
 
-                <label for="id_pedido">Pedido (confirmado o en tránsito)</label>
-                <select name="id_pedido" id="id_pedido" class="w3-select w3-border" required>
+                <?php if (empty($pedidos)): ?>
+                    <div class="aviso aviso-info" role="status">
+                        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                        <span>No hay pedidos confirmados o en tránsito sin entrega asignada.</span>
+                    </div>
+                <?php endif; ?>
+
+                <label for="id_pedido"><b>Pedido*</b> <span class="opcional">(confirmado o en tránsito)</span></label>
+                <select name="id_pedido" id="id_pedido" class="modal-input" required<?= empty($pedidos) ? ' disabled' : '' ?>>
                     <option value="" disabled selected>Elige un pedido</option>
                     <?php foreach ($pedidos as $p): ?>
                         <option value="<?= (int) $p['id'] ?>">
-                            #<?= esc($p['id']) ?> · <?= esc($p['cliente']) ?> · <?= esc($p['fecha']) ?>
+                            #<?= (int) $p['id'] ?> · <?= esc($p['cliente']) ?> · <?= esc($p['fecha']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
 
-                <label for="id_repartidor">Repartidor</label>
-                <select name="id_repartidor" id="id_repartidor" class="w3-select w3-border" required>
+                <label for="id_repartidor"><b>Repartidor*</b></label>
+                <select name="id_repartidor" id="id_repartidor" class="modal-input" required>
                     <option value="" disabled selected>Elige un repartidor</option>
                     <?php foreach ($repartidores as $r): ?>
+                        <?php $sinCuenta = array_key_exists('id_user', $r) && $r['id_user'] === null; ?>
                         <option value="<?= (int) $r['id'] ?>">
-                            <?= esc(trim($r['nombre'] . ' ' . $r['ape_pat'])) ?>
+                            <?= esc(trim($r['nombre'] . ' ' . $r['ape_pat'])) ?><?= $sinCuenta ? ' — sin cuenta (no verá la entrega)' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <p class="campo-ayuda">El repartidor verá la entrega en su celular solo si tiene cuenta de acceso (columna "Cuenta" en Repartidores).</p>
 
-                <?php if (empty($pedidos)): ?>
-                    <p class="w3-small">No hay pedidos confirmados sin entrega asignada.</p>
-                <?php endif; ?>
-
-                <button type="submit" class="w3-button w3-green w3-margin-top">Asignar</button>
+                <footer class="modal-footer">
+                    <button type="submit" class="btn-guardar"<?= empty($pedidos) ? ' disabled' : '' ?>>Asignar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
+                </footer>
             </form>
         </div>
     </div>
 
-</div>
+<?php include 'Footer.php'; ?>
+</div><!-- /.lista-wrapper -->
+
+    <script>
+        document.addEventListener('click', function (ev) {
+            var cerrar = ev.target.closest('[data-cerrar-modal]');
+            if (cerrar) { cerrar.closest('.w3-modal').style.display = 'none'; return; }
+            if (ev.target.classList && ev.target.classList.contains('w3-modal')) { ev.target.style.display = 'none'; }
+        });
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape') { document.getElementById('modalAsignarEntrega').style.display = 'none'; }
+        });
+    </script>
 </body>
 </html>

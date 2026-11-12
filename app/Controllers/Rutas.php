@@ -63,7 +63,7 @@ class Rutas extends BaseController
             'fecha'        => $fecha,
             'candidatos'   => $m_ruta->candidatos(),
             'rutas'        => $m_ruta->deFecha($fecha),
-            'repartidores' => (new Modelo_repartidor())->findAll(),
+            'repartidores' => $this->repartidores(),
             'almacenes'    => $almacenes,
             'almacenMapa'  => $almacenes[0] ?? null,
             'horaSalida'   => $cfg->horaSalida,

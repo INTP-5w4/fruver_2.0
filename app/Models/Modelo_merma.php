@@ -51,18 +51,25 @@ class Modelo_merma extends PdoModelo
         $params = [];
 
         if ($buscar !== '') {
-            if (is_numeric($buscar)) {
-                $where    = ' WHERE merma.id = ?';
-                $params[] = (int) $buscar;
-            } else {
-                $like   = $this->patronLike($buscar);
-                $where  = ' WHERE (merma.cantidad LIKE ? OR merma.fecha LIKE ? OR merma.id_entrada LIKE ?)';
-                $params = [$like, $like, $like];
+            // Por producto (nombre), notas y fecha; si es un número, también por id de merma o de entrada.
+            $like  = $this->patronLike($buscar);
+            $parte = ['p.nombre LIKE ?', 'merma.notas LIKE ?', 'merma.fecha LIKE ?'];
+            $params = [$like, $like, $like];
+
+            if (ctype_digit($buscar)) {
+                $parte[] = 'merma.id = ?';
+                $parte[] = 'merma.id_entrada = ?';
+                array_push($params, (int) $buscar, (int) $buscar);
             }
+
+            $where = ' WHERE (' . implode(' OR ', $parte) . ')';
         }
 
         return $this->paginarSql(
-            'SELECT merma.* FROM merma' . $where . ' ORDER BY merma.id DESC',
+            'SELECT merma.*
+               FROM merma
+          LEFT JOIN entrada e ON e.id = merma.id_entrada
+          LEFT JOIN producto p ON p.id = e.id_producto' . $where . ' ORDER BY merma.id DESC',
             $params,
             $porPagina
         );

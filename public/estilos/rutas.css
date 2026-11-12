@@ -4,7 +4,7 @@
 .geo-caja { margin: 10px 0 14px; }
 .geo-buscador gmp-place-autocomplete,
 .geo-buscador gmp-placeautocomplete { width: 100%; margin-bottom: 8px; }
-.geo-mapa { width: 100%; height: 240px; border-radius: 8px; border: 1px solid var(--linea); background: #e9eee0; }
+.geo-mapa { isolation: isolate; width: 100%; height: 240px; border-radius: 8px; border: 1px solid var(--linea); background: #e9eee0; }
 .geo-ayuda { font-size: .85em; color: #555; margin: 4px 0 0; }
 .geo-estado { font-size: .85em; color: var(--mango-texto); background: var(--mango-claro); padding: 6px 8px; border-radius: 6px; margin: 6px 0 0; }
 .geo-caja.geo-ubicada .geo-ayuda::after { content: ' ✓ Ubicación lista'; color: var(--hoja); font-weight: 600; }

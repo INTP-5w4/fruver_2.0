@@ -46,7 +46,7 @@ class Entregas extends BaseController
             'pager'        => $m_entrega->pager,
             'buscar'       => $buscar,
             'pedidos'      => $m_entrega->pedidosAsignables(),
-            'repartidores' => (new Modelo_repartidor())->findAll(),
+            'repartidores' => $this->repartidores(),
         ]);
     }
 

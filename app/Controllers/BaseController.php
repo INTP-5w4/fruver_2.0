@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\Modelo_repartidor;
 use CodeIgniter\Controller;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -46,6 +47,25 @@ abstract class BaseController extends Controller
     }
 
     /** ¿La persona con sesión iniciada es personal del negocio (admin/superadmin/developer)? */
+    /**
+     * Repartidores para listas y selectores. Antes de leerlos da de alta como repartidor a
+     * las cuentas nuevas del grupo "repartidor" (Modelo_repartidor::sincronizarCuentas).
+     *
+     * @return list<array<string,mixed>>
+     */
+    protected function repartidores(): array
+    {
+        $m = new Modelo_repartidor();
+
+        try {
+            $m->sincronizarCuentas();
+        } catch (\Throwable $e) {
+            log_message('error', 'No se pudieron sincronizar las cuentas de repartidor: ' . $e->getMessage());
+        }
+
+        return $m->findAll();
+    }
+
     protected function esPersonal(): bool
     {
         $usuario = auth()->user();

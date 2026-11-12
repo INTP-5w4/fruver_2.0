@@ -27,11 +27,14 @@ class Privacidad extends BaseController
     // ─────────────────────────────────────────────────────────────
     // DOCUMENTOS (públicos)
     // ─────────────────────────────────────────────────────────────
+    // ?modal=1: solo el documento, sin encabezado ni pie, para mostrarlo dentro de la
+    // ventana modal que abre public/js/aviso_modal.js desde cualquier enlace al aviso.
     public function aviso()
     {
         return view('privacidad/aviso', [
             'cfg'    => config('Privacidad'),
             'volver' => $this->inicio(),
+            'modal'  => $this->request->getGet('modal') === '1',
         ]);
     }
 
@@ -40,6 +43,7 @@ class Privacidad extends BaseController
         return view('privacidad/consentimiento', [
             'cfg'    => config('Privacidad'),
             'volver' => $this->inicio(),
+            'modal'  => $this->request->getGet('modal') === '1',
         ]);
     }
 

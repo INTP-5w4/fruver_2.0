@@ -20,7 +20,8 @@ $def = $cfg->finalidades[$finalidad];
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= base_url('estilos/comunicaciones.css') ?>">
+    <link rel="stylesheet" href="<?= base_url('estilos/comunicaciones.css') . '?v=' . @filemtime(FCPATH . 'estilos/comunicaciones.css') ?>">
+    <script src="<?= base_url('js/comunicaciones.js') . '?v=' . @filemtime(FCPATH . 'js/comunicaciones.js') ?>" defer></script>
     <title>Comunicaciones</title>
 </head>
 <body>
@@ -45,6 +46,18 @@ $def = $cfg->finalidades[$finalidad];
         Las recomendaciones personalizadas (V4) se muestran solas en la tienda, en la fila "Para ti".
     </p>
 
+    <details class="com-tarjeta com-como" open>
+        <summary>¿Cómo aviso de mis ofertas? <span class="com-ayuda">Nada se envía solo: tú decides cuándo y a quién.</span></summary>
+        <ol>
+            <li>Elige la pestaña de lo que quieres comunicar (por ejemplo <b>V1 · Promociones</b> para avisar de ofertas).</li>
+            <li>Escribe el mensaje. La lista de abajo se actualiza mientras escribes, ya personalizada con el nombre de cada persona.</li>
+            <li><b>WhatsApp:</b> pulsa <b>Enviar</b> en cada fila. Se abre WhatsApp (web o en el celular) con el mensaje listo; tú pulsas enviar ahí.
+                La fila queda marcada como "Abierto" para que sepas a quién ya le escribiste.</li>
+            <li><b>Correo:</b> si hay servidor de correo configurado, un solo botón lo envía a todas las personas que eligieron correo.</li>
+            <li><b>Llamar:</b> el número aparece como enlace para marcar desde el celular.</li>
+        </ol>
+    </details>
+
     <nav class="com-pestanas" aria-label="Finalidad">
         <?php foreach ($finalidades as $clave => $f): ?>
             <a href="<?= base_url('comunicaciones') . '?finalidad=' . esc($clave, 'url') ?>"
@@ -55,15 +68,18 @@ $def = $cfg->finalidades[$finalidad];
     </nav>
 
     <section class="com-tarjeta">
-        <form method="get" action="<?= base_url('comunicaciones') ?>">
+        <form method="get" action="<?= base_url('comunicaciones') ?>" id="com-form-mensaje" data-pie="<?= esc($pie, 'attr') ?>">
             <input type="hidden" name="finalidad" value="<?= esc($finalidad, 'attr') ?>">
             <label for="mensaje"><b>Mensaje</b></label>
-            <textarea id="mensaje" name="mensaje" rows="3" maxlength="500" class="w3-input w3-border"><?= esc($mensaje) ?></textarea>
+            <textarea id="mensaje" name="mensaje" rows="3" maxlength="500" class="w3-input w3-border"
+                      data-reglas="<?= esc(json_encode(['Etiquetas: {nombre}, {tienda}' . ($finalidad === 'v2' ? ', {productos}' : '') . ($finalidad === 'v3' ? ', {pedido}' : ''), 'Al final se agrega cómo dejar de recibir mensajes'], JSON_UNESCAPED_UNICODE), 'attr') ?>"><?= esc($mensaje) ?></textarea>
             <p class="com-ayuda">
                 Puedes usar <code>{nombre}</code>, <code>{tienda}</code><?= $finalidad === 'v2' ? ', <code>{productos}</code> (lo que más pide)' : '' ?><?= $finalidad === 'v3' ? ', <code>{pedido}</code> (su último pedido)' : '' ?>.
                 Al final se agrega siempre cómo dejar de recibir mensajes.
+                <span class="com-vivo" data-com-vivo hidden><i class="fa-solid fa-bolt" aria-hidden="true"></i> Los mensajes de abajo se actualizan mientras escribes.</span>
             </p>
-            <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-rotate"></i> Actualizar mensajes</button>
+            <!-- Sin JavaScript, el botón vuelve a generar los mensajes en el servidor. -->
+            <button type="submit" class="w3-button w3-green" data-com-actualizar><i class="fa-solid fa-rotate"></i> Actualizar mensajes</button>
         </form>
     </section>
 
@@ -77,7 +93,7 @@ $def = $cfg->finalidades[$finalidad];
             <form method="post" action="<?= base_url('comunicaciones/correo') ?>" class="com-form-correo">
                 <?= csrf_field() ?>
                 <input type="hidden" name="finalidad" value="<?= esc($finalidad, 'attr') ?>">
-                <input type="hidden" name="mensaje" value="<?= esc($mensaje, 'attr') ?>">
+                <input type="hidden" name="mensaje" value="<?= esc($mensaje, 'attr') ?>" data-com-mensaje-correo>
                 <label for="asunto"><b>Asunto</b></label>
                 <input id="asunto" name="asunto" type="text" maxlength="120" required class="w3-input w3-border" value="<?= esc($asunto, 'attr') ?>">
                 <button type="submit" class="w3-button w3-green">
@@ -100,17 +116,20 @@ $def = $cfg->finalidades[$finalidad];
                     </thead>
                     <tbody>
                         <?php foreach ($filas as $f): ?>
-                            <tr>
+                            <tr data-com-fila
+                                data-reemplazos="<?= esc(json_encode($f['reemplazos'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 'attr') ?>"
+                                data-tel="<?= esc((string) ($f['whatsapp'] !== null ? $f['tel_wa'] : ''), 'attr') ?>">
                                 <td>
                                     <?= esc($f['nombre_mostrar']) ?>
                                     <small class="com-ayuda">desde <?= esc(date('d/m/Y', strtotime((string) $f['autorizado_en']))) ?></small>
                                 </td>
-                                <td class="com-texto"><?= nl2br(esc($f['texto'])) ?></td>
+                                <td class="com-texto" data-com-texto><?= nl2br(esc($f['texto'])) ?></td>
                                 <td>
                                     <?php if ($f['whatsapp'] !== null): ?>
-                                        <a href="<?= esc($f['whatsapp'], 'attr') ?>" target="_blank" rel="noopener noreferrer" class="w3-button w3-small w3-green" title="Abrir WhatsApp con el mensaje">
+                                        <a href="<?= esc($f['whatsapp'], 'attr') ?>" target="_blank" rel="noopener noreferrer" class="w3-button w3-small w3-green" title="Abrir WhatsApp con el mensaje" data-com-wa>
                                             <i class="fa-brands fa-whatsapp"></i> Enviar
                                         </a>
+                                        <span class="est est-entregado com-abierto" data-com-abierto hidden>Abierto</span>
                                     <?php else: ?>—<?php endif; ?>
                                 </td>
                                 <td>
