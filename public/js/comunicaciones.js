@@ -11,6 +11,9 @@
  *  - "Ver mensaje" abre el mensaje completo de la persona en una ventana (modal).
  *  - Al abrir WhatsApp la fila queda marcada "Abierto" en este navegador, durante el día.
  *  - "Enviar a todos por WhatsApp" abre los chats uno tras otro, un clic por persona.
+ *  - "Mensajes listos": al elegir uno se pone en el mensaje sin recargar (sin JavaScript el
+ *    enlace recarga la página con esa plantilla). Si ya se había editado, pide confirmación.
+ *  - Si quedan datos por completar entre [corchetes], se avisa.
  */
 (function () {
     'use strict';
@@ -100,9 +103,12 @@
               .catch(function () { /* sin conexión o cancelada: el servidor vuelve a revisar al enviar el correo */ });
         }
 
+        var avisoCorchetes = form.querySelector('[data-com-corchetes]');
+
         function actualizar() {
             var plantilla = limpiar(area.value);
             if (correo) { correo.value = plantilla; }
+            if (avisoCorchetes) { avisoCorchetes.hidden = !/\[[^\]]+\]/.test(plantilla); }
 
             filas.forEach(function (fila) {
                 var texto = personalizar(plantilla, reemplazosDe(fila));
@@ -126,6 +132,37 @@
             temporizador = setTimeout(actualizar, 180);
         });
 
+        // ── Mensajes listos ─────────────────────────────────────────────────
+        var botonesPlantilla = Array.prototype.slice.call(document.querySelectorAll('[data-com-plantilla]'));
+        var plantillaActual = form.querySelector('[data-com-plantilla-actual]');
+        var activa = botonesPlantilla.filter(function (b) { return b.classList.contains('com-plantilla--activa'); })[0];
+
+        botonesPlantilla.forEach(function (boton) {
+            boton.addEventListener('click', function (ev) {
+                ev.preventDefault();
+                var texto = boton.getAttribute('data-com-plantilla') || '';
+                var editado = limpiar(area.value) !== '' && (!activa || limpiar(area.value) !== limpiar(activa.getAttribute('data-com-plantilla') || ''));
+                if (editado && limpiar(area.value) !== limpiar(texto)
+                    && !window.confirm('¿Reemplazar el mensaje que escribiste por «' + boton.textContent.trim() + '»?')) {
+                    return;
+                }
+                botonesPlantilla.forEach(function (b) { b.classList.remove('com-plantilla--activa'); b.removeAttribute('aria-current'); });
+                boton.classList.add('com-plantilla--activa');
+                boton.setAttribute('aria-current', 'true');
+                activa = boton;
+                if (plantillaActual) { plantillaActual.value = boton.getAttribute('data-com-plantilla-clave') || ''; }
+                area.value = texto;
+                try {
+                    var url = new URL(location.href);
+                    url.searchParams.set('plantilla', boton.getAttribute('data-com-plantilla-clave') || '');
+                    history.replaceState(null, '', url);
+                } catch (e) { /* sin historial: no pasa nada */ }
+                clearTimeout(temporizador);
+                actualizar();
+                area.focus();
+            });
+        });
+
         // ── "Abierto": a quién ya se le abrió WhatsApp hoy ─────────────────
         var clave = 'fruver-com-abiertos-' + finalidad + '-' + new Date().toISOString().slice(0, 10);
         var abiertos = [];
@@ -141,16 +178,21 @@
             try { localStorage.setItem(clave, JSON.stringify(abiertos)); } catch (e) { /* modo privado */ }
         }
 
+        /** Identifica la fila: la persona en V1–V3, el pedido en "Avisos de pedidos". */
+        function claveDe(fila) {
+            return fila.getAttribute('data-clave') || fila.getAttribute('data-tel') || '';
+        }
+
         function abrir(fila) {
-            var tel = fila.getAttribute('data-tel');
+            var id = claveDe(fila);
             marcar(fila);
-            if (tel && abiertos.indexOf(tel) === -1) { abiertos.push(tel); guardar(); }
+            if (id && abiertos.indexOf(id) === -1) { abiertos.push(id); guardar(); }
             pintarCola();
         }
 
         filas.forEach(function (fila) {
-            var tel = fila.getAttribute('data-tel');
-            if (tel && abiertos.indexOf(tel) !== -1) { marcar(fila); }
+            var id = claveDe(fila);
+            if (id && abiertos.indexOf(id) !== -1) { marcar(fila); }
             var wa = fila.querySelector('[data-com-wa]');
             if (!wa) { return; }
             wa.addEventListener('click', function (ev) {
@@ -227,7 +269,7 @@
         var conWa = filas.filter(function (f) { return f.getAttribute('data-tel') && f.querySelector('[data-com-wa]'); });
 
         function pendientes() {
-            return conWa.filter(function (f) { return abiertos.indexOf(f.getAttribute('data-tel')) === -1; });
+            return conWa.filter(function (f) { return abiertos.indexOf(claveDe(f)) === -1; });
         }
 
         function pintarCola() {

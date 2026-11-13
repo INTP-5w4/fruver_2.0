@@ -42,14 +42,23 @@ class Modelo_existencia extends PdoModelo
 
     /**
      * Stock disponible para venta por producto: id_producto => e_venta.
-     * Si un producto tiene varias filas de existencia, cuenta la más reciente (mayor id).
+     *
+     * Hay una sola fila por producto (índice UNIQUE uq_existencia_producto); aun así se SUMA
+     * por producto para que una fila repetida nunca vuelva a "esconder" stock, como pasaba
+     * antes al leer solo la fila más reciente.
      *
      * @return array<int|string,string|null>
      */
     public function stockDisponiblePorProducto(): array
     {
-        $filas = $this->filas('SELECT id_producto, e_venta FROM existencia ORDER BY id ASC');
+        $filas = $this->filas('SELECT id_producto, SUM(COALESCE(e_venta, 0)) AS e_venta FROM existencia GROUP BY id_producto');
 
         return array_column($filas, 'e_venta', 'id_producto');
+    }
+
+    /** Fila de existencia de un producto (o null si aún no tiene). */
+    public function deProducto(int $idProducto): ?array
+    {
+        return $this->fila('SELECT * FROM existencia WHERE id_producto = ? LIMIT 1', [$idProducto]);
     }
 }

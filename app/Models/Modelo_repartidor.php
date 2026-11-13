@@ -14,6 +14,8 @@ class Modelo_repartidor extends PdoModelo
 
     private static ?bool $conVehiculo = null;
 
+    private static ?bool $conCombustible = null;
+
     public function __construct(?\PDO $pdo = null)
     {
         parent::__construct($pdo);
@@ -21,6 +23,35 @@ class Modelo_repartidor extends PdoModelo
         if ($this->tieneVehiculo()) {
             $this->camposPermitidos[] = 'vehiculo';
         }
+        if ($this->tieneCombustible()) {
+            $this->camposPermitidos[] = 'rendimiento_km_l';
+            $this->camposPermitidos[] = 'combustible';
+        }
+    }
+
+    /** ¿Ya existen las columnas de combustible (migración AddCombustible)? */
+    public function tieneCombustible(): bool
+    {
+        if (self::$conCombustible === null) {
+            try {
+                $this->filas('SELECT rendimiento_km_l, combustible FROM repartidor LIMIT 0');
+                self::$conCombustible = true;
+            } catch (\Throwable) {
+                self::$conCombustible = false;
+            }
+        }
+
+        return self::$conCombustible;
+    }
+
+    /** Ficha enlazada a una cuenta de acceso (o null si no tiene). */
+    public function deUsuario(int $idUser): ?array
+    {
+        if (! $this->tieneCuenta()) {
+            return null;
+        }
+
+        return $this->fila('SELECT * FROM repartidor WHERE id_user = ? LIMIT 1', [$idUser]);
     }
 
     /** ¿Ya existe la columna `vehiculo` (migración de rutas)? */
@@ -102,8 +133,9 @@ class Modelo_repartidor extends PdoModelo
      * el grupo (p. ej. `php spark shield:user addgroup -n usuario -g repartidor`) para que
      * aparezca en Repartidores, se le puedan asignar entregas y vea las suyas al entrar.
      *
-     * La ficha se crea con el nombre de usuario y el resto de los datos vacíos; el personal
-     * los completa desde Repartidores (aparece marcada "Faltan datos").
+     * La ficha se crea con el nombre de usuario y el resto de los datos vacíos. El repartidor
+     * los completa al iniciar sesión (App\Filters\RepartidorDatosGuard → repartidor/mis-datos);
+     * el personal también puede hacerlo desde Repartidores (aparece marcada "Faltan datos").
      *
      * @param int|null $soloUsuario revisar solo esta cuenta (al iniciar sesión)
      *

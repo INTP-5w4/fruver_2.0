@@ -1,5 +1,6 @@
 <?php
 
+use App\Libraries\Rutas\Combustible;
 use App\Libraries\Rutas\EnlaceNavegacion;
 use App\Libraries\Rutas\ErrorProveedorRutas;
 use App\Libraries\Rutas\Geocodificador;
@@ -217,6 +218,9 @@ final class RutasTest extends CIUnitTestCase
     private function planeador(?TransporteFalso $http): PlaneadorRutas
     {
         $cfg = new \Config\Rutas();
+        // Independiente del .env: sin openrouteservice; Google solo si hay transporte falso.
+        $cfg->proveedor     = '';
+        $cfg->llaveOrs      = '';
         $cfg->llaveServidor = $http !== null ? 'LLAVE' : '';
 
         return PlaneadorRutas::crear($cfg, $http);
@@ -270,6 +274,86 @@ final class RutasTest extends CIUnitTestCase
         ]);
 
         $this->assertSame(['temprano', 'tarde', 'vip', 'sin'], array_map(static fn ($x) => $x->clave, $p));
+    }
+
+    /**
+     * Grajales → Puebla pasa por Acajete: los pedidos normales de Acajete se entregan al pasar,
+     * antes del preferencial de Puebla. Tehuacán (fuera del camino) va al final.
+     */
+    public function testPrioridadEntregaDePasoAntesDelPreferente(): void
+    {
+        $grajales = new Punto(19.2483, -97.7814);
+        [$orden, $dePaso] = PlaneadorRutas::prioridadConParadasDePaso($grajales, [
+            new Parada('p1', new Punto(18.4616, -97.3928)),        // Tehuacán: lejos del camino
+            new Parada('p2', new Punto(19.0433, -98.1981), null, 1), // Puebla: preferente
+            new Parada('p3', new Punto(19.1036, -97.9500)),        // Acajete
+            new Parada('p4', new Punto(19.1050, -97.9480)),        // Acajete, a la vuelta
+        ]);
+
+        $claves = array_map(static fn (Parada $p) => $p->clave, $orden);
+
+        $this->assertSame('p2', $claves[2], 'El preferente va después de las dos de Acajete');
+        $this->assertEqualsCanonicalizing(['p3', 'p4'], array_slice($claves, 0, 2));
+        $this->assertSame('p1', $claves[3]);
+        $this->assertEqualsCanonicalizing(['p3', 'p4'], $dePaso);
+    }
+
+    public function testPrioridadNoIntercalaAntesDeHoraLimite(): void
+    {
+        [$orden, $dePaso] = PlaneadorRutas::prioridadConParadasDePaso(new Punto(19.2483, -97.7814), [
+            new Parada('p2', new Punto(19.0433, -98.1981), '10:00:00', 1),
+            new Parada('p3', new Punto(19.1036, -97.9500)),
+        ]);
+
+        $this->assertSame(['p2', 'p3'], array_map(static fn (Parada $p) => $p->clave, $orden));
+        $this->assertSame([], $dePaso);
+    }
+
+    public function testPrioridadEnCiudadSoloLoQueEstaEnElCamino(): void
+    {
+        // Tramo de ~2.2 km: 15 % ≈ 330 m. Una parada a 1 km del camino no entra.
+        [$orden, $dePaso] = PlaneadorRutas::prioridadConParadasDePaso($this->almacen, [
+            new Parada('vip', new Punto(19.0633, -98.1981), null, 1),
+            new Parada('lado', new Punto(19.0533, -98.1881)),
+            new Parada('enmedio', new Punto(19.0533, -98.1982)),
+        ]);
+
+        $this->assertSame(['enmedio', 'vip', 'lado'], array_map(static fn (Parada $p) => $p->clave, $orden));
+        $this->assertSame(['enmedio'], $dePaso);
+    }
+
+    public function testCalcularConPrioridadAvisaLasParadasDePaso(): void
+    {
+        $r = $this->planeador(null)->calcular(new Punto(19.2483, -97.7814), [
+            new Parada('p2', new Punto(19.0433, -98.1981), null, 1),
+            new Parada('p3', new Punto(19.1036, -97.9500)),
+        ], $this->opciones('prioridad'));
+
+        $this->assertSame(['p3', 'p2'], $r->orden);
+        $this->assertStringContainsString('de paso', (string) $r->aviso);
+        $this->assertStringContainsString('#3', (string) $r->aviso);
+    }
+
+    // ── Combustible ───────────────────────────────────────
+
+    public function testCombustibleConRendimientoPropio(): void
+    {
+        $c = Combustible::calcular(36000, ['vehiculo' => 'auto', 'rendimiento_km_l' => '12', 'combustible' => 'diesel']);
+
+        $this->assertSame(3.0, $c['litros']);
+        $this->assertSame('diesel', $c['combustible']);
+        $this->assertFalse($c['estimado']);
+        $this->assertEqualsWithDelta(3 * Combustible::precios()['diesel'], $c['costo'], 0.01);
+    }
+
+    public function testCombustibleTipicoYBicicleta(): void
+    {
+        $moto = Combustible::calcular(30000, ['vehiculo' => 'moto']);
+
+        $this->assertTrue($moto['estimado']);
+        $this->assertSame('magna', $moto['combustible']);
+        $this->assertSame(1.0, $moto['litros']);
+        $this->assertNull(Combustible::calcular(30000, ['vehiculo' => 'bicicleta']));
     }
 
     // ── Resultado, enlaces, geocodificador, utilidades ────

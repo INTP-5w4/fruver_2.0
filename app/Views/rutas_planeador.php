@@ -26,6 +26,7 @@
         <h2 style="margin:0;"><i class="fa-solid fa-route"></i> Rutas de reparto</h2>
         <div>
             <a href="<?= base_url('rutas/almacen') ?>" class="w3-button w3-border"><i class="fa-solid fa-warehouse"></i> Almacén</a>
+            <a href="<?= base_url('rutas/combustible') ?>" class="w3-button w3-border" title="Precios de la gasolina verde, roja y diésel"><i class="fa-solid fa-gas-pump"></i> Combustible</a>
             <a href="<?= base_url('lista_direccion') ?>" class="w3-button w3-border"><i class="fa-solid fa-map-location-dot"></i> Direcciones</a>
         </div>
     </div>
@@ -162,7 +163,7 @@
         <?php else: ?>
             <div class="tabla-wrapper">
                 <table>
-                    <thead><tr><th>#</th><th>Repartidor</th><th>Estado</th><th>Paradas</th><th>Avance</th><th>Distancia</th><th>Tiempo</th><th>Tipo</th><th></th></tr></thead>
+                    <thead><tr><th>#</th><th>Repartidor</th><th>Estado</th><th>Paradas</th><th>Avance</th><th>Distancia</th><th>Tiempo</th><th>Combustible</th><th>Tipo</th><th></th></tr></thead>
                     <tbody>
                     <?php foreach ($rutas as $r): ?>
                         <tr>
@@ -173,6 +174,7 @@
                             <td><?= (int) $r['entregadas'] ?> entregadas<?= (int) $r['fallidas'] ? ' · ' . (int) $r['fallidas'] . ' fallidas' : '' ?></td>
                             <td><?= esc(rutas_km($r['distancia_m'])) ?></td>
                             <td><?= esc(rutas_duracion($r['duracion_s'])) ?></td>
+                            <td><?= isset($r['costo_combustible']) && $r['costo_combustible'] !== null ? esc(\App\Libraries\Rutas\Combustible::texto((float) $r['litros'], (float) $r['costo_combustible'])) : '—' ?></td>
                             <td><?= esc(str_replace('_', ' ', $r['estrategia'])) ?><?= $r['proveedor'] === 'local' ? ' (aprox.)' : '' ?></td>
                             <td><a href="<?= base_url('rutas/' . (int) $r['id']) ?>" class="w3-button w3-small w3-border">Ver</a></td>
                         </tr>
@@ -201,7 +203,7 @@
         'max'         => (int) $maxParadas,
         'candidatos'  => $puntosCandidatos,
         'almacenes'   => $almacenesJs,
-        'nombres'     => ['rapida' => 'Más rápida', 'prioridad' => 'Por horario y preferentes', 'sin_cuotas' => 'Sin casetas ni autopistas', 'manual' => 'Mi orden', 'aproximada' => 'Aproximada (sin servicio de mapas)'],
+        'nombres'     => ['rapida' => 'Más rápida', 'prioridad' => 'Preferentes primero (con lo que queda de paso)', 'sin_cuotas' => 'Sin casetas ni autopistas', 'manual' => 'Mi orden', 'aproximada' => 'Aproximada (sin servicio de mapas)'],
         'csrfNombre'  => csrf_token(),
     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
 

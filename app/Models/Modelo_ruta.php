@@ -28,6 +28,32 @@ class Modelo_ruta extends PdoModelo
 
     private static ?bool $lista = null;
 
+    private static ?bool $conCombustible = null;
+
+    public function __construct(?\PDO $pdo = null)
+    {
+        parent::__construct($pdo);
+
+        if ($this->tieneCombustible()) {
+            array_push($this->camposPermitidos, 'litros', 'costo_combustible', 'precio_litro');
+        }
+    }
+
+    /** ¿Ya existen las columnas de combustible (migración AddCombustible)? */
+    public function tieneCombustible(): bool
+    {
+        if (self::$conCombustible === null) {
+            try {
+                $this->filas('SELECT litros, costo_combustible, precio_litro FROM ruta LIMIT 0');
+                self::$conCombustible = true;
+            } catch (\Throwable) {
+                self::$conCombustible = false;
+            }
+        }
+
+        return self::$conCombustible;
+    }
+
     /** ¿Ya se corrió la migración de rutas? */
     public function esquemaListo(): bool
     {

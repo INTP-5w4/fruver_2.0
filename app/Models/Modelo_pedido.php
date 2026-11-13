@@ -244,6 +244,67 @@ class Modelo_pedido extends PdoModelo
     }
 
     // ─────────────────────────────────────────────────────────────
+    // AVISOS DEL PEDIDO (Comunicaciones → "Avisos de pedidos")
+    // Finalidad primaria: confirmar el pedido, coordinar la entrega y avisar cambios.
+    // No requiere el consentimiento voluntario V1–V3.
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Pedidos recientes con su cliente, estado actual, total, líneas y hora estimada de
+     * llegada (si están en una ruta).
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function paraAvisos(int $dias = 15, ?string $estado = null, int $limite = 200): array
+    {
+        $desde  = date('Y-m-d', strtotime('-' . max(1, $dias) . ' days'));
+        $limite = max(1, min(500, $limite));
+        $conEta = (new Modelo_ruta($this->pdo))->esquemaListo();
+
+        $sql = "SELECT * FROM (
+                    SELECT p.id, p.fecha, p.id_cliente,
+                           c.nombre, c.ape_pat, c.telefono,
+                           (SELECT es.estado FROM estatus es WHERE es.id_pedido = p.id ORDER BY es.id DESC LIMIT 1) AS estado,
+                           (SELECT COALESCE(SUM(COALESCE(pp.total, pp.cant * pp.precio_venta)), 0)
+                              FROM producto_pedido pp WHERE pp.id_pedido = p.id) AS total, "
+                    . ($conEta
+                        ? "(SELECT e.eta FROM entrega e WHERE e.id_pedido = p.id AND e.estado IN ('asignada', 'en_ruta')
+                             ORDER BY e.id DESC LIMIT 1) AS eta"
+                        : 'NULL AS eta') . "
+                      FROM pedido p
+                      JOIN cliente c ON c.id = p.id_cliente
+                     WHERE p.fecha >= ?
+                ) t"
+            . ($estado !== null ? ' WHERE t.estado = ?' : '')
+            . ' ORDER BY t.id DESC LIMIT ' . $limite;
+
+        $pedidos = $this->filas($sql, $estado !== null ? [$desde, $estado] : [$desde]);
+        if ($pedidos === []) {
+            return [];
+        }
+
+        $ids    = array_map(static fn (array $p): int => (int) $p['id'], $pedidos);
+        $marcas = implode(',', array_fill(0, count($ids), '?'));
+        $lineas = [];
+        foreach ($this->filas(
+            "SELECT pp.id_pedido, pp.cant, pp.unidad_venta, pp.precio_venta, pp.total, pr.nombre
+               FROM producto_pedido pp
+               JOIN producto pr ON pr.id = pp.id_producto
+              WHERE pp.id_pedido IN ({$marcas})
+           ORDER BY pp.id ASC",
+            $ids
+        ) as $l) {
+            $lineas[(int) $l['id_pedido']][] = $l;
+        }
+
+        foreach ($pedidos as &$p) {
+            $p['lineas'] = $lineas[(int) $p['id']] ?? [];
+        }
+
+        return $pedidos;
+    }
+
+    // ─────────────────────────────────────────────────────────────
     // PEDIDOS COMPLETOS (cabecera + líneas + estatus) — todo en una transacción
     // ─────────────────────────────────────────────────────────────
 

@@ -38,28 +38,28 @@ class AuthGroups extends ShieldAuthGroups
      *
      * @var array<string, array<string, string>>
      *
+     * FRUVER: la columna auth_groups_users.group es un ENUM con exactamente estas claves
+     * (migración 2026-11-12-110000_RolesComoEnum). Si agregas o quitas un rol aquí, corre
+     * `php spark roles:sincronizar` para actualizar el ENUM; la pestaña Roles avisa si difieren.
+     *
      * @see https://codeigniter4.github.io/shield/quick_start_guide/using_authorization/#change-available-groups for more info
      */
     public array $groups = [
         'superadmin' => [
-            'title'       => 'Super Admin',
-            'description' => 'Complete control of the site.',
+            'title'       => 'Superadministración',
+            'description' => 'Control total del sistema, incluida la gestión de roles.',
         ],
         'admin' => [
-            'title'       => 'Admin',
-            'description' => 'Day to day administrators of the site.',
+            'title'       => 'Administración',
+            'description' => 'Operación diaria: pedidos, inventario, clientes y reparto.',
         ],
         'developer' => [
-            'title'       => 'Developer',
-            'description' => 'Site programmers.',
+            'title'       => 'Desarrollo',
+            'description' => 'Programadores del sistema: ven los mensajes técnicos.',
         ],
         'user' => [
-            'title'       => 'User',
-            'description' => 'General users of the site. Often customers.',
-        ],
-        'beta' => [
-            'title'       => 'Beta User',
-            'description' => 'Has access to beta-level features.',
+            'title'       => 'Cliente',
+            'description' => 'Compra en la tienda. Rol de toda cuenta nueva.',
         ],
         'repartidor' => [
             'title'       => 'Repartidor',
@@ -82,7 +82,6 @@ class AuthGroups extends ShieldAuthGroups
         'users.create'        => 'Can create new non-admin users',
         'users.edit'          => 'Can edit existing non-admin users',
         'users.delete'        => 'Can delete existing non-admin users',
-        'beta.access'         => 'Can access beta-level features',
         'entregas.asignar'    => 'Puede asignar repartidor y cancelar entregas',
         'entregas.propias'    => 'Puede ver y actualizar sus propias entregas',
     ];
@@ -99,7 +98,6 @@ class AuthGroups extends ShieldAuthGroups
         'superadmin' => [
             'admin.*',
             'users.*',
-            'beta.*',
             'entregas.*',
         ],
         'admin' => [
@@ -107,7 +105,6 @@ class AuthGroups extends ShieldAuthGroups
             'users.create',
             'users.edit',
             'users.delete',
-            'beta.access',
             'entregas.asignar',
         ],
         'developer' => [
@@ -115,12 +112,8 @@ class AuthGroups extends ShieldAuthGroups
             'admin.settings',
             'users.create',
             'users.edit',
-            'beta.access',
         ],
         'user' => [],
-        'beta' => [
-            'beta.access',
-        ],
         'repartidor' => [
             'entregas.propias',
         ],

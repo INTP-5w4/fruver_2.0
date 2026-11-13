@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Rutas\Combustible;
 use App\Libraries\Rutas\CspMapas;
 use App\Libraries\Rutas\EnlaceNavegacion;
 use App\Libraries\Rutas\OpcionesRuta;
@@ -173,6 +174,7 @@ class Rutas extends BaseController
         $salidaJs = [];
         foreach ($opciones as $clave => $r) {
             $etas = $r->etas($salida, $minutos);
+            $gas  = Combustible::calcular($r->distanciaM, $repartidor);
             $salidaJs[$clave] = [
                 'estrategia' => $clave,
                 'proveedor'  => $r->proveedor,
@@ -183,6 +185,14 @@ class Rutas extends BaseController
                 'fin'        => rutas_hora($r->fin($salida, $minutos)),
                 'polyline'   => $r->polyline,
                 'aviso'      => $r->aviso,
+                // Costo de traslado: null en bicicleta.
+                'combustible' => $gas === null ? null : [
+                    'texto'     => Combustible::texto($gas['litros'], $gas['costo'], $gas['combustible']),
+                    'porParada' => '$' . number_format($gas['costo'] / max(1, count($r->orden)), 2),
+                    'detalle'   => number_format($gas['rendimiento'], 1) . ' km/L'
+                        . ($gas['estimado'] ? ' (típico de ' . (Modelo_repartidor::VEHICULOS[$vehiculo] ?? $vehiculo) . '; captura el real en Repartidores)' : '')
+                        . ' · $' . number_format($gas['precio'], 2) . '/L',
+                ],
             ];
         }
 
@@ -231,6 +241,8 @@ class Rutas extends BaseController
             ];
         }
 
+        $gas = Combustible::calcular($r->distanciaM, (new Modelo_repartidor())->find((int) $calculo['id_repartidor']) ?? []);
+
         try {
             $idRuta = (new Modelo_ruta())->crear([
                 'fecha'           => $calculo['fecha'],
@@ -243,6 +255,10 @@ class Rutas extends BaseController
                 'polyline'        => $r->polyline,
                 'proveedor'       => $r->proveedor,
                 'creada_por'      => (int) auth()->id(),
+                // Se ignoran si aún no existe la migración de combustible.
+                'litros'            => $gas['litros'] ?? null,
+                'costo_combustible' => $gas['costo'] ?? null,
+                'precio_litro'      => $gas['precio'] ?? null,
             ], $paradas);
         } catch (DomainException $e) {
             return redirect()->to('rutas?fecha=' . rawurlencode($calculo['fecha']))->with('error', $e->getMessage());
@@ -374,6 +390,55 @@ class Rutas extends BaseController
         }
 
         return redirect()->to('rutas/almacen')->with('mensaje', 'Almacén guardado.');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMBUSTIBLE (precios por litro para el costo de traslado)
+    // ─────────────────────────────────────────────────────────────
+
+    public function combustible()
+    {
+        $m = new Modelo_repartidor();
+
+        return view('rutas_combustible', [
+            'precios'      => Combustible::precios(),
+            'actualizados' => Combustible::actualizados(),
+            'fabrica'      => config('Rutas')->preciosCombustible,
+            'repartidores' => $m->findAll(),
+            'conColumnas'  => $m->tieneCombustible(),
+        ]);
+    }
+
+    public function guarda_combustible()
+    {
+        $reglas = [];
+        foreach (array_keys(Combustible::TIPOS) as $tipo) {
+            $reglas['precio_' . $tipo] = [
+                'label' => Combustible::TIPOS[$tipo],
+                'rules' => 'required|decimal|greater_than[0]|less_than_equal_to[100]',
+                'errors' => [
+                    'required'           => 'Escribe el precio de {field}.',
+                    'decimal'            => 'El precio de {field} debe ser un número (por ejemplo 23.90).',
+                    'greater_than'       => 'El precio de {field} debe ser mayor que cero.',
+                    'less_than_equal_to' => 'El precio de {field} parece demasiado alto.',
+                ],
+            ];
+        }
+
+        if (! $this->validate($reglas)) {
+            return $this->volverConErrores();
+        }
+
+        try {
+            Combustible::guardarPrecios(array_combine(
+                array_keys(Combustible::TIPOS),
+                array_map(fn (string $t): float => (float) $this->post('precio_' . $t), array_keys(Combustible::TIPOS))
+            ));
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()->with('error', PdoModelo::mensajeSeguro($e, 'No se pudieron guardar los precios.'));
+        }
+
+        return redirect()->to('rutas/combustible')->with('mensaje', 'Precios actualizados. Las rutas nuevas ya los usan.');
     }
 
     // ─────────────────────────────────────────────────────────────

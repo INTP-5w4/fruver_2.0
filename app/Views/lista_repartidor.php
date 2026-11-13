@@ -107,6 +107,8 @@ $nuevos    ??= 0;
                                     data-dir="<?= esc((string) $r['direccion'], 'attr') ?>"
                                     data-not="<?= esc((string) ($r['notas'] ?? ''), 'attr') ?>"
                                     data-vehiculo="<?= esc((string) ($r['vehiculo'] ?? 'moto'), 'attr') ?>"
+                                    data-combustible="<?= esc((string) ($r['combustible'] ?? ''), 'attr') ?>"
+                                    data-rendimiento="<?= isset($r['rendimiento_km_l']) && $r['rendimiento_km_l'] !== null ? esc(rtrim(rtrim((string) $r['rendimiento_km_l'], '0'), '.'), 'attr') : '' ?>"
                                     onclick="editarRepartidor(this)">
                                 <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                             </button>
@@ -184,8 +186,9 @@ $nuevos    ??= 0;
         /** Llena el modal de edición con los datos de la fila (botón con data-*) y lo abre. */
         function editarRepartidor(boton) {
             document.getElementById('id_editar').value = boton.dataset.id;
-            ['nom', 'ape_pat', 'ape_mat', 'tel', 'dir', 'not', 'vehiculo'].forEach(function (campo) {
+            ['nom', 'ape_pat', 'ape_mat', 'tel', 'dir', 'not', 'vehiculo', 'combustible', 'rendimiento'].forEach(function (campo) {
                 var el = document.getElementById(campo + '_editar');
+                if (!el) { return; }
                 el.value = boton.dataset[campo] || (campo === 'vehiculo' ? 'moto' : '');
                 el.classList.remove('campo-con-error');
                 el.removeAttribute('aria-invalid');

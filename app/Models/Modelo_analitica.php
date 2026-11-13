@@ -256,10 +256,9 @@ class Modelo_analitica extends PdoModelo
         // 90 días: un producto agotado deja de venderse, y con 30 días desaparecería justo cuando urge.
         [$periodo, $filas] = $this->conRespaldo($consulta, self::DIAS_REABASTO);
 
-        // Disponible para venta: la fila más reciente de existencia de cada producto.
+        // Disponible para venta por producto (una fila por producto; se suma por si acaso).
         $stock = $this->intentar(fn () => array_column(
-            $this->filas('SELECT x.id_producto, x.e_venta FROM existencia x
-                           JOIN (SELECT id_producto, MAX(id) AS ultimo FROM existencia GROUP BY id_producto) u ON u.ultimo = x.id'),
+            $this->filas('SELECT id_producto, SUM(COALESCE(e_venta, 0)) AS e_venta FROM existencia GROUP BY id_producto'),
             'e_venta',
             'id_producto'
         )) ?? [];

@@ -17,6 +17,8 @@ use InvalidArgumentException;
  * Estrategias que se ofrecen para que el repartidor/admin ESCOJA:
  *  - rapida     : el servicio reordena las paradas (menor tiempo).
  *  - prioridad  : primero quien tiene hora límite y los preferenciales; el servicio solo mide.
+ *                 Los pedidos normales que quedan DE PASO hacia un preferencial (desviarse
+ *                 cuesta poco) se entregan al pasar; el resto va al final, por cercanía.
  *  - sin_cuotas : como "rapida" pero evitando casetas y autopistas.
  *  - manual     : el orden que el usuario acomodó; el servicio solo mide.
  *  - aproximada : sin servicio externo (línea recta).
@@ -66,10 +68,25 @@ final class PlaneadorRutas
         $paradas = array_values($paradas);
         $this->validarCantidad($paradas);
 
+        $dePaso = [];
         if ($op->estrategia === 'prioridad') {
-            $paradas = self::porPrioridad($paradas);
+            [$paradas, $dePaso] = self::prioridadConParadasDePaso(
+                $origen, $paradas, $this->cfg->desvioMaxKm, $this->cfg->desvioMaxPorcentaje
+            );
         }
 
+        $resultado = $this->calcularOrden($origen, $paradas, $op);
+
+        return $dePaso === [] ? $resultado : self::conAviso(
+            $resultado,
+            'Se entregan de paso, camino a un cliente preferente: #'
+            . implode(', #', array_map(static fn (string $c): string => ltrim($c, 'p'), $dePaso)) . '.'
+        );
+    }
+
+    /** @param list<Parada> $paradas */
+    private function calcularOrden(Punto $origen, array $paradas, OpcionesRuta $op): ResultadoRuta
+    {
         if ($this->servicio === null || $op->estrategia === 'aproximada') {
             return $this->local->calcular($origen, $paradas, $op);
         }
@@ -147,6 +164,127 @@ final class PlaneadorRutas
         });
 
         return array_map(static fn (array $x) => $x[1], $indexadas);
+    }
+
+    /**
+     * Orden "por prioridad" que no hace dar vueltas de más:
+     *
+     *  1. Primero las urgentes (hora límite y preferenciales), en el orden de porPrioridad().
+     *  2. Un pedido normal se entrega ANTES de un preferencial si queda de paso: meterlo en el
+     *     tramo hacia ese preferencial agrega como máximo min($maxKm, $maxPct % del tramo).
+     *     Ej.: Grajales → Puebla (~80 km) pasando por Acajete: los pedidos de Acajete se dejan
+     *     al pasar, en lugar de ir hasta Puebla y regresar.
+     *     Solo se intercalan antes de un preferencial SIN hora límite: una hora límite es una
+     *     promesa y no se arriesga por una parada extra.
+     *  3. Los normales que no quedaron de paso van al final, por cercanía (vecino más cercano
+     *     desde la última urgente).
+     *
+     * Distancias en línea recta × FACTOR_CALLES (lo mismo que el optimizador local): basta
+     * para decidir qué está "en el camino"; la ruta real la mide después el servicio de mapas.
+     *
+     * @param list<Parada> $paradas
+     * @return array{0:list<Parada>,1:list<string>} [orden, claves que se intercalaron de paso]
+     */
+    public static function prioridadConParadasDePaso(Punto $origen, array $paradas, float $maxKm = 5.0, float $maxPct = 15.0): array
+    {
+        $urgentes = [];
+        $normales = [];
+        foreach (array_values($paradas) as $p) {
+            if ($p->ventanaFin !== null || $p->prioridad > 0) {
+                $urgentes[] = $p;
+            } else {
+                $normales[] = $p;
+            }
+        }
+
+        if ($urgentes === [] || $normales === []) {
+            return [self::porPrioridad($paradas), []];
+        }
+
+        $urgentes = self::porPrioridad($urgentes);
+        $d        = static fn (Punto $a, Punto $b): float => $a->distanciaA($b) * OptimizadorLocal::FACTOR_CALLES;
+
+        // Tramos origen → u1 → u2 …; cada tramo guarda las paradas que se le intercalan.
+        $tramos = [];
+        $previo = $origen;
+        foreach ($urgentes as $u) {
+            $largo    = $d($previo, $u->punto);
+            $tramos[] = [
+                'desde'        => $previo,
+                'hacia'        => $u,
+                'intercaladas' => [],
+                // Metros extra permitidos: solo antes de un preferencial sin hora límite.
+                'presupuesto'  => $u->ventanaFin === null ? min($maxKm * 1000, $largo * $maxPct / 100) : 0.0,
+            ];
+            $previo = $u->punto;
+        }
+
+        $pendientes = $normales;
+        $dePaso     = [];
+
+        // Voraz: en cada vuelta se intercala la parada (y el hueco) que menos desvío cuesta.
+        while (true) {
+            $mejor = null;
+            foreach ($pendientes as $iN => $n) {
+                foreach ($tramos as $iT => $t) {
+                    if ($t['presupuesto'] <= 0) {
+                        continue;
+                    }
+                    $nodos = [$t['desde'], ...array_map(static fn (Parada $x) => $x->punto, $t['intercaladas']), $t['hacia']->punto];
+                    for ($k = 0; $k < count($nodos) - 1; $k++) {
+                        $extra = $d($nodos[$k], $n->punto) + $d($n->punto, $nodos[$k + 1]) - $d($nodos[$k], $nodos[$k + 1]);
+                        if ($extra <= $t['presupuesto'] + 0.01 && ($mejor === null || $extra < $mejor['extra'])) {
+                            $mejor = ['n' => $iN, 't' => $iT, 'k' => $k, 'extra' => max(0.0, $extra)];
+                        }
+                    }
+                }
+            }
+
+            if ($mejor === null) {
+                break;
+            }
+
+            $parada = $pendientes[$mejor['n']];
+            array_splice($tramos[$mejor['t']]['intercaladas'], $mejor['k'], 0, [$parada]);
+            $tramos[$mejor['t']]['presupuesto'] -= $mejor['extra'];
+            $dePaso[] = $parada->clave;
+            unset($pendientes[$mejor['n']]);
+        }
+
+        $orden = [];
+        foreach ($tramos as $t) {
+            array_push($orden, ...$t['intercaladas']);
+            $orden[] = $t['hacia'];
+        }
+
+        // Lo que no quedó de paso: al final, por cercanía desde la última parada.
+        $actual = $orden[count($orden) - 1]->punto;
+        while ($pendientes !== []) {
+            $iMejor = null;
+            foreach ($pendientes as $i => $n) {
+                if ($iMejor === null || $d($actual, $n->punto) < $d($actual, $pendientes[$iMejor]->punto)) {
+                    $iMejor = $i;
+                }
+            }
+            $orden[] = $pendientes[$iMejor];
+            $actual  = $pendientes[$iMejor]->punto;
+            unset($pendientes[$iMejor]);
+        }
+
+        // Las claves de paso, en el orden en que se visitan.
+        $posicion = array_flip(array_map(static fn (Parada $p) => $p->clave, $orden));
+        usort($dePaso, static fn (string $a, string $b): int => $posicion[$a] <=> $posicion[$b]);
+
+        return [$orden, $dePaso];
+    }
+
+    /** Mismo resultado con un aviso más (se suma al que ya tenga). */
+    private static function conAviso(ResultadoRuta $r, string $aviso): ResultadoRuta
+    {
+        return new ResultadoRuta(
+            $r->estrategia, $r->proveedor, $r->orden, $r->tramos, $r->distanciaM, $r->duracionS,
+            $r->polyline, $r->regresa, trim(($r->aviso ?? '') . ' ' . $aviso)
+        );
     }
 
     /** @param list<Parada> $paradas */

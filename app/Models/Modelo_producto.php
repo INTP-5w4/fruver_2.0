@@ -150,7 +150,7 @@ class Modelo_producto extends PdoModelo
 
     /**
      * SQL base del catálogo: producto + su entrada más reciente (precio y unidad de venta)
-     * + el stock disponible (e_venta de su fila de existencia más reciente, igual que
+     * + el stock disponible (e_venta sumado por producto, igual que
      * Modelo_existencia::stockDisponiblePorProducto).
      *
      * Solo aparecen productos con precio de venta > 0 (los que aún no tienen precio
@@ -167,11 +167,9 @@ class Modelo_producto extends PdoModelo
                           FROM entrada
                       GROUP BY id_producto) ult ON ult.id_producto = p.id
                   JOIN entrada e ON e.id = ult.max_id
-             LEFT JOIN (SELECT ex.id_producto, ex.e_venta
-                          FROM existencia ex
-                          JOIN (SELECT id_producto, MAX(id) AS max_id
-                                  FROM existencia
-                              GROUP BY id_producto) m ON m.max_id = ex.id) x ON x.id_producto = p.id
+             LEFT JOIN (SELECT id_producto, SUM(COALESCE(e_venta, 0)) AS e_venta
+                          FROM existencia
+                      GROUP BY id_producto) x ON x.id_producto = p.id
                  WHERE e.precio_venta_u > 0';
     }
 
