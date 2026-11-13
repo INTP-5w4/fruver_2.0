@@ -109,3 +109,24 @@
 a[aria-disabled="true"] { opacity: .45; pointer-events: none; cursor: not-allowed; }
 .com-form-correo [type="submit"]:disabled { opacity: .5; cursor: not-allowed; }
 .com-dialogo-pie [hidden] { display: none !important; }
+
+/* Mensajes listos (plantillas seleccionables) */
+.com-plantillas { margin-bottom: 12px; }
+.com-plantillas-titulo { display: block; margin-bottom: 6px; }
+.com-plantillas-lista { display: flex; flex-wrap: wrap; gap: 6px; }
+.com-plantilla {
+    padding: 6px 12px;
+    border: 1px dashed rgba(0, 117, 66, 0.45);
+    border-radius: 8px;
+    color: var(--hoja-oscura);
+    background: #ffffff;
+    text-decoration: none;
+    font-size: 14px;
+}
+.com-plantilla:hover { background: #f3faf3; }
+.com-plantilla--activa { border-style: solid; background: var(--hoja-clara, #e8f5e9); font-weight: 600; }
+.com-corchetes { margin-top: 8px; }
+
+/* Filtro por estado (Avisos de pedidos) */
+.com-filtro { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 16px; }
+.com-filtro .w3-select { max-width: 240px; }

@@ -140,7 +140,12 @@
 
             var cif = document.createElement('div');
             cif.className = 'cifras';
-            [['Distancia', op.km], ['Tiempo manejando', op.tiempo], ['Termina aprox.', op.fin]].forEach(function (par) {
+            var pares = [['Distancia', op.km], ['Tiempo manejando', op.tiempo], ['Termina aprox.', op.fin]];
+            if (op.combustible) {
+                pares.push(['Combustible', op.combustible.texto]);
+                pares.push(['Por entrega', op.combustible.porParada]);
+            }
+            pares.forEach(function (par) {
                 var s = document.createElement('span');
                 s.appendChild(document.createTextNode(par[0] + ': '));
                 var bb = document.createElement('b');
@@ -149,6 +154,14 @@
                 cif.appendChild(s);
             });
             div.appendChild(cif);
+
+            if (op.combustible && op.combustible.detalle) {
+                var gd = document.createElement('p');
+                gd.className = 'w3-small w3-text-grey';
+                gd.style.margin = '4px 0 0';
+                gd.textContent = 'Rendimiento ' + op.combustible.detalle;
+                div.appendChild(gd);
+            }
 
             if (op.aviso) {
                 var av = document.createElement('p');

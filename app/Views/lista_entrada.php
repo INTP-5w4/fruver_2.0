@@ -29,13 +29,15 @@
 
 <div class="contenedor-boton">
     <h1>Entradas</h1>
-    <button onclick="document.getElementById('modalCrearEntrada').style.display='block'"
-            class="btn-agregar">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva entrada
-    </button>
-    <a href="<?= base_url('entrada_rapida') ?>" class="btn-agregar btn-enlace" title="Registrar varias entradas escribiendo solo la cantidad">
-        <i class="fa-solid fa-bolt"></i> Entrada rápida
-    </a>
+    <div class="contenedor-boton__acciones">
+        <button type="button" onclick="document.getElementById('modalCrearEntrada').style.display='block'"
+                class="btn-agregar">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva entrada
+        </button>
+        <a href="<?= base_url('entrada_rapida') ?>" class="btn-agregar btn-enlace" title="Registrar varias entradas escribiendo solo la cantidad">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i> Entrada rápida
+        </a>
+    </div>
 </div>
 <form method="get" action="<?= base_url('lista_entrada') ?>" class="w3-margin-bottom">
     <div style="display:flex; gap:8px;">

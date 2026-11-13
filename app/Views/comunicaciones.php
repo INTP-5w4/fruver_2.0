@@ -13,8 +13,18 @@
  * @var bool                              $correoListo
  * @var string                            $asunto
  * @var bool                              $bloqueado  el mensaje tiene groserías
+ * @var bool                              $esPedidos  pestaña "Avisos de pedidos"
+ * @var array<string,array{0:string,1:string}> $plantillas mensajes listos de la pestaña
+ * @var string                            $plantilla  clave del mensaje listo elegido
+ * @var string|null                       $estado     filtro de estado (solo pedidos)
+ * @var list<string>                      $estados
+ * @var int                               $diasPedidos
  */
-$def = $cfg->finalidades[$finalidad];
+$def = $esPedidos ? null : $cfg->finalidades[$finalidad];
+$etiquetas = $esPedidos
+    ? ['{nombre}', '{pedido}', '{detalle}', '{total}', '{estado}', '{hora}', '{fecha}', '{tienda}']
+    : array_merge(['{nombre}', '{tienda}'], $finalidad === 'v2' ? ['{productos}'] : [], $finalidad === 'v3' ? ['{pedido}'] : []);
+$urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '?' . http_build_query(array_filter($extra, static fn ($v) => $v !== null && $v !== ''));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -46,13 +56,15 @@ $def = $cfg->finalidades[$finalidad];
         Solo aparecen las personas que <strong>autorizaron</strong> cada finalidad en su cuenta, y solo por los canales
         que eligieron. Si alguien retira su autorización, desaparece de esta lista de inmediato.
         Las recomendaciones personalizadas (V4) se muestran solas en la tienda, en la fila "Para ti".
+        Los avisos sobre un pedido (detalle, en camino, entregado…) están en la pestaña <b>Avisos de pedidos</b>.
     </p>
 
     <details class="com-tarjeta com-como" open>
         <summary>¿Cómo aviso de mis ofertas? <span class="com-ayuda">Nada se envía solo: tú decides cuándo y a quién.</span></summary>
         <ol>
             <li>Elige la pestaña de lo que quieres comunicar (por ejemplo <b>V1 · Promociones</b> para avisar de ofertas).</li>
-            <li>Escribe el mensaje. La lista de abajo se actualiza mientras escribes, ya personalizada con el nombre de cada persona.</li>
+            <li>Elige uno de los <b>Mensajes listos</b> o escribe el tuyo. Puedes editar el que elegiste; completa lo que esté entre [corchetes].
+                La lista de abajo se actualiza mientras escribes, ya personalizada con el nombre de cada persona.</li>
             <li><b>WhatsApp:</b> pulsa <b>Enviar a todos por WhatsApp</b> (o <b>Enviar</b> en una fila). Se abre WhatsApp (web o en el celular) con el mensaje listo; tú pulsas enviar ahí.
                 La fila queda marcada como "Abierto" para que sepas a quién ya le escribiste.</li>
             <li><b>Correo:</b> si hay servidor de correo configurado, <b>Enviar</b> en "Enviar a todos" lo manda de una vez a quienes eligieron correo.</li>
@@ -67,20 +79,68 @@ $def = $cfg->finalidades[$finalidad];
                 <?= esc($f['codigo'] . ' · ' . $f['titulo']) ?> <strong><?= (int) ($conteos[$clave] ?? 0) ?></strong>
             </a>
         <?php endforeach; ?>
+        <a href="<?= base_url('comunicaciones') . '?finalidad=pedidos' ?>"
+           class="com-pestana<?= $esPedidos ? ' com-pestana--activa' : '' ?>" title="Detalle, confirmación, en camino, entregado, pago… a los clientes de pedidos recientes">
+            <i class="fa-solid fa-receipt" aria-hidden="true"></i> Avisos de pedidos
+        </a>
     </nav>
 
+    <?php if ($esPedidos): ?>
+        <p class="com-ayuda">
+            Avisos sobre un pedido (su detalle, que ya va en camino, que se entregó, un pago pendiente…). Son parte de atender el pedido,
+            así que no necesitan la autorización de promociones: se mandan al teléfono del cliente por WhatsApp o llamada.
+            Aparecen los pedidos de los últimos <?= (int) $diasPedidos ?> días.
+        </p>
+        <form method="get" action="<?= base_url('comunicaciones') ?>" class="com-filtro">
+            <input type="hidden" name="finalidad" value="pedidos">
+            <label for="com-estado"><b>Pedidos en estado</b></label>
+            <select id="com-estado" name="estado" class="w3-select w3-border" onchange="this.form.submit()">
+                <option value="">Todos</option>
+                <?php foreach ($estados as $e): ?>
+                    <option value="<?= esc($e, 'attr') ?>"<?= $estado === $e ? ' selected' : '' ?>><?= esc(estado_pedido_texto($e)) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <noscript><button type="submit" class="w3-button w3-border">Filtrar</button></noscript>
+        </form>
+    <?php endif; ?>
+
     <section class="com-tarjeta">
+        <div class="com-plantillas" role="group" aria-labelledby="com-plantillas-titulo">
+            <span class="com-plantillas-titulo" id="com-plantillas-titulo"><b>Mensajes listos</b> <span class="com-ayuda">(elige uno y edítalo si quieres)</span></span>
+            <div class="com-plantillas-lista">
+                <?php foreach ($plantillas as $clave => [$titulo, $texto]): ?>
+                    <a href="<?= esc($urlPestana(['finalidad' => $finalidad, 'estado' => $estado, 'plantilla' => $clave]), 'attr') ?>"
+                       class="com-plantilla<?= $clave === $plantilla ? ' com-plantilla--activa' : '' ?>"
+                       data-com-plantilla="<?= esc($texto, 'attr') ?>" data-com-plantilla-clave="<?= esc($clave, 'attr') ?>"
+                       title="<?= esc($texto, 'attr') ?>"<?= $clave === $plantilla ? ' aria-current="true"' : '' ?>><?= esc($titulo) ?></a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
         <form method="get" action="<?= base_url('comunicaciones') ?>" id="com-form-mensaje" data-pie="<?= esc($pie, 'attr') ?>"
               data-revisar="<?= esc(base_url('comunicaciones/revisar'), 'attr') ?>">
             <input type="hidden" name="finalidad" value="<?= esc($finalidad, 'attr') ?>">
+            <input type="hidden" name="plantilla" value="<?= esc($plantilla, 'attr') ?>" data-com-plantilla-actual>
+            <?php if ($esPedidos && $estado !== null): ?><input type="hidden" name="estado" value="<?= esc($estado, 'attr') ?>"><?php endif; ?>
             <label for="mensaje"><b>Mensaje</b></label>
-            <textarea id="mensaje" name="mensaje" rows="3" maxlength="500" class="w3-input w3-border"
-                      data-reglas="<?= esc(json_encode(['Etiquetas: {nombre}, {tienda}' . ($finalidad === 'v2' ? ', {productos}' : '') . ($finalidad === 'v3' ? ', {pedido}' : ''), 'Al final se agrega cómo dejar de recibir mensajes'], JSON_UNESCAPED_UNICODE), 'attr') ?>"><?= esc($mensaje) ?></textarea>
+            <textarea id="mensaje" name="mensaje" rows="<?= $esPedidos ? 5 : 3 ?>" maxlength="500" class="w3-input w3-border"
+                      data-reglas="<?= esc(json_encode(array_values(array_filter(['Etiquetas: ' . implode(', ', $etiquetas), $esPedidos ? null : 'Al final se agrega cómo dejar de recibir mensajes', 'Completa lo que esté entre [corchetes]'])), JSON_UNESCAPED_UNICODE), 'attr') ?>"><?= esc($mensaje) ?></textarea>
             <p class="com-ayuda">
-                Puedes usar <code>{nombre}</code>, <code>{tienda}</code><?= $finalidad === 'v2' ? ', <code>{productos}</code> (lo que más pide)' : '' ?><?= $finalidad === 'v3' ? ', <code>{pedido}</code> (su último pedido)' : '' ?>.
-                Al final se agrega siempre cómo dejar de recibir mensajes.
+                Puedes usar
+                <?php if ($esPedidos): ?>
+                    <code>{nombre}</code>, <code>{pedido}</code> (número), <code>{detalle}</code> (productos, cantidades e importes),
+                    <code>{total}</code>, <code>{estado}</code>, <code>{hora}</code> (llegada estimada si va en una ruta), <code>{fecha}</code> y <code>{tienda}</code>.
+                <?php else: ?>
+                    <code>{nombre}</code>, <code>{tienda}</code><?= $finalidad === 'v2' ? ', <code>{productos}</code> (lo que más pide)' : '' ?><?= $finalidad === 'v3' ? ', <code>{pedido}</code> (su último pedido)' : '' ?>.
+                    Al final se agrega siempre cómo dejar de recibir mensajes.
+                <?php endif; ?>
+                Completa lo que esté entre <b>[corchetes]</b> antes de enviar.
                 <span class="com-vivo" data-com-vivo hidden><i class="fa-solid fa-bolt" aria-hidden="true"></i> Los mensajes de abajo se actualizan mientras escribes.</span>
             </p>
+            <div class="aviso aviso-atencion com-corchetes" role="status" data-com-corchetes<?= preg_match('/\[[^\]]+\]/u', $mensaje) === 1 ? '' : ' hidden' ?>>
+                <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                <span>El mensaje tiene datos por completar entre [corchetes].</span>
+            </div>
             <div class="aviso aviso-error com-groseria" role="alert" data-com-groseria<?= $bloqueado ? '' : ' hidden' ?>>
                 <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
                 <span>El mensaje tiene palabras que no están permitidas. Corrígelo para poder enviarlo.</span>
@@ -116,6 +176,7 @@ $def = $cfg->finalidades[$finalidad];
         <?php endif; ?>
         </div>
 
+        <?php if (! $esPedidos): ?>
         <div class="com-canal">
         <h4 class="com-canal-titulo"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Correo electrónico (<?= (int) $porCorreo ?>)</h4>
         <?php if (! $correoListo): ?>
@@ -136,28 +197,30 @@ $def = $cfg->finalidades[$finalidad];
             </form>
         <?php endif; ?>
         </div>
+        <?php endif; ?>
         </div>
     </section>
 
     <section class="com-tarjeta">
-        <h3 class="com-subtitulo">Personas que autorizaron <?= esc($def['codigo']) ?> (<?= count($filas) ?>)</h3>
+        <h3 class="com-subtitulo"><?= $esPedidos ? 'Pedidos recientes' : 'Personas que autorizaron ' . esc($def['codigo']) ?> (<?= count($filas) ?>)</h3>
         <?php if ($filas === []): ?>
-            <p class="com-ayuda">Nadie ha autorizado esta finalidad todavía.</p>
+            <p class="com-ayuda"><?= $esPedidos ? 'No hay pedidos con ese criterio en los últimos ' . (int) $diasPedidos . ' días.' : 'Nadie ha autorizado esta finalidad todavía.' ?></p>
         <?php else: ?>
             <div class="com-tabla">
                 <table class="w3-table w3-bordered w3-striped">
                     <thead>
-                        <tr><th>Persona</th><th>Mensaje</th><th>WhatsApp</th><th>Llamar</th><th>Correo</th></tr>
+                        <tr><th><?= $esPedidos ? 'Cliente y pedido' : 'Persona' ?></th><th>Mensaje</th><th>WhatsApp</th><th>Llamar</th><?php if (! $esPedidos): ?><th>Correo</th><?php endif; ?></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($filas as $f): ?>
                             <tr data-com-fila
+                                data-clave="<?= esc($f['clave'], 'attr') ?>"
                                 data-nombre="<?= esc($f['nombre_mostrar'], 'attr') ?>"
                                 data-reemplazos="<?= esc(json_encode($f['reemplazos'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), 'attr') ?>"
                                 data-tel="<?= esc((string) ($f['puede_wa'] ? $f['tel_wa'] : ''), 'attr') ?>">
                                 <td>
                                     <?= esc($f['nombre_mostrar']) ?>
-                                    <small class="com-ayuda">desde <?= esc(date('d/m/Y', strtotime((string) $f['autorizado_en']))) ?></small>
+                                    <small class="com-ayuda"><?= esc($f['detalle']) ?></small>
                                 </td>
                                 <td class="com-texto">
                                     <p class="com-previa" data-com-texto><?= nl2br(esc($f['texto'])) ?></p>
@@ -180,7 +243,9 @@ $def = $cfg->finalidades[$finalidad];
                                         <a href="tel:<?= esc($f['llamar'], 'attr') ?>"><?= esc($f['llamar']) ?></a>
                                     <?php else: ?>—<?php endif; ?>
                                 </td>
-                                <td><?= $f['por_correo'] ? '<i class="fa-solid fa-check" title="Eligió correo"></i>' : '—' ?></td>
+                                <?php if (! $esPedidos): ?>
+                                    <td><?= $f['por_correo'] ? '<i class="fa-solid fa-check" title="Eligió correo"></i>' : '—' ?></td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

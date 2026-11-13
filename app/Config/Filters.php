@@ -3,6 +3,7 @@
 namespace Config;
 
 use App\Filters\ConsentimientoGuard;
+use App\Filters\RepartidorDatosGuard;
 use App\Filters\SesionGuard;
 use CodeIgniter\Config\Filters as BaseFilters;
 use CodeIgniter\Filters\Cors;
@@ -33,6 +34,7 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'sesionguard'   => SesionGuard::class,
         'consentimiento' => ConsentimientoGuard::class,
+        'repartidordatos' => RepartidorDatosGuard::class,
     ];
 
     public array $required = [

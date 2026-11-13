@@ -33,6 +33,11 @@ foreach (['superadmin' => 'Superadministración', 'admin' => 'Administración', 
                     <i class="fa-solid fa-store" aria-hidden="true"></i><span>Tienda</span>
                 </a>
             <?php endif; ?>
+            <?php if ($esRepartidorHeader): ?>
+                <a href="<?= base_url('repartidor/mis-datos') ?>" class="encabezado-enlace" title="Tus datos de repartidor y tu vehículo">
+                    <i class="fa-solid fa-id-badge" aria-hidden="true"></i><span>Mis datos</span>
+                </a>
+            <?php endif; ?>
             <a href="<?= base_url('crea_sugerencia') ?>" class="encabezado-enlace" title="Enviar una sugerencia">
                 <i class="fa-regular fa-lightbulb" aria-hidden="true"></i><span>Sugerencias</span>
             </a>

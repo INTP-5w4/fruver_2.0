@@ -77,6 +77,9 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
 }
 .contenedor-boton > h1,
 .contenedor-boton > h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+/* Varios botones en la barra: juntos a la derecha, misma altura */
+.contenedor-boton__acciones { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.contenedor-boton__acciones > .btn-agregar { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
 
 /* Títulos de las pantallas que aún usan su propia clase */
 .com-titulo, .er-titulo, .ticket-titulo, .sug-titulo,
@@ -437,6 +440,8 @@ body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
     .lista-wrapper .footer { margin: 28px -16px -28px; }
     body:has(> .sidebar) > .footer { padding-left: 0; }
     .contenedor-boton > .btn-agregar { flex: 1 1 100%; justify-content: center; min-height: 44px; }
+    .contenedor-boton__acciones { flex: 1 1 100%; }
+    .contenedor-boton__acciones > .btn-agregar { flex: 1 1 0; justify-content: center; min-height: 44px; width: auto; }
     .lista-wrapper > form[method="get"] .w3-input { max-width: none; flex: 1 1 200px; }
     .lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir),
     .lista-wrapper td > form > button:not(.w3-button):not(.btn) { width: 42px; height: 42px; }

@@ -85,6 +85,35 @@ class Rutas extends BaseConfig
      */
     public int $diasVigenciaGoogle = 30;
 
+    // ── Combustible (costo de traslado) ──────────────────────────
+
+    /**
+     * Precio por litro (MXN) de fábrica: verde = Magna (regular), roja = Premium y diésel.
+     * Son aproximados (promedio nacional, noviembre de 2026). El personal los actualiza en
+     * Rutas → Combustible y esos tienen prioridad (se guardan en la tabla `settings`).
+     */
+    public array $preciosCombustible = [
+        'magna'   => 23.90,
+        'premium' => 25.90,
+        'diesel'  => 26.50,
+    ];
+
+    // ── Paradas "de paso" (estrategia por prioridad) ─────────────
+
+    /**
+     * Al ordenar por prioridad, un pedido normal que queda de camino a un preferencial se
+     * entrega antes si desviarse para dejarlo cuesta poco. Ejemplo: de Grajales a Puebla
+     * se pasa por Acajete; si hay pedidos en Acajete, se dejan al pasar.
+     *
+     * Se considera "de paso" si el kilometraje extra es como máximo el MENOR de:
+     *  - desvioMaxKm kilómetros, y
+     *  - desvioMaxPorcentaje % del tramo hacia el preferencial.
+     * Así, en un tramo corto de ciudad solo entra lo que de verdad está en el camino.
+     */
+    public float $desvioMaxKm = 5.0;
+
+    public float $desvioMaxPorcentaje = 15.0;
+
     /** Velocidad media (km/h) para el optimizador local, por vehículo. */
     public array $velocidadLocal = [
         'moto'      => 25,

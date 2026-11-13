@@ -10,6 +10,7 @@ use CodeIgniter\Router\RouteCollection;
  *  - Tienda .......... exige sesión iniciada (filtro "session"): carrito y pedido.
  *  - Panel ........... solo personal (filtro "group"): superadmin, admin y developer.
  *  - Repartidor ...... solo el grupo "repartidor": ve y actualiza únicamente sus entregas.
+ *  - Roles ........... solo superadmin: cambia el rol de las cuentas.
  *
  * Toda acción que modifica datos (guardar, modificar, BORRAR) es POST: el filtro CSRF solo
  * protege los métodos que no son GET, y un enlace GET de borrado se podría disparar desde
@@ -59,7 +60,14 @@ $routes->group('', ['filter' => 'session'], static function (RouteCollection $ro
 });
 
 // ───────────── REPARTIDOR (solo su grupo) ─────────────
+// Sus datos (nombre, teléfono, dirección, vehículo): se piden la primera vez que entra con el rol.
 $routes->group('repartidor', ['filter' => 'group:repartidor'], static function (RouteCollection $routes) {
+    $routes->get('mis-datos', 'Repartidores::mis_datos');
+    $routes->post('mis-datos', 'Repartidores::guarda_mis_datos');
+});
+
+// El resto exige la ficha completa (filtro repartidordatos → repartidor/mis-datos).
+$routes->group('repartidor', ['filter' => ['group:repartidor', 'repartidordatos']], static function (RouteCollection $routes) {
     $routes->get('entregas', 'Entregas::mis_entregas');
     $routes->post('entregas/(:num)/salir', 'Entregas::salir/$1');
     $routes->post('entregas/(:num)/entregar', 'Entregas::entregar/$1');
@@ -70,6 +78,12 @@ $routes->group('repartidor', ['filter' => 'group:repartidor'], static function (
     $routes->get('ruta/(:num)', 'Entregas::mi_ruta/$1');
     $routes->post('ruta/(:num)/iniciar', 'Entregas::iniciar_ruta/$1');
     $routes->post('ruta/(:num)/reoptimizar', 'Entregas::reoptimizar/$1');
+});
+
+// ───────────── ROLES (solo superadmin: asignar un rol es dar permisos) ─────────────
+$routes->group('roles', ['filter' => 'group:superadmin'], static function (RouteCollection $routes) {
+    $routes->get('/', 'Roles::index');
+    $routes->post('(:num)', 'Roles::cambiar/$1');
 });
 
 // ───────────── PANEL (solo personal) ─────────────
@@ -160,6 +174,8 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('rutas/guardar', 'Rutas::guardar');
     $routes->get('rutas/almacen', 'Rutas::almacen');
     $routes->post('rutas/almacen', 'Rutas::guarda_almacen');
+    $routes->get('rutas/combustible', 'Rutas::combustible');
+    $routes->post('rutas/combustible', 'Rutas::guarda_combustible');
     $routes->get('rutas/(:num)', 'Rutas::detalle/$1');
     $routes->post('rutas/(:num)/cancelar', 'Rutas::cancelar/$1');
     $routes->get('evidencia_entrega/(:num)', 'Entregas::evidencia/$1');

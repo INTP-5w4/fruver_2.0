@@ -59,6 +59,11 @@ class Existencias extends BaseController
             return redirect()->to('lista_existencia')->with('error', $this->validator && $this->validator->getErrors() ? $this->primerError() : 'Completa todos los campos.');
         }
 
+        // Una sola fila por producto: las entradas ya suman a la existente.
+        if ((new Modelo_existencia())->deProducto((int) $datos['id_producto']) !== null) {
+            return redirect()->to('lista_existencia')->with('error', 'Ese producto ya tiene existencia. Edítala en la lista (las entradas nuevas se suman solas).');
+        }
+
         try {
             (new Modelo_existencia())->insert($datos);
 
@@ -119,6 +124,11 @@ class Existencias extends BaseController
 
         if ($datos === null) {
             return redirect()->to('lista_existencia')->with('error', 'Completa todos los campos.');
+        }
+
+        $otra = (new Modelo_existencia())->deProducto((int) $datos['id_producto']);
+        if ($otra !== null && (int) $otra['id'] !== (int) $id) {
+            return redirect()->to('lista_existencia')->with('error', 'Ese producto ya tiene su propia fila de existencia (#' . (int) $otra['id'] . '). Edita esa.');
         }
 
         try {

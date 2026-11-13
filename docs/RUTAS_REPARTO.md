@@ -139,6 +139,33 @@ si el uso crece, cambia `rutas.mapaTiles` por un proveedor de capas comercial.
 Si el servicio de rutas no responde o se acaba la cuota del día, la ruta se calcula en
 modo aproximado y la pantalla lo indica: el reparto no se detiene.
 
+### Preferentes y pedidos "de paso"
+
+La opción **Preferentes primero** pone antes a los pedidos con hora límite y a los clientes
+preferenciales, pero un pedido normal que queda **en el camino** hacia un preferente se entrega
+al pasar (ej.: Grajales → Puebla pasando por Acajete). Cuenta como "de paso" si el desvío es
+como máximo el menor de `desvioMaxKm` (5 km) y `desvioMaxPorcentaje` (15 % del tramo), en
+`app/Config/Rutas.php` o en `.env`:
+
+```ini
+# rutas.desvioMaxKm = 5
+# rutas.desvioMaxPorcentaje = 15
+```
+
+Nunca se intercala nada antes de un pedido con hora límite. La opción avisa qué pedidos
+se dejan de paso. Los normales que no quedan en el camino van al final, por cercanía.
+
+### Combustible y costo de traslado
+
+Cada opción de ruta muestra los litros estimados y su costo (km ÷ rendimiento × precio por
+litro), y el costo por entrega. Al asignar la ruta se guardan en `ruta.litros`,
+`ruta.costo_combustible` y `ruta.precio_litro` (migración `AddCombustible`).
+
+- **Rendimiento (km/L) y combustible** (verde = Magna, roja = Premium, diésel): en la ficha
+  del repartidor. Sin dato se usa uno típico (moto 30, auto 12, camioneta 8 km/L).
+- **Precios por litro**: Rutas → **Combustible**. Los de fábrica están en
+  `Config\Rutas::$preciosCombustible`; los que captura el personal se guardan en la tabla `settings`.
+
 ## 5. Problemas comunes
 
 | Síntoma | Causa probable |
@@ -157,7 +184,8 @@ modo aproximado y la pantalla lo indica: el reparto no se detiene.
 - Motor: `app/Libraries/Rutas/` (`PlaneadorRutas`, `ServiciosMapa`, `OptimizadorOrs`, `OptimizadorGoogle`, `OptimizadorLocal`, `GeocodificadorOrs`, `Geocodificador`, `UbicadorDirecciones`, `EnlaceNavegacion`, `CspMapas`)
 - Modelos: `Modelo_ruta`, `Modelo_almacen` (+ cambios en `Modelo_direccion`, `Modelo_pedido`, `Modelo_entrega`, `Modelo_repartidor`)
 - Controladores: `Rutas` (planeador), `Entregas` (mi ruta, reoptimizar, evidencia), `Direcciones` (incluye el buscador), `Tienda`
-- Vistas: `rutas_planeador`, `rutas_detalle`, `rutas_almacen`, `mi_ruta`, `partials/*`
+- Vistas: `rutas_planeador`, `rutas_detalle`, `rutas_almacen`, `rutas_combustible`, `mi_ruta`, `partials/*`
+- Librerías: `app/Libraries/Rutas/*` (incluye `Combustible.php`)
 - JavaScript: `public/js/mapas.js` (adaptador Leaflet/Google), `geo_direccion.js`, `direccion_pedido.js`, `rutas_planeador.js`, `ruta_mapa.js`
 - Comando: `php spark direcciones:geocodificar`
 - Pruebas: `tests/unit/RutasTest.php`, `tests/unit/RutasOrsTest.php`, `tests/unit/VistasRutasTest.php`

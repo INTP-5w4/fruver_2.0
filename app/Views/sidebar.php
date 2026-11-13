@@ -43,6 +43,11 @@
             ['privacidad/preferencias', 'fa-user-shield', 'Privacidad', ['privacidad']],
         ],
     ];
+    // Roles: solo superadmin (la ruta también lo exige con el filtro group:superadmin).
+    $usuarioMenu = auth()->user();
+    if ($usuarioMenu !== null && $usuarioMenu->inGroup('superadmin')) {
+        $grupos['Sistema'][] = ['roles', 'fa-user-gear', 'Roles', ['roles']];
+    }
     $activa = static function (array $rutas) use ($rutaActual): bool {
         foreach ($rutas as $r) {
             if ($rutaActual === $r || ($r !== '' && str_starts_with($rutaActual, $r . '/'))) {
