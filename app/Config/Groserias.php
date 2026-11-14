@@ -25,18 +25,18 @@ class Groserias extends BaseConfig
     /** @var list<string> */
     public array $bloqueadas = [
         // Groserías comunes
-        'puto', 'puta', 'putos', 'putas', 'putita', 'putito', 'putitos', 'putitas', 'puton', 'putona',
+        'puto', 'puta', 'putos', 'puta s', 'putita', 'putito', 'putitos', 'putitas', 'puton', 'putona',
         'putazo', 'putazos', 'putiza', 'putero', 'puteria', 'putisimo', 'putisima', 'putear',
-        'pendej*', 'ching*', 'cabron*', 'mierd*', 'culer*', 'maric*', 'malparid*', 'hijueput*',
+        'pendej*', 'ching*', 'cabron*', 'mierd*', 'culer*', 'maric*', "maricon", "maricones", 'malparid*', 'hijueput*',
         'verga', 'vergas', 'vergazo', 'vergazos', 'vergota', 'vergotas', 'verguiza', 'vergudo', 'vergon',
-        'culo', 'culos', 'culito', 'culiao', 'culiado',
+        'culo', 'culos', 'culito', 'culiao', 'culiado', 'pito',
         'joto', 'jotos', 'jotito', 'jotitos',
         'mamada', 'mamadas', 'mames', 'mamahuev*', 'chupaverga*', 'chupapija*',
         'pinche', 'pinches', 'carajo', 'carajos', 'coño', 'cojones', 'cojudo', 'cojuda',
         'huevon', 'huevona', 'huevones', 'guevon', 'guevona', 'webon', 'webona',
         'ojete', 'ojetes', 'chichis', 'chichotas', 'tetas', 'tetotas',
         'zorra', 'zorras', 'perra', 'perras', 'prostituta', 'prostitutas',
-        'joder', 'jodete', 'jodanse', 'puñeta', 'puñetas', 'puñetero', 'puñetera',
+        'joder', 'jodete', 'jodanse', 'puñeta', 'puñetas', 'puñetero', 'puñetera', 'panochon', 'jueputa',//derivados
         'cagada', 'cagadas', 'cagar', 'cagon', 'cagona',
         'madrazo', 'madrazos', 'madrear', 'valemadre*', 'valiendo madre',
         // Insultos
@@ -46,7 +46,11 @@ class Groserias extends BaseConfig
         'ptm', 'hdp', 'hdtpm', 'chtm', 'pndj', 'pndjo', 'vrg', 'vrga', 'vrgs', 'nmms',
         // Frases
         'hijo de puta', 'hija de puta', 'hijos de puta', 'chinga tu madre', 'a la verga', 'no mames',
-        'vale madre', 'me vale madre', 'tu puta madre',
+        'vale madre', 'me vale madre', 'tu puta madre', 'mama tu puta madre', 'me cago en tu puta madre', 
+        'me cago en tu madre', 'me cago en la madre', 'me cago en todo',
+        'me cago en la verga', 'me cago en la chingada', 'me cago en la chingada madre', 
+        'me cago en la chingada tu puta madre', 'me cago en la chingada tu madre', "mamahuevazo", "mamahuevo"
+
     ];
 
     /**

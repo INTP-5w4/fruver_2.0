@@ -19,7 +19,7 @@ final class ServiciosMapa
         $cfg ??= config('Rutas');
 
         return match ($cfg->proveedorRutas()) {
-            'ors'    => new OptimizadorOrs($cfg->llaveOrs, $http ?? new TransporteCurl(), rtrim($cfg->urlOrs, '/'), substr($cfg->idioma, 0, 2), $cfg->tiempoEsperaSeg),
+            'ors'    => new OptimizadorOrs($cfg->llaveOrs, $http ?? new TransporteCurl(), rtrim($cfg->urlOrs, '/'), substr($cfg->idioma, 0, 2), $cfg->tiempoEsperaSeg, urlOptimiza: rtrim($cfg->urlOptimiza, '/')),
             'google' => new OptimizadorGoogle($cfg->llaveServidor, $http ?? new TransporteCurl(), $cfg->idioma, $cfg->region, $cfg->tiempoEsperaSeg),
             default  => null,
         };
@@ -30,7 +30,7 @@ final class ServiciosMapa
         $cfg ??= config('Rutas');
 
         return match ($cfg->proveedorRutas()) {
-            'ors'    => new GeocodificadorOrs($cfg->llaveOrs, $http ?? new TransporteCurl(), rtrim($cfg->urlOrs, '/'), $cfg->region, self::foco($cfg)),
+            'ors'    => new GeocodificadorOrs($cfg->llaveOrs, $http ?? new TransporteCurl(), rtrim($cfg->urlGeocodifica, '/'), $cfg->region, self::foco($cfg)),
             'google' => new Geocodificador($cfg->llaveServidor, $http ?? new TransporteCurl(), 'es', strtolower($cfg->region)),
             default  => null,
         };
