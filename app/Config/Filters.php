@@ -100,4 +100,14 @@ class Filters extends BaseFilters
             ],
         ],
     ];
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        // Barra de depuración apagable desde .env (toolbar.activa = false). Ver Config\Toolbar::$activa.
+        if (! config(Toolbar::class)->activa) {
+            $this->required['after'] = array_values(array_diff($this->required['after'], ['toolbar']));
+        }
+    }
 }

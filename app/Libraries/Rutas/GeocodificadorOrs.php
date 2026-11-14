@@ -19,7 +19,7 @@ final class GeocodificadorOrs implements GeocodificadorInterface
     public function __construct(
         private readonly string $llave,
         private readonly TransporteHttp $http,
-        private readonly string $url = 'https://api.heigit.org/openrouteservice',
+        private readonly string $url = 'https://api.heigit.org/pelias/v1',
         private readonly string $pais = 'MX',
         private readonly ?Punto $foco = null,
         private readonly int $tiempoEsperaSeg = 10,
@@ -36,7 +36,7 @@ final class GeocodificadorOrs implements GeocodificadorInterface
 
     public function geocodificar(string $direccion): ?array
     {
-        $r = $this->buscarEn('/geocode/search', $direccion, 1);
+        $r = $this->buscarEn('/search', $direccion, 1);
 
         return $r[0] ?? null;
     }
@@ -48,7 +48,7 @@ final class GeocodificadorOrs implements GeocodificadorInterface
      */
     public function sugerencias(string $texto, int $limite = 5): array
     {
-        return $this->buscarEn('/geocode/autocomplete', $texto, max(1, min(10, $limite)));
+        return $this->buscarEn('/autocomplete', $texto, max(1, min(10, $limite)));
     }
 
     /** @return list<array<string,mixed>> */

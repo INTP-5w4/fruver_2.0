@@ -39,7 +39,11 @@ class Logger extends BaseConfig
      *
      * @var int|list<int>
      */
-    public $threshold = (ENVIRONMENT === 'production') ? 4 : 9;
+    // Producción: hasta 6 (notice) para conservar la auditoría (cambios de rol = notice,
+    // sesión descartada por huella = warning). Desarrollo: hasta 7 (info); el nivel debug
+    // solo agregaba una línea fija por petición ("Session: Class initialized...") y,
+    // bajo carga, todas las peticiones competían por el mismo archivo de log.
+    public $threshold = (ENVIRONMENT === 'production') ? 6 : 7;
 
     /**
      * --------------------------------------------------------------------------

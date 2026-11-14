@@ -8,7 +8,7 @@ use JsonException;
 /**
  * Rutas con openrouteservice (HeiGIT), sobre datos de OpenStreetMap.
  *
- *  1. Orden óptimo: endpoint /optimization (motor VROOM). Solo cuando la estrategia
+ *  1. Orden óptimo: api.heigit.org/vroom/v0 (motor VROOM). Solo cuando la estrategia
  *     reordena (rápida, sin casetas). Si la ruta no regresa al almacén, VROOM elige
  *     también cuál parada conviene dejar al final.
  *  2. Medición: /v2/directions/{perfil}/json con las paradas en ese orden → distancia
@@ -40,6 +40,8 @@ final class OptimizadorOrs implements OptimizadorInterface
         private readonly string $url = 'https://api.heigit.org/openrouteservice',
         private readonly string $idioma = 'es',
         private readonly int $tiempoEsperaSeg = 15,
+        /** VROOM ya no vive bajo /openrouteservice: tiene su propia dirección (ver Config\Rutas::$urlOptimiza). */
+        private readonly string $urlOptimiza = 'https://api.heigit.org/vroom/v0',
     ) {
         if (trim($llave) === '') {
             throw new InvalidArgumentException('Falta la llave de openrouteservice (rutas.llaveOrs).');
@@ -91,7 +93,7 @@ final class OptimizadorOrs implements OptimizadorInterface
             return $this->memoria[$clave];
         }
 
-        $json = $this->pedir($this->url . '/optimization', $cuerpo);
+        $json = $this->pedir($this->urlOptimiza, $cuerpo);
 
         if ((int) ($json['code'] ?? -1) !== 0) {
             throw new ErrorProveedorRutas('openrouteservice no pudo optimizar la ruta (código ' . ($json['code'] ?? '?') . ').');

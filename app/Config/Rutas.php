@@ -35,8 +35,19 @@ class Rutas extends BaseConfig
     /** Llave (token) de https://account.heigit.org. Se usa SOLO en PHP; nunca llega al navegador. */
     public string $llaveOrs = '';
 
-    /** Dirección del servicio (la antigua api.openrouteservice.org se retira en noviembre de 2026). */
+    /**
+     * Direcciones de los servicios de HeiGIT (la antigua api.openrouteservice.org ya no responde).
+     * Cada servicio tiene su propia dirección; la misma llave sirve para los tres.
+     */
+
+    /** Rutas y matriz de tiempos: {urlOrs}/v2/directions/..., {urlOrs}/v2/matrix/... */
     public string $urlOrs = 'https://api.heigit.org/openrouteservice';
+
+    /** Búsqueda de direcciones (Pelias): {urlGeocodifica}/search, /autocomplete, /reverse */
+    public string $urlGeocodifica = 'https://api.heigit.org/pelias/v1';
+
+    /** Optimización de paradas (VROOM): se llama directo a {urlOptimiza}, sin agregar nada. */
+    public string $urlOptimiza = 'https://api.heigit.org/vroom/v0';
 
     // ── Mapa en el navegador (Leaflet) para ors y local ──────────
 
