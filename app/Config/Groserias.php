@@ -25,7 +25,7 @@ class Groserias extends BaseConfig
     /** @var list<string> */
     public array $bloqueadas = [
         // Groserías comunes
-        'puto', 'puta', 'putos', 'puta s', 'putita', 'putito', 'putitos', 'putitas', 'puton', 'putona',
+        'puto', 'puta', 'putos', 'putas', 'putita', 'putito', 'putitos', 'putitas', 'puton', 'putona',
         'putazo', 'putazos', 'putiza', 'putero', 'puteria', 'putisimo', 'putisima', 'putear',
         'pendej*', 'ching*', 'cabron*', 'mierd*', 'culer*', 'maric*', "maricon", "maricones", 'malparid*', 'hijueput*',
         'verga', 'vergas', 'vergazo', 'vergazos', 'vergota', 'vergotas', 'verguiza', 'vergudo', 'vergon',
