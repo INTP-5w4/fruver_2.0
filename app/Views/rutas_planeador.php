@@ -137,23 +137,24 @@
                 </button>
             </div>
             <p class="w3-small" id="estadoCalculo" role="status"></p>
-
-            <div id="bloqueOpciones" hidden>
-                <h3 style="margin-top:14px;">3. Escoge la ruta</h3>
-                <div class="rutas-opciones" id="opciones"></div>
-                <form method="post" action="<?= base_url('rutas/guardar') ?>" id="formGuardar" class="w3-margin-top">
-                    <?= csrf_field() ?>
-                    <input type="hidden" name="token" id="g_token">
-                    <input type="hidden" name="estrategia" id="g_estrategia">
-                    <button type="submit" class="w3-button w3-green w3-block"><i class="fa-solid fa-check"></i> Asignar esta ruta al repartidor</button>
-                </form>
-            </div>
         </section>
 
         <section>
             <div class="rutas-mapa" id="mapaRutas"></div>
             <p class="geo-estado" data-mapa-estado hidden></p>
         </section>
+    </div>
+
+    <!-- 3. Opciones de ruta: tarjetas en fila (tercios del ancho) debajo de la configuración y el mapa -->
+    <div class="rutas-panel w3-margin-top" id="bloqueOpciones" hidden>
+        <h3>3. Escoge la ruta</h3>
+        <div class="rutas-opciones" id="opciones" role="radiogroup" aria-label="Opciones de ruta"></div>
+        <form method="post" action="<?= base_url('rutas/guardar') ?>" id="formGuardar" class="rutas-opciones-guardar">
+            <?= csrf_field() ?>
+            <input type="hidden" name="token" id="g_token">
+            <input type="hidden" name="estrategia" id="g_estrategia">
+            <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-check"></i> Asignar esta ruta al repartidor</button>
+        </form>
     </div>
 
     <div class="rutas-panel w3-margin-top">

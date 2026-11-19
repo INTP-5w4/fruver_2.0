@@ -117,7 +117,8 @@
             var op  = datos.opciones[clave];
             var div = document.createElement('div');
             div.className = 'ruta-opcion';
-            div.setAttribute('role', 'button');
+            div.setAttribute('role', 'radio');
+            div.setAttribute('aria-checked', 'false');
             div.setAttribute('tabindex', '0');
 
             var h = document.createElement('h4');
@@ -171,8 +172,12 @@
             }
 
             function elegir() {
-                cajaOps.querySelectorAll('.ruta-opcion').forEach(function (x) { x.classList.remove('activa'); });
+                cajaOps.querySelectorAll('.ruta-opcion').forEach(function (x) {
+                    x.classList.remove('activa');
+                    x.setAttribute('aria-checked', 'false');
+                });
                 div.classList.add('activa');
+                div.setAttribute('aria-checked', 'true');
                 document.getElementById('g_token').value = datos.token;
                 document.getElementById('g_estrategia').value = clave;
                 aplicarOrden(op);
@@ -187,6 +192,10 @@
 
         bloqueOps.hidden = false;
         if (btnManual) { btnManual.hidden = false; }
+
+        // Las tarjetas quedan debajo del mapa: se baja lo justo para que se vean completas
+        var sinAnimacion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        bloqueOps.scrollIntoView({ behavior: sinAnimacion ? 'auto' : 'smooth', block: 'nearest' });
     }
 
     /** Ordena la lista según la opción elegida y muestra número y hora estimada. */
