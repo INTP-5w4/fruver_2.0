@@ -15,7 +15,7 @@ use JsonException;
  *             de vía, o su límite «maxspeed» si es menor).
  *
  * Restricciones que se respetan: oneway=yes/-1, glorietas y autopistas (de un sentido aunque
- * no lo digan) y vías con access=no/private (no se descargan). Las vueltas prohibidas
+ * no lo digan) y vías con access=no/private o motor_vehicle=no (no se descargan). Las vueltas prohibidas
  * (relaciones de OpenStreetMap) NO se consideran.
  *
  * Privacidad: a Overpass solo se mandan coordenadas redondeadas a 2 decimales (~1 km) para
@@ -23,8 +23,14 @@ use JsonException;
  */
 final class GrafoCalles
 {
-    /** Calles locales: solo se piden cerca del origen y del destino (en el resto, vías principales). */
-    public const LOCALES = ['residential', 'living_street', 'service', 'road'];
+    /**
+     * Calles locales y caminos rurales: en trayectos largos solo se piden cerca del origen y del
+     * destino (en el resto, vías principales); en trayectos cortos, en todo el rectángulo.
+     */
+    public const LOCALES = ['residential', 'living_street', 'service', 'road', 'track'];
+
+    /** Estados HTTP de Overpass que suelen ser pasajeros (saturación): se reintenta una vez. */
+    private const REINTENTABLES = [0, 429, 502, 503, 504];
 
     /** @var array<int, array{0:float,1:float}> nodo => [lat, lng] (solo nodos que están en alguna arista) */
     private array $coords = [];
@@ -43,12 +49,28 @@ final class GrafoCalles
 
     /**
      * Consulta de Overpass: vías principales en un rectángulo que cubre ambos puntos (con
-     * margen) y calles locales alrededor de cada uno.
+     * margen) y calles locales alrededor de cada uno. Si los puntos están a $kmTodasLasCalles
+     * o menos en línea recta, se piden todas las calles del rectángulo (así no faltan los
+     * caminos menores que conectan pueblos cercanos).
      *
      * @param array<string,int|float> $velocidades
      */
-    public static function consulta(Punto $a, Punto $b, array $velocidades, int $radioLocalesM = 2000, float $margenGrados = 0.02): string
-    {
+    public static function consulta(
+        Punto $a,
+        Punto $b,
+        array $velocidades,
+        int $radioLocalesM = 2000,
+        ?float $margenGrados = null,
+        float $kmTodasLasCalles = 10.0,
+    ): string {
+        // Margen alrededor de los puntos: crece con la distancia, porque el mejor camino puede
+        // rodear (una fábrica, un río, una autopista sin cruce) y salirse de un rectángulo justo.
+        $margenGrados ??= max(0.03, 0.5 * max(abs($a->lat - $b->lat), abs($a->lng - $b->lng)));
+
+        if ($a->distanciaA($b) <= $kmTodasLasCalles * 1000) {
+            return self::consultaRectangulo($a, $b, array_keys($velocidades), $margenGrados);
+        }
+
         $principales = array_values(array_diff(array_keys($velocidades), self::LOCALES));
         $locales     = array_values(array_intersect(array_keys($velocidades), self::LOCALES));
 
@@ -60,7 +82,7 @@ final class GrafoCalles
 
         // El redondeo mueve el centro hasta ~800 m: el radio se amplía para seguir cubriendo el punto.
         $radio   = $radioLocalesM + 800;
-        $acceso  = '["access"!~"^(no|private)$"]';
+        $acceso  = '["access"!~"^(no|private)$"]["motor_vehicle"!~"^(no|private)$"]';
         $filtroP = '["highway"~"^(' . implode('|', $principales) . ')$"]' . $acceso;
         $filtroL = '["highway"~"^(' . implode('|', $locales) . ')$"]' . $acceso . '["service"!~"^(parking_aisle|driveway)$"]';
 
@@ -73,6 +95,20 @@ final class GrafoCalles
         }
 
         return $q . ');(._;>;);out body qt;';
+    }
+
+    /** @param list<string> $tipos */
+    private static function consultaRectangulo(Punto $a, Punto $b, array $tipos, float $margenGrados): string
+    {
+        $sur   = floor((min($a->lat, $b->lat) - $margenGrados) * 100) / 100;
+        $norte = ceil((max($a->lat, $b->lat) + $margenGrados) * 100) / 100;
+        $oeste = floor((min($a->lng, $b->lng) - $margenGrados) * 100) / 100;
+        $este  = ceil((max($a->lng, $b->lng) + $margenGrados) * 100) / 100;
+
+        $filtro = '["highway"~"^(' . implode('|', $tipos) . ')$"]["access"!~"^(no|private)$"]'
+            . '["motor_vehicle"!~"^(no|private)$"]["service"!~"^(parking_aisle|driveway)$"]';
+
+        return sprintf('[out:json][timeout:90];(way%s(%.2F,%.2F,%.2F,%.2F););(._;>;);out body qt;', $filtro, $sur, $oeste, $norte, $este);
     }
 
     /**
@@ -91,21 +127,36 @@ final class GrafoCalles
         int $tiempoEsperaSeg = 40,
         ?callable $cache = null,
         ?callable $guardar = null,
+        float $kmTodasLasCalles = 10.0,
+        int $esperaReintentoSeg = 3,
     ): self {
-        $consulta = self::consulta($a, $b, $velocidades, $radioLocalesM);
+        $consulta = self::consulta($a, $b, $velocidades, $radioLocalesM, null, $kmTodasLasCalles);
         $json     = $cache !== null ? $cache($consulta) : null;
 
         if ($json === null) {
-            $r = $http->get($url, ['data' => $consulta], $tiempoEsperaSeg, [
-                'Accept'     => 'application/json',
-                'User-Agent' => 'Fruver/2.0 (planeador de rutas)',
-            ]);
+            // El servidor público se satura a ratos (502/503/504/429): un reintento suele bastar.
+            for ($intento = 1; ; $intento++) {
+                try {
+                    $r = $http->get($url, ['data' => $consulta], $tiempoEsperaSeg, [
+                        'Accept'     => 'application/json',
+                        'User-Agent' => 'Fruver/2.0 (planeador de rutas)',
+                    ]);
+                } catch (ErrorProveedorRutas) {
+                    $r = ['status' => 0, 'cuerpo' => ''];
+                }
+
+                if ($r['status'] === 200 || $intento >= 2 || ! in_array($r['status'], self::REINTENTABLES, true)) {
+                    break;
+                }
+                sleep(max(0, $esperaReintentoSeg));
+            }
 
             if ($r['status'] !== 200) {
                 throw new ErrorProveedorRutas(match ($r['status']) {
-                    429     => 'El servicio de calles (Overpass) está saturado; intenta en un minuto.',
-                    504     => 'El servicio de calles (Overpass) tardó demasiado; intenta de nuevo o con puntos más cercanos.',
-                    default => 'El servicio de calles (Overpass) respondió HTTP ' . $r['status'] . '.',
+                    0                 => 'No se pudo conectar con el servicio de calles (Overpass). Revisa la conexión a internet e intenta de nuevo.',
+                    429, 502, 503     => 'El servicio de calles (Overpass) está saturado en este momento; intenta de nuevo en un minuto.',
+                    504               => 'El servicio de calles (Overpass) tardó demasiado; intenta de nuevo o con puntos más cercanos.',
+                    default           => 'El servicio de calles (Overpass) respondió HTTP ' . $r['status'] . '.',
                 });
             }
 

@@ -261,7 +261,7 @@
         cargar: function () { return cfg ? motor.cargar() : Promise.reject(new Error('Mapa no configurado.')); },
         crearMapa: function (el, c, z) { return motor.crearMapa(el, c, z); },
         marcador: function (m, p, o) { return motor.marcador(m, p, o); },
-        dibujarRuta: function (m, c, p, col) { return motor.dibujarRuta(m, c, p, col); },
+        dibujarRuta: function (m, c, p, col, solida) { return motor.dibujarRuta(m, c, p, col, solida); },
         encuadrar: function (m, p) { return motor.encuadrar(m, p); },
         centrar: function (m, p, z) { return motor.centrar(m, p, z); },
         alClicMapa: function (m, fn) { return motor.alClicMapa(m, fn); },

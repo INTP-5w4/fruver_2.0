@@ -36,14 +36,17 @@ $primerAlmacen = $almacenes !== [] ? 'a' . (int) $almacenes[0]['id'] : '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= esc(csrf_hash(), 'attr') ?>">
     <?= view('partials/mapa_config', ['almacenMapa' => $almacenMapa]) ?>
-    <script src="<?= base_url('js/rutas_dijkstra.js') ?>" defer></script>
+    <script src="<?= base_url('js/rutas_dijkstra.js') ?>?v=<?= @filemtime(FCPATH . 'js/rutas_dijkstra.js') ?: 1 ?>" defer></script>
     <title>Dijkstra entre dos puntos</title>
     <style>
+        /* En esta pantalla el mapa no se queda «pegado» al bajar (en el planeador sí): así no tapa las cifras. */
+        /* Leaflet le pone position: relative al mapa; sin top: 0 heredaría el top: 80px del planeador y se recorrería. */
+        #mapaDijkstra { position: relative; top: 0; isolation: isolate; height: 60vh; min-height: 380px; }
         .dij-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; align-items: end; }
         .dij-cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
         .dij-cifra { border: 1px solid var(--linea); border-radius: var(--r-tarjeta); padding: 10px 12px; background: var(--superficie); }
         .dij-cifra b { display: block; font-size: 1.2em; }
-        .dij-leyenda span { display: inline-block; width: 22px; height: 4px; vertical-align: middle; margin: 0 4px 0 10px; }
+        .dij-leyenda .dij-color { display: inline-block; width: 22px; height: 4px; vertical-align: middle; margin: 0 4px 0 10px; }
     </style>
 </head>
 <body>
@@ -87,8 +90,8 @@ $primerAlmacen = $almacenes !== [] ? 'a' . (int) $almacenes[0]['id'] : '';
             <div class="rutas-mapa" id="mapaDijkstra"></div>
             <p class="geo-estado" data-mapa-estado hidden></p>
             <p class="w3-small dij-leyenda" id="leyendaDijkstra" hidden>
-                <span style="background:#c62828"></span>Camino de Dijkstra
-                <span style="background:#1565c0; opacity:.6"></span><span id="leyendaServicio">Servicio de rutas</span>
+                <span class="dij-color" style="background:#c62828"></span>Camino de Dijkstra
+                <span class="dij-color" style="background:#1565c0"></span><span id="leyendaServicio">Servicio de rutas</span>
             </p>
             <div class="dij-cifras" id="cifrasDijkstra"></div>
         </div>

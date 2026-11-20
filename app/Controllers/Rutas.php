@@ -596,6 +596,7 @@ class Rutas extends BaseController
                 $cfg->radioCallesLocalesM, $cfg->tiempoEsperaOverpassSeg,
                 $horas > 0 ? static fn (string $q): ?array => cache($cacheKey($q)) ?: null : null,
                 $horas > 0 ? static function (string $q, array $json) use ($cacheKey, $horas): void { cache()->save($cacheKey($q), $json, $horas * 3600); } : null,
+                $cfg->kmTodasLasCalles,
             );
             $tDescarga = microtime(true) - $t0;
         } catch (ErrorProveedorRutas $e) {

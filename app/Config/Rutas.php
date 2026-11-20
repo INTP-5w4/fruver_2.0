@@ -156,8 +156,12 @@ class Rutas extends BaseConfig
         'residential'    => 25,
         'road'           => 25,
         'service'        => 15,
+        'track'          => 15,   // caminos rurales (terracería)
         'living_street'  => 10,
     ];
+
+    /** Si los puntos están a esta distancia o menos (km, línea recta), se descargan TODAS las calles del rectángulo. */
+    public float $kmTodasLasCalles = 10.0;
 
     /** Velocidad media (km/h) para el optimizador local, por vehículo. */
     public array $velocidadLocal = [

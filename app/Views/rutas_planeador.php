@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= esc(csrf_hash(), 'attr') ?>">
     <?= view('partials/mapa_config', ['almacenMapa' => $almacenMapa]) ?>
-    <script src="<?= base_url('js/rutas_planeador.js') ?>" defer></script>
+    <script src="<?= base_url('js/rutas_planeador.js') ?>?v=<?= @filemtime(FCPATH . 'js/rutas_planeador.js') ?: 1 ?>" defer></script>
     <title>Rutas de reparto</title>
 </head>
 <body>
