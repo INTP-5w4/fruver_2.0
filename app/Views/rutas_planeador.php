@@ -27,6 +27,7 @@
         <div>
             <a href="<?= base_url('rutas/almacen') ?>" class="w3-button w3-border"><i class="fa-solid fa-warehouse"></i> Almacén</a>
             <a href="<?= base_url('rutas/combustible') ?>" class="w3-button w3-border" title="Precios de la gasolina verde, roja y diésel"><i class="fa-solid fa-gas-pump"></i> Combustible</a>
+            <a href="<?= base_url('rutas/dijkstra') ?>" class="w3-button w3-border" title="Camino de menor costo entre dos puntos, calculado con Dijkstra sobre las calles"><i class="fa-solid fa-route"></i> Dijkstra</a>
             <a href="<?= base_url('lista_direccion') ?>" class="w3-button w3-border"><i class="fa-solid fa-map-location-dot"></i> Direcciones</a>
         </div>
     </div>

@@ -5,12 +5,16 @@ namespace App\Controllers;
 use App\Libraries\Rutas\ArbolExpansionMinima;
 use App\Libraries\Rutas\Combustible;
 use App\Libraries\Rutas\CspMapas;
+use App\Libraries\Rutas\Dijkstra;
 use App\Libraries\Rutas\EnlaceNavegacion;
+use App\Libraries\Rutas\ErrorProveedorRutas;
+use App\Libraries\Rutas\GrafoCalles;
 use App\Libraries\Rutas\OpcionesRuta;
 use App\Libraries\Rutas\Parada;
 use App\Libraries\Rutas\PlaneadorRutas;
 use App\Libraries\Rutas\Punto;
 use App\Libraries\Rutas\ResultadoRuta;
+use App\Libraries\Rutas\TransporteCurl;
 use App\Libraries\Rutas\UbicadorDirecciones;
 use App\Models\Modelo_almacen;
 use App\Models\Modelo_cliente;
@@ -525,6 +529,160 @@ class Rutas extends BaseController
         $calculos          = (array) session(self::SESION);
         $calculos[$token]  = $datos;
         session()->set(self::SESION, array_slice($calculos, -5, null, true));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // DIJKSTRA ENTRE DOS PUNTOS (calles de OpenStreetMap)
+    // ─────────────────────────────────────────────────────────────
+
+    /** Página para calcular el camino de menor costo entre dos puntos con Dijkstra. */
+    public function dijkstra()
+    {
+        $m_ruta = new Modelo_ruta();
+        if (! $m_ruta->esquemaListo()) {
+            return $this->sinMigracion();
+        }
+
+        $almacenes = (new Modelo_almacen())->activos();
+        CspMapas::permitir($this->response);
+
+        return view('rutas_dijkstra', [
+            'almacenes'   => $almacenes,
+            'direcciones' => (new Modelo_direccion())->ubicadas(),
+            'almacenMapa' => $almacenes[0] ?? null,
+        ]);
+    }
+
+    /** POST (JSON): descarga las calles, arma el grafo y corre Dijkstra. */
+    public function dijkstra_calcular()
+    {
+        $reglas = [
+            'origen'   => ['required', 'regex_match[/^[ad]\d{1,10}$/]'],
+            'destino'  => ['required', 'regex_match[/^[ad]\d{1,10}$/]'],
+            'criterio' => 'required|in_list[tiempo,distancia]',
+        ];
+        if (! $this->validate($reglas)) {
+            return $this->json(false, 'Elige el origen, el destino y el criterio.', [], 422);
+        }
+
+        // Las coordenadas salen de la base de datos, nunca del navegador.
+        $origen  = $this->puntoDijkstra($this->post('origen'));
+        $destino = $this->puntoDijkstra($this->post('destino'));
+        if ($origen === null || $destino === null) {
+            return $this->json(false, 'El origen o el destino no existe o no está ubicado en el mapa.', [], 422);
+        }
+        if ($this->post('origen') === $this->post('destino')) {
+            return $this->json(false, 'El origen y el destino son el mismo punto.', [], 422);
+        }
+
+        $cfg   = config('Rutas');
+        $recta = $origen['punto']->distanciaA($destino['punto']) / 1000;
+        if ($recta > $cfg->maxKmDijkstra) {
+            return $this->json(false, 'Los puntos están a ' . number_format($recta, 1) . ' km en línea recta; el máximo para descargar las calles es '
+                . number_format($cfg->maxKmDijkstra, 0) . ' km.', [], 422);
+        }
+
+        // La descarga de calles puede tardar casi un minuto: más margen que el límite normal de PHP.
+        set_time_limit(max(60, $cfg->tiempoEsperaOverpassSeg + 60));
+
+        $criterio = $this->post('criterio');
+        $horas    = max(0, $cfg->horasCacheCalles);
+        $cacheKey = static fn (string $consulta): string => 'calles_osm_' . md5($consulta);
+
+        try {
+            $t0    = microtime(true);
+            $grafo = GrafoCalles::descargar(
+                $origen['punto'], $destino['punto'], new TransporteCurl(), $cfg->urlOverpass, $cfg->velocidadesVia,
+                $cfg->radioCallesLocalesM, $cfg->tiempoEsperaOverpassSeg,
+                $horas > 0 ? static fn (string $q): ?array => cache($cacheKey($q)) ?: null : null,
+                $horas > 0 ? static function (string $q, array $json) use ($cacheKey, $horas): void { cache()->save($cacheKey($q), $json, $horas * 3600); } : null,
+            );
+            $tDescarga = microtime(true) - $t0;
+        } catch (ErrorProveedorRutas $e) {
+            log_message('error', 'Dijkstra: ' . $e->getMessage());
+
+            return $this->json(false, $e->getMessage(), [], 502);
+        } catch (Throwable $e) {
+            return $this->json(false, PdoModelo::mensajeSeguro($e, 'No se pudieron descargar las calles.'), [], 500);
+        }
+
+        if ($grafo->numNodos() === 0) {
+            return $this->json(false, 'No se encontraron calles en esa zona.', [], 422);
+        }
+
+        // Origen y destino se «pegan» al nodo de calle más cercano.
+        [$nOrigen, $dOrigen]   = $grafo->nodoMasCercano($origen['punto']);
+        [$nDestino, $dDestino] = $grafo->nodoMasCercano($destino['punto']);
+        if ($dOrigen > 1000 || $dDestino > 1000) {
+            return $this->json(false, 'El ' . ($dOrigen > 1000 ? 'origen' : 'destino') . ' queda a más de 1 km de cualquier calle del mapa.', [], 422);
+        }
+
+        $t1        = microtime(true);
+        $resultado = Dijkstra::caminoMasCorto($grafo->adyacencia($criterio), $nOrigen, $nDestino);
+        $tDijkstra = microtime(true) - $t1;
+
+        if ($resultado === null) {
+            return $this->json(false, 'No hay camino por calles entre esos puntos (puede faltar una calle en el mapa o un sentido de circulación lo impide).', [], 422);
+        }
+
+        $medida = $grafo->medir($resultado['camino'], $criterio);
+
+        // Comparación con el servicio de rutas (openrouteservice o Google), si hay.
+        $servicio = null;
+        $planeador = PlaneadorRutas::crear($cfg);
+        if ($planeador->hayServicio()) {
+            try {
+                $op = new OpcionesRuta('manual', 'auto', new \DateTimeImmutable('+1 hour'), false);
+                $r  = $planeador->calcular($origen['punto'], [new Parada('p0', $destino['punto'])], $op);
+                if ($r->proveedor !== 'local') {
+                    $servicio = [
+                        'nombre'   => $cfg->nombreProveedor(),
+                        'km'       => rutas_km($r->distanciaM),
+                        'tiempo'   => rutas_duracion($r->duracionS),
+                        'polyline' => $r->polyline,
+                    ];
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'Dijkstra: no se pudo comparar con el servicio de rutas. ' . $e->getMessage());
+            }
+        }
+
+        return $this->json(true, '', [
+            'origen'   => ['nombre' => $origen['nombre'], 'lat' => $origen['punto']->lat, 'lng' => $origen['punto']->lng],
+            'destino'  => ['nombre' => $destino['nombre'], 'lat' => $destino['punto']->lat, 'lng' => $destino['punto']->lng],
+            'camino'   => $grafo->coordenadas($resultado['camino']),
+            'km'       => rutas_km((int) round($medida['metros'])),
+            'tiempo'   => rutas_duracion((int) round($medida['segundos'])),
+            'criterio' => $criterio,
+            'grafo'    => [
+                'nodos'       => $grafo->numNodos(),
+                'aristas'     => $grafo->numAristas(),
+                'visitados'   => $resultado['visitados'],
+                'nodosCamino' => count($resultado['camino']),
+                'acercamiento' => (int) round(max($dOrigen, $dDestino)),
+                'msDescarga'  => (int) round($tDescarga * 1000),
+                'msDijkstra'  => (int) round($tDijkstra * 1000),
+            ],
+            'servicio' => $servicio,
+        ]);
+    }
+
+    /** "a3" = almacén 3, "d15" = dirección 15. @return array{punto:Punto,nombre:string}|null */
+    private function puntoDijkstra(string $clave): ?array
+    {
+        $id = (int) substr($clave, 1);
+
+        if ($clave[0] === 'a') {
+            $a = (new Modelo_almacen())->find($id);
+            $p = $a !== null && (int) $a['activo'] === 1 ? Modelo_almacen::punto($a) : null;
+
+            return $p === null ? null : ['punto' => $p, 'nombre' => 'Almacén: ' . $a['nombre']];
+        }
+
+        $d = (new Modelo_direccion())->find($id);
+        $p = $d !== null ? Punto::desde($d['lat'] ?? null, $d['lng'] ?? null) : null;
+
+        return $p === null ? null : ['punto' => $p, 'nombre' => Modelo_ruta::textoDireccion($d)];
     }
 
     private function json(bool $ok, string $mensaje, array $extra = [], int $codigo = 200)

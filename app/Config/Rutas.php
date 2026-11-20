@@ -125,6 +125,40 @@ class Rutas extends BaseConfig
 
     public float $desvioMaxPorcentaje = 15.0;
 
+    // ── Dijkstra sobre calles de OpenStreetMap (Rutas → Dijkstra) ─
+
+    /** Servicio Overpass (gratuito, sin llave). Solo recibe coordenadas redondeadas (~1 km). */
+    public string $urlOverpass = 'https://overpass-api.de/api/interpreter';
+
+    /** Radio (m) alrededor del origen y del destino en el que se descargan también las calles locales. */
+    public int $radioCallesLocalesM = 2000;
+
+    /** Distancia máxima (km, en línea recta) entre los dos puntos: más lejos, la descarga es muy pesada. */
+    public float $maxKmDijkstra = 40.0;
+
+    /** Segundos máximos de espera a Overpass (el servidor público suele tardar 30–50 s por zona). */
+    public int $tiempoEsperaOverpassSeg = 90;
+
+    /** Horas que se guardan en caché las calles descargadas (0 = no guardar). */
+    public int $horasCacheCalles = 24;
+
+    /**
+     * Velocidad (km/h) por tipo de vía (etiqueta highway de OpenStreetMap): da el peso en
+     * segundos de cada arista. Las vías que no estén aquí no entran al grafo.
+     */
+    public array $velocidadesVia = [
+        'motorway'       => 90, 'motorway_link'  => 50,
+        'trunk'          => 80, 'trunk_link'     => 40,
+        'primary'        => 60, 'primary_link'   => 40,
+        'secondary'      => 50, 'secondary_link' => 35,
+        'tertiary'       => 40, 'tertiary_link'  => 30,
+        'unclassified'   => 30,
+        'residential'    => 25,
+        'road'           => 25,
+        'service'        => 15,
+        'living_street'  => 10,
+    ];
+
     /** Velocidad media (km/h) para el optimizador local, por vehículo. */
     public array $velocidadLocal = [
         'moto'      => 25,

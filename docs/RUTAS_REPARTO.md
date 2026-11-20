@@ -168,6 +168,24 @@ Para guardarla con su nombre corre `php spark migrate` (`AddEstrategiaArbol`) o,
 Las pruebas (`tests/unit/ArbolExpansionMinimaTest.php`) comparan Prim con un Kruskal básico y
 con fuerza bruta (todos los árboles posibles de 5 nodos).
 
+### Dijkstra entre dos puntos
+
+**Rutas → Dijkstra** calcula el camino de menor costo entre dos puntos (almacén o direcciones
+ubicadas) con el algoritmo de Dijkstra en su versión básica (`app/Libraries/Rutas/Dijkstra.php`):
+
+1. Descarga las calles de la zona desde OpenStreetMap con el servicio **Overpass** (gratuito, sin
+   llave): vías principales en un rectángulo que cubre ambos puntos y calles locales a 2 km de cada uno.
+2. Arma un grafo dirigido (`GrafoCalles.php`): cada tramo de calle es una arista; las de doble sentido
+   aportan dos y las de un sentido (oneway, glorietas, autopistas) solo una. Peso: metros o segundos
+   (según la velocidad del tipo de vía, `Config\Rutas::$velocidadesVia`).
+3. Pega el origen y el destino al nodo de calle más cercano, corre Dijkstra y dibuja el camino en rojo,
+   junto al del servicio de rutas en azul para compararlos.
+
+A Overpass solo se mandan coordenadas redondeadas a ~1 km; la dirección exacta no sale del servidor.
+El servidor público tarda de 30 a 50 s por zona; lo descargado se guarda 24 h en caché
+(`rutas.horasCacheCalles`). No considera vueltas prohibidas ni tráfico. Pruebas: `tests/unit/DijkstraTest.php`
+(compara con Bellman-Ford en 150 grafos al azar).
+
 ### Combustible y costo de traslado
 
 Cada opción de ruta muestra los litros estimados y su costo (km ÷ rendimiento × precio por

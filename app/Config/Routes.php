@@ -176,6 +176,8 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('rutas/almacen', 'Rutas::guarda_almacen');
     $routes->get('rutas/combustible', 'Rutas::combustible');
     $routes->post('rutas/combustible', 'Rutas::guarda_combustible');
+    $routes->get('rutas/dijkstra', 'Rutas::dijkstra');
+    $routes->post('rutas/dijkstra', 'Rutas::dijkstra_calcular');
     $routes->get('rutas/(:num)', 'Rutas::detalle/$1');
     $routes->post('rutas/(:num)/cancelar', 'Rutas::cancelar/$1');
     $routes->get('evidencia_entrega/(:num)', 'Entregas::evidencia/$1');
