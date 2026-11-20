@@ -190,12 +190,14 @@ final class RutasOrsTest extends CIUnitTestCase
         $cfg = new \Config\Rutas();
         $cfg->llaveOrs = 'TOKEN';
 
-        // Opciones: rápida (optimiza + mide) y sin casetas (reusa el orden + mide).
-        $http = new TransporteFalso([$this->optimizacion([2, 4, 1, 3]), $this->direcciones(5), $this->direcciones(5)]);
+        // Opciones: rápida (optimiza + mide), sin casetas (reusa el orden + mide) y árbol (solo mide).
+        $http = new TransporteFalso([$this->optimizacion([2, 4, 1, 3]), $this->direcciones(5), $this->direcciones(5), $this->direcciones(5)]);
         $plan = PlaneadorRutas::crear($cfg, $http);
         $op   = $plan->opciones($this->almacen, $this->paradas(), $this->op());
 
-        $this->assertSame(['rapida', 'sin_cuotas'], array_keys($op));
+        $this->assertSame(['rapida', 'sin_cuotas', 'arbol'], array_keys($op));
+        $this->assertSame('ors', $op['arbol']->proveedor);
+        $this->assertStringContainsString('/v2/directions/', $http->enviados[3]['url']);
         $this->assertSame('ors', $op['rapida']->proveedor);
         $this->assertSame(25, $plan->maxParadas());
         $this->assertTrue($plan->hayServicio());

@@ -27,6 +27,12 @@ final class ResultadoRuta
         public readonly ?string $polyline = null,
         public readonly bool $regresa = true,
         public readonly ?string $aviso = null,
+        /**
+         * Solo en la estrategia «arbol»: el árbol de expansión mínima usado para el orden.
+         *
+         * @var array{costo_m:int, aristas:list<array{0:string,1:string,2:int}>}|null
+         */
+        public readonly ?array $arbol = null,
     ) {
     }
 
@@ -69,6 +75,7 @@ final class ResultadoRuta
             'polyline'    => $this->polyline,
             'regresa'     => $this->regresa,
             'aviso'       => $this->aviso,
+            'arbol'       => $this->arbol,
         ];
     }
 
@@ -84,6 +91,7 @@ final class ResultadoRuta
             isset($a['polyline']) ? (string) $a['polyline'] : null,
             (bool) ($a['regresa'] ?? true),
             isset($a['aviso']) ? (string) $a['aviso'] : null,
+            isset($a['arbol']) && is_array($a['arbol']) ? $a['arbol'] : null,
         );
     }
 }

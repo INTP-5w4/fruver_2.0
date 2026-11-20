@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Rutas\ArbolExpansionMinima;
 use App\Libraries\Rutas\Combustible;
 use App\Libraries\Rutas\CspMapas;
 use App\Libraries\Rutas\EnlaceNavegacion;
@@ -171,6 +172,11 @@ class Rutas extends BaseController
         ]);
 
         $minutos = config('Rutas')->minutosPorParada;
+        // Coordenadas de un nodo del árbol de expansión mínima ("almacen" o "p{id}").
+        $coordenada = static fn (string $nodo): array => $nodo === ArbolExpansionMinima::ALMACEN
+            ? ['lat' => $origen->lat, 'lng' => $origen->lng]
+            : ['lat' => (float) $filas[(int) substr($nodo, 1)]['lat'], 'lng' => (float) $filas[(int) substr($nodo, 1)]['lng']];
+
         $salidaJs = [];
         foreach ($opciones as $clave => $r) {
             $etas = $r->etas($salida, $minutos);
@@ -185,6 +191,11 @@ class Rutas extends BaseController
                 'fin'        => rutas_hora($r->fin($salida, $minutos)),
                 'polyline'   => $r->polyline,
                 'aviso'      => $r->aviso,
+                // Árbol de expansión mínima (solo en la opción «arbol»): costo y aristas para el mapa.
+                'arbol'      => $r->arbol === null ? null : [
+                    'costo'   => rutas_km($r->arbol['costo_m']),
+                    'aristas' => array_map(static fn (array $a): array => [$coordenada($a[0]), $coordenada($a[1])], $r->arbol['aristas']),
+                ],
                 // Costo de traslado: null en bicicleta.
                 'combustible' => $gas === null ? null : [
                     'texto'     => Combustible::texto($gas['litros'], $gas['costo'], $gas['combustible']),
@@ -243,12 +254,19 @@ class Rutas extends BaseController
 
         $gas = Combustible::calcular($r->distanciaM, (new Modelo_repartidor())->find((int) $calculo['id_repartidor']) ?? []);
 
+        // Manual y árbol conservan su nombre aunque se midan sin servicio: su orden no es el aproximado.
+        $m_ruta     = new Modelo_ruta();
+        $estrategia = $r->proveedor === 'local' && ! in_array($r->estrategia, ['manual', 'arbol'], true) ? 'aproximada' : $r->estrategia;
+        if ($estrategia === 'arbol' && ! $m_ruta->aceptaEstrategia('arbol')) {
+            $estrategia = 'manual'; // sin la migración AddEstrategiaArbol la columna no acepta «arbol»
+        }
+
         try {
-            $idRuta = (new Modelo_ruta())->crear([
+            $idRuta = $m_ruta->crear([
                 'fecha'           => $calculo['fecha'],
                 'id_repartidor'   => $calculo['id_repartidor'],
                 'id_almacen'      => $calculo['id_almacen'],
-                'estrategia'      => $r->proveedor === 'local' && $r->estrategia !== 'manual' ? 'aproximada' : $r->estrategia,
+                'estrategia'      => $estrategia,
                 'regresa_almacen' => $calculo['regresa'] ? 1 : 0,
                 'distancia_m'     => $r->distanciaM,
                 'duracion_s'      => $r->duracionS,

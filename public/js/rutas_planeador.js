@@ -101,6 +101,13 @@
             capas.push(m);
         });
 
+        // Opción «árbol»: sus aristas como líneas punteadas moradas, debajo de la ruta.
+        if (op.arbol) {
+            op.arbol.aristas.forEach(function (ar) {
+                capas.push(FruverMapas.dibujarRuta(mapa, null, ar, '#8e24aa'));
+            });
+        }
+
         var linea = puntos.slice();
         if (datos.regresa) { linea.push(puntos[0]); }
         capas.push(FruverMapas.dibujarRuta(mapa, op.polyline, linea, op.proveedor !== 'local' ? '#1565c0' : '#ef6c00'));
@@ -112,8 +119,10 @@
     function pintarOpciones(datos) {
         cajaOps.innerHTML = '';
         var claves = Object.keys(datos.opciones);
+        // Preseleccionada: «Preferentes primero» si viene; si no, la primera
+        var porDefecto = claves.indexOf('prioridad') !== -1 ? 'prioridad' : claves[0];
 
-        claves.forEach(function (clave, i) {
+        claves.forEach(function (clave) {
             var op  = datos.opciones[clave];
             var div = document.createElement('div');
             div.className = 'ruta-opcion';
@@ -123,7 +132,7 @@
 
             var h = document.createElement('h4');
             h.textContent = cfg.nombres[clave] || clave;
-            if (i === 0 && claves.length > 1) {
+            if (clave === porDefecto && claves.length > 1) {
                 var b = document.createElement('span');
                 b.className = 'ruta-badge';
                 b.textContent = 'recomendada';
@@ -146,6 +155,7 @@
                 pares.push(['Combustible', op.combustible.texto]);
                 pares.push(['Por entrega', op.combustible.porParada]);
             }
+            if (op.arbol) { pares.push(['Costo del árbol', op.arbol.costo]); }
             pares.forEach(function (par) {
                 var s = document.createElement('span');
                 s.appendChild(document.createTextNode(par[0] + ': '));
@@ -162,6 +172,14 @@
                 gd.style.margin = '4px 0 0';
                 gd.textContent = 'Rendimiento ' + op.combustible.detalle;
                 div.appendChild(gd);
+            }
+
+            if (op.arbol) {
+                var ex = document.createElement('p');
+                ex.className = 'w3-small w3-text-grey';
+                ex.style.margin = '4px 0 0';
+                ex.textContent = 'Une todos los puntos con el menor total de km (líneas moradas en el mapa) y visita sus ramas de la más corta a la más larga.';
+                div.appendChild(ex);
             }
 
             if (op.aviso) {
@@ -187,7 +205,7 @@
             div.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); elegir(); } });
             cajaOps.appendChild(div);
 
-            if (i === 0) { elegir(); }
+            if (clave === porDefecto) { elegir(); }
         });
 
         bloqueOps.hidden = false;

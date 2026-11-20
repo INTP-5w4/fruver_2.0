@@ -40,7 +40,7 @@
             <b>Combustible:</b> <?= esc(\App\Libraries\Rutas\Combustible::texto((float) $ruta['litros'], (float) $ruta['costo_combustible'])) ?>
             <small class="w3-text-grey">(a $<?= esc(number_format((float) $ruta['precio_litro'], 2)) ?>/L; $<?= esc(number_format((float) $ruta['costo_combustible'] / max(1, count($paradas)), 2)) ?> por entrega)</small> ·
         <?php endif; ?>
-        <b>Tipo:</b> <?= esc(str_replace('_', ' ', $ruta['estrategia'])) ?><?= $ruta['proveedor'] === 'local' ? ' (aproximada, sin servicio de mapas)' : '' ?>
+        <b>Tipo:</b> <?= esc(rutas_estrategia($ruta['estrategia'])) ?><?= $ruta['proveedor'] === 'local' ? ' (aproximada, sin servicio de mapas)' : '' ?>
         <?= $ruta['regresa_almacen'] ? '· regresa al almacén' : '' ?>
     </p>
 

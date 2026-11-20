@@ -42,6 +42,14 @@ if (! function_exists('rutas_km')) {
     }
 }
 
+if (! function_exists('rutas_estrategia')) {
+    /** "sin_cuotas" → "sin cuotas"; "arbol" → "árbol de expansión mínima (Prim)" */
+    function rutas_estrategia(?string $estrategia): string
+    {
+        return $estrategia === 'arbol' ? 'árbol de expansión mínima (Prim)' : str_replace('_', ' ', (string) $estrategia);
+    }
+}
+
 if (! function_exists('rutas_hora')) {
     /** "2026-11-06 11:40:00" → "11:40" */
     function rutas_hora(?string $fechaHora): string

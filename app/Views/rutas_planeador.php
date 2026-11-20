@@ -176,7 +176,7 @@
                             <td><?= esc(rutas_km($r['distancia_m'])) ?></td>
                             <td><?= esc(rutas_duracion($r['duracion_s'])) ?></td>
                             <td><?= isset($r['costo_combustible']) && $r['costo_combustible'] !== null ? esc(\App\Libraries\Rutas\Combustible::texto((float) $r['litros'], (float) $r['costo_combustible'])) : '—' ?></td>
-                            <td><?= esc(str_replace('_', ' ', $r['estrategia'])) ?><?= $r['proveedor'] === 'local' ? ' (aprox.)' : '' ?></td>
+                            <td><?= esc(rutas_estrategia($r['estrategia'])) ?><?= $r['proveedor'] === 'local' ? ' (aprox.)' : '' ?></td>
                             <td><a href="<?= base_url('rutas/' . (int) $r['id']) ?>" class="w3-button w3-small w3-border">Ver</a></td>
                         </tr>
                     <?php endforeach; ?>
@@ -204,7 +204,7 @@
         'max'         => (int) $maxParadas,
         'candidatos'  => $puntosCandidatos,
         'almacenes'   => $almacenesJs,
-        'nombres'     => ['rapida' => 'Más rápida', 'prioridad' => 'Preferentes primero (con lo que queda de paso)', 'sin_cuotas' => 'Sin casetas ni autopistas', 'manual' => 'Mi orden', 'aproximada' => 'Aproximada (sin servicio de mapas)'],
+        'nombres'     => ['rapida' => 'Más rápida', 'prioridad' => 'Preferentes primero (con lo que queda de paso)', 'sin_cuotas' => 'Sin casetas ni autopistas', 'manual' => 'Mi orden', 'aproximada' => 'Aproximada (sin servicio de mapas)', 'arbol' => 'Árbol de expansión mínima (Prim)'],
         'csrfNombre'  => csrf_token(),
     ], JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?></script>
 

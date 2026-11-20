@@ -155,6 +155,19 @@ como máximo el menor de `desvioMaxKm` (5 km) y `desvioMaxPorcentaje` (15 % del 
 Nunca se intercala nada antes de un pedido con hora límite. La opción avisa qué pedidos
 se dejan de paso. Los normales que no quedan en el camino van al final, por cercanía.
 
+### Árbol de expansión mínima (Prim)
+
+Con dos o más pedidos aparece la opción **Árbol de expansión mínima (Prim)**, también sin
+servicio de mapas. Une el almacén y las paradas en un grafo completo (peso = línea recta × 1.35),
+construye el árbol con Prim (`app/Libraries/Rutas/ArbolExpansionMinima.php`) y visita sus ramas
+en preorden, de la más corta a la más larga; el servicio de mapas solo mide la ruta en ese orden.
+La tarjeta muestra el costo del árbol y el mapa dibuja sus aristas en morado.
+
+Para guardarla con su nombre corre `php spark migrate` (`AddEstrategiaArbol`) o, en phpMyAdmin,
+`database_cambios/arbol_expansion_cambios.sql`. Sin eso se guarda como «manual».
+Las pruebas (`tests/unit/ArbolExpansionMinimaTest.php`) comparan Prim con un Kruskal básico y
+con fuerza bruta (todos los árboles posibles de 5 nodos).
+
 ### Combustible y costo de traslado
 
 Cada opción de ruta muestra los litros estimados y su costo (km ÷ rendimiento × precio por
