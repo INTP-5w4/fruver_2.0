@@ -205,4 +205,24 @@ final class VistasRutasTest extends CIUnitTestCase
         $this->assertStringContainsString('data-proveedor="leaflet"', $html);
         $this->assertStringContainsString('data-buscar=""', $html);
     }
+
+    public function testDijkstraEntreDosPuntos(): void
+    {
+        $html = view('rutas_dijkstra', [
+            'almacenes'   => [['id' => 2, 'nombre' => 'Bodega <i>Grajales</i>', 'lat' => '19.2453', 'lng' => '-97.7846']],
+            'direcciones' => [['id' => 15, 'cliente' => 'Ana <b>López</b>', 'calle' => 'Reforma', 'numero' => '12',
+                'colonia' => 'Centro', 'municipio' => 'Soltepec', 'lat' => '19.2586', 'lng' => '-97.7514']],
+            'almacenMapa' => ['lat' => 19.2453, 'lng' => -97.7846],
+        ]);
+
+        $this->assertStringContainsString('value="a2" selected', $html);
+        $this->assertStringContainsString('value="d15"', $html);
+        $this->assertStringContainsString('Ana &lt;b&gt;López&lt;/b&gt; · Reforma 12, Centro, Soltepec', $html);
+        $this->assertStringNotContainsString('<i>Grajales</i>', $html);
+        $this->assertStringContainsString('rutas_dijkstra.js', $html);
+
+        // Con menos de dos puntos no se ofrece el formulario.
+        $vacio = view('rutas_dijkstra', ['almacenes' => [], 'direcciones' => [], 'almacenMapa' => null]);
+        $this->assertStringNotContainsString('btnDijkstra', $vacio);
+    }
 }

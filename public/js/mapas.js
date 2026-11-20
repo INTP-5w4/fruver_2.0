@@ -9,7 +9,8 @@
  * Interfaz (lo único que usan las pantallas):
  *   cargar() → Promise · crearMapa(el, centro?, zoom?) → mapa
  *   marcador(mapa, pos, {texto, color, borde, titulo, arrastrable}) → {posicion, mover, alSoltar, alClic, quitar}
- *   dibujarRuta(mapa, polylineCodificada|null, puntos, color) → {quitar}
+ *   dibujarRuta(mapa, polylineCodificada|null, puntos, color, solida?) → {quitar}
+ *     (sin polyline la línea sale punteada, salvo con solida = true)
  *   encuadrar(mapa, puntos) · centrar(mapa, pos, zoom) · alClicMapa(mapa, fn(pos))
  *   puntoUsuario(mapa) → {mover(pos)} · ajustar(mapa)  (tras mostrar un contenedor oculto)
  *   decodificar(polyline) → [{lat, lng}]   (algoritmo estándar, precisión 5)
@@ -108,13 +109,14 @@
             };
         },
 
-        dibujarRuta: function (mapa, codificada, puntos, color) {
+        dibujarRuta: function (mapa, codificada, puntos, color, solida) {
             var camino = (codificada ? decodificar(codificada) : puntos).map(function (p) { return [p.lat, p.lng]; });
+            var llena = !!(codificada || solida);
             var linea = L.polyline(camino, {
                 color: color || '#1565c0',
-                weight: codificada ? 5 : 3,
-                opacity: codificada ? 0.85 : 0.7,
-                dashArray: codificada ? null : '6 8'
+                weight: llena ? 5 : 3,
+                opacity: llena ? 0.85 : 0.7,
+                dashArray: llena ? null : '6 8'
             }).addTo(mapa);
             return { quitar: function () { linea.remove(); } };
         },
@@ -213,13 +215,14 @@
             };
         },
 
-        dibujarRuta: function (mapa, codificada, puntos, color) {
+        dibujarRuta: function (mapa, codificada, puntos, color, solida) {
+            var llena = !!(codificada || solida);
             var linea = new google.maps.Polyline({
                 map: mapa,
                 path: codificada ? decodificar(codificada) : puntos,
                 strokeColor: color || '#1565c0',
-                strokeOpacity: codificada ? 0.85 : 0.6,
-                strokeWeight: codificada ? 5 : 3
+                strokeOpacity: llena ? 0.85 : 0.6,
+                strokeWeight: llena ? 5 : 3
             });
             return { quitar: function () { linea.setMap(null); } };
         },

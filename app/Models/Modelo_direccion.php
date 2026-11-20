@@ -99,6 +99,28 @@ class Modelo_direccion extends PdoModelo
     }
 
     /**
+     * Direcciones con coordenadas (para elegir origen/destino en Rutas → Dijkstra).
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function ubicadas(int $limite = 500): array
+    {
+        if (! $this->tieneColumnasGeo()) {
+            return [];
+        }
+
+        return $this->filas(
+            'SELECT d.id, d.calle, d.numero, d.colonia, d.municipio, d.lat, d.lng,
+                    TRIM(CONCAT_WS(\' \', c.nombre, c.ape_pat)) AS cliente
+               FROM direccion d
+               JOIN cliente c ON c.id = d.id_cliente
+              WHERE d.lat IS NOT NULL AND d.lng IS NOT NULL
+              ORDER BY c.nombre, c.ape_pat, d.id
+              LIMIT ' . max(1, $limite)
+        );
+    }
+
+    /**
      * Direcciones de un cliente (la principal primero).
      *
      * @return list<array<string,mixed>>
