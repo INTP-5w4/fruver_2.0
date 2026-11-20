@@ -8,7 +8,8 @@ use InvalidArgumentException;
 /** Parámetros de un cálculo de ruta. */
 final class OpcionesRuta
 {
-    public const ESTRATEGIAS = ['rapida', 'prioridad', 'sin_cuotas', 'manual', 'aproximada'];
+    /** arbol = orden tomado del árbol de expansión mínima (Prim); el servicio solo mide. */
+    public const ESTRATEGIAS = ['rapida', 'prioridad', 'sin_cuotas', 'manual', 'aproximada', 'arbol'];
 
     /** Vehículo del repartidor → travelMode de Routes API. */
     public const MODOS = [

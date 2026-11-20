@@ -22,6 +22,8 @@ use InvalidArgumentException;
  *  - sin_cuotas : como "rapida" pero evitando casetas y autopistas.
  *  - manual     : el orden que el usuario acomodó; el servicio solo mide.
  *  - aproximada : sin servicio externo (línea recta).
+ *  - arbol      : el orden sale del árbol de expansión mínima (Prim) de almacén + paradas,
+ *                 recorrido en preorden; el servicio solo mide. Ver ArbolExpansionMinima.
  */
 final class PlaneadorRutas
 {
@@ -75,7 +77,21 @@ final class PlaneadorRutas
             );
         }
 
+        $arbol = null;
+        if ($op->estrategia === 'arbol') {
+            $aem     = ArbolExpansionMinima::deParadas($origen, $paradas);
+            $paradas = $aem['paradas'];
+            $arbol   = ['costo_m' => $aem['costo_m'], 'aristas' => $aem['aristas']];
+        }
+
         $resultado = $this->calcularOrden($origen, $paradas, $op);
+
+        if ($arbol !== null) {
+            $resultado = new ResultadoRuta(
+                $resultado->estrategia, $resultado->proveedor, $resultado->orden, $resultado->tramos, $resultado->distanciaM,
+                $resultado->duracionS, $resultado->polyline, $resultado->regresa, $resultado->aviso, $arbol
+            );
+        }
 
         return $dePaso === [] ? $resultado : self::conAviso(
             $resultado,
@@ -114,8 +130,16 @@ final class PlaneadorRutas
      */
     public function opciones(Punto $origen, array $paradas, OpcionesRuta $base): array
     {
+        // El árbol de expansión mínima solo tiene sentido con dos o más paradas.
+        $conArbol = count($paradas) > 1;
+
         if ($this->servicio === null) {
-            return ['aproximada' => $this->calcular($origen, $paradas, $base->con('aproximada'))];
+            $opciones = ['aproximada' => $this->calcular($origen, $paradas, $base->con('aproximada'))];
+            if ($conArbol) {
+                $opciones['arbol'] = $this->calcular($origen, $paradas, $base->con('arbol'));
+            }
+
+            return $opciones;
         }
 
         $rapida = $this->calcular($origen, $paradas, $base->con('rapida'));
@@ -134,6 +158,10 @@ final class PlaneadorRutas
 
         if ($base->vehiculo !== 'bicicleta') {
             $opciones['sin_cuotas'] = $this->calcular($origen, $paradas, $base->con('sin_cuotas'));
+        }
+
+        if ($conArbol) {
+            $opciones['arbol'] = $this->calcular($origen, $paradas, $base->con('arbol'));
         }
 
         return $opciones;
@@ -283,7 +311,7 @@ final class PlaneadorRutas
     {
         return new ResultadoRuta(
             $r->estrategia, $r->proveedor, $r->orden, $r->tramos, $r->distanciaM, $r->duracionS,
-            $r->polyline, $r->regresa, trim(($r->aviso ?? '') . ' ' . $aviso)
+            $r->polyline, $r->regresa, trim(($r->aviso ?? '') . ' ' . $aviso), $r->arbol
         );
     }
 

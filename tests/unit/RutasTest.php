@@ -230,7 +230,8 @@ final class RutasTest extends CIUnitTestCase
     {
         $op = $this->planeador(null)->opciones($this->almacen, $this->paradasEnLinea(), $this->opciones());
 
-        $this->assertSame(['aproximada'], array_keys($op));
+        // Sin servicio también se ofrece el árbol de expansión mínima (se calcula sin red).
+        $this->assertSame(['aproximada', 'arbol'], array_keys($op));
         $this->assertSame('local', $op['aproximada']->proveedor);
     }
 
@@ -246,11 +247,14 @@ final class RutasTest extends CIUnitTestCase
 
     public function testPlaneadorOfreceOpcionesConGoogle(): void
     {
-        $http = new TransporteFalso([$this->respuestaGoogle([1, 3, 0, 2], 5), $this->respuestaGoogle([1, 3, 0, 2], 5)]);
+        $http = new TransporteFalso([$this->respuestaGoogle([1, 3, 0, 2], 5), $this->respuestaGoogle([1, 3, 0, 2], 5), $this->respuestaGoogle([], 5)]);
         $op   = $this->planeador($http)->opciones($this->almacen, $this->paradasEnLinea(), $this->opciones());
 
         // Sin horarios ni prioridades no se ofrece "prioridad".
-        $this->assertSame(['rapida', 'sin_cuotas'], array_keys($op));
+        $this->assertSame(['rapida', 'sin_cuotas', 'arbol'], array_keys($op));
+        // El árbol fija el orden (p1…p4 en línea) y Google solo mide.
+        $this->assertFalse($http->enviados[2]['cuerpo']['optimizeWaypointOrder']);
+        $this->assertSame(['p1', 'p2', 'p3', 'p4'], $op['arbol']->orden);
     }
 
     public function testPlaneadorRechazaDemasiadasParadas(): void

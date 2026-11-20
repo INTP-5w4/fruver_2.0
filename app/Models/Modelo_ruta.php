@@ -55,6 +55,18 @@ class Modelo_ruta extends PdoModelo
     }
 
     /** ¿Ya se corrió la migración de rutas? */
+    /** ¿La columna ruta.estrategia ya acepta este valor? (p. ej. «arbol» requiere la migración AddEstrategiaArbol) */
+    public function aceptaEstrategia(string $estrategia): bool
+    {
+        try {
+            $columna = $this->fila("SHOW COLUMNS FROM ruta LIKE 'estrategia'");
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return $columna !== null && str_contains((string) ($columna['Type'] ?? ''), "'" . $estrategia . "'");
+    }
+
     public function esquemaListo(): bool
     {
         if (self::$lista === null) {
