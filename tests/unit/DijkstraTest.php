@@ -205,13 +205,44 @@ final class DijkstraTest extends CIUnitTestCase
 
     public function testLaConsultaNoMandaLaUbicacionExacta(): void
     {
-        $q = GrafoCalles::consulta(new Punto(19.2453, -97.7846), new Punto(19.2586, -97.7514), ['primary' => 60, 'residential' => 25]);
+        $vel = ['primary' => 60, 'residential' => 25, 'track' => 15];
 
+        // Puntos cercanos (3.8 km): todas las calles del rectángulo, incluidos caminos rurales.
+        $q = GrafoCalles::consulta(new Punto(19.2453, -97.7846), new Punto(19.2586, -97.7514), $vel);
         $this->assertStringNotContainsString('19.2453', $q);
         $this->assertStringNotContainsString('97.7846', $q);
-        $this->assertStringContainsString('around:2800,19.25,-97.78', $q);
-        $this->assertStringContainsString('(19.22,-97.81,19.28,-97.73)', $q);
+        $this->assertStringContainsString('"highway"~"^(primary|residential|track)$"', $q);
+        $this->assertStringContainsString('(19.21,-97.82,19.29,-97.72)', $q); // margen mínimo de 0.03°
+        $this->assertStringNotContainsString('around', $q);
+
+        // Puntos lejanos (≈ 21 km): vías principales en el rectángulo y calles locales alrededor de cada punto.
+        $q = GrafoCalles::consulta(new Punto(19.2453, -97.7846), new Punto(19.3670, -97.6103), $vel);
         $this->assertStringContainsString('"highway"~"^(primary)$"', $q);
+        $this->assertStringContainsString('"highway"~"^(residential|track)$"', $q);
+        $this->assertStringContainsString('around:2800,19.25,-97.78', $q);
+        $this->assertStringContainsString('around:2800,19.37,-97.61', $q);
+        $this->assertStringNotContainsString('19.3670', $q);
+    }
+
+    public function testReintentaUnaVezSiOverpassEstaSaturado(): void
+    {
+        $a    = new Punto(19.0, -98.2);
+        $b    = new Punto(19.005, -98.19);
+        $http = new TransporteFalso([['status' => 502, 'cuerpo' => ''], ['status' => 200, 'cuerpo' => json_encode($this->overpass())]]);
+
+        $g = GrafoCalles::descargar($a, $b, $http, 'https://overpass.test/api', self::VELOCIDADES, esperaReintentoSeg: 0);
+
+        $this->assertCount(2, $http->enviados);
+        $this->assertSame(5, $g->numNodos());
+
+        // Un error que no es de saturación (400) no se reintenta.
+        $http = new TransporteFalso([['status' => 400, 'cuerpo' => '']]);
+        try {
+            GrafoCalles::descargar($a, $b, $http, 'https://overpass.test/api', self::VELOCIDADES, esperaReintentoSeg: 0);
+            $this->fail('Debía lanzar ErrorProveedorRutas');
+        } catch (ErrorProveedorRutas) {
+            $this->assertCount(1, $http->enviados);
+        }
     }
 
     public function testDescargaUsaCacheYTraduceErrores(): void
@@ -233,6 +264,7 @@ final class DijkstraTest extends CIUnitTestCase
         $this->assertCount(1, $http->enviados);
 
         $this->expectException(ErrorProveedorRutas::class);
-        GrafoCalles::descargar($a, $b, new TransporteFalso([['status' => 429, 'cuerpo' => '']]), 'https://overpass.test/api', self::VELOCIDADES);
+        GrafoCalles::descargar($a, $b, new TransporteFalso([['status' => 429, 'cuerpo' => ''], ['status' => 429, 'cuerpo' => '']]),
+            'https://overpass.test/api', self::VELOCIDADES, esperaReintentoSeg: 0);
     }
 }

@@ -174,7 +174,9 @@ con fuerza bruta (todos los árboles posibles de 5 nodos).
 ubicadas) con el algoritmo de Dijkstra en su versión básica (`app/Libraries/Rutas/Dijkstra.php`):
 
 1. Descarga las calles de la zona desde OpenStreetMap con el servicio **Overpass** (gratuito, sin
-   llave): vías principales en un rectángulo que cubre ambos puntos y calles locales a 2 km de cada uno.
+   llave) en un rectángulo que cubre ambos puntos, con un margen que crece con su distancia. Hasta
+   `rutas.kmTodasLasCalles` (10 km) pide todas las calles y caminos rurales; más lejos, vías principales
+   en el rectángulo y calles locales a 2 km de cada punto. Si Overpass responde 429/502/503/504, reintenta una vez.
 2. Arma un grafo dirigido (`GrafoCalles.php`): cada tramo de calle es una arista; las de doble sentido
    aportan dos y las de un sentido (oneway, glorietas, autopistas) solo una. Peso: metros o segundos
    (según la velocidad del tipo de vía, `Config\Rutas::$velocidadesVia`).

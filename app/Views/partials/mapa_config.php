@@ -41,4 +41,5 @@ $atribucion  = $cfgRutas->mapaAtribucion
     <?php endif; ?>
 <?php endif; ?>
     <link rel="stylesheet" href="<?= base_url('estilos/rutas.css') ?>">
-    <script src="<?= base_url('js/mapas.js') ?>"></script>
+    <?php // ?v= cambia cuando cambia el archivo: el navegador no se queda con una versión vieja. ?>
+    <script src="<?= base_url('js/mapas.js') ?>?v=<?= @filemtime(FCPATH . 'js/mapas.js') ?: 1 ?>"></script>
