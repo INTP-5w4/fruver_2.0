@@ -33,6 +33,18 @@ final class BajaRepartidorTest extends CIUnitTestCase
         $this->assertSame('Repartidor #7', Modelo_repartidor::nombreCompleto(['id' => 7, 'nombre' => '', 'ape_pat' => '']));
     }
 
+    /**
+     * mensajeSeguro nunca muestra el texto de una excepción que no sea de la base: las reglas de
+     * negocio (DomainException) se atrapan a propósito en cada controlador.
+     */
+    public function testMensajeSeguroNoMuestraTextosDeExcepciones(): void
+    {
+        $generico = 'No se pudo guardar.';
+
+        $this->assertSame($generico, \App\Models\PdoModelo::mensajeSeguro(new DomainException('Error: detalle interno'), $generico));
+        $this->assertSame($generico, \App\Models\PdoModelo::mensajeSeguro(new RuntimeException('host=127.0.0.1 user=root'), $generico));
+    }
+
     private function cuenta(array $extra): array
     {
         return $extra + [
@@ -78,6 +90,7 @@ final class BajaRepartidorTest extends CIUnitTestCase
         $this->assertStringContainsString('Cancelar sus 2 entrega(s) pendientes', $html);
         $this->assertStringContainsString('Tiene 1 entrega(s) en camino', $html);
         $this->assertStringContainsString('2 por salir · 1 en camino', $html);
+        $this->assertStringContainsString('no escribas datos sensibles', $html);
 
         $this->assertStringContainsString('Repartidor dado de baja', $html);
         $this->assertStringContainsString('20/11/2026', $html);

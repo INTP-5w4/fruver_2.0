@@ -122,7 +122,7 @@ $nuevos    ??= 0;
                             </button>
                             <?php if ($puedeBaja): ?>
                                 <form method="post" action="<?= base_url('baja_repartidor/' . (int) $r['id']) ?>" class="form-borrar"
-                                      onsubmit="var m = prompt('Dar de baja a este repartidor. Conserva su historial y deja de aparecer al asignar; sus entregas que aún no salen se cancelan para reasignarlas.\n\nMotivo (opcional):', ''); if (m === null) { return false; } this.motivo.value = m; return true;">
+                                      onsubmit="var m = prompt('Dar de baja a este repartidor. Conserva su historial y deja de aparecer al asignar; sus entregas que aún no salen se cancelan para reasignarlas.\n\nMotivo (opcional; queda en el historial, no escribas datos sensibles como salud o conflictos personales):', ''); if (m === null) { return false; } this.motivo.value = m; return true;">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="motivo" value="">
                                     <input type="hidden" name="cancelar_pendientes" value="1">

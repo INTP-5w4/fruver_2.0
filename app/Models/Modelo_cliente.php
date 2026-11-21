@@ -215,7 +215,14 @@ class Modelo_cliente extends PdoModelo
     public function cambiarPreferencial(int $idCliente, string $modo, ?string $motivo, ?string $por): bool
     {
         if (! $this->tieneColumnasPreferencial()) {
-            throw new \DomainException('Falta ejecutar la migración de cliente preferencial (php spark migrate).');
+            // Detalle técnico solo para superadmin/developer (y en el log); los demás, a quién avisar.
+            log_message('error', 'Cliente preferencial: falta la migración AddPreferencialToCliente (php spark migrate).');
+            helper('ui');
+
+            throw new \DomainException(mensaje_tecnico(
+                'Falta ejecutar la migración de cliente preferencial (php spark migrate).',
+                'El precio preferencial todavía no está activado. Avisa al administrador del sistema.'
+            ));
         }
 
         if (! in_array($modo, self::MODOS_PREFERENCIAL, true)) {

@@ -259,7 +259,14 @@ class Modelo_repartidor extends PdoModelo
     public function darDeBaja(int $idRepartidor, ?string $motivo, ?int $porUsuario, bool $cancelarAsignadas): array
     {
         if (! $this->tieneBaja()) {
-            throw new DomainException('Error: falta instalar la baja de repartidores (php spark migrate).');
+            // Detalle técnico solo para superadmin/developer (y en el log); los demás, a quién avisar.
+            log_message('error', 'Repartidores: falta la migración AddBajaRepartidor (php spark migrate).');
+            helper('ui');
+
+            throw new DomainException(mensaje_tecnico(
+                'Falta ejecutar la migración de baja de repartidores (php spark migrate).',
+                'La baja de repartidores todavía no está activada. Avisa al administrador del sistema.'
+            ));
         }
 
         return $this->transaccion(function () use ($idRepartidor, $motivo, $porUsuario, $cancelarAsignadas): array {

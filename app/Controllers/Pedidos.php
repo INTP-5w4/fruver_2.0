@@ -7,6 +7,7 @@ use App\Models\Modelo_pedido;
 use App\Models\Modelo_productopedidos;
 use App\Models\Modelo_repartidor;
 use App\Models\PdoModelo;
+use DomainException;
 use Throwable;
 
 class Pedidos extends BaseController
@@ -48,6 +49,9 @@ class Pedidos extends BaseController
             (new Modelo_pedido())->insert($this->datosDelFormulario());
 
             return redirect()->to($this->destino('lista_pedido'))->with('mensaje', 'Pedido creado exitosamente');
+        } catch (DomainException $e) {
+            // Regla de negocio (p. ej. repartidor dado de baja): su texto es para el usuario.
+            return redirect()->to('crea_pedido')->with('error', $e->getMessage());
         } catch (Throwable $e) {
             return redirect()->to('lista_pedido')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo crear el pedido.'));
         }
@@ -122,6 +126,8 @@ class Pedidos extends BaseController
             (new Modelo_pedido())->update($id, $this->datosDelFormulario());
 
             return redirect()->to('lista_pedido')->with('mensaje', 'Pedido actualizado exitosamente');
+        } catch (DomainException $e) {
+            return redirect()->to('lista_pedido')->with('error', $e->getMessage());
         } catch (Throwable $e) {
             return redirect()->to('lista_pedido')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo actualizar el pedido.'));
         }

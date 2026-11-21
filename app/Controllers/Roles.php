@@ -7,6 +7,7 @@ use App\Models\Modelo_bitacora_rol;
 use App\Models\Modelo_repartidor;
 use App\Models\Modelo_roles;
 use App\Models\PdoModelo;
+use DomainException;
 use Throwable;
 
 /**
@@ -157,7 +158,11 @@ class Roles extends BaseController
                     log_message('critical', 'Roles: no se pudo revertir el rol de la cuenta ' . $idUser . ': ' . $e2->getMessage());
                 }
 
-                return $volver->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo dar de baja su ficha de repartidor; el rol no se cambió.'));
+                // Una regla de negocio (p. ej. le asignaron algo mientras tanto) se explica tal cual;
+                // cualquier otra falla queda en el log y se muestra un mensaje genérico.
+                return $volver->with('error', $e instanceof DomainException
+                    ? $e->getMessage() . ' El rol no se cambió.'
+                    : PdoModelo::mensajeSeguro($e, 'No se pudo dar de baja su ficha de repartidor; el rol no se cambió.'));
             }
 
             $detalle = 'Ficha de repartidor #' . (int) $ficha['id'] . ' dada de baja';

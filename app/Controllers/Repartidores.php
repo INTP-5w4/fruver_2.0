@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Libraries\Rutas\Combustible;
 use App\Models\Modelo_repartidor;
 use App\Models\PdoModelo;
+use DomainException;
 use Throwable;
 
 class Repartidores extends BaseController
@@ -273,6 +274,9 @@ class Repartidores extends BaseController
 
         try {
             $baja = $m->darDeBaja((int) $id, mb_substr($this->post('motivo'), 0, 255), (int) auth()->id(), $this->post('cancelar_pendientes') === '1');
+        } catch (DomainException $e) {
+            // Regla de negocio (entregas en camino, etc.): su texto es para el usuario.
+            return redirect()->to('lista_repartidor')->with('error', $e->getMessage());
         } catch (Throwable $e) {
             return redirect()->to('lista_repartidor')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo dar de baja al repartidor.'));
         }

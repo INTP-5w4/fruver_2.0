@@ -174,7 +174,9 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
                                                     <a href="<?= base_url('lista_entrega') ?>">Entregas</a> antes de quitarle el rol.</span>
                                             <?php endif; ?>
                                             <label for="motivo-<?= (int) $c['id'] ?>">Motivo de la baja (opcional)</label>
-                                            <input type="text" name="motivo" id="motivo-<?= (int) $c['id'] ?>" maxlength="255" placeholder="Ej. terminó su contrato">
+                                            <input type="text" name="motivo" id="motivo-<?= (int) $c['id'] ?>" maxlength="255" placeholder="Ej. terminó su contrato"
+                                                   aria-describedby="motivo-ayuda-<?= (int) $c['id'] ?>">
+                                            <small id="motivo-ayuda-<?= (int) $c['id'] ?>" class="roles-ayuda">Queda en el historial: no escribas datos sensibles (salud, conflictos personales, etc.).</small>
                                             <?php if ($sinSalir > 0): ?>
                                                 <label><input type="checkbox" name="cancelar_pendientes" value="1">
                                                     <span>Cancelar sus <?= (int) $sinSalir ?> entrega(s) pendientes que aún no salen (los pedidos quedarán listos para otro repartidor)</span></label>
