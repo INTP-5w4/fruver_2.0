@@ -76,12 +76,20 @@ $nuevos    ??= 0;
         </thead>
         <tbody>
             <?php foreach ($repartidores as $r): ?>
-                <?php $incompleto = \App\Models\Modelo_repartidor::faltanDatos($r); ?>
-                <tr>
+                <?php
+                $incompleto = \App\Models\Modelo_repartidor::faltanDatos($r);
+                $deBaja     = \App\Models\Modelo_repartidor::deBaja($r);
+                $conRol     = ! empty($r['cuenta_repartidor']); // la baja/reactivación de estos la hace el superadmin en Roles
+                $puedeBaja  = array_key_exists('activo', $r) && ! $deBaja && ! $conRol;
+                $puedeAlta  = $deBaja && (empty($r['id_user']) || $conRol);
+                ?>
+                <tr<?= $deBaja ? ' class="w3-text-grey"' : '' ?>>
                     <td><?= (int) $r['id'] ?></td>
                     <td>
                         <?= esc(trim($r['nombre'] . ' ' . $r['ape_pat'] . ' ' . ($r['ape_mat'] ?? ''))) ?>
-                        <?php if ($incompleto): ?><span class="est est-pendiente" title="Alta automática: completa teléfono y dirección">Faltan datos</span><?php endif; ?>
+                        <?php if ($deBaja): ?>
+                            <span class="est est-cancelada" title="<?= esc(trim('Conserva su historial; ya no recibe entregas. ' . ($r['motivo_baja'] ?? '')), 'attr') ?>">Dado de baja<?= ! empty($r['fecha_baja']) ? ' ' . esc(date('d/m/Y', strtotime((string) $r['fecha_baja']))) : '' ?></span>
+                        <?php elseif ($incompleto): ?><span class="est est-pendiente" title="Alta automática: completa teléfono y dirección">Faltan datos</span><?php endif; ?>
                     </td>
                     <td><?= esc($r['telefono'] !== '' ? $r['telefono'] : '—') ?></td>
                     <td class="celda-texto"><?= esc($r['direccion'] !== '' ? $r['direccion'] : '—') ?></td>
@@ -112,7 +120,21 @@ $nuevos    ??= 0;
                                     onclick="editarRepartidor(this)">
                                 <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                             </button>
-                            <form method="post" action="<?= base_url('borra_id_repartidor/' . (int) $r['id']) ?>" class="form-borrar" onsubmit="return confirm('¿Eliminar este repartidor?');">
+                            <?php if ($puedeBaja): ?>
+                                <form method="post" action="<?= base_url('baja_repartidor/' . (int) $r['id']) ?>" class="form-borrar"
+                                      onsubmit="var m = prompt('Dar de baja a este repartidor. Conserva su historial y deja de aparecer al asignar; sus entregas que aún no salen se cancelan para reasignarlas.\n\nMotivo (opcional):', ''); if (m === null) { return false; } this.motivo.value = m; return true;">
+                                    <?= csrf_field() ?>
+                                    <input type="hidden" name="motivo" value="">
+                                    <input type="hidden" name="cancelar_pendientes" value="1">
+                                    <button type="submit" class="btn-icono" title="Dar de baja (conserva su historial)" aria-label="Dar de baja al repartidor <?= (int) $r['id'] ?>"><i class="fa-solid fa-user-slash" aria-hidden="true"></i></button>
+                                </form>
+                            <?php elseif ($puedeAlta): ?>
+                                <form method="post" action="<?= base_url('reactiva_repartidor/' . (int) $r['id']) ?>" class="form-borrar" onsubmit="return confirm('¿Reactivar a este repartidor? Volverá a aparecer al asignar entregas.');">
+                                    <?= csrf_field() ?>
+                                    <button type="submit" class="btn-icono" title="Reactivar (con su mismo historial)" aria-label="Reactivar al repartidor <?= (int) $r['id'] ?>"><i class="fa-solid fa-user-check" aria-hidden="true"></i></button>
+                                </form>
+                            <?php endif; ?>
+                            <form method="post" action="<?= base_url('borra_id_repartidor/' . (int) $r['id']) ?>" class="form-borrar" onsubmit="return confirm('¿Eliminar este repartidor? Solo se puede si no tiene pedidos, entregas ni rutas; si tiene, usa Dar de baja.');">
                                 <?= csrf_field() ?>
                                 <button type="submit" class="btn-icono peligro" title="Eliminar repartidor" aria-label="Eliminar repartidor <?= (int) $r['id'] ?>"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
                             </form>

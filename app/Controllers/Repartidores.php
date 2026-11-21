@@ -227,9 +227,17 @@ class Repartidores extends BaseController
     public function eliminar_datos($id = null)
     {
         $m_repartidor = new Modelo_repartidor();
+        $r            = ctype_digit((string) $id) ? $m_repartidor->find($id) : null;
 
-        if (! $m_repartidor->find($id)) {
+        if (! $r) {
             return redirect()->to('lista_repartidor');
+        }
+
+        // Con historial no se borra: las entregas, rutas y pedidos lo siguen apuntando.
+        if ($m_repartidor->tieneHistorial((int) $id)) {
+            return redirect()->to('lista_repartidor')->with('error',
+                'No se puede eliminar a ' . Modelo_repartidor::nombreCompleto($r) . ' porque tiene pedidos, entregas o rutas a su nombre. '
+                . ($m_repartidor->tieneBaja() ? 'Usa "Dar de baja": conserva su historial y deja de aparecer al asignar.' : ''));
         }
 
         try {
@@ -243,5 +251,65 @@ class Repartidores extends BaseController
 
             return redirect()->to('lista_repartidor')->with('error', $mensaje);
         }
+    }
+
+    /**
+     * POST baja_repartidor/{id}: baja lógica de una ficha SIN cuenta de repartidor (capturada a
+     * mano). Si la cuenta tiene el rol, la baja la hace el superadmin al quitárselo en Roles,
+     * para que el rol y la ficha no se contradigan.
+     */
+    public function baja($id = null)
+    {
+        $m = new Modelo_repartidor();
+        $r = ctype_digit((string) $id) ? $m->find($id) : null;
+
+        if (! $r) {
+            return redirect()->to('lista_repartidor');
+        }
+        if ($m->cuentaEsRepartidor($r)) {
+            return redirect()->to('lista_repartidor')->with('error',
+                Modelo_repartidor::nombreCompleto($r) . ' entra con una cuenta de repartidor: su baja la hace el superadmin al cambiarle el rol en Roles.');
+        }
+
+        try {
+            $baja = $m->darDeBaja((int) $id, mb_substr($this->post('motivo'), 0, 255), (int) auth()->id(), $this->post('cancelar_pendientes') === '1');
+        } catch (Throwable $e) {
+            return redirect()->to('lista_repartidor')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo dar de baja al repartidor.'));
+        }
+
+        $mensaje = Modelo_repartidor::nombreCompleto($r) . ' quedó dado de baja. Conserva su historial, pero ya no aparece al asignar.';
+        if ($baja['entregas_canceladas'] > 0) {
+            $mensaje .= ' Se cancelaron ' . $baja['entregas_canceladas'] . ' entrega(s) que aún no salían: asigna esos pedidos a otro repartidor.';
+        }
+        log_message('notice', 'Repartidores: la cuenta {usuario} dio de baja al repartidor #{id}.', ['usuario' => auth()->id(), 'id' => (int) $id]);
+
+        return redirect()->to('lista_repartidor')->with('mensaje', $mensaje);
+    }
+
+    /** POST reactiva_repartidor/{id}: vuelve a activar una ficha dada de baja (con su mismo historial). */
+    public function reactiva($id = null)
+    {
+        $m = new Modelo_repartidor();
+        $r = ctype_digit((string) $id) ? $m->find($id) : null;
+
+        if (! $r) {
+            return redirect()->to('lista_repartidor');
+        }
+        if (! empty($r['id_user']) && ! $m->cuentaEsRepartidor($r)) {
+            return redirect()->to('lista_repartidor')->with('error',
+                'La cuenta de ' . Modelo_repartidor::nombreCompleto($r) . ' ya no tiene el rol de repartidor: el superadmin debe devolvérselo en Roles (eso reactiva su ficha).');
+        }
+
+        try {
+            $ok = $m->reactivar((int) $id);
+        } catch (Throwable $e) {
+            return redirect()->to('lista_repartidor')->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo reactivar al repartidor.'));
+        }
+        log_message('notice', 'Repartidores: la cuenta {usuario} reactivó al repartidor #{id}.', ['usuario' => auth()->id(), 'id' => (int) $id]);
+
+        return redirect()->to('lista_repartidor')->with(
+            $ok ? 'mensaje' : 'error',
+            $ok ? Modelo_repartidor::nombreCompleto($r) . ' está activo de nuevo, con todo su historial.' : 'Ese repartidor ya estaba activo.'
+        );
     }
 }

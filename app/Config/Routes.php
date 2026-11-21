@@ -110,6 +110,8 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->get('lista_repartidor', 'Repartidores::lista_repartidor');
     $routes->get('pasa_id_repartidor/(:num)', 'Repartidores::recupera/$1');
     $routes->post('borra_id_repartidor/(:num)', 'Repartidores::eliminar_datos/$1');
+    $routes->post('baja_repartidor/(:num)', 'Repartidores::baja/$1');
+    $routes->post('reactiva_repartidor/(:num)', 'Repartidores::reactiva/$1');
     $routes->post('guarda_repartidor', 'Repartidores::guarda_repartidor');
     $routes->post('modifica_repartidor', 'Repartidores::modifica');
 

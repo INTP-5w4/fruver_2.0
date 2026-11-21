@@ -269,6 +269,9 @@ abstract class PdoModelo
             }
 
             log_message('error', 'PDOException: ' . $e->getMessage());
+        } elseif ($e instanceof \DomainException) {
+            // Reglas de negocio de los modelos: su texto está escrito para el usuario.
+            return $e->getMessage();
         } else {
             log_message('error', get_class($e) . ': ' . $e->getMessage());
         }

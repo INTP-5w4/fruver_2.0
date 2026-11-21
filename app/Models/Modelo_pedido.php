@@ -25,6 +25,32 @@ class Modelo_pedido extends PdoModelo
         }
     }
 
+    /**
+     * Un pedido nuevo solo se da a un repartidor activo. Al modificar, se permite dejar el
+     * que ya tenía aunque se haya dado de baja (es su historial), pero no cambiarlo a uno de baja.
+     */
+    public function insert(array $datos): int
+    {
+        if (isset($datos['id_repartidor']) && $datos['id_repartidor'] !== '') {
+            (new Modelo_repartidor($this->pdo))->exigirActivo((int) $datos['id_repartidor']);
+        }
+
+        return parent::insert($datos);
+    }
+
+    public function update(int|string|null $id, array $datos): bool
+    {
+        if (isset($datos['id_repartidor']) && $datos['id_repartidor'] !== '' && $id !== null && $id !== '') {
+            $actual = $this->valor('SELECT id_repartidor FROM pedido WHERE id = ?', [$id]);
+
+            if ($actual === null || (int) $actual !== (int) $datos['id_repartidor']) {
+                (new Modelo_repartidor($this->pdo))->exigirActivo((int) $datos['id_repartidor']);
+            }
+        }
+
+        return parent::update($id, $datos);
+    }
+
     /** ¿Ya existe pedido.id_direccion? Mientras no, todo funciona como antes. */
     public function tieneColumnasRutas(): bool
     {

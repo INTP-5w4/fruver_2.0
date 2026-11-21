@@ -117,6 +117,9 @@ class Rutas extends BaseController
         if ($repartidor === null || $origen === null || (int) $almacen['activo'] !== 1) {
             return $this->json(false, 'Repartidor o almacén no válido.', [], 422);
         }
+        if (Modelo_repartidor::deBaja($repartidor)) {
+            return $this->json(false, Modelo_repartidor::nombreCompleto($repartidor) . ' fue dado de baja como repartidor; elige otro.', [], 422);
+        }
 
         // Solo pedidos que de verdad se pueden rutear (confirmados / asignados sin ruta).
         $permitidos = array_map('intval', array_column($m_ruta->candidatos(), 'id_pedido'));
@@ -426,7 +429,7 @@ class Rutas extends BaseController
             'precios'      => Combustible::precios(),
             'actualizados' => Combustible::actualizados(),
             'fabrica'      => config('Rutas')->preciosCombustible,
-            'repartidores' => $m->findAll(),
+            'repartidores' => $m->activos(),
             'conColumnas'  => $m->tieneCombustible(),
         ]);
     }

@@ -129,8 +129,10 @@
                 <select name="id_repartidor" id="edit_id_repartidor"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach ($repartidores as $r): ?>
-                        <option value="<?= esc($r['id']) ?>">
-                            <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?>
+                        <?php $deBaja = \App\Models\Modelo_repartidor::deBaja($r); ?>
+                        <?php // Uno dado de baja va oculto: solo se conserva si ya era el del pedido que se edita. ?>
+                        <option value="<?= esc($r['id']) ?>"<?= $deBaja ? ' hidden data-baja="1"' : '' ?>>
+                            <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?><?= $deBaja ? ' (dado de baja)' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -180,6 +182,7 @@
                 <label><b>Repartidor*</b></label>
                 <select name="id_repartidor" class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach ($repartidores as $r): ?>
+                        <?php if (\App\Models\Modelo_repartidor::deBaja($r)) { continue; } ?>
                         <option value="<?= esc($r['id']) ?>"><?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?></option>
                     <?php endforeach; ?>
                 </select>

@@ -53,7 +53,12 @@ abstract class BaseController extends Controller
      *
      * @return list<array<string,mixed>>
      */
-    protected function repartidores(): array
+    /**
+     * Repartidores para los selectores. Por omisión solo los activos: a uno dado de baja ya no
+     * se le asigna nada. Con $incluirBajas también vienen ellos (para mostrar el nombre en el
+     * historial); la vista los marca y los oculta del selector.
+     */
+    protected function repartidores(bool $incluirBajas = false): array
     {
         $m = new Modelo_repartidor();
 
@@ -63,7 +68,7 @@ abstract class BaseController extends Controller
             log_message('error', 'No se pudieron sincronizar las cuentas de repartidor: ' . $e->getMessage());
         }
 
-        return $m->findAll();
+        return $incluirBajas ? $m->findAll() : $m->activos();
     }
 
     protected function esPersonal(): bool

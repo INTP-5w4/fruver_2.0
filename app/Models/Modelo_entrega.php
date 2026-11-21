@@ -43,6 +43,9 @@ class Modelo_entrega extends PdoModelo
     public function asignar(int $idPedido, int $idRepartidor): int
     {
         return (int) $this->transaccion(function () use ($idPedido, $idRepartidor): int {
+            // Un repartidor dado de baja conserva su historial, pero no recibe entregas nuevas.
+            (new Modelo_repartidor($this->pdo))->exigirActivo($idRepartidor);
+
             $estadoPedido = (new Modelo_estatus($this->pdo))->ultimo($idPedido)['estado'] ?? 'pedido_pendiente';
 
             if (! in_array($estadoPedido, ['pedido_confirmado', 'pedido_en_transito'], true)) {

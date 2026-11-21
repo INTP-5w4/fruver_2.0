@@ -63,9 +63,10 @@ class Pedidos extends BaseController
             'pager'   => $m_pedido->pager,
             'buscar'  => $buscar,
 
-            // Clientes y repartidores indexados por id
+            // Clientes y repartidores indexados por id. Vienen también los dados de baja para
+            // mostrar quién llevó los pedidos viejos; la vista no los ofrece en los selectores.
             'clientes'     => array_column((new Modelo_cliente())->findAll(), null, 'id'),
-            'repartidores' => array_column($this->repartidores(), null, 'id'),
+            'repartidores' => array_column($this->repartidores(true), null, 'id'),
 
             // Productos pedidos
             'pps' => (new Modelo_productopedidos())->findAll(),
@@ -85,7 +86,8 @@ class Pedidos extends BaseController
         return view('modifica_pedido', [
             'pedidos'      => $pedido,
             'clientes'     => (new Modelo_cliente())->findAll(),
-            'repartidores' => $this->repartidores(),
+            // Con los de baja: si el pedido ya era de uno, se conserva (la vista solo muestra ese).
+            'repartidores' => $this->repartidores(true),
         ]);
     }
 

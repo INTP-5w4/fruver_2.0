@@ -42,6 +42,8 @@ final class VistasNuevasTest extends CIUnitTestCase
             'rol'       => '',
             'yo'        => 4,
             'enumAlDia' => false,
+            'pendientes' => [21 => ['entregas_asignadas' => 0, 'entregas_en_ruta' => 0, 'rutas_asignadas' => 0, 'rutas_en_curso' => 0]],
+            'bitacora'   => [],
         ]);
 
         $this->assertStringContainsString('No puedes cambiar tu propio rol', $html);

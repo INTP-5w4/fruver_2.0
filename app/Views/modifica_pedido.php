@@ -27,8 +27,11 @@
         <select name="id_repartidor" id="">
 
             <?php foreach ($repartidores as $r): ?>
-                <option value="<?= esc($r['id']) ?>" <?= ($r['id'] == $pedidos['id_repartidor']) ? 'selected' : '' ?>>
-                    <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?></option>
+                <?php $esSuyo = $r['id'] == $pedidos['id_repartidor'];
+                // Uno dado de baja solo aparece si ya era el de este pedido (su historial).
+                if (\App\Models\Modelo_repartidor::deBaja($r) && ! $esSuyo) { continue; } ?>
+                <option value="<?= esc($r['id']) ?>" <?= $esSuyo ? 'selected' : '' ?>>
+                    <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?><?= \App\Models\Modelo_repartidor::deBaja($r) ? ' (dado de baja)' : '' ?></option>
                 <?php endforeach; ?>
         </select><br>
         <input type="submit" value="Enviar">

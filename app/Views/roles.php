@@ -10,9 +10,13 @@
  * @var string                                             $rol      filtro activo ('' = todos)
  * @var int                                                $yo       id de la cuenta en sesión
  * @var bool                                               $enumAlDia
+ * @var array<int,array<string,int>>                       $pendientes id de cuenta => trabajo abierto (Modelo_repartidor::pendientes)
+ * @var list<array<string,mixed>>                          $bitacora  últimos cambios de rol
  */
 use App\Models\Modelo_repartidor;
 
+$pendientes ??= [];
+$bitacora   ??= [];
 $pagina   = (int) ($pager->getCurrentPage() ?? 1);
 $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'developer' => 'est-en_transito', 'repartidor' => 'est-realizado', 'user' => 'est-entregado'];
 ?>
@@ -34,6 +38,14 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
         .roles-ayuda { color: var(--tinta-suave, #5f6f62); font-size: 13px; }
         .roles-leyenda { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px 16px; margin: 0 0 16px; padding: 0; list-style: none; }
         .roles-leyenda li { font-size: 13px; }
+        .roles-baja { flex-basis: 100%; display: grid; gap: 6px; margin-top: 4px; padding: 8px; border: 1px dashed var(--linea); border-radius: var(--r-control); font-size: 13px; }
+        .roles-baja[hidden] { display: none; }
+        .roles-baja input[type="text"] { padding: 5px 8px; border: 1px solid var(--borde-control); border-radius: var(--r-control); }
+        .roles-baja label { display: flex; gap: 6px; align-items: flex-start; }
+        .roles-alerta { color: #a4262c; }
+        .roles-fichas { display: grid; gap: 4px; }
+        .roles-bitacora { margin-top: 24px; }
+        .roles-bitacora h2 { font-size: 18px; margin: 0 0 8px; }
     </style>
 </head>
 <body>
@@ -102,7 +114,7 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
                     <th>Correo</th>
                     <th>Rol actual</th>
                     <th>Cambiar rol</th>
-                    <th>Ficha de repartidor</th>
+                    <th>Historial (fichas)</th>
                     <th>Último acceso</th>
                 </tr>
             </thead>
@@ -115,6 +127,10 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
                     $roles  = array_values(array_filter(explode(',', (string) $c['roles'])));
                     $actual = $roles[0] ?? '';
                     $esYo   = (int) $c['id'] === $yo;
+                    $pend   = $pendientes[(int) $c['id']] ?? null; // solo si hoy es repartidor activo
+                    $enCamino = $pend !== null ? $pend['entregas_en_ruta'] + $pend['rutas_en_curso'] : 0;
+                    $sinSalir = $pend !== null ? $pend['entregas_asignadas'] : 0;
+                    $repBaja  = $c['id_repartidor'] !== null && (int) ($c['rep_activo'] ?? 1) === 0;
                     ?>
                     <tr>
                         <td><?= (int) $c['id'] ?></td>
@@ -136,8 +152,8 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
                             <?php if ($esYo): ?>
                                 <span class="roles-ayuda">No puedes cambiar tu propio rol</span>
                             <?php else: ?>
-                                <form method="post" action="<?= base_url('roles/' . (int) $c['id']) ?>" class="roles-form"
-                                      onsubmit="return this.rol.value === <?= esc(json_encode($actual), 'attr') ?> || confirm('¿Cambiar el rol de <?= esc(addslashes((string) ($c['username'] ?? $c['id'])), 'attr') ?> a ' + this.rol.options[this.rol.selectedIndex].text + '?');">
+                                <form method="post" action="<?= base_url('roles/' . (int) $c['id']) ?>" class="roles-form"<?= $pend !== null ? ' data-repartidor="1"' : '' ?>
+                                      onsubmit="return this.rol.value === <?= esc(json_encode($actual), 'attr') ?> || confirm('¿Cambiar el rol de <?= esc(addslashes((string) ($c['username'] ?? $c['id'])), 'attr') ?> a ' + this.rol.options[this.rol.selectedIndex].text + '?<?= $pend !== null ? '\n\nSu ficha de repartidor quedará dada de baja (conserva su historial).' : '' ?>');">
                                     <?= csrf_field() ?>
                                     <input type="hidden" name="buscar" value="<?= esc($buscar, 'attr') ?>">
                                     <input type="hidden" name="filtro_rol" value="<?= esc($rol, 'attr') ?>">
@@ -149,18 +165,44 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
                                         <?php endforeach; ?>
                                     </select>
                                     <button type="submit" class="w3-button w3-small w3-green">Guardar</button>
+                                    <?php if ($pend !== null): ?>
+                                        <?php // Se muestra al elegir un rol distinto de repartidor: su ficha se dará de baja. ?>
+                                        <div class="roles-baja" hidden>
+                                            <?php if ($enCamino > 0): ?>
+                                                <span class="roles-alerta"><i class="fa-solid fa-truck-fast" aria-hidden="true"></i>
+                                                    Tiene <?= (int) $pend['entregas_en_ruta'] ?> entrega(s) en camino. Ciérralas o cancélalas en
+                                                    <a href="<?= base_url('lista_entrega') ?>">Entregas</a> antes de quitarle el rol.</span>
+                                            <?php endif; ?>
+                                            <label for="motivo-<?= (int) $c['id'] ?>">Motivo de la baja (opcional)</label>
+                                            <input type="text" name="motivo" id="motivo-<?= (int) $c['id'] ?>" maxlength="255" placeholder="Ej. terminó su contrato">
+                                            <?php if ($sinSalir > 0): ?>
+                                                <label><input type="checkbox" name="cancelar_pendientes" value="1">
+                                                    <span>Cancelar sus <?= (int) $sinSalir ?> entrega(s) pendientes que aún no salen (los pedidos quedarán listos para otro repartidor)</span></label>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </form>
                             <?php endif; ?>
                         </td>
-                        <td>
-                            <?php if ($c['id_repartidor'] === null): ?>
-                                <span class="roles-ayuda">—</span>
-                            <?php elseif (Modelo_repartidor::faltanDatos(['nombre' => $c['rep_nombre'], 'ape_pat' => $c['rep_ape_pat'], 'telefono' => $c['rep_telefono'], 'direccion' => $c['rep_direccion']])): ?>
-                                <span class="est est-pendiente" title="Se le pedirán al iniciar sesión">Faltan datos</span>
-                            <?php else: ?>
-                                <span class="est est-entregado">Completa</span>
+                        <td><div class="roles-fichas">
+                            <?php $esCliente = ($c['id_cliente'] ?? null) !== null; ?>
+                            <?php if ($esCliente): ?>
+                                <span title="Sus pedidos se conservan con cualquier rol">Cliente: <?= (int) ($c['pedidos_cliente'] ?? 0) ?> pedido(s)</span>
                             <?php endif; ?>
-                        </td>
+                            <?php if ($c['id_repartidor'] === null): ?>
+                                <?php if (! $esCliente): ?><span class="roles-ayuda">—</span><?php endif; ?>
+                            <?php elseif ($repBaja): ?>
+                                <span><span class="est est-cancelada" title="Conserva su historial; ya no recibe entregas">Repartidor dado de baja</span>
+                                    <?php if (! empty($c['rep_fecha_baja'])): ?><small class="roles-ayuda"><?= esc(date('d/m/Y', strtotime((string) $c['rep_fecha_baja']))) ?></small><?php endif; ?></span>
+                            <?php elseif (Modelo_repartidor::faltanDatos(['nombre' => $c['rep_nombre'], 'ape_pat' => $c['rep_ape_pat'], 'telefono' => $c['rep_telefono'], 'direccion' => $c['rep_direccion']])): ?>
+                                <span>Repartidor: <span class="est est-pendiente" title="Se le pedirán al iniciar sesión">Faltan datos</span></span>
+                            <?php else: ?>
+                                <span>Repartidor: <span class="est est-entregado">Completa</span></span>
+                            <?php endif; ?>
+                            <?php if ($enCamino + $sinSalir > 0): ?>
+                                <small class="roles-ayuda"><?= (int) $sinSalir ?> por salir · <?= (int) $pend['entregas_en_ruta'] ?> en camino</small>
+                            <?php endif; ?>
+                        </div></td>
                         <td><?= $c['last_active'] ? esc(date('d/m/Y H:i', strtotime((string) $c['last_active']))) : '<span class="roles-ayuda">Nunca</span>' ?></td>
                     </tr>
                 <?php endforeach; ?>
@@ -169,7 +211,42 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
         <?= $pager->links('default', 'w3_pager') ?>
     </div>
 
+    <?php if ($bitacora !== []): ?>
+        <section class="roles-bitacora" aria-labelledby="titulo-bitacora-roles">
+            <h2 id="titulo-bitacora-roles">Últimos cambios de rol</h2>
+            <div class="tabla-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Fecha</th><th>Cuenta</th><th>Cambio</th><th>Motivo</th><th>Qué pasó con sus fichas</th><th>Lo hizo</th></tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($bitacora as $b): ?>
+                            <tr>
+                                <td><?= esc(date('d/m/Y H:i', strtotime((string) $b['fecha']))) ?></td>
+                                <td><?= esc((string) $b['cuenta']) ?> <small class="roles-ayuda">#<?= (int) $b['id_user'] ?></small></td>
+                                <td><?= esc(implode(', ', array_map(static fn (string $r): string => $catalogo[$r]['title'] ?? $r, array_filter(explode(',', (string) $b['rol_antes'])))) ?: 'Sin rol') ?>
+                                    → <?= esc($catalogo[$b['rol_despues']]['title'] ?? (string) $b['rol_despues']) ?></td>
+                                <td><?= esc((string) ($b['motivo'] ?? '—')) ?></td>
+                                <td><?= esc((string) ($b['detalle'] ?? '—')) ?></td>
+                                <td><?= esc((string) $b['por_usuario']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    <?php endif; ?>
+
     <?php include 'Footer.php'; ?>
 </div>
+<script>
+// Al quitarle el rol a un repartidor se muestran el motivo y la cancelación de sus pendientes.
+document.querySelectorAll('form[data-repartidor] select[name="rol"]').forEach(function (sel) {
+    var caja = sel.form.querySelector('.roles-baja');
+    var cambiar = function () { caja.hidden = sel.value === 'repartidor'; };
+    sel.addEventListener('change', cambiar);
+    cambiar();
+});
+</script>
 </body>
 </html>

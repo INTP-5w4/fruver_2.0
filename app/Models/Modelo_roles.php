@@ -42,17 +42,24 @@ class Modelo_roles extends PdoModelo
             $params[] = $rol;
         }
 
+        $conBaja = (new Modelo_repartidor($this->pdo))->tieneBaja();
+
+        // Su ficha de cliente también se muestra: cambiar de rol no toca su historial de compras.
         return $this->paginarSql(
             "SELECT u.id, u.username, u.active, u.created_at, u.last_active,
                     ai.secret AS correo,
                     (SELECT GROUP_CONCAT(g.`group` ORDER BY g.id SEPARATOR ',')
                        FROM auth_groups_users g WHERE g.user_id = u.id) AS roles,
                     r.id AS id_repartidor, r.nombre AS rep_nombre, r.ape_pat AS rep_ape_pat,
-                    r.telefono AS rep_telefono, r.direccion AS rep_direccion
+                    r.telefono AS rep_telefono, r.direccion AS rep_direccion,
+                    " . ($conBaja ? 'r.activo AS rep_activo, r.fecha_baja AS rep_fecha_baja' : '1 AS rep_activo, NULL AS rep_fecha_baja') . ',
+                    cl.id AS id_cliente,
+                    (SELECT COUNT(*) FROM pedido p WHERE p.id_cliente = cl.id) AS pedidos_cliente
                FROM users u
-          LEFT JOIN auth_identities ai ON ai.user_id = u.id AND ai.type = 'email_password'
+          LEFT JOIN auth_identities ai ON ai.user_id = u.id AND ai.type = \'email_password\'
           LEFT JOIN repartidor r ON r.id_user = u.id
-              WHERE " . implode(' AND ', $where) . '
+          LEFT JOIN cliente cl ON cl.id_user = u.id
+              WHERE ' . implode(' AND ', $where) . '
            ORDER BY u.id DESC',
             $params,
             $porPagina

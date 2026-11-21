@@ -175,6 +175,8 @@ class Modelo_ruta extends PdoModelo
 
         return (int) $this->transaccion(function () use ($ruta, $paradas): int {
             $idRepartidor = (int) $ruta['id_repartidor'];
+            (new Modelo_repartidor($this->pdo))->exigirActivo($idRepartidor);
+
             $idRuta       = $this->insert($ruta + ['estado' => 'asignada']);
             $m_entrega    = new Modelo_entrega($this->pdo);
 
