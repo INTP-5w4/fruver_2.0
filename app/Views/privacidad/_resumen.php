@@ -12,7 +12,7 @@
         <strong><?= esc($cfg->responsable) ?></strong> es responsable de los datos personales que se tratan en FRUVER 2.0.
     </p>
     <ul>
-        <li><strong>Datos que pedimos:</strong> correo, nombre de usuario y contraseña (guardada de forma protegida) para tu cuenta; si haces pedidos, nombre, teléfono y dirección de entrega. También registramos la IP y el navegador de cada inicio de sesión por seguridad.</li>
+        <li><strong>Datos que pedimos:</strong> correo, nombre de usuario y contraseña (guardada de forma protegida) para tu cuenta; si haces pedidos, nombre, teléfono y dirección de entrega. También registramos la IP y el navegador de cada inicio de sesión por seguridad, y qué cuenta del personal crea o cambia cada pedido, cliente o producto (sin copiar tus datos en ese registro). Tu sesión se cierra sola tras 30 minutos sin actividad.</li>
         <li><strong>Para qué (necesarias):</strong> crear tu cuenta, registrar, preparar y entregar tus pedidos (ubicamos tu dirección con un proveedor de mapas para planear la ruta), cobrar el monto correcto, atender aclaraciones, proteger el sistema y cumplir obligaciones legales.</li>
         <li><strong>Clientes frecuentes:</strong> el sistema identifica automáticamente a quien compra seguido para ofrecerle precio preferencial y prioridad de entrega. Solo da beneficios y el personal lo revisa.</li>
         <li><strong>Para qué (voluntarias, solo si las marcas):</strong> promociones, recordatorios de recompra, encuestas de satisfacción y recomendaciones personalizadas.</li>

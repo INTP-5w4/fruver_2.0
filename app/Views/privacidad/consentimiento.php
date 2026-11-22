@@ -74,14 +74,17 @@ $cols = ['Dato', '¿Para qué lo pedimos?', '¿Por qué es necesario?'];
     ['Contraseña (guardada de forma protegida)', 'Verificar que eres tú quien accede', 'Proteger tu cuenta; nadie, incluido el Responsable, puede ver tu contraseña'],
     ['Rol y permisos', 'Definir qué funciones puedes usar', 'Que cada persona acceda solo a lo que necesita'],
     ['IP, navegador, fecha, hora y resultado de cada inicio de sesión', 'Detectar accesos indebidos y atender incidentes', 'Seguridad y trazabilidad'],
-    ['Registro de las acciones que realizas (por ejemplo, quién capturó una entrada o un pedido)', 'Control interno y corrección de errores', 'Trazabilidad de la operación'],
+    ['Registro de las acciones que realizas (por ejemplo, quién capturó un pedido o dio de alta, cambió o eliminó un cliente o un producto)', 'Control interno y corrección de errores', 'Trazabilidad de la operación; estos registros no se pueden modificar ni borrar'],
+    ['Historial de cambios de rol (quién te dio o retiró un rol, cuándo y por qué)', 'Saber quién otorgó cada permiso', 'Control de acceso y rendición de cuentas'],
     ['Si eres repartidor: nombre, teléfono, domicilio y notas', 'Asignarte entregas y contactarte durante el reparto', 'Organizar y dar seguimiento a las entregas'],
     ['Si eres repartidor: ubicación GPS de tu teléfono solo al registrar una entrega, y fotos de evidencia', 'Confirmar dónde y cuándo se entregó cada pedido', 'Comprobación de la entrega; durante la ruta tu ubicación solo se ve en tu mapa y no se guarda'],
+    ['Si eres repartidor y te dan de baja: fecha, motivo y quién registró la baja', 'Dejar de asignarte entregas sin perder el historial de las que hiciste', 'Aclaraciones sobre entregas pasadas'],
 ]) ?>
 
 <h3>3.3. Datos técnicos de cualquier persona que use el Sistema</h3>
 <ul>
-    <li>Cookie de sesión y elementos de seguridad de la sesión, necesarios para que el Sistema funcione y sea seguro.</li>
+    <li>Cookie de sesión y elementos de seguridad de la sesión, necesarios para que el Sistema funcione y sea seguro. La sesión se cierra sola tras 30 minutos sin actividad.</li>
+    <li>Identificador aleatorio de cada formulario de pedido, para no duplicar un pedido enviado dos veces; se borra a los 7 días.</li>
     <li>Dirección IP y datos del navegador registrados por el Sistema.</li>
 </ul>
 

@@ -22,11 +22,14 @@ class Privacidad extends BaseConfig
      * Versión vigente del aviso. Se guarda en cada consentimiento como constancia.
      *  1.0 · texto original.
      *  1.1 · cliente preferencial (3.2, 7), repartidores y entregas (3.6), proveedores de mapas (8), plazos (9).
+     *  1.2 · auditoría de clientes y productos (3.2, 3.3), historial de roles, sesión de 30 min sin
+     *        "recordarme" y tokens contra pedidos duplicados (3.1, 3.5), baja de repartidores (3.6),
+     *        plazos de bitácoras (9) y medidas de seguridad (10). Todas las cuentas vuelven a aceptar.
      */
-    public string $version = '1.1';
+    public string $version = '1.2';
 
     /** Fecha de última actualización del aviso (DD/MM/AAAA). */
-    public string $fechaActualizacion = '[DD/MM/AAAA]';
+    public string $fechaActualizacion = '22/11/2026';
 
     // ─── 1. Identidad y domicilio del responsable ─────────────────────────
     public string $responsable = '[NOMBRE COMPLETO O RAZÓN SOCIAL DEL NEGOCIO]';

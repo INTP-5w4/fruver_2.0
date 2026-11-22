@@ -31,7 +31,9 @@ class CrearRespaldo extends BaseCommand
     public function run(array $params)
     {
         $cfg     = config('Respaldo');
-        $db      = config('Database')->{config('Database')->defaultGroup};
+        // Con la cuenta de administración: la de la aplicación no puede leer la definición de
+        // los triggers (privilegio TRIGGER) y un respaldo sin ellos dejaría la auditoría apagada.
+        $db      = config('Database')->admin;
         $carpeta = $cfg->rutaCarpeta();
         $destino = $carpeta . 'fruver_' . date('Ymd_His') . '.sql.gz';
         $opciones = null;

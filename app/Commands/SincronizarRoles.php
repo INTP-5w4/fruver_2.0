@@ -24,7 +24,8 @@ class SincronizarRoles extends BaseCommand
 
     public function run(array $params)
     {
-        $db = db_connect();
+        // Cambia la estructura (ALTER TABLE): necesita la cuenta de administración.
+        $db = db_connect('admin');
 
         try {
             if (Roles::enumAlDia($db)) {

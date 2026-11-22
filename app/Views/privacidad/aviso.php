@@ -82,7 +82,9 @@ $cols = ['Dato personal', 'Cómo se obtiene', 'Uso específico', 'Justificación
     ['Permisos individuales', 'Los asigna el administrador', 'Habilitar o restringir acciones específicas', 'Control de acceso y segregación de funciones'],
     ['Estado de la cuenta (activa/inactiva), fechas de creación, actualización y última actividad', 'Generado automáticamente', 'Administración de cuentas, depuración de cuentas inactivas, soporte', 'Seguridad y gestión del ciclo de vida de la cuenta'],
     ['Registro de inicios de sesión: dirección IP, navegador y sistema operativo, identificador usado, fecha y hora, resultado (exitoso o fallido)', 'Generado automáticamente en cada intento de acceso', 'Detectar accesos no autorizados e intentos indebidos, y atender incidentes de seguridad', 'Medida de seguridad exigida por el deber de seguridad de la LFPDPPP; permite trazabilidad'],
-    ['Identificadores de sesión persistente ("recordarme") y de acceso', 'Generado automáticamente si la persona lo activa o cuando la función lo requiere', 'Mantener la sesión iniciada en el dispositivo y autenticar funciones que lo requieran', 'Comodidad de uso y seguridad de la autenticación; el identificador de sesión persistente es opcional y se elimina al cerrar sesión o al expirar'],
+    ['Identificador de sesión y hora de la última actividad', 'Generado automáticamente al iniciar sesión', 'Mantener la sesión iniciada y cerrarla sola tras 30 minutos sin actividad', 'Seguridad de la cuenta: evita que alguien use una sesión abierta y olvidada. El Sistema no ofrece la opción de "recordarme"'],
+    ['Historial de cambios de rol: cuenta afectada, rol anterior y nuevo, motivo, cuenta de quien hizo el cambio, fecha y, en su caso, la baja de su ficha de repartidor', 'Generado automáticamente cada vez que se asigna o retira un rol', 'Saber quién otorgó o retiró cada permiso y por qué', 'Control de acceso y rendición de cuentas; el historial no se puede modificar ni borrar desde el Sistema'],
+    ['Identificador aleatorio de cada formulario que crea un pedido, junto con la cuenta que lo envió y la fecha', 'Generado automáticamente al mostrar el formulario', 'Reconocer un mismo formulario enviado dos veces (por ejemplo, tras un corte de red) para no duplicar el pedido', 'Exactitud de la información y protección del cliente contra cobros dobles; se elimina a los 7 días'],
 ]) ?>
 
 <h3>3.2. Módulo de clientes y pedidos</h3>
@@ -96,6 +98,7 @@ $cols = ['Dato personal', 'Cómo se obtiene', 'Uso específico', 'Justificación
     ['Número de compras y estado de cliente preferencial (y, si el personal lo cambia a mano: motivo, fecha y quién lo cambió)', 'Lo calcula el Sistema a partir de los pedidos del cliente; el personal puede asignarlo o retirarlo', 'Proponer un precio preferencial y dar prioridad en la ruta de reparto a los clientes frecuentes (ver sección 7)', 'Reconocer a los clientes frecuentes dentro de la relación comercial; solo otorga beneficios'],
     ['Fecha y estado de entrega', 'Generado por el Sistema y por el personal', 'Programar y confirmar entregas', 'Cumplimiento de la relación comercial'],
     ['Usuario que capturó o modificó el pedido', 'Generado automáticamente', 'Trazabilidad y corrección de errores', 'Control interno y seguridad'],
+    ['Auditoría del registro del cliente: fecha, cuenta del personal que dio de alta, modificó o eliminó al cliente y nombre de los campos que cambiaron (por ejemplo, "teléfono"), sin copiar sus valores', 'Generado automáticamente', 'Saber quién y cuándo cambió los datos de un cliente, y atender aclaraciones o solicitudes de rectificación', 'Control interno y seguridad. Por minimización no se guarda el valor anterior ni el nuevo, de modo que al suprimir a un cliente sus datos no quedan copiados en la auditoría'],
 ]) ?>
 <p>
     <strong>Datos de pago:</strong> el Sistema no almacena números de tarjeta bancaria, claves, códigos de seguridad
@@ -111,7 +114,8 @@ $cols = ['Dato personal', 'Cómo se obtiene', 'Uso específico', 'Justificación
 <p>
     Sin embargo, si estos módulos guardan la identidad del usuario que realizó el registro (por ejemplo, la persona
     usuaria que realizó la captura), ese dato sí es un dato personal asociado a la persona y se trata únicamente para
-    fines de trazabilidad y control interno.
+    fines de trazabilidad y control interno. En particular, el Sistema anota en una bitácora de auditoría qué cuenta
+    dio de alta, modificó o eliminó cada producto, en qué fecha y qué cambió.
 </p>
 
 <h3>3.4. Módulo de analítica (panel de control)</h3>
@@ -142,6 +146,7 @@ $cols = ['Dato personal', 'Cómo se obtiene', 'Uso específico', 'Justificación
     ['Foto de evidencia de la entrega (puede mostrar la fachada o la entrada del domicilio)', 'La toma el repartidor al entregar, cuando se requiere', 'Comprobar que el pedido se entregó y atender aclaraciones', 'Constancia de la entrega; se guarda fuera del área pública y solo la ve el personal autorizado'],
     ['Horas de asignación, salida y entrega, intentos, motivo de una entrega fallida, monto cobrado y forma de pago (efectivo, transferencia o tarjeta)', 'Las registran el repartidor y el Sistema', 'Seguimiento de la entrega, cortes de caja y atención de aclaraciones', 'Cumplimiento de la relación comercial y control interno; no se guardan datos de tarjetas'],
     ['Hora estimada de llegada', 'La calcula el Sistema al planear la ruta', 'Avisar al cliente por teléfono o mensajería cuándo llegará su pedido', 'Coordinación de la entrega'],
+    ['Baja del repartidor: fecha, motivo escrito por el personal y cuenta de quien la registró', 'La registra el personal al dar de baja a un repartidor o retirarle el rol', 'Dejar de asignarle entregas sin perder el historial de las que ya hizo', 'Control interno y atención de aclaraciones sobre entregas pasadas; el motivo debe limitarse a lo laboral'],
 ]) ?>
 
 <h2 id="s4">4. Datos personales sensibles</h2>
@@ -256,12 +261,14 @@ $descuentoPreferencial = rtrim(rtrim(number_format(\App\Models\Modelo_cliente::D
 
 <h2 id="s9">9. Plazos de conservación</h2>
 <?= $tabla(['Información', 'Plazo de conservación', 'Criterio'], [
-    ['Cuenta de usuario interno y datos del repartidor', 'Mientras la persona mantenga relación con el negocio; se desactiva al terminar', 'Necesidad operativa'],
+    ['Cuenta de usuario interno y datos del repartidor', 'Mientras la persona mantenga relación con el negocio; al terminar se da de baja y sus datos quedan bloqueados como historial de las entregas que realizó, por el mismo plazo que los pedidos', 'Necesidad operativa y aclaraciones'],
     ['Registro de inicios de sesión', $cfg->textoPlazoAccesos(), 'Seguridad y auditoría'],
     ['Datos de cliente y pedidos', $cfg->plazoClientesPedidos, 'Obligaciones legales y contables'],
     ['Datos de las entregas (fotos de evidencia, ubicación al entregar, cobro) e historial de cambios del pedido', 'El mismo plazo que el pedido al que pertenecen', 'Aclaraciones, control interno y obligaciones contables'],
+    ['Bitácoras de auditoría (clientes, productos, pedidos y cambios de rol)', 'El mismo plazo que los datos de cliente y pedidos: ' . $cfg->plazoClientesPedidos, 'Rendición de cuentas y seguridad; durante ese plazo no se pueden modificar ni borrar'],
+    ['Identificadores de formularios de pedido (contra duplicados)', '7 días', 'Solo sirven para reconocer un reenvío'],
     ['Datos para finalidades voluntarias', 'Hasta que se revoque el consentimiento', 'Consentimiento'],
-    ['Identificadores de sesión persistente ("recordarme")', 'Hasta su expiración o cierre de sesión', 'Funcionalidad temporal'],
+    ['Sesión iniciada', 'Se cierra tras 30 minutos sin actividad o al salir', 'Seguridad de la cuenta'],
 ]) ?>
 <p>
     Concluido el plazo, los datos se bloquean (se conservan solo para atender responsabilidades legales) y
@@ -276,10 +283,11 @@ $descuentoPreferencial = rtrim(rtrim(number_format(\App\Models\Modelo_cliente::D
 </p>
 <h3>Técnicas</h3>
 <ul>
-    <li>Almacenamiento de contraseñas únicamente de forma protegida.</li>
-    <li>Control de acceso por roles y permisos.</li>
-    <li>Mecanismos de protección de formularios y solicitudes, y validación de la información ingresada.</li>
-    <li>Registro de accesos para trazabilidad.</li>
+    <li>Almacenamiento de contraseñas únicamente de forma protegida, con requisitos mínimos de complejidad (al menos 8 caracteres con minúscula, mayúscula, número y símbolo) y rechazo de contraseñas comunes o con datos personales.</li>
+    <li>Cierre automático de la sesión tras 30 minutos sin actividad y límite de intentos de inicio de sesión.</li>
+    <li>Control de acceso por roles y permisos, con acceso a la base de datos mediante una cuenta de privilegios mínimos.</li>
+    <li>Mecanismos de protección de formularios y solicitudes, validación de la información ingresada y prevención de registros duplicados.</li>
+    <li>Registro de accesos y bitácoras de auditoría que no se pueden modificar ni borrar desde el Sistema.</li>
     <li>Comunicación cifrada.</li>
     <li>Respaldos periódicos de la información.</li>
 </ul>
