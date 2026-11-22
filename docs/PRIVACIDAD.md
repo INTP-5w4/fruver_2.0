@@ -5,7 +5,9 @@ y qué debe configurar u operar el negocio.
 
 ## 1. Puesta en marcha
 
-1. Aplica los cambios de base de datos (una de las dos opciones):
+1. En una base nueva, importa primero la estructura sin datos: `database_cambios/00_estructura_base.sql`.
+   Nunca versiones volcados con datos de clientes o repartidores (`.gitignore` los ignora).
+   Luego aplica los cambios de base de datos (una de las dos opciones):
    - `php spark migrate` (o `php spark bd:migrar` una vez que la aplicación usa la cuenta de privilegios mínimos)
    - o en phpMyAdmin: `database_cambios/privacidad_cambios.sql` y `database_cambios/trazabilidad_pedidos_cambios.sql`.
 2. Completa los datos entre corchetes en `app/Config/Privacidad.php` (razón social, domicilio, contacto,

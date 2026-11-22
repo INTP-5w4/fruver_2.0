@@ -135,3 +135,13 @@ public/null/
 # Evidencias de entrega (fotos privadas)
 writable/uploads/evidencias/*
 writable/respaldos/*
+
+#-------------------------
+# Volcados de base de datos (pueden traer datos personales, LFPDPPP)
+# Solo se versionan los scripts de estructura de database_cambios/ (sin datos).
+#-------------------------
+*.sql
+*.sql.gz
+*.sql.zip
+*.dump
+!database_cambios/*.sql

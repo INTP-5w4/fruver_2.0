@@ -27,6 +27,9 @@ class RevisarSeguridad extends BaseCommand
     protected $description = 'Revisa la configuración de seguridad (entorno, HTTPS, base de datos, sesión, bitácoras, archivos).';
     protected $usage       = 'seguridad:revisar';
 
+    /** INSERT con filas en tablas de datos personales (un volcado, no un script de estructura). */
+    public const INSERT_PERSONAL = '/^INSERT INTO `?(cliente|repartidor|direccion|users|auth_identities|auth_logins|consentimiento|entrega)`?\b/mi';
+
     /** @var list<array{string,string,string}> */
     private array $resultados = [];
 
@@ -203,6 +206,16 @@ class RevisarSeguridad extends BaseCommand
         $volcados === []
             ? $this->ok('Archivos', 'No hay volcados .sql en la raíz del proyecto.')
             : $this->aviso('Archivos', 'Volcados en la raíz (' . implode(', ', $volcados) . '): si traen datos reales, sácalos del proyecto y del repositorio.');
+
+        $conDatos = [];
+        foreach (array_merge(glob(ROOTPATH . 'database_cambios/*.sql') ?: [], glob(ROOTPATH . '*.sql') ?: []) as $sql) {
+            if (preg_match(self::INSERT_PERSONAL, (string) file_get_contents($sql)) === 1) {
+                $conDatos[] = str_replace(ROOTPATH, '', $sql);
+            }
+        }
+        $conDatos === []
+            ? $this->ok('Archivos', 'Ningún script .sql del proyecto trae datos de clientes, repartidores o cuentas.')
+            : $this->falla('Archivos', 'Estos .sql traen datos personales; sácalos del proyecto: ' . implode(', ', $conDatos), true);
 
         foreach (['cache', 'session', 'logs', 'uploads'] as $carpeta) {
             if (! is_writable(WRITEPATH . $carpeta)) {

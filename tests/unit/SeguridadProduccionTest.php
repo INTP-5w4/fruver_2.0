@@ -12,6 +12,13 @@ use CodeIgniter\Test\CIUnitTestCase;
  */
 final class SeguridadProduccionTest extends CIUnitTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config('Settings')->handlers = ['array'];
+        \Config\Services::resetSingle('settings');
+    }
+
     public function testPermisosMinimosPorTabla(): void
     {
         $p = PrivilegiosBd::permisos(['pedido', 'cliente', 'auditoria', 'pedido_bitacora', 'migrations', 'rol_bitacora', 'consentimiento', 'envio_unico']);
@@ -66,6 +73,19 @@ final class SeguridadProduccionTest extends CIUnitTestCase
     {
         $this->expectException(RuntimeException::class);
         ArchivoEnv::fijar(tempnam(sys_get_temp_dir(), 'env'), ['database.default.password' => "a\nCI_ENVIRONMENT = development"]);
+    }
+
+    public function testNingunSqlDelProyectoTraeDatosPersonales(): void
+    {
+        $archivos = array_merge(glob(ROOTPATH . '*.sql') ?: [], glob(ROOTPATH . 'database_cambios/*.sql') ?: []);
+        $this->assertContains(ROOTPATH . 'database_cambios/00_estructura_base.sql', $archivos);
+
+        foreach ($archivos as $sql) {
+            $this->assertDoesNotMatchRegularExpression(\App\Commands\RevisarSeguridad::INSERT_PERSONAL, file_get_contents($sql), basename($sql));
+        }
+
+        $this->assertMatchesRegularExpression(\App\Commands\RevisarSeguridad::INSERT_PERSONAL, "INSERT INTO `cliente` (`id`) VALUES (1);");
+        $this->assertDoesNotMatchRegularExpression(\App\Commands\RevisarSeguridad::INSERT_PERSONAL, "        INSERT INTO merma (cantidad) VALUES (1);");
     }
 
     public function testAvisoDePrivacidad12(): void

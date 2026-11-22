@@ -16,8 +16,14 @@ Marco de referencia:
 
 ```bash
 composer install
-php spark migrate      # o los .sql de database_cambios/, en orden
+# Base nueva: importa primero la estructura (sin datos)
+mysql -u root -p fruver < database_cambios/00_estructura_base.sql
+php spark migrate      # o los demás .sql de database_cambios/, en orden
 ```
+
+El repositorio no guarda volcados con datos: `.gitignore` ignora cualquier `.sql` fuera de
+`database_cambios/` y `php spark seguridad:revisar` marca como FALLA un script que traiga filas de
+clientes, repartidores, direcciones o cuentas.
 
 Las carpetas `writable/cache` y `writable/session` ya vienen en el repositorio, cada una con su
 `index.html`. Si una instalación las pierde, `app/Config/Events.php` (`pre_system`) las vuelve a
