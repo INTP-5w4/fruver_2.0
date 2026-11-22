@@ -16,19 +16,20 @@
 
         <form action="<?= base_url('guarda_pedido') ?>" method="post" class="modal-form">
 <?= csrf_field() ?>
+<?= campo_envio_unico() ?>
 
-            <label><b>Fecha</b></label>
-            <input type="date" name="fecha" class="modal-input" required>
+            <label for="nuevo-pedido-fecha"><b>Fecha</b></label>
+            <input id="nuevo-pedido-fecha" type="date" name="fecha" class="modal-input" required>
 
-            <label><b>Cliente</b></label>
-            <select name="id_cliente" class="modal-input" required>
+            <label for="nuevo-pedido-id-cliente"><b>Cliente</b></label>
+            <select id="nuevo-pedido-id-cliente" name="id_cliente" class="modal-input" required>
                 <?php foreach ($clientes as $c): ?>
                     <option value="<?= esc($c['id']) ?>"><?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?></option>
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Repartidor</b></label>
-            <select name="id_repartidor" class="modal-input" required>
+            <label for="nuevo-pedido-id-repartidor"><b>Repartidor</b></label>
+            <select id="nuevo-pedido-id-repartidor" name="id_repartidor" class="modal-input" required>
                 <?php foreach ($repartidores as $r): ?>
                     <option value="<?= esc($r['id']) ?>"><?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?></option>
                 <?php endforeach; ?>

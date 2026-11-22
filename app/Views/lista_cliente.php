@@ -62,6 +62,7 @@
         <input
             type="text"
             name="buscar"
+            aria-label="Buscar cliente"
             value="<?= esc($buscar ?? '') ?>"
             placeholder="Buscar por id..."
             class="w3-input w3-border"
@@ -160,19 +161,19 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Nombre*</b></label>
+                <label for="edit_nom"><b>Nombre*</b></label>
                 <input type="text" name="nom" id="edit_nom"
                     class="w3-input w3-border w3-margin-bottom" required value="<?= old('nom') ?>">
 
-                <label><b>Apellido Paterno*</b></label>
+                <label for="edit_ape_pat"><b>Apellido Paterno*</b></label>
                 <input type="text" name="ape_pat" id="edit_ape_pat"
                     class="w3-input w3-border w3-margin-bottom" required value="<?= old('ape_pat') ?>">
 
-                <label><b>Apellido Materno*</b></label>
+                <label for="edit_ape_mat"><b>Apellido Materno*</b></label>
                 <input type="text" name="ape_mat" id="edit_ape_mat"
                     class="w3-input w3-border w3-margin-bottom" required value="<?= old('ape_mat') ?>"?>
 
-                <label><b>Teléfono*</b></label>
+                <label for="edit_tel"><b>Teléfono*</b></label>
                 <input type="text" placeholder="Formato:1234567890" name="tel" id="edit_tel"
                     class="w3-input w3-border w3-margin-bottom" required value="<?= old('tel') ?>">
 
@@ -232,17 +233,17 @@
             <form action="<?= base_url('guarda_cliente') ?>" method="post" class="modal-form">
 <?= csrf_field() ?>
 
-    <label><b>Nombre*</b></label>
-    <input type="text" placeholder="Ej: Mario" name="nom" class="modal-input" required value="<?= old('nom') ?>">
+    <label for="cliente-nom"><b>Nombre*</b></label>
+    <input id="cliente-nom" type="text" placeholder="Ej: Mario" name="nom" class="modal-input" required value="<?= old('nom') ?>">
 
-    <label><b>Apellido Paterno*</b></label>
-    <input type="text" placeholder="Ej: Pérez"name="ape_pat" class="modal-input" required value="<?= old('ape_pat') ?>">
+    <label for="cliente-ape-pat"><b>Apellido Paterno*</b></label>
+    <input id="cliente-ape-pat" type="text" placeholder="Ej: Pérez"name="ape_pat" class="modal-input" required value="<?= old('ape_pat') ?>">
 
-    <label><b>Apellido Materno*</b></label>
-    <input type="text" placeholder="Ej: González" name="ape_mat" class="modal-input" required value="<?= old('ape_mat') ?>">
+    <label for="cliente-ape-mat"><b>Apellido Materno*</b></label>
+    <input id="cliente-ape-mat" type="text" placeholder="Ej: González" name="ape_mat" class="modal-input" required value="<?= old('ape_mat') ?>">
 
-    <label><b>Teléfono*</b></label>
-    <input type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required value="<?= old('tel') ?>">
+    <label for="cliente-tel"><b>Teléfono*</b></label>
+    <input id="cliente-tel" type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required value="<?= old('tel') ?>">
 
         <footer class="modal-footer">
             <button type="submit" class="btn-guardar">Guardar</button>
@@ -267,11 +268,6 @@
             document.getElementById('modalEditarCliente').style.display = 'block';
         }
 
-        // Cerrar al hacer clic fuera
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalEditarCliente');
-            if (event.target === modal) modal.style.display = 'none';
-        };
     // Si hay un error, abrimos el modal de crear cliente automáticamente
     <?php if (session()->has('error')): ?>
         document.getElementById('modalCrearCliente').style.display = 'block';

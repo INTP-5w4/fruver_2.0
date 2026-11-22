@@ -24,6 +24,19 @@ use CodeIgniter\HotReloader\HotReloader;
  */
 
 Events::on('pre_system', static function (): void {
+    /*
+     * Carpetas de trabajo de writable/. Vienen en el repositorio (con su index.html), pero
+     * si una instalación las pierde (copia sin carpetas vacías, limpieza manual) se crean
+     * aquí, antes de que la caché (límite de intentos de login) o la sesión las necesiten.
+     */
+    foreach (['cache', 'session', 'logs', 'uploads', 'debugbar'] as $carpeta) {
+        $ruta = WRITEPATH . $carpeta;
+
+        if (! is_dir($ruta) && ! @mkdir($ruta, 0775, true) && ! is_dir($ruta)) {
+            throw new \RuntimeException('No se pudo crear la carpeta ' . $ruta . '. Revisa los permisos de writable/.');
+        }
+    }
+
     if (ENVIRONMENT !== 'testing') {
         if (ini_get('zlib.output_compression')) {
             throw FrameworkException::forEnabledZlibOutputCompression();

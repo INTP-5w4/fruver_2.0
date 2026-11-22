@@ -203,6 +203,9 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('comunicaciones/correo', 'Comunicaciones::enviarCorreo');
     $routes->get('comunicaciones/revisar', 'Comunicaciones::revisar'); // ¿el mensaje tiene groserías? (JSON)
 
+    // ===== AUDITORÍA DE CLIENTES Y PRODUCTOS (solo consulta; la escribe la base de datos) =====
+    $routes->get('auditoria', 'Auditoria::index');
+
     // ===== SUGERENCIAS (lectura del personal; el formulario es para todos y va más arriba) =====
     $routes->get('lista_sugerencia', 'Sugerencias::lista_sugerencia');
 

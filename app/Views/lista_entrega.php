@@ -45,6 +45,7 @@
         <input
             type="text"
             name="buscar"
+            aria-label="Buscar entrega"
             value="<?= esc($buscar ?? '') ?>"
             placeholder="Buscar por pedido, estado, repartidor o cliente..."
             class="w3-input w3-border"
@@ -176,10 +177,6 @@
         document.addEventListener('click', function (ev) {
             var cerrar = ev.target.closest('[data-cerrar-modal]');
             if (cerrar) { cerrar.closest('.w3-modal').style.display = 'none'; return; }
-            if (ev.target.classList && ev.target.classList.contains('w3-modal')) { ev.target.style.display = 'none'; }
-        });
-        document.addEventListener('keydown', function (ev) {
-            if (ev.key === 'Escape') { document.getElementById('modalAsignarEntrega').style.display = 'none'; }
         });
     </script>
 </body>

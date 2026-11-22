@@ -2,9 +2,11 @@
 
 namespace App\Controllers;
 
+use App\Models\EnvioRepetido;
 use App\Models\Modelo_bitacora_pedido;
 use App\Models\Modelo_cliente;
 use App\Models\Modelo_entrada;
+use App\Models\Modelo_envio_unico;
 use App\Models\Modelo_estatus;
 use App\Models\Modelo_existencia;
 use App\Models\Modelo_pedido;
@@ -91,8 +93,13 @@ class P_pedidos extends BaseController
                 $this->cabecera(),
                 $items,
                 $estado,
-                $this->fechaHoraSql($this->request->getPost('fecha_estatus'))
+                $this->fechaHoraSql($this->request->getPost('fecha_estatus')),
+                Modelo_envio_unico::tokenValido($this->request->getPost('token_envio'))
             );
+        } catch (EnvioRepetido $e) {
+            // El mismo formulario llegó otra vez (reenvío tras un corte de red, doble clic):
+            // el pedido ya existe y no se duplica.
+            return redirect()->to('lista_p_pedido')->with('mensaje', $e->getMessage());
         } catch (DomainException $e) {
             // Carrito vacío, datos no válidos o stock insuficiente
             return redirect()->back()->with('error', $e->getMessage());

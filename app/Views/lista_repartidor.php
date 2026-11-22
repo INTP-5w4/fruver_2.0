@@ -221,11 +221,6 @@ $nuevos    ??= 0;
         document.addEventListener('click', function (ev) {
             var cerrar = ev.target.closest('[data-cerrar-modal]');
             if (cerrar) { cerrar.closest('.w3-modal').style.display = 'none'; return; }
-            if (ev.target.classList && ev.target.classList.contains('w3-modal')) { ev.target.style.display = 'none'; }
-        });
-        document.addEventListener('keydown', function (ev) {
-            if (ev.key !== 'Escape') { return; }
-            document.querySelectorAll('.w3-modal').forEach(function (m) { m.style.display = 'none'; });
         });
 
         <?php if ($reabrir !== null): ?>

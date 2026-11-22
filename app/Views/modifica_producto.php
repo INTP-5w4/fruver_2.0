@@ -12,12 +12,12 @@
 <?= csrf_field() ?>
         <input type="hidden" name="id" value="<?= esc($productos['id']) ?>">
         <label for="nombre">Nombre</label><br>
-        <input type="text" name="nom" value="<?= esc($productos['nombre']) ?>"><br>
+        <input id="nombre" type="text" name="nom" value="<?= esc($productos['nombre']) ?>"><br>
         <label for="descripcion">Descripcion</label><br>
-        <textarea name="desc" cols="20" rows="5"><?= esc($productos['descripcion']) ?></textarea>
+        <textarea id="descripcion" name="desc" cols="20" rows="5"><?= esc($productos['descripcion']) ?></textarea>
         
         <label for="categoria">Categoria</label><br>
-        <select name="cat" id="">
+        <select id="categoria" name="cat">
             <option value="<?= esc($productos['categoria']) ?>" selected><?= esc($productos['categoria']) ?></option>
             <option value="frutas">Frutas</option>
             <option value="verduras">Verdura</option>
@@ -26,7 +26,7 @@
         
         
         <label for="imagen">Imagen</label><br>
-        <input type="file" name="img" id="" value="<?= esc($productos['img']) ?>"><br>
+        <input id="imagen" type="file" name="img" value="<?= esc($productos['img']) ?>"><br>
         <input type="submit" value="Enviar">
     </form>
 </body>

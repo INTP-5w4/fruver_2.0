@@ -95,6 +95,15 @@ code { font-size: 0.9em; }
 .btn-icono:hover { background: var(--hoja-clara); color: var(--hoja-oscura); }
 .btn-icono.peligro:hover { background: var(--alerta-claro); color: var(--alerta); }
 .btn-chico { min-height: 30px; padding: 0 11px; font-size: 13px; }
+
+/* Texto solo para lectores de pantalla (nombres de botones de ícono, encabezados de tabla) */
+.sr-solo {
+    position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+
+/* Botón con el envío en curso (js/envio_unico.js) */
+.enviando { opacity: .7; cursor: progress !important; }
 .btn-grande { min-height: 50px; padding: 0 20px; font-size: 16px; border-radius: var(--r-tarjeta); }
 .btn-bloque { width: 100%; }
 

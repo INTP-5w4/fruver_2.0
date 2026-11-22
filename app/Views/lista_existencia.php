@@ -73,7 +73,7 @@
                     <td>
                         <form method="post" action="<?= base_url('borra_id_existencia/' . (int) $e['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
 <?= csrf_field() ?>
-<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash"></i></button>
+<button type="submit" style="border:none; cursor:pointer; background:none;" title="Eliminar" aria-label="Eliminar la existencia <?= (int) $e['id'] ?>"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
 </form>
                     </td>
                 </tr>
@@ -89,23 +89,23 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Existencias totales*</b></label>
+                <label for="edit_e_total"><b>Existencias totales*</b></label>
                 <input type="number" name="e_total" id="edit_e_total"
                     class="w3-input w3-border w3-margin-bottom" min="0" required>
 
-                <label><b>Existencias bloqueadas*</b></label>
+                <label for="edit_e_bloqueado"><b>Existencias bloqueadas*</b></label>
                 <input type="number" name="e_bloqueado" id="edit_e_bloqueado"
                     class="w3-input w3-border w3-margin-bottom" min="0" required>
 
-                <label><b>Existencias para venta*</b></label>
+                <label for="edit_e_venta"><b>Existencias para venta*</b></label>
                 <input type="number" name="e_venta" id="edit_e_venta"
                     class="w3-input w3-border w3-margin-bottom" min="0" required>
 
-                <label><b>Fecha*</b></label>
+                <label for="edit_fecha"><b>Fecha*</b></label>
                 <input type="datetime-local" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Producto*</b></label>
+                <label for="edit_id_producto"><b>Producto*</b></label>
                 <select name="id_producto" id="edit_id_producto"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach($productos as $p): ?>
@@ -129,24 +129,24 @@
         <form action="<?= base_url('guarda_existencia') ?>" method="post" class="w3-container w3-padding-16">
 <?= csrf_field() ?>
 
-            <label><b>Producto</b></label>
-            <select name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
+            <label for="existencia-id-producto"><b>Producto</b></label>
+            <select id="existencia-id-producto" name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($productos as $p): ?>
                     <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Existencias totales*</b></label>
-            <input type="number" placeholder="Ej: 30" name="e_total" class="w3-input w3-border w3-margin-bottom" min="0">
+            <label for="existencia-e-total"><b>Existencias totales*</b></label>
+            <input id="existencia-e-total" type="number" placeholder="Ej: 30" name="e_total" class="w3-input w3-border w3-margin-bottom" min="0">
 
-            <label><b>Existencias bloqueadas*</b></label>
-            <input type="number" placeholder="Ej: 20" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom" min="0">
+            <label for="existencia-e-bloqueado"><b>Existencias bloqueadas*</b></label>
+            <input id="existencia-e-bloqueado" type="number" placeholder="Ej: 20" name="e_bloqueado" class="w3-input w3-border w3-margin-bottom" min="0">
 
-            <label><b>Existencias para venta*</b></label>
-            <input type="number" placeholder="Ej: 10" name="e_venta" class="w3-input w3-border w3-margin-bottom" min="0">
+            <label for="existencia-e-venta"><b>Existencias para venta*</b></label>
+            <input id="existencia-e-venta" type="number" placeholder="Ej: 10" name="e_venta" class="w3-input w3-border w3-margin-bottom" min="0">
 
-            <label><b>Fecha*</b></label>
-            <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
+            <label for="existencia-fecha"><b>Fecha*</b></label>
+            <input id="existencia-fecha" type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -173,10 +173,6 @@
             document.getElementById('modalEditarExistencia').style.display = 'block';
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalEditarExistencia');
-            if (event.target === modal) modal.style.display = 'none';
-        };
     </script>
 
 </body>

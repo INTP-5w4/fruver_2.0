@@ -21,3 +21,17 @@ if (! function_exists('json_seguro')) {
         ) ?: 'null';
     }
 }
+
+if (! function_exists('campo_envio_unico')) {
+    /**
+     * Campo oculto token_envio para los formularios que CREAN registros (pedidos).
+     * Un token nuevo por cada vez que se muestra el formulario: si el navegador reenvía
+     * el mismo formulario (corte de red, doble clic), el servidor lo reconoce y no
+     * duplica el registro (App\Models\Modelo_envio_unico).
+     */
+    function campo_envio_unico(): string
+    {
+        return '<input type="hidden" name="token_envio" value="'
+            . \App\Models\Modelo_envio_unico::nuevoToken() . '">';
+    }
+}

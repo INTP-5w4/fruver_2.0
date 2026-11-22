@@ -63,6 +63,7 @@
         <input
             type="text"
             name="buscar"
+            aria-label="Buscar sugerencia"
             value="<?= esc($buscar ?? '') ?>"
             maxlength="100"
             placeholder="Buscar por título, descripción, usuario o rol..."

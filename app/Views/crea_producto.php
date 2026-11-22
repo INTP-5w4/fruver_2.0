@@ -65,23 +65,23 @@
               enctype="multipart/form-data" class="w3-container w3-padding-16">
 <?= csrf_field() ?>
 
-            <label><b>Nombre</b></label>
-            <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom"
+            <label for="nuevo-producto-nom"><b>Nombre</b></label>
+            <input id="nuevo-producto-nom" type="text" name="nom" class="w3-input w3-border w3-margin-bottom"
                    placeholder="Ej: Tomate Saladet" required>
 
-            <label><b>Descripción</b></label>
-            <textarea name="desc" class="w3-input w3-border w3-margin-bottom"
+            <label for="nuevo-producto-desc"><b>Descripción</b></label>
+            <textarea id="nuevo-producto-desc" name="desc" class="w3-input w3-border w3-margin-bottom"
                       rows="4" required></textarea>
 
-            <label><b>Categoría</b></label>
-            <select name="cat" class="w3-select w3-border w3-margin-bottom">
+            <label for="nuevo-producto-cat"><b>Categoría</b></label>
+            <select id="nuevo-producto-cat" name="cat" class="w3-select w3-border w3-margin-bottom">
                 <option value="frutas">Frutas</option>
                 <option value="verduras">Verduras</option>
                 <option value="yerbas">Yerbas</option>
             </select>
 
-            <label><b>Imagen</b></label>
-            <input type="file" name="img" class="w3-input w3-border w3-margin-bottom">
+            <label for="nuevo-producto-img"><b>Imagen</b></label>
+            <input id="nuevo-producto-img" type="file" name="img" class="w3-input w3-border w3-margin-bottom">
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -95,12 +95,6 @@
 </div>
 
 <script>
-    window.onclick = function(event) {
-        const modal = document.getElementById('modalProducto');
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
 
     // Si hay error, abre el modal automáticamente
     <?php if (session()->getFlashdata('error') || session()->getFlashdata('errors')): ?>

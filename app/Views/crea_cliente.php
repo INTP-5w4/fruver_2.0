@@ -48,17 +48,17 @@
         <form action="<?= base_url('guarda_cliente') ?>" method="post" class="w3-container w3-padding-16">
 <?= csrf_field() ?>
 
-            <label><b>Nombre</b></label>
-            <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom" required>
+            <label for="nuevo-cliente-nom"><b>Nombre</b></label>
+            <input id="nuevo-cliente-nom" type="text" name="nom" class="w3-input w3-border w3-margin-bottom" required>
 
-            <label><b>Apellido Paterno</b></label>
-            <input type="text" name="ape_pat" class="w3-input w3-border w3-margin-bottom" required>
+            <label for="nuevo-cliente-ape-pat"><b>Apellido Paterno</b></label>
+            <input id="nuevo-cliente-ape-pat" type="text" name="ape_pat" class="w3-input w3-border w3-margin-bottom" required>
 
-            <label><b>Apellido Materno</b></label>
-            <input type="text" name="ape_mat" class="w3-input w3-border w3-margin-bottom" required>
+            <label for="nuevo-cliente-ape-mat"><b>Apellido Materno</b></label>
+            <input id="nuevo-cliente-ape-mat" type="text" name="ape_mat" class="w3-input w3-border w3-margin-bottom" required>
 
-            <label><b>Teléfono</b></label>
-            <input type="text" name="tel" class="w3-input w3-border w3-margin-bottom" required>
+            <label for="nuevo-cliente-tel"><b>Teléfono</b></label>
+            <input id="nuevo-cliente-tel" type="text" name="tel" class="w3-input w3-border w3-margin-bottom" required>
 
             <!-- LFPDPPP: quien da sus datos en persona o por teléfono también debe conocer el aviso. -->
             <p class="w3-small w3-text-grey">
@@ -80,12 +80,6 @@
 </div>
 
 <script>
-    window.onclick = function(event) {
-        const modal = document.getElementById('modalCliente');
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
 
     // ✅ Si hay error, abre el modal automáticamente
     <?php if (session()->getFlashdata('error')): ?>

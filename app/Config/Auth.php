@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Config;
 
+use App\Validation\ComposicionContrasena;
 use CodeIgniter\Shield\Config\Auth as ShieldAuth;
 use CodeIgniter\Shield\Authentication\Actions\ActionInterface;
 use CodeIgniter\Shield\Authentication\AuthenticatorInterface;
@@ -215,9 +216,11 @@ class Auth extends ShieldAuth
      *
      * @var array<string, bool|int|string>
      */
+    // "Recordarme" apagado: una cookie de 30 días volvería a abrir la sesión sin contraseña
+    // y anularía el cierre por 30 minutos de inactividad (Config\Session, Filters\SesionGuard).
     public array $sessionConfig = [
         'field'              => 'user',
-        'allowRemembering'   => true,
+        'allowRemembering'   => false,
         'rememberCookieName' => 'remember',
         'rememberLength'     => 30 * DAY,
     ];
@@ -291,6 +294,8 @@ class Auth extends ShieldAuth
      */
     public array $passwordValidators = [
         CompositionValidator::class,
+        ComposicionContrasena::class, // minúscula, mayúscula, número y símbolo
+
         NothingPersonalValidator::class,
         DictionaryValidator::class,
         // PwnedValidator::class,

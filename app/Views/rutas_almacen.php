@@ -31,10 +31,10 @@
             <form method="post" action="<?= base_url('rutas/almacen') ?>" class="modal-form">
                 <?= csrf_field() ?>
                 <input type="hidden" name="id" value="<?= $a ? (int) $a['id'] : '' ?>">
-                <label><b>Nombre</b></label>
-                <input type="text" name="nombre" class="modal-input" maxlength="100" required value="<?= esc($a['nombre'] ?? 'Bodega principal', 'attr') ?>">
-                <label><b>Dirección (texto)</b></label>
-                <input type="text" name="direccion" class="modal-input" maxlength="300" required value="<?= esc($a['direccion'] ?? '', 'attr') ?>">
+                <label for="rutas-almacen-nombre"><b>Nombre</b></label>
+                <input id="rutas-almacen-nombre" type="text" name="nombre" class="modal-input" maxlength="100" required value="<?= esc($a['nombre'] ?? 'Bodega principal', 'attr') ?>">
+                <label for="rutas-almacen-direccion"><b>Dirección (texto)</b></label>
+                <input id="rutas-almacen-direccion" type="text" name="direccion" class="modal-input" maxlength="300" required value="<?= esc($a['direccion'] ?? '', 'attr') ?>">
                 <?= view('partials/geo_direccion', ['geo' => $a, 'geoId' => 'geo_almacen_' . ($a['id'] ?? 'nuevo')]) ?>
                 <?php if ($a): ?>
                     <label class="geo-check"><input type="checkbox" name="activo" value="0" <?= (int) $a['activo'] === 1 ? '' : 'checked' ?>> Desactivar (no se ofrece al planear)</label>

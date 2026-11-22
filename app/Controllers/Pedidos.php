@@ -2,7 +2,9 @@
 
 namespace App\Controllers;
 
+use App\Models\EnvioRepetido;
 use App\Models\Modelo_cliente;
+use App\Models\Modelo_envio_unico;
 use App\Models\Modelo_pedido;
 use App\Models\Modelo_productopedidos;
 use App\Models\Modelo_repartidor;
@@ -46,9 +48,15 @@ class Pedidos extends BaseController
         }
 
         try {
-            (new Modelo_pedido())->insert($this->datosDelFormulario());
+            (new Modelo_pedido())->crearCabecera(
+                $this->datosDelFormulario(),
+                Modelo_envio_unico::tokenValido($this->request->getPost('token_envio'))
+            );
 
             return redirect()->to($this->destino('lista_pedido'))->with('mensaje', 'Pedido creado exitosamente');
+        } catch (EnvioRepetido $e) {
+            // Mismo formulario reenviado: el pedido ya existe y no se duplica.
+            return redirect()->to($this->destino('lista_pedido'))->with('mensaje', $e->getMessage());
         } catch (DomainException $e) {
             // Regla de negocio (p. ej. repartidor dado de baja): su texto es para el usuario.
             return redirect()->to('crea_pedido')->with('error', $e->getMessage());

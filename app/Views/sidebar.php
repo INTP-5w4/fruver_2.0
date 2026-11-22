@@ -39,6 +39,7 @@
         ],
         'Sistema' => [
             ['lista_sugerencia', 'fa-lightbulb', 'Sugerencias', ['lista_sugerencia']],
+            ['auditoria', 'fa-clipboard-list', 'Auditoría', ['auditoria']],
             ['impresora', 'fa-print', 'Impresora', ['impresora']],
             ['privacidad/preferencias', 'fa-user-shield', 'Privacidad', ['privacidad']],
         ],

@@ -342,47 +342,69 @@ class Modelo_pedido extends PdoModelo
      *
      * @throws DomainException si no hay stock suficiente
      */
-    public function crearPedidoCompleto(array $cab, array $items, string $estado, ?string $fechaEstatus): int
+    public function crearPedidoCompleto(array $cab, array $items, string $estado, ?string $fechaEstatus, ?string $tokenEnvio = null): int
     {
-        return (int) $this->transaccion(function () use ($cab, $items, $estado, $fechaEstatus) {
-            $existencia = new Modelo_existencia($this->pdo);
-            $stock      = $existencia->stockDisponiblePorProducto();
+        return (int) $this->transaccion(fn () => (new Modelo_envio_unico($this->pdo))->unaVez(
+            $tokenEnvio,
+            'pedido',
+            fn (): int => $this->insertarPedidoCompleto($cab, $items, $estado, $fechaEstatus)
+        ));
+    }
 
-            foreach ($items as $item) {
-                $disponible = (float) ($stock[$item['id_producto']] ?? 0);
+    /**
+     * Crea solo la cabecera de un pedido (formulario «Pedidos»), una sola vez por token_envio.
+     *
+     * @throws EnvioRepetido si el mismo formulario ya se había guardado
+     */
+    public function crearCabecera(array $datos, ?string $tokenEnvio = null): int
+    {
+        return (int) $this->transaccion(fn () => (new Modelo_envio_unico($this->pdo))->unaVez(
+            $tokenEnvio,
+            'pedido',
+            fn (): int => $this->insert($datos)
+        ));
+    }
 
-                if ($item['cant'] > $disponible) {
-                    $producto = (new Modelo_producto($this->pdo))->find($item['id_producto']);
-                    $nombre   = $producto['nombre'] ?? 'Producto';
+    /** Cuerpo de crearPedidoCompleto(), ya dentro de su transacción. */
+    private function insertarPedidoCompleto(array $cab, array $items, string $estado, ?string $fechaEstatus): int
+    {
+        $existencia = new Modelo_existencia($this->pdo);
+        $stock      = $existencia->stockDisponiblePorProducto();
 
-                    throw new DomainException(
-                        'Stock insuficiente para "' . $nombre . '". Disponible: ' . $disponible
-                    );
-                }
+        foreach ($items as $item) {
+            $disponible = (float) ($stock[$item['id_producto']] ?? 0);
+
+            if ($item['cant'] > $disponible) {
+                $producto = (new Modelo_producto($this->pdo))->find($item['id_producto']);
+                $nombre   = $producto['nombre'] ?? 'Producto';
+
+                throw new DomainException(
+                    'Stock insuficiente para "' . $nombre . '". Disponible: ' . $disponible
+                );
             }
+        }
 
-            $idPedido = $this->insert($this->conDireccion($cab));
+        $idPedido = $this->insert($this->conDireccion($cab));
 
-            $pp = new Modelo_productopedidos($this->pdo);
-            foreach ($items as $item) {
-                $pp->insert([
-                    'cant'         => $item['cant'],
-                    'precio_venta' => $item['precio_venta'],
-                    'unidad_venta' => $item['unidad_venta'],
-                    'total'        => $item['total'],
-                    'id_pedido'    => $idPedido,
-                    'id_producto'  => $item['id_producto'],
-                ]);
-            }
+        $pp = new Modelo_productopedidos($this->pdo);
+        foreach ($items as $item) {
+            $pp->insert([
+                'cant'         => $item['cant'],
+                'precio_venta' => $item['precio_venta'],
+                'unidad_venta' => $item['unidad_venta'],
+                'total'        => $item['total'],
+                'id_pedido'    => $idPedido,
+                'id_producto'  => $item['id_producto'],
+            ]);
+        }
 
-            (new Modelo_estatus($this->pdo))->insert(array_filter([
-                'estado'    => $estado,
-                'fecha'     => $fechaEstatus,
-                'id_pedido' => $idPedido,
-            ], fn ($v) => $v !== null && $v !== ''));
+        (new Modelo_estatus($this->pdo))->insert(array_filter([
+            'estado'    => $estado,
+            'fecha'     => $fechaEstatus,
+            'id_pedido' => $idPedido,
+        ], fn ($v) => $v !== null && $v !== ''));
 
-            return $idPedido;
-        });
+        return $idPedido;
     }
 
     /**

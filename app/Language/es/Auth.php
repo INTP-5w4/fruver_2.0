@@ -67,7 +67,10 @@ return [
 
     // Contraseñas
     'errorPasswordLength'       => 'Las contraseñas deben tener al menos {0, number} caracteres.',
-    'suggestPasswordLength'     => 'Las frases de contraseña, de hasta 255 caracteres de longitud, hacen que las contraseñas sean más seguras y fáciles de recordar.',
+    'errorPasswordComposicion'  => 'La contraseña debe incluir al menos {0}.',
+    'suggestPasswordComposicion' => 'Combina minúsculas, mayúsculas, números y símbolos; por ejemplo: «Mango-Rojo-2026!».',
+    'sesionInactiva'            => 'Tu sesión se cerró tras {0, number} minutos sin actividad. Vuelve a iniciar sesión.',
+    'suggestPasswordLength'     =>'Las frases de contraseña, de hasta 255 caracteres de longitud, hacen que las contraseñas sean más seguras y fáciles de recordar.',
     'errorPasswordCommon'       => 'La contraseña no puede ser una contraseña común.',
     'suggestPasswordCommon'     => 'La contraseña se comprobó frente a más de 65k contraseñas comúnmente utilizadas o contraseñas que se filtraron a través de ataques.',
     'errorPasswordPersonal'     => 'Las contraseñas no pueden contener información personal reutilizada.',

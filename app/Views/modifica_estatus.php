@@ -11,8 +11,8 @@
     <form action="<?= base_url('modifica_estatus') ?>" method="post">
 <?= csrf_field() ?>
         <input type="hidden" name="id" value="<?= esc($estatus['id']) ?>">
-        <label for="">Estado</label><br>
-        <select name="edo" id="">
+        <label for="edo">Estado</label><br>
+        <select id="edo" name="edo">
             <option value="<?= esc('pedido_realizado') ?>" <?= ($estatus['estado'] == 'pedido_realizado') ? 'selected' : '' ?>>Pedido realizado</option>
             <option value="<?= esc('pedido_confirmado') ?>" <?= ($estatus['estado'] == 'pedido_confirmado') ? 'selected' : '' ?>>Pedido confirmado</option>
             <option value="<?= esc('pedido_en_transito') ?>" <?= ($estatus['estado'] == 'pedido_en_transito') ? 'selected' : '' ?>>Pedido en tránsito</option>
@@ -21,10 +21,10 @@
             <option value="<?= esc('pedido_pagado') ?>" <?= ($estatus['estado'] == 'pedido_pagado') ? 'selected' : '' ?>>Pedido pagado</option>
             <option value="<?= esc('pedido_cancelado') ?>" <?= ($estatus['estado'] == 'pedido_cancelado') ? 'selected' : '' ?>>Pedido cancelado</option>
         </select><br>
-        <label for="">Fecha</label><br>
-        <input type="date" name="fecha" value="<?= esc($estatus['fecha']) ?>"><br>
-        <label for="">ID Pedido</label><br>
-        <input type="number" name="id_pedido" value="<?= esc($estatus['id_pedido']) ?>"><br>
+        <label for="fecha">Fecha</label><br>
+        <input id="fecha" type="date" name="fecha" value="<?= esc($estatus['fecha']) ?>"><br>
+        <label for="id_pedido">ID Pedido</label><br>
+        <input id="id_pedido" type="number" name="id_pedido" value="<?= esc($estatus['id_pedido']) ?>"><br>
         <input type="submit" value="Enviar">
         <br>
     </form>

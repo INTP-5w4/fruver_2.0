@@ -40,7 +40,7 @@ $minPassword = (int) $auth->minimumPasswordLength;
 $notasPassword = json_encode([
     'No uses tu correo ni tu nombre de usuario',
     'Evita contraseñas comunes (123456, qwerty, tu nombre…)',
-    'Una frase de varias palabras es más segura y fácil de recordar',
+    'Una frase con mayúsculas, números y símbolos es segura y fácil de recordar (p. ej. «Mango-Rojo-2026!»)',
 ], JSON_UNESCAPED_UNICODE);
 ?>
 <?= $this->extend(config('Auth')->views['layout']) ?>
@@ -91,7 +91,7 @@ $notasPassword = json_encode([
 
                     <div class="form-floating mb-2">
                         <input type="password" class="form-control<?= isset($erroresCampo['password']) ? ' campo-con-error' : '' ?>" id="floatingPasswordInput" name="password" inputmode="text" autocomplete="new-password"
-                               minlength="<?= $minPassword ?>" data-reglas="<?= esc($notasPassword, 'attr') ?>"
+                               minlength="<?= $minPassword ?>" data-contrasena-segura data-reglas="<?= esc($notasPassword, 'attr') ?>"
                                placeholder="<?= lang('Auth.password') ?>" required<?= $describe('password') ?>>
                         <label for="floatingPasswordInput"><?= lang('Auth.password') ?></label>
                     </div>

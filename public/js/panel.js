@@ -2,7 +2,7 @@
  * panel.js — Comportamiento común del panel de Fruver (se carga desde partials/estilos_panel.php).
  *  - Los avisos flotantes (.flash-container) se ocultan solos a los 4 segundos.
  *  - El botón ☰ abre y cierra el menú lateral en celular.
- *  - La tecla Escape cierra el menú y cualquier ventana modal de W3 abierta.
+ *  - La tecla Escape cierra el menú (las ventanas modales las maneja js/modales.js).
  */
 (function () {
     'use strict';
@@ -39,16 +39,8 @@
         });
     }
 
-    function modales() {
-        document.addEventListener('keydown', function (e) {
-            if (e.key !== 'Escape') { return; }
-            document.querySelectorAll('.w3-modal').forEach(function (m) {
-                if (m.style.display === 'block') { m.style.display = 'none'; }
-            });
-        });
-    }
-
-    function iniciar() { ocultarAvisos(); menu(); modales(); }
+    // Las ventanas modales (Escape, foco, clic en el fondo) las maneja js/modales.js.
+    function iniciar() { ocultarAvisos(); menu(); }
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', iniciar);

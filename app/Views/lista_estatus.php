@@ -80,7 +80,7 @@
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Estado*</b></label>
+                <label for="edit_edo"><b>Estado*</b></label>
                 <select name="edo" id="edit_edo" class="w3-select w3-border w3-margin-bottom" required>
                     <option value="pedido_realizado">Pedido realizado</option>
                     <option value="pedido_confirmado">Pedido confirmado</option>
@@ -91,11 +91,11 @@
                     <option value="pedido_cancelado">Pedido cancelado</option>
                 </select>
 
-                <label><b>Fecha*</b></label>
+                <label for="edit_fecha"><b>Fecha*</b></label>
                 <input type="date" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-               <label><b>ID Pedido*</b></label>
+               <label for="edit_id_pedido"><b>ID Pedido*</b></label>
                <input type="number" name="id_pedido" id="edit_id_pedido"
                 class="w3-input w3-border w3-margin-bottom"
               readonly style="background-color:#f1f1f1; cursor:not-allowed;" required>
@@ -116,15 +116,15 @@
         <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
 <?= csrf_field() ?>
 
-            <label><b>Pedido*</b></label>
-            <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
+            <label for="estatus-id-pedido"><b>Pedido*</b></label>
+            <select id="estatus-id-pedido" name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($pedidos as $p): ?>
                     <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Estado*</b></label>
-            <select name="edo" class="w3-select w3-border w3-margin-bottom" required>
+            <label for="estatus-edo"><b>Estado*</b></label>
+            <select id="estatus-edo" name="edo" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="pedido_realizado">Pedido realizado</option>
                 <option value="pedido_confirmado">Pedido confirmado</option>
                 <option value="pedido_en_transito">Pedido en tránsito</option>
@@ -134,8 +134,8 @@
                 <option value="pedido_cancelado">Pedido cancelado</option>
             </select>
 
-            <label><b>Fecha*</b></label>
-            <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
+            <label for="estatus-fecha"><b>Fecha*</b></label>
+            <input id="estatus-fecha" type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -161,10 +161,6 @@
             document.getElementById('modalEditarEstatus').style.display = 'block';
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalEditarEstatus');
-            if (event.target === modal) modal.style.display = 'none';
-        };
     </script>
 </body>
 </html>

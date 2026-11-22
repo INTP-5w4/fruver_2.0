@@ -18,7 +18,7 @@
     <input type="number" id="p_venta" name="p_venta" step="0.01" required value="<?= esc($p_pedidos['precio_venta']) ?>"><br>
 
     <label for="u_venta">Unidad de venta:</label><br>
-    <select name="u_venta" id="">
+    <select id="u_venta" name="u_venta">
         <option value="Kilogramo" <?php echo ($p_pedidos['unidad_venta'] == 'Kilogramo') ? 'selected' : ''; ?>>Kilogramo</option>
         <option value="Domo" <?php echo ($p_pedidos['unidad_venta'] == 'Domo') ? 'selected' : ''; ?>>Domo</option>
         <option value="Ramos" <?php echo ($p_pedidos['unidad_venta'] == 'Ramos') ? 'selected' : ''; ?>>Ramo</option>
@@ -29,14 +29,14 @@
     <input type="number" id="tot" name="tot" step="0.01" required value="<?= esc($p_pedidos['total']) ?>"><br>
 
     <label for="id_pedido">ID Pedido:</label><br>
-    <select name="id_pedido" id="">
+    <select id="id_pedido" name="id_pedido">
         <?php foreach($pedidos as $p): ?>
             <option value="<?= esc($p['id']) ?>" <?php echo ($p_pedidos['id_pedido'] == $p['id']) ? 'selected' : ''; ?>><?= esc($p['id']) ?></option>
         <?php endforeach; ?>
     </select><br>
 
     <label for="id_producto">Producto:</label><br>
-    <select name="id_producto" id="">
+    <select id="id_producto" name="id_producto">
         <?php foreach($productos as $pr): ?>
             <option value="<?= esc($pr['id']) ?>" <?php echo ($p_pedidos['id_producto'] == $pr['id']) ? 'selected' : ''; ?>><?= esc($pr['nombre']) ?></option>
         <?php endforeach; ?>

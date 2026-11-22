@@ -101,7 +101,7 @@
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
 <?= csrf_field() ?>
-            <label><b>Entrada*</b></label>
+            <label for="id_entrada_modal"><b>Entrada*</b></label>
             <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="">-- Selecciona una entrada --</option>
                 <?php foreach ($entradas as $entrada): ?>
@@ -113,17 +113,17 @@
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Unidad de venta*</b></label>
+            <label for="u_venta_modal"><b>Unidad de venta*</b></label>
             <input type="text" id="u_venta_modal" name="u_venta" class="w3-input w3-border w3-margin-bottom" readonly placeholder="Se llena automáticamente">
 
-            <label><b>Cantidad*</b></label>
-            <input type="number" placeholder="Ej: 45" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
+            <label for="merma-cant"><b>Cantidad*</b></label>
+            <input id="merma-cant" type="number" placeholder="Ej: 45" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
-            <label><b>Fecha*</b></label>
-            <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d') ?>" required>
+            <label for="merma-fecha"><b>Fecha*</b></label>
+            <input id="merma-fecha" type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d') ?>" required>
 
-            <label><b>Notas</b></label>
-            <textarea name="notas" placeholder="Ej: Caducó durante el transporte" rows="3" class="w3-input w3-border w3-margin-bottom"></textarea>
+            <label for="merma-notas"><b>Notas</b></label>
+            <textarea id="merma-notas" name="notas" placeholder="Ej: Caducó durante el transporte" rows="3" class="w3-input w3-border w3-margin-bottom"></textarea>
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -142,19 +142,19 @@
 
             <input type="hidden" name="id" id="edit_id">
 
-            <label><b>Cantidad</b></label>
+            <label for="edit_cantidad"><b>Cantidad</b></label>
             <input type="number" name="cantidad" id="edit_cantidad"
                    class="w3-input w3-border w3-margin-bottom" required>
 
-            <label><b>Fecha</b></label>
+            <label for="edit_fecha"><b>Fecha</b></label>
             <input type="date" name="fecha" id="edit_fecha"
                    class="w3-input w3-border w3-margin-bottom" required>
 
-            <label><b>Notas</b></label>
+            <label for="edit_notas"><b>Notas</b></label>
             <textarea name="notas" id="edit_notas" rows="4"
                       class="w3-input w3-border w3-margin-bottom"></textarea>
 
-            <label><b>Entrada</b></label>
+            <label for="edit_id_entrada"><b>Entrada</b></label>
             <select name="id_entrada" id="edit_id_entrada"
                     class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($entradas as $e): ?>
@@ -204,13 +204,6 @@
         document.getElementById('modalEditarMerma').style.display = 'block';
     }
 
-    // Cerrar modal al hacer click fuera
-    window.onclick = function(event) {
-        const modal = document.getElementById('modalEditarMerma');
-        const modalCrear = document.getElementById('modalCrearMerma');
-        if (event.target === modal) modal.style.display = 'none';
-        if (event.target === modalCrear) modalCrear.style.display = 'none';
-    };
 
     // Buscador
     function filtrar() {

@@ -19,7 +19,7 @@
         <label for="Notas">Notas:</label><br>
         <textarea name="notas" id="Notas"></textarea><br>
         
-        <label for="">Entrada:</label><br>
+        <label for="id_entrada">Entrada:</label><br>
         <select name="id_entrada" id="id_entrada">
         <option value="">-- Selecciona una entrada --</option>
         <?php foreach ($entradas as $entrada): ?>
@@ -30,7 +30,7 @@
         </select><br>
 
         
-        <label for="">Unidad</label><br>
+        <label for="u_venta">Unidad</label><br>
         <input type="text" id="u_venta" name="u_venta" readonly placeholder="Unidad de venta"><br>
 
         <input type="submit" value="Enviar">

@@ -1,8 +1,8 @@
 /*
  * Reglas de formato de cada campo, una a la vez.
  *
- * Al enfocar un campo aparece debajo de él la lista de sus reglas, y cada una se marca
- * mientras se escribe: ✓ se cumple, ✗ no se cumple, • pendiente. Solo hay un panel
+ * Al enfocar un campo aparece junto a él (flotando, sin mover el resto de la página) la
+ * lista de sus reglas, y cada una se marca mientras se escribe: ✓ se cumple, ✗ no se cumple, • pendiente. Solo hay un panel
  * visible: el del campo enfocado. Al salir del campo, si algo no se cumple, el campo
  * queda marcado en rojo. Al enviar, el navegador muestra el mensaje en español.
  *
@@ -14,6 +14,8 @@
  *   3. data-reglas='["Nota 1", "Nota 2"]' en el campo: notas fijas que no se pueden
  *      comprobar en el navegador (p. ej. "no uses tu correo en la contraseña").
  *   data-coincide="password" compara el campo con otro del mismo formulario.
+ *   data-contrasena-segura exige minúscula, mayúscula, número y símbolo
+ *      (App\Validation\ComposicionContrasena).
  *   data-sin-reglas apaga el panel en un campo.
  *
  * El servidor valida siempre; esto es solo ayuda para llenar bien el formulario.
@@ -156,6 +158,7 @@
         }
         if (el.pattern) { spec.patron = { re: el.pattern, texto: el.getAttribute('data-regla-patron') || el.title || 'Formato válido' }; }
         if (el.getAttribute('data-coincide')) { spec.coincide = el.getAttribute('data-coincide'); }
+        if (el.hasAttribute('data-contrasena-segura')) { spec.contrasena = true; }
 
         // 2. Catálogo
         if (cat) {
@@ -206,6 +209,17 @@
         } else if (spec.max && !esLista) {
             r.push({ texto: 'Máximo ' + spec.max + ' caracteres', contador: spec.max, prueba: function (v) { return largo(v) <= spec.max; } });
         }
+        if (spec.contrasena) {
+            [
+                ['Una letra minúscula', /\p{Ll}/u],
+                ['Una letra mayúscula', /\p{Lu}/u],
+                ['Un número', /\p{Nd}/u],
+                ['Un símbolo (! # $ % & * ? -)', /[^\p{L}\p{Nd}]/u]
+            ].forEach(function (par) {
+                r.push({ texto: par[0], mensaje: 'Agrega ' + par[0].toLowerCase().replace(/ \(.*\)$/, ''),
+                    prueba: function (v) { return par[1].test(v); } });
+            });
+        }
         if (spec.patron) {
             var re;
             try { re = new RegExp('^(?:' + spec.patron.re + ')$', 'u'); } catch (e) { re = null; }
@@ -255,7 +269,7 @@
         for (var i = 0; i < estados.length; i++) {
             if (estados[i] === 'mal') {
                 if (reglas.lista[i].req) { return el.tagName === 'SELECT' ? 'Elige una opción de la lista.' : 'Este campo es obligatorio.'; }
-                return reglas.lista[i].texto + '.';
+                return (reglas.lista[i].mensaje || reglas.lista[i].texto) + '.';
             }
         }
         return '';
@@ -275,7 +289,12 @@
     }
 
     // ── Panel (uno a la vez) ───────────────────────────────────────────────
-    var panel = null, campoActual = null, contador = 0;
+    // El panel FLOTA junto al campo (position: fixed, fuera del flujo de la página). Antes se
+    // insertaba debajo del campo y se quitaba al salir de él: el contenido subía ~100 px justo
+    // entre el mousedown y el mouseup, el clic en «Guardar» se perdía y, en los modales, caía
+    // sobre el fondo y cerraba la ventana. Flotando, aparecer o desaparecer no mueve nada.
+    var panel = null, campoActual = null;
+    var SEPARACION = 6, MARGEN_VENTANA = 8;
 
     function ancla(el) {
         var p = el.parentElement;
@@ -283,6 +302,39 @@
             || p.classList.contains('prod-search-wrap'))) { return p; }
         return el;
     }
+
+    /** Coloca el panel a la derecha del campo si cabe; si no, debajo; si tampoco, arriba. */
+    function posicionar() {
+        if (!panel || !campoActual) { return; }
+        var r = ancla(campoActual).getBoundingClientRect();
+        var vw = document.documentElement.clientWidth, vh = document.documentElement.clientHeight;
+
+        // Campo fuera de la vista (se desplazó el modal o la página): se esconde sin quitarse.
+        if (r.bottom < 0 || r.top > vh || r.width === 0) { panel.style.visibility = 'hidden'; return; }
+        panel.style.visibility = '';
+
+        var ancho = 300, derecha = vw - r.right - SEPARACION - MARGEN_VENTANA;
+        var top, left;
+
+        if (derecha >= ancho) {
+            panel.style.width = ancho + 'px';
+            left = r.right + SEPARACION;
+            top = Math.min(Math.max(MARGEN_VENTANA, r.top), vh - panel.offsetHeight - MARGEN_VENTANA);
+        } else {
+            ancho = Math.min(Math.max(r.width, 240), vw - 2 * MARGEN_VENTANA);
+            panel.style.width = ancho + 'px';
+            left = Math.min(Math.max(MARGEN_VENTANA, r.left), vw - ancho - MARGEN_VENTANA);
+            var alto = panel.offsetHeight;
+            top = r.bottom + SEPARACION + alto <= vh - MARGEN_VENTANA || r.top - SEPARACION - alto < MARGEN_VENTANA
+                ? r.bottom + SEPARACION
+                : r.top - SEPARACION - alto;
+        }
+        panel.style.left = Math.round(left) + 'px';
+        panel.style.top = Math.round(top) + 'px';
+    }
+
+    window.addEventListener('scroll', posicionar, { capture: true, passive: true });
+    window.addEventListener('resize', posicionar, { passive: true });
 
     function quitarPanel() {
         if (panel && panel.parentNode) { panel.parentNode.removeChild(panel); }
@@ -303,11 +355,9 @@
             panel = document.createElement('div');
             panel.className = 'regla-campo';
             panel.id = 'reglas-campo-panel';
-            var a = ancla(el);
-            a.parentNode.insertBefore(panel, a.nextSibling);
-            // Pegado al campo: compensa el margen inferior que traiga (los márgenes se suman o se colapsan).
-            var mb = parseFloat(getComputedStyle(a).marginBottom) || 0;
-            panel.style.marginTop = (6 - mb) + 'px';
+            // En <body>: un ancestro con transform (la animación de los modales) o con
+            // overflow recortaría o desplazaría un panel fijo que estuviera dentro de él.
+            document.body.appendChild(panel);
             campoActual = el;
             var ids = (el.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
             if (ids.indexOf(panel.id) === -1) { ids.push(panel.id); }
@@ -332,6 +382,7 @@
             ul.appendChild(li);
         });
         panel.replaceChildren(titulo, ul);
+        posicionar();
     }
 
     function marcar(el) {
@@ -419,7 +470,8 @@
         if (!actual || document.querySelector('link[data-reglas-campo]')) { return; }
         var link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = actual.src.replace(/js\/reglas_campo\.js(\?.*)?$/, 'estilos/reglas_campo.css');
+        // Conserva el ?v= del script: al cambiar el archivo el navegador no usa la hoja vieja.
+        link.href = actual.src.replace(/js\/reglas_campo\.js(\?.*)?$/, 'estilos/reglas_campo.css$1');
         link.setAttribute('data-reglas-campo', '');
         document.head.appendChild(link);
     })();

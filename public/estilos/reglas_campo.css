@@ -1,9 +1,15 @@
 /* reglas_campo.css — Panel con las reglas del campo enfocado (public/js/reglas_campo.js).
    Autocontenido: se usa en el panel, la tienda, el acceso (Shield) y privacidad. */
 
-/* El margen superior lo ajusta el script para quedar a 6px del campo, tenga o no margen. */
+/* Flota junto al campo (el script calcula top/left/width). Fuera del flujo: aparecer o
+   desaparecer no mueve los botones. No recibe clics: un clic sobre él llega a lo que tapa. */
 .regla-campo {
-    margin: 6px 0 14px;
+    position: fixed;
+    z-index: 10050; /* encima de los modales (z-index 9999) */
+    box-sizing: border-box;
+    pointer-events: none;
+    margin: 0;
+    box-shadow: 0 6px 18px rgba(20, 40, 25, .16);
     padding: 8px 11px 9px;
     background: #f7f9f2;
     border: 1px solid #d8dfcc;
