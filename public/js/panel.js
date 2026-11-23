@@ -33,13 +33,33 @@
     // ── Menú lateral: grupos plegables ─────────────────────────────────
     function grupos() {
         var estado = leer(LLAVE_GRUPOS);
-        document.querySelectorAll('.sidebar details.nav-grupo').forEach(function (g) {
+        var lista  = document.querySelectorAll('.sidebar details.nav-grupo');
+
+        // 1) Estado inicial: el grupo de la página actual siempre abre; los demás, como los dejó la persona.
+        lista.forEach(function (g) {
             var clave = g.getAttribute('data-grupo');
-            // El grupo de la página actual siempre abre; los demás, como los dejó la persona.
             if (!g.hasAttribute('data-actual') && Object.prototype.hasOwnProperty.call(estado, clave)) {
                 g.open = !!estado[clave];
             }
+        });
+
+        // 2) Acordeón: aunque el estado guardado tuviera varios, al cargar solo queda uno abierto.
+        //    Gana el de la página actual; si no hay, el primero que esté abierto.
+        var abiertos = document.querySelectorAll('.sidebar details.nav-grupo[open]');
+        if (abiertos.length > 1) {
+            var queda = document.querySelector('.sidebar details.nav-grupo[data-actual]') || abiertos[0];
+            abiertos.forEach(function (g) { if (g !== queda) { g.open = false; } });
+        }
+
+        // 3) Al abrir un grupo se cierran los demás: solo uno desplegado a la vez.
+        lista.forEach(function (g) {
+            var clave = g.getAttribute('data-grupo');
             g.addEventListener('toggle', function () {
+                if (g.open) {
+                    document.querySelectorAll('.sidebar details.nav-grupo[open]').forEach(function (otro) {
+                        if (otro !== g) { otro.open = false; }
+                    });
+                }
                 var e = leer(LLAVE_GRUPOS);
                 e[clave] = g.open;
                 guardar(LLAVE_GRUPOS, e);
