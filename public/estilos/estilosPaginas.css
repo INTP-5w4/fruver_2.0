@@ -155,7 +155,7 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
 .lista-wrapper td img { border-radius: var(--r-control); }
 
 /* Botones de acción sueltos dentro de las celdas (editar, borrar...) */
-.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir),
+.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):not(.btn-pref),
 .lista-wrapper td > form > button:not(.w3-button):not(.btn),
 .lista-wrapper td > a.accion {
     display: inline-flex; align-items: center; justify-content: center;
@@ -164,7 +164,7 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
     background: transparent !important; color: var(--tinta-suave);
     cursor: pointer;
 }
-.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):hover,
+.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):not(.btn-pref):hover,
 .lista-wrapper td > a.accion:hover { background: var(--hoja-clara) !important; color: var(--hoja-oscura); }
 .lista-wrapper td > form > button:not(.w3-button):not(.btn):hover { background: var(--alerta-claro) !important; color: var(--alerta); }
 
@@ -538,9 +538,10 @@ body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
     .contenedor-boton__acciones { flex: 1 1 100%; }
     .contenedor-boton__acciones > .btn-agregar { flex: 1 1 0; justify-content: center; min-height: 48px; width: auto; }
     .lista-wrapper > form[method="get"] .w3-input { max-width: none; flex: 1 1 200px; }
-    .lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir),
+    .lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):not(.btn-pref),
     .lista-wrapper td > form > button:not(.w3-button):not(.btn),
     .lista-wrapper td > a.accion { width: var(--tactil-min); height: var(--tactil-min); }
+    .btn-pref { min-height: var(--tactil-min); }
     .tabla-pedidos .acciones-fila .btn-icono { width: var(--tactil-min); height: var(--tactil-min); }
     .btn-expandir { width: var(--tactil-min); height: var(--tactil-min); }
     .pestana { min-height: var(--tactil-min); }
