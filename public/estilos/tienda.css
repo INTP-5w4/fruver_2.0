@@ -99,7 +99,7 @@ button { cursor: pointer; }
 .btn-carrito {
     position: relative; display: flex; align-items: center; gap: 8px;
     background: transparent; border: 2px solid rgba(255, 255, 255, 0.35); color: var(--blanco);
-    border-radius: 10px; padding: 6px 12px;
+    border-radius: 10px; padding: 6px 12px; min-height: 44px;
 }
 .btn-carrito:hover { border-color: var(--mango); }
 .btn-carrito-cuenta {
@@ -151,7 +151,7 @@ button { cursor: pointer; }
 
 .fila-flechas { margin-left: auto; display: flex; gap: 8px; align-self: center; }
 .fila-flechas button {
-    width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--tinta);
+    width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--tinta);
     background: var(--blanco); font-size: 1.5rem; line-height: 1; display: grid; place-items: center; padding: 0 0 3px;
 }
 .fila-flechas button:hover { background: var(--tinta); color: var(--blanco); }
@@ -246,7 +246,7 @@ button { cursor: pointer; }
 /* ---------- Botones ---------- */
 .btn {
     display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none;
-    padding: 10px 14px; border-radius: 10px; border: 2px solid transparent; font-weight: 700; line-height: 1.2;
+    padding: 10px 14px; min-height: 44px; border-radius: 10px; border: 2px solid transparent; font-weight: 700; line-height: 1.2;
 }
 .btn-primario { background: var(--hoja); color: var(--blanco); }
 .btn-primario:hover:not(:disabled) { background: var(--hoja-oscura); }

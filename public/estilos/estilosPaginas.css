@@ -61,6 +61,13 @@ body {
 .nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 .nav-item:hover i { color: #fff; }
 .nav-item:focus-visible { outline: 3px solid #9cc2ff; outline-offset: -1px; }
+
+/* En tableta/táctil (≤1024 px, donde el menú lateral se toca con el dedo) los ítems y
+   los títulos de grupo cumplen el objetivo táctil de 44 px. En escritorio (ratón) se
+   quedan compactos como los diseñó la pantalla. */
+@media (max-width: 1024px) {
+    .nav-label, .nav-item, .subnav-item { min-height: var(--tactil-min); }
+}
 .nav-item.activo { background: var(--papel); color: var(--hoja-oscura); font-weight: 700; }
 .nav-item.activo i { color: var(--hoja); }
 
