@@ -101,20 +101,38 @@
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_merma') ?>" method="post" class="w3-container w3-padding-16">
 <?= csrf_field() ?>
-            <label for="id_entrada_modal"><b>Entrada*</b></label>
-            <select name="id_entrada" id="id_entrada_modal" class="w3-select w3-border w3-margin-bottom" required>
-                <option value="">-- Selecciona una entrada --</option>
-                <?php foreach ($entradas as $entrada): ?>
-                    <?php if (($stockPorProducto[$entrada['id_producto']] ?? 0) > 0): ?>
-                        <option value="<?= esc($entrada['id']) ?>">
-                            #<?= esc($entrada['id']) ?> — <?= esc($entrada['nombre_producto']) ?> (<?= esc($entrada['fecha']) ?>)
-                        </option>
-                    <?php endif; ?>
+            <?php
+            // Se piensa en PRODUCTO, no en «entrada #id»: mapa de cada producto con existencias a
+            // su entrada (lote) más reciente. El <datalist> deja buscar escribiendo.
+            $mermaProductos = [];
+            foreach ($entradas as $e) {
+                if (($stockPorProducto[$e['id_producto']] ?? 0) <= 0) { continue; }
+                $k = (int) $e['id_producto'];
+                if (! isset($mermaProductos[$k]) || (int) $e['id'] > (int) $mermaProductos[$k]['id_entrada']) {
+                    $mermaProductos[$k] = [
+                        'id_entrada' => (int) $e['id'],
+                        'nombre'     => $e['nombre_producto'],
+                        'u_venta'    => $e['u_venta'],
+                        'fecha'      => $e['fecha'],
+                    ];
+                }
+            }
+            $mermaPorNombre = [];
+            foreach ($mermaProductos as $prod) { $mermaPorNombre[$prod['nombre']] = $prod; }
+            ?>
+            <label for="merma-producto"><b>Producto*</b></label>
+            <input list="merma-lista-productos" id="merma-producto" name="producto_nombre"
+                   class="w3-input w3-border w3-margin-bottom" autocomplete="off"
+                   placeholder="Escribe o elige un producto…" required>
+            <datalist id="merma-lista-productos">
+                <?php foreach ($mermaProductos as $prod): ?>
+                    <option value="<?= esc($prod['nombre'], 'attr') ?>"></option>
                 <?php endforeach; ?>
-            </select>
+            </datalist>
+            <input type="hidden" name="id_entrada" id="id_entrada_modal">
+            <p id="merma-entrada-info" class="w3-small w3-text-grey" aria-live="polite"></p>
 
-            <label for="u_venta_modal"><b>Unidad de venta*</b></label>
-            <input type="text" id="u_venta_modal" name="u_venta" class="w3-input w3-border w3-margin-bottom" readonly placeholder="Se llena automáticamente">
+            <input type="hidden" id="u_venta_modal" name="u_venta">
 
             <label for="merma-cant"><b>Cantidad*</b></label>
             <input id="merma-cant" type="number" placeholder="Ej: 45" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
@@ -215,14 +233,41 @@
         });
     }
 
-    // Auto-rellenar Unidad de Venta en el Modal de Crear Merma
-    const selectEntrada = document.getElementById('id_entrada_modal');
-    if (selectEntrada) {
-        selectEntrada.addEventListener('change', function () {
-            const unidadesVenta = <?= json_seguro(array_column($entradas, 'u_venta', 'id'), JSON_FORCE_OBJECT) ?>;
-            document.getElementById('u_venta_modal').value = unidadesVenta[this.value] || '';
-        });
-    }
+    // Crear merma: al elegir un producto se resuelve su entrada (lote) más reciente con
+    // existencias y se llenan el id_entrada oculto y la unidad.
+    (function () {
+        const mapa   = <?= json_seguro($mermaPorNombre) ?>; // nombre → {id_entrada, u_venta, fecha, nombre}
+        const input  = document.getElementById('merma-producto');
+        const oculto = document.getElementById('id_entrada_modal');
+        const unidad = document.getElementById('u_venta_modal');
+        const info   = document.getElementById('merma-entrada-info');
+        if (!input) { return; }
+        const form = input.closest('form');
+
+        function resolver() {
+            const prod = mapa[input.value.trim()];
+            if (prod) {
+                oculto.value = String(prod.id_entrada);
+                unidad.value = prod.u_venta || '';
+                info.textContent = 'Lote más reciente con existencias: entrada #' + prod.id_entrada + ' · ' + prod.fecha + '.';
+                info.classList.remove('w3-text-red');
+            } else {
+                oculto.value = '';
+                unidad.value = '';
+                info.textContent = input.value.trim() ? 'Elige un producto de la lista.' : '';
+                info.classList.toggle('w3-text-red', input.value.trim() !== '');
+            }
+        }
+
+        input.addEventListener('input', resolver);
+        input.addEventListener('change', resolver);
+        if (form) {
+            form.addEventListener('submit', function (ev) {
+                resolver();
+                if (!oculto.value) { ev.preventDefault(); input.focus(); }
+            });
+        }
+    })();
 </script>
 
 </body>

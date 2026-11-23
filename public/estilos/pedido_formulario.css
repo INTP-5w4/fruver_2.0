@@ -120,3 +120,24 @@
 @media (pointer: coarse) {
     .pedido-teclas { display: none; }
 }
+
+/* ── Cliente: <select> oculto detrás de su combobox + alta en línea ── */
+.combo-select-oculto { display: none; }
+.pedido-campo-cliente { position: relative; }
+.pedido-nc-abre {
+    margin-top: 6px;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: 0; padding: 4px 2px;
+    color: var(--hoja-oscura); font: inherit; font-size: 13px; font-weight: 600;
+    cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.pedido-nc-abre:hover { color: var(--hoja); }
+.pedido-nc {
+    margin-top: 8px; padding: 12px;
+    border: 1px solid var(--borde-control); border-radius: var(--r-control);
+    background: var(--superficie-2);
+}
+.pedido-nc-rejilla { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pedido-nc-aviso { margin: 8px 0 0; min-height: 1.2em; color: var(--alerta); font-size: 13px; }
+.pedido-nc-acciones { display: flex; gap: 8px; margin-top: 10px; }
+@media (max-width: 560px) { .pedido-nc-rejilla { grid-template-columns: 1fr; } }

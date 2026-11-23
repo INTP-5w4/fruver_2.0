@@ -68,6 +68,48 @@ class Clientes extends BaseController
         }
     }
 
+    /**
+     * Alta rápida de cliente desde la ventana de pedido (fetch → JSON).
+     * Aquí el apellido materno es opcional (igual que en la tienda), para capturar en menos pasos.
+     */
+    public function crearRapido()
+    {
+        if (! $this->request->isAJAX()) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'Solicitud no válida.']);
+        }
+
+        $reglas = [
+            'nom'     => 'required|max_length[100]|sin_groserias',
+            'ape_pat' => 'required|max_length[100]|sin_groserias',
+            'ape_mat' => 'permit_empty|max_length[100]|sin_groserias',
+            'tel'     => 'required|numeric|max_length[12]',
+        ];
+
+        if (! $this->validate($reglas, $this->configuracion['errores'])) {
+            return $this->response->setStatusCode(422)->setJSON(['error' => $this->primerError()]);
+        }
+
+        $datos = [
+            'nombre'   => $this->post('nom'),
+            'ape_pat'  => $this->post('ape_pat'),
+            'ape_mat'  => $this->post('ape_mat'),
+            'telefono' => $this->post('tel'),
+        ];
+
+        try {
+            $id = (new Modelo_cliente())->insert($datos);
+        } catch (Throwable $e) {
+            // El trigger no_duplica_cliente avisa con un mensaje legible.
+            return $this->response->setStatusCode(422)
+                ->setJSON(['error' => PdoModelo::mensajeSeguro($e, 'No se pudo registrar el cliente.')]);
+        }
+
+        return $this->response->setJSON([
+            'id'     => $id,
+            'nombre' => trim($datos['nombre'] . ' ' . $datos['ape_pat'] . ' ' . $datos['ape_mat']),
+        ]);
+    }
+
     public function lista_cliente()
     {
         $buscar    = $this->textoBusqueda();

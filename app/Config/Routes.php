@@ -110,6 +110,7 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('guarda_cliente', 'Clientes::guarda_cliente');
     $routes->post('modifica_cliente', 'Clientes::modifica');
     $routes->post('preferencial_cliente', 'Clientes::preferencial');
+    $routes->post('clientes/crear-rapido', 'Clientes::crearRapido'); // alta en línea desde el pedido (JSON)
 
     // ===== REPARTIDORES =====
     $routes->get('crea_repartidor', 'Repartidores::crea_repartidor');

@@ -266,8 +266,9 @@ foreach (array_keys(\App\Models\Modelo_pedido::TRANSICIONES) as $claveEstado) {
     'descuento'      => (float) $descuentoPreferencial,
     'estados'        => $estadosTexto,
     'urls'           => [
-        'pedido'   => base_url('api_pedido/'),
-        'recargar' => base_url('api_recargar_pedido/'),
+        'pedido'       => base_url('api_pedido/'),
+        'recargar'     => base_url('api_recargar_pedido/'),
+        'crearCliente' => base_url('clientes/crear-rapido'),
     ],
 ]) ?></script>
 

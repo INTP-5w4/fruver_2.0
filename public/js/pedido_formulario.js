@@ -34,6 +34,176 @@
     }
 
     // ════════════════════════════════════════════════════════════════════
+    //  COMBOBOX sobre un <select>  (buscar escribiendo, sin perder el <select>)
+    //  El <select> sigue siendo el campo real que se envía; este combo solo lo maneja.
+    // ════════════════════════════════════════════════════════════════════
+    function ComboSelect(select, opciones) {
+        opciones = opciones || {};
+        this.select = select;
+        this.alElegir = opciones.alElegir || function () {};
+        this.placeholder = opciones.placeholder || 'Buscar…';
+        this.items = [];
+        this.opciones = [];
+        this.activa = -1;
+        this.construir();
+        this.refrescar();
+    }
+    ComboSelect.prototype.construir = function () {
+        var c = this, sel = c.select;
+        sel.removeAttribute('required');           // se valida a mano (el <select> queda oculto)
+        sel.classList.add('combo-select-oculto');
+        sel.setAttribute('tabindex', '-1');
+        sel.setAttribute('aria-hidden', 'true');
+
+        c.id = sel.id + '-combo';
+        c.wrap = document.createElement('div');
+        c.wrap.className = 'combo';
+        var ico = document.createElement('i');
+        ico.className = 'fa-solid fa-magnifying-glass combo-icono';
+        ico.setAttribute('aria-hidden', 'true');
+        c.input = document.createElement('input');
+        c.input.type = 'text';
+        c.input.id = c.id;
+        c.input.className = 'w3-input w3-border combo-entrada';
+        c.input.setAttribute('role', 'combobox');
+        c.input.setAttribute('aria-autocomplete', 'list');
+        c.input.setAttribute('aria-expanded', 'false');
+        c.input.autocomplete = 'off';
+        c.input.spellcheck = false;
+        c.input.placeholder = c.placeholder;
+        c.input.setAttribute('data-sin-reglas', '');
+        c.lista = document.createElement('ul');
+        c.lista.className = 'combo-lista';
+        c.lista.id = c.id + '-lista';
+        c.lista.setAttribute('role', 'listbox');
+        c.lista.hidden = true;
+        c.input.setAttribute('aria-controls', c.lista.id);
+
+        c.wrap.append(ico, c.input, c.lista);
+        sel.parentNode.insertBefore(c.wrap, sel);
+
+        var lab = document.querySelector('label[for="' + sel.id + '"]');
+        if (lab) { lab.setAttribute('for', c.id); }
+
+        c.input.addEventListener('input', function () { c.filtrar(c.input.value); });
+        c.input.addEventListener('focus', function () { c.filtrar(c.input.value); });
+        c.input.addEventListener('keydown', function (ev) { c.tecla(ev); });
+        c.input.addEventListener('blur', function () { setTimeout(function () { c.cerrar(); }, 120); });
+        c.lista.addEventListener('mousedown', function (ev) {
+            var li = ev.target.closest('[role="option"]');
+            if (!li) { return; }
+            ev.preventDefault();
+            c.elegir(Number(li.dataset.indice));
+        });
+    };
+    // Lee las opciones del <select> (sin el placeholder value="") y refleja el valor actual.
+    ComboSelect.prototype.refrescar = function () {
+        this.items = Array.prototype.filter.call(this.select.options, function (o) { return o.value !== ''; })
+            .map(function (o) { return { value: o.value, texto: o.textContent.trim() }; });
+        this.sincronizar();
+    };
+    ComboSelect.prototype.sincronizar = function () {
+        var c = this, v = c.select.value, txt = '';
+        for (var i = 0; i < c.items.length; i++) { if (c.items[i].value === v) { txt = c.items[i].texto; break; } }
+        c.input.value = txt;
+    };
+    ComboSelect.prototype.filtrar = function (texto) {
+        var c = this, q = sinAcentos(texto.trim());
+        c.opciones = c.items.filter(function (it) { return q === '' || sinAcentos(it.texto).indexOf(q) !== -1; })
+            .sort(function (a, b) {
+                var ia = sinAcentos(a.texto).indexOf(q) === 0 ? 0 : 1, ib = sinAcentos(b.texto).indexOf(q) === 0 ? 0 : 1;
+                return ia - ib || a.texto.localeCompare(b.texto, 'es');
+            }).slice(0, 50);
+        c.activa = q !== '' && c.opciones.length ? 0 : -1;
+        c.pintar(q);
+    };
+    ComboSelect.prototype.pintar = function (q) {
+        var c = this;
+        c.lista.replaceChildren();
+        if (!c.opciones.length) {
+            var vac = document.createElement('li');
+            vac.className = 'combo-vacio';
+            vac.setAttribute('role', 'presentation');
+            vac.textContent = 'Nadie coincide con «' + c.input.value.trim() + '».';
+            c.lista.appendChild(vac);
+        }
+        c.opciones.forEach(function (it, i) {
+            var li = document.createElement('li');
+            li.id = c.id + '-op-' + i;
+            li.setAttribute('role', 'option');
+            li.dataset.indice = i;
+            li.setAttribute('aria-selected', i === c.activa ? 'true' : 'false');
+            var pos = q ? sinAcentos(it.texto).indexOf(q) : -1;
+            if (pos >= 0) {
+                li.append(it.texto.slice(0, pos));
+                var m = document.createElement('mark');
+                m.textContent = it.texto.slice(pos, pos + q.length);
+                li.append(m, it.texto.slice(pos + q.length));
+            } else { li.textContent = it.texto; }
+            c.lista.appendChild(li);
+        });
+        c.lista.hidden = false;
+        c.input.setAttribute('aria-expanded', 'true');
+        c.marcar();
+    };
+    ComboSelect.prototype.marcar = function () {
+        var c = this;
+        Array.prototype.forEach.call(c.lista.querySelectorAll('[role="option"]'), function (li, i) {
+            li.setAttribute('aria-selected', i === c.activa ? 'true' : 'false');
+            if (i === c.activa) { li.scrollIntoView({ block: 'nearest' }); }
+        });
+        var a = c.activa >= 0 ? c.lista.querySelector('[data-indice="' + c.activa + '"]') : null;
+        if (a) { c.input.setAttribute('aria-activedescendant', a.id); } else { c.input.removeAttribute('aria-activedescendant'); }
+    };
+    ComboSelect.prototype.cerrar = function () {
+        this.lista.hidden = true;
+        this.input.setAttribute('aria-expanded', 'false');
+        this.input.removeAttribute('aria-activedescendant');
+    };
+    ComboSelect.prototype.tecla = function (ev) {
+        var c = this, abierta = !c.lista.hidden;
+        switch (ev.key) {
+            case 'ArrowDown':
+                ev.preventDefault();
+                if (!abierta) { c.filtrar(c.input.value); }
+                if (c.opciones.length) { c.activa = (c.activa + 1) % c.opciones.length; c.marcar(); }
+                break;
+            case 'ArrowUp':
+                ev.preventDefault();
+                if (!abierta) { c.filtrar(c.input.value); }
+                if (c.opciones.length) { c.activa = c.activa <= 0 ? c.opciones.length - 1 : c.activa - 1; c.marcar(); }
+                break;
+            case 'Enter':
+                ev.preventDefault();
+                if (abierta && c.activa >= 0) { c.elegir(c.activa); }
+                break;
+            case 'Escape':
+                if (abierta) { ev.preventDefault(); c.cerrar(); }
+                break;
+            case 'Tab':
+                c.cerrar();
+                break;
+        }
+    };
+    ComboSelect.prototype.elegir = function (i) {
+        var c = this, it = c.opciones[i];
+        if (!it) { return; }
+        c.input.value = it.texto;
+        c.select.value = it.value;
+        c.cerrar();
+        c.alElegir(it.value);
+    };
+    // Agrega una opción nueva al <select> y al combo, y la deja elegida.
+    ComboSelect.prototype.agregarYElegir = function (value, texto) {
+        var c = this;
+        c.select.appendChild(new Option(texto, String(value)));
+        c.refrescar();
+        c.select.value = String(value);
+        c.sincronizar();
+        c.alElegir(String(value));
+    };
+
+    // ════════════════════════════════════════════════════════════════════
     //  FORMULARIO (uno por modo: 'c' crear, 'e' editar)
     // ════════════════════════════════════════════════════════════════════
     function Formulario(p) {
@@ -107,6 +277,13 @@
         f.cuerpoCarrito.addEventListener('change', function (ev) {
             if (ev.target.matches('[data-precio-linea]')) { f.cambiarPrecioLinea(Number(ev.target.dataset.precioLinea), ev.target); }
         });
+
+        // ── Cliente: buscador (combobox) sobre el <select> + alta en línea ──
+        f.clienteCombo = new ComboSelect(f.cliente, {
+            placeholder: 'Buscar cliente…',
+            alElegir: function () { f.cliente.dispatchEvent(new Event('change', { bubbles: true })); }
+        });
+        f.conectarNuevoCliente();
 
         // ── Preferencial ──
         f.cliente.addEventListener('change', function () { f.actualizarBarraPref(); });
@@ -276,6 +453,77 @@
     Formulario.prototype.actualizarBarraPref = function () {
         this.barra.hidden = !(this.esPreferencial() && this.lineas.length);
     };
+
+    // ── Alta de cliente en línea (sin salir del pedido) ──────────────────
+    Formulario.prototype.conectarNuevoCliente = function () {
+        var f = this;
+        var caja = document.getElementById(f.p + '-nc');
+        var abre = document.getElementById(f.p + '-nc-abre');
+        if (!caja || !abre) { return; }
+        f.nc = {
+            caja:  caja,
+            aviso: document.getElementById(f.p + '-nc-aviso'),
+            nom:   document.getElementById(f.p + '-nc-nom'),
+            pat:   document.getElementById(f.p + '-nc-pat'),
+            mat:   document.getElementById(f.p + '-nc-mat'),
+            tel:   document.getElementById(f.p + '-nc-tel')
+        };
+        abre.addEventListener('click', function () { f.mostrarNuevoCliente(true); });
+        document.getElementById(f.p + '-nc-cancela').addEventListener('click', function () { f.mostrarNuevoCliente(false); });
+        document.getElementById(f.p + '-nc-crear').addEventListener('click', function () { f.crearCliente(); });
+        [f.nc.nom, f.nc.pat, f.nc.mat, f.nc.tel].forEach(function (el) {
+            el.addEventListener('keydown', function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); f.crearCliente(); } });
+        });
+    };
+
+    Formulario.prototype.mostrarNuevoCliente = function (ver) {
+        if (!this.nc) { return; }
+        this.nc.caja.hidden = !ver;
+        if (ver) { this.nc.aviso.textContent = ''; this.nc.nom.focus(); } else { this.limpiarNuevoCliente(); }
+    };
+
+    Formulario.prototype.limpiarNuevoCliente = function () {
+        if (!this.nc) { return; }
+        this.nc.nom.value = this.nc.pat.value = this.nc.mat.value = this.nc.tel.value = '';
+        this.nc.aviso.textContent = '';
+    };
+
+    Formulario.prototype.crearCliente = function () {
+        var f = this;
+        if (!f.nc) { return; }
+        var nom = f.nc.nom.value.trim(), pat = f.nc.pat.value.trim(), tel = f.nc.tel.value.trim();
+        if (!nom || !pat || !tel) {
+            f.nc.aviso.textContent = 'Nombre, apellido paterno y teléfono son obligatorios.';
+            (!nom ? f.nc.nom : (!pat ? f.nc.pat : f.nc.tel)).focus();
+            return;
+        }
+        var token = f.form.querySelector('input[name="csrf_test_name"]');
+        var datos = new FormData();
+        datos.append('nom', nom);
+        datos.append('ape_pat', pat);
+        datos.append('ape_mat', f.nc.mat.value.trim());
+        datos.append('tel', tel);
+        if (token) { datos.append(token.name, token.value); }
+
+        var btn = document.getElementById(f.p + '-nc-crear');
+        btn.disabled = true;
+        f.nc.aviso.textContent = 'Guardando…';
+        fetch(DATOS.urls.crearCliente, {
+            method: 'POST',
+            body: datos,
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+        })
+            .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+            .then(function (res) {
+                if (!res.ok) { f.nc.aviso.textContent = res.j.error || 'No se pudo crear el cliente.'; return; }
+                f.clienteCombo.agregarYElegir(res.j.id, res.j.nombre);
+                f.mostrarNuevoCliente(false);
+                f.aviso.textContent = 'Cliente «' + res.j.nombre + '» creado y elegido.';
+                f.entrada.focus();
+            })
+            .catch(function () { f.nc.aviso.textContent = 'No se pudo crear el cliente. Revisa tu conexión.'; })
+            .then(function () { btn.disabled = false; });
+    };
     Formulario.prototype.cambiarPrecios = function (calcula) {
         var f = this, sinPrecio = 0;
         f.lineas.forEach(function (it) {
@@ -400,6 +648,14 @@
         var f = this;
         if (f.form.dataset.enviando === '1') { ev.preventDefault(); return; }
 
+        // Cliente: el <select> quedó oculto tras el combo, así que se valida aquí.
+        if (!f.cliente.value) {
+            ev.preventDefault();
+            f.aviso.textContent = 'Falta: Cliente.';
+            if (f.clienteCombo) { f.clienteCombo.input.focus(); }
+            return;
+        }
+
         // El formulario usa novalidate para mostrar los avisos aquí, en español y en orden.
         var invalido = Array.prototype.find.call(f.form.querySelectorAll('[required]'), function (el) { return !el.checkValidity(); });
         if (invalido) {
@@ -436,6 +692,8 @@
         this.cerrarLista();
         this.aviso.textContent = '';
         this.pintarCarrito();
+        if (this.clienteCombo) { this.clienteCombo.sincronizar(); }
+        this.mostrarNuevoCliente(false);
         if (this.fecha && this.p === 'c') { this.fecha.value = ahoraLocal(false); }
         if (this.p === 'c') { this.proponerRepartidor(); }
         if (window.FruverEnvio) { window.FruverEnvio.liberar(this.form); }
@@ -495,6 +753,7 @@
                 var d = res.j;
                 crear.reiniciar();
                 crear.cliente.value = String(d.pedido.id_cliente);
+                if (crear.clienteCombo) { crear.clienteCombo.sincronizar(); }
                 if (d.pedido.id_repartidor) { crear.repartidor.value = String(d.pedido.id_repartidor); }
                 cargarDirecciones(crear, d.pedido.id_cliente, null);
                 crear.lineas = d.items.map(function (i) {
@@ -525,6 +784,7 @@
                 document.getElementById('e-numero').textContent = '#' + idPedido;
                 editar.fecha.value = d.pedido.fecha;
                 editar.cliente.value = String(d.pedido.id_cliente);
+                if (editar.clienteCombo) { editar.clienteCombo.sincronizar(); }
                 editar.repartidor.value = d.pedido.id_repartidor ? String(d.pedido.id_repartidor) : '';
                 cargarDirecciones(editar, d.pedido.id_cliente, d.pedido.id_direccion);
                 if (editar.ventana) { editar.ventana.value = (d.pedido.ventana_fin || '').substring(0, 5); }

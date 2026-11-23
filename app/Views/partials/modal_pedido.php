@@ -23,7 +23,7 @@ $rutas    = rutas_listas();
 $unidades = ['Kilogramo' => 'Kilogramo', 'Domo' => 'Domo', 'Ramos' => 'Ramo', 'Caja' => 'Caja'];
 ?>
 <div id="<?= $idModal ?>" class="w3-modal pedido-modal" style="z-index:9999;"
-     data-al-cerrar="<?= $crear ? 'cerrarModal' : 'eCerrarModal' ?>" data-enfocar="#<?= $p ?>-cliente">
+     data-al-cerrar="<?= $crear ? 'cerrarModal' : 'eCerrarModal' ?>" data-enfocar="#<?= $p ?>-cliente-combo">
   <div class="w3-modal-content w3-animate-zoom">
     <form id="<?= $p ?>-form" class="pedido-form" method="post" novalidate
           action="<?= base_url($crear ? 'guarda_pedido_completo' : 'modifica_pedido_completo') ?>"
@@ -51,9 +51,10 @@ $unidades = ['Kilogramo' => 'Kilogramo', 'Domo' => 'Domo', 'Ramos' => 'Ramo', 'C
         <fieldset class="pedido-seccion">
           <legend>Datos del pedido</legend>
           <div class="pedido-rejilla">
-            <div class="pedido-campo">
+            <div class="pedido-campo pedido-campo-cliente">
               <label for="<?= $p ?>-cliente">Cliente <span aria-hidden="true">*</span></label>
-              <select id="<?= $p ?>-cliente" name="id_cliente" class="w3-select w3-border" required>
+              <!-- pedido_formulario.js convierte este <select> en un buscador (combobox). -->
+              <select id="<?= $p ?>-cliente" name="id_cliente" class="w3-select w3-border" required data-combo="cliente">
                 <option value="">Elige un cliente…</option>
                 <?php foreach ($clientes as $c): ?>
                   <option value="<?= (int) $c['id'] ?>">
@@ -61,6 +62,22 @@ $unidades = ['Kilogramo' => 'Kilogramo', 'Domo' => 'Domo', 'Ramos' => 'Ramo', 'C
                   </option>
                 <?php endforeach; ?>
               </select>
+              <button type="button" class="pedido-nc-abre" id="<?= $p ?>-nc-abre" data-sin-reglas>
+                <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Cliente nuevo
+              </button>
+              <div class="pedido-nc" id="<?= $p ?>-nc" hidden>
+                <div class="pedido-nc-rejilla">
+                  <input type="text" id="<?= $p ?>-nc-nom" class="w3-input w3-border" placeholder="Nombre" autocomplete="off" data-sin-reglas>
+                  <input type="text" id="<?= $p ?>-nc-pat" class="w3-input w3-border" placeholder="Apellido paterno" autocomplete="off" data-sin-reglas>
+                  <input type="text" id="<?= $p ?>-nc-mat" class="w3-input w3-border" placeholder="Apellido materno (opcional)" autocomplete="off" data-sin-reglas>
+                  <input type="tel" id="<?= $p ?>-nc-tel" class="w3-input w3-border" placeholder="Teléfono" inputmode="numeric" autocomplete="off" data-sin-reglas>
+                </div>
+                <p class="pedido-nc-aviso" id="<?= $p ?>-nc-aviso" role="alert"></p>
+                <div class="pedido-nc-acciones">
+                  <button type="button" class="btn btn-chico btn-primario" id="<?= $p ?>-nc-crear"><i class="fa-solid fa-check" aria-hidden="true"></i> Crear y elegir</button>
+                  <button type="button" class="btn btn-chico btn-secundario" id="<?= $p ?>-nc-cancela"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
+                </div>
+              </div>
             </div>
             <div class="pedido-campo">
               <label for="<?= $p ?>-fecha">Fecha <span aria-hidden="true">*</span></label>
