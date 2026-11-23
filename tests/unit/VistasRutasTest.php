@@ -161,6 +161,8 @@ final class VistasRutasTest extends CIUnitTestCase
     private function conConfig(callable $ajuste): void
     {
         $cfg = new \Config\Rutas();
+        // Parte de cero: las llaves del .env de quien corre la prueba no deben cambiar el resultado
+        $cfg->proveedor = $cfg->llaveServidor = $cfg->llaveNavegador = $cfg->llaveOrs = '';
         $ajuste($cfg);
         \CodeIgniter\Config\Factories::injectMock('config', 'Rutas', $cfg);
     }

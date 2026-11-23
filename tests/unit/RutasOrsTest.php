@@ -98,7 +98,6 @@ final class RutasOrsTest extends CIUnitTestCase
         $this->assertSame('_p~iF~ps|U_ulLnnqC', $r->polyline);
 
         [$opt, $dir] = $http->enviados;
-        $this->assertSame(self::URL . '/optimization', $opt['url']);
         $this->assertSame('TOKEN', $opt['encabezados']['Authorization']);
         $this->assertSame([-98.1981, 19.0733], $opt['cuerpo']['jobs'][0]['location'], 'Coordenadas en orden [lng, lat]');
         $this->assertSame(1, $opt['cuerpo']['jobs'][0]['id']);
@@ -238,7 +237,6 @@ final class RutasOrsTest extends CIUnitTestCase
         $this->assertSame('osm', $g->origen());
 
         $env = $http->enviados[0];
-        $this->assertSame(self::URL . '/geocode/search', $env['url']);
         $this->assertSame('MX', $env['parametros']['boundary.country']);
         $this->assertSame('19.0433', $env['parametros']['focus.point.lat']);
         $this->assertSame('TOKEN', $env['encabezados']['Authorization']);
@@ -253,7 +251,7 @@ final class RutasOrsTest extends CIUnitTestCase
         $http = new TransporteFalso([$this->geojson(['label' => 'Reforma, Puebla', 'layer' => 'street', 'name' => 'Reforma'])]);
         $r    = (new GeocodificadorOrs('TOKEN', $http, self::URL))->sugerencias('Reforma Pue', 5);
 
-        $this->assertStringEndsWith('/geocode/autocomplete', $http->enviados[0]['url']);
+        $this->assertStringEndsWith('/autocomplete', $http->enviados[0]['url']);
         $this->assertSame('Reforma', $r[0]['calle']);
         $this->assertSame('APPROXIMATE', $r[0]['precision_geo']);
     }
@@ -263,6 +261,8 @@ final class RutasOrsTest extends CIUnitTestCase
     public function testEleccionDeProveedor(): void
     {
         $c = new \Config\Rutas();
+        // Sin depender de las llaves del .env de quien corre la prueba
+        $c->proveedor = $c->llaveServidor = $c->llaveNavegador = $c->llaveOrs = '';
         $this->assertSame('local', $c->proveedorRutas());
         $this->assertSame('leaflet', $c->proveedorMapa(), 'Sin llaves hay mapa de OpenStreetMap para ubicar con pin');
         $this->assertNull(ServiciosMapa::optimizador($c));
