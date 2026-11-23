@@ -96,6 +96,12 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->post('guarda_producto', 'Productos::guarda_producto');
     $routes->post('modifica_producto', 'Productos::modifica');
 
+    // ===== OFERTAS =====
+    $routes->get('ofertas', 'Ofertas::index');
+    $routes->post('ofertas/guardar', 'Ofertas::guardar');
+    $routes->post('ofertas/(:num)/activar', 'Ofertas::activar/$1');
+    $routes->post('ofertas/(:num)/borrar', 'Ofertas::borra/$1');
+
     // ===== CLIENTES =====
     $routes->get('crea_cliente', 'Clientes::crea_cliente');
     $routes->get('lista_cliente', 'Clientes::lista_cliente');

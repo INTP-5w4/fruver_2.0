@@ -158,8 +158,24 @@ class Modelo_producto extends PdoModelo
      */
     private function sqlCatalogo(): string
     {
+        // precio = el más barato entre el precio de venta y la mejor oferta vigente (o el de venta
+        // si no hay oferta). precio_antes guarda el original para tacharlo en la tienda. La oferta
+        // se aplica aquí para que valga igual en la tienda y en el recálculo del carrito.
         return 'SELECT p.id, p.nombre, p.descripcion, p.img, p.categoria,
-                       e.precio_venta_u AS precio,
+                       COALESCE(LEAST(e.precio_venta_u, (
+                           SELECT MIN(CASE WHEN o.tipo = \'porcentaje\'
+                                           THEN ROUND(e.precio_venta_u * (1 - o.valor / 100))
+                                           ELSE o.valor END)
+                             FROM oferta o
+                            WHERE o.activa = 1
+                              AND (o.fecha_inicio IS NULL OR o.fecha_inicio <= CURDATE())
+                              AND (o.fecha_fin    IS NULL OR o.fecha_fin    >= CURDATE())
+                              AND ((o.alcance = \'categoria\' AND o.categoria = p.categoria)
+                                OR (o.alcance = \'productos\' AND EXISTS (
+                                        SELECT 1 FROM oferta_producto op
+                                         WHERE op.id_oferta = o.id AND op.id_producto = p.id)))
+                       )), e.precio_venta_u) AS precio,
+                       e.precio_venta_u AS precio_antes,
                        e.u_venta        AS unidad,
                        GREATEST(COALESCE(x.e_venta, 0), 0) AS stock
                   FROM producto p

@@ -170,17 +170,19 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                 <ul class="pista" tabindex="0" aria-label="<?= esc($titulo, 'attr') ?>">
                     <?php foreach ($productos as $p): ?>
                         <?php
-                        $stock   = (int) floor((float) $p['stock']);
-                        $agotado = $stock < 1;
-                        $foto    = tienda_img_url($p['img']);
+                        $stock    = (int) floor((float) $p['stock']);
+                        $agotado  = $stock < 1;
+                        $foto     = tienda_img_url($p['img']);
+                        $enOferta = isset($p['precio_antes']) && (float) $p['precio_antes'] > (float) $p['precio'];
                         ?>
-                        <li class="producto<?= $agotado ? ' agotado' : '' ?>">
+                        <li class="producto<?= $agotado ? ' agotado' : '' ?><?= $enOferta ? ' en-oferta' : '' ?>">
                             <div class="foto">
                                 <?php if ($foto !== ''): ?>
                                     <img src="<?= esc($foto, 'attr') ?>" alt="<?= esc($p['nombre'], 'attr') ?>" loading="lazy" width="260" height="200">
                                 <?php else: ?>
                                     <span class="inicial" aria-hidden="true"><?= esc(mb_strtoupper(mb_substr((string) $p['nombre'], 0, 1))) ?></span>
                                 <?php endif; ?>
+                                <?php if ($enOferta): ?><span class="sello-oferta"><i class="fa-solid fa-tags" aria-hidden="true"></i> Oferta</span><?php endif; ?>
                                 <?php if ($agotado): ?><span class="sello">Agotado</span><?php endif; ?>
                             </div>
 
@@ -189,6 +191,9 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                                 <p class="desc"><?= esc($p['descripcion']) ?></p>
 
                                 <p class="etiqueta">
+                                    <?php if ($enOferta): ?>
+                                        <span class="precio-antes"><?= esc(tienda_dinero($p['precio_antes'])) ?></span>
+                                    <?php endif; ?>
                                     <span class="precio"><?= esc(tienda_dinero($p['precio'])) ?></span>
                                     <span class="unidad">por <?= esc(tienda_unidad($p['unidad'])) ?></span>
                                 </p>

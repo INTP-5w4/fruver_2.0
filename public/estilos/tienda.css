@@ -213,6 +213,19 @@ button { cursor: pointer; }
 .precio { font-family: var(--f-titulo); font-weight: 800; font-size: 1.35rem; font-variant-numeric: tabular-nums; line-height: 1.2; }
 .unidad { font-size: 0.85rem; font-weight: 600; }
 
+/* Precio original tachado cuando hay oferta. */
+.precio-antes { font-size: 0.9rem; font-weight: 600; text-decoration: line-through; opacity: 0.75; font-variant-numeric: tabular-nums; }
+
+/* Sello «Oferta» en la foto (junto al de «Agotado»). */
+.sello-oferta {
+    position: absolute; top: 10px; left: 10px; z-index: 2;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px;
+    background: var(--acento); color: var(--acento-texto);
+    font-size: 0.78rem; font-weight: 800; letter-spacing: 0.02em;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
 .stock-bajo { margin: 0; font-size: 0.85rem; font-weight: 700; color: var(--alerta); }
 
 .agregar { margin-top: auto; padding-top: 8px; display: flex; flex-direction: column; gap: 8px; }

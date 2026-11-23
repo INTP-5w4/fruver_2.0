@@ -24,6 +24,7 @@
         ]],
         'inventario' => ['Inventario', 'fa-boxes-stacked', [
             ['lista_producto', 'fa-carrot', 'Productos', ['lista_producto', 'crea_producto', 'pasa_id_producto']],
+            ['ofertas', 'fa-tags', 'Ofertas', ['ofertas']],
             ['lista_existencia', 'fa-boxes-stacked', 'Existencias', ['lista_existencia', 'crea_existencia', 'pasa_id_existencia']],
             ['lista_entrada', 'fa-truck-ramp-box', 'Entradas', ['lista_entrada', 'crea_entrada', 'pasa_id_entrada']],
             ['entrada_rapida', 'fa-bolt', 'Entrada rápida', ['entrada_rapida']],
