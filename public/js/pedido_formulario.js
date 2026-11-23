@@ -27,6 +27,7 @@
     var sinAcentos = function (t) { return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
     var porId = {};
     CATALOGO.forEach(function (p) { porId[String(p.id)] = p; });
+    var instancias = []; // formularios vivos (crear/editar), para propagar un cliente nuevo a ambos
 
     function ahoraLocal(conHora) {
         var d = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString();
@@ -159,6 +160,9 @@
         this.lista.hidden = true;
         this.input.setAttribute('aria-expanded', 'false');
         this.input.removeAttribute('aria-activedescendant');
+        // Si se tecleó algo sin elegir, el texto vuelve al valor realmente seleccionado
+        // (el <select> es la fuente de verdad), para que no diverja de lo que se envía.
+        this.sincronizar();
     };
     ComboSelect.prototype.tecla = function (ev) {
         var c = this, abierta = !c.lista.hidden;
@@ -193,14 +197,18 @@
         c.cerrar();
         c.alElegir(it.value);
     };
-    // Agrega una opción nueva al <select> y al combo, y la deja elegida.
+    // Agrega una opción nueva al <select> y al combo (sin cambiar la selección actual).
+    ComboSelect.prototype.agregarOpcion = function (value, texto) {
+        var existe = Array.prototype.some.call(this.select.options, function (o) { return o.value === String(value); });
+        if (!existe) { this.select.appendChild(new Option(texto, String(value))); }
+        this.refrescar();
+    };
+    // Agrega la opción y la deja elegida.
     ComboSelect.prototype.agregarYElegir = function (value, texto) {
-        var c = this;
-        c.select.appendChild(new Option(texto, String(value)));
-        c.refrescar();
-        c.select.value = String(value);
-        c.sincronizar();
-        c.alElegir(String(value));
+        this.agregarOpcion(value, texto);
+        this.select.value = String(value);
+        this.sincronizar();
+        this.alElegir(String(value));
     };
 
     // ════════════════════════════════════════════════════════════════════
@@ -235,6 +243,7 @@
 
         f.barra.querySelector('.pref-pct').textContent = DESCUENTO;
         f.conectar();
+        instancias.push(f);
     }
 
     Formulario.prototype.conectar = function () {
@@ -490,7 +499,7 @@
 
     Formulario.prototype.crearCliente = function () {
         var f = this;
-        if (!f.nc) { return; }
+        if (!f.nc || f.nc.enviando) { return; } // evita doble envío (botón o Enter repetido)
         var nom = f.nc.nom.value.trim(), pat = f.nc.pat.value.trim(), tel = f.nc.tel.value.trim();
         if (!nom || !pat || !tel) {
             f.nc.aviso.textContent = 'Nombre, apellido paterno y teléfono son obligatorios.';
@@ -506,6 +515,7 @@
         if (token) { datos.append(token.name, token.value); }
 
         var btn = document.getElementById(f.p + '-nc-crear');
+        f.nc.enviando = true;
         btn.disabled = true;
         f.nc.aviso.textContent = 'Guardando…';
         fetch(DATOS.urls.crearCliente, {
@@ -516,13 +526,19 @@
             .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
             .then(function (res) {
                 if (!res.ok) { f.nc.aviso.textContent = res.j.error || 'No se pudo crear el cliente.'; return; }
-                f.clienteCombo.agregarYElegir(res.j.id, res.j.nombre);
+                // El cliente nuevo se registra en TODOS los formularios (crear y editar) para que
+                // también exista al editar un pedido sin recargar la página; aquí queda elegido.
+                instancias.forEach(function (inst) {
+                    if (!inst.clienteCombo) { return; }
+                    if (inst === f) { inst.clienteCombo.agregarYElegir(res.j.id, res.j.nombre); }
+                    else { inst.clienteCombo.agregarOpcion(res.j.id, res.j.nombre); }
+                });
                 f.mostrarNuevoCliente(false);
                 f.aviso.textContent = 'Cliente «' + res.j.nombre + '» creado y elegido.';
                 f.entrada.focus();
             })
             .catch(function () { f.nc.aviso.textContent = 'No se pudo crear el cliente. Revisa tu conexión.'; })
-            .then(function () { btn.disabled = false; });
+            .then(function () { btn.disabled = false; f.nc.enviando = false; });
     };
     Formulario.prototype.cambiarPrecios = function (calcula) {
         var f = this, sinPrecio = 0;
