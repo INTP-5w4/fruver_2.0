@@ -44,7 +44,7 @@
             <footer class="modal-footer">
                 <button type="submit" class="btn-guardar"><i class="fa-solid fa-check" aria-hidden="true"></i> Guardar mis datos</button>
                 <?php if (! $incompleta): ?>
-                    <a href="<?= base_url('repartidor/entregas') ?>" class="btn-cancelar btn-enlace">Cancelar</a>
+                    <a href="<?= base_url('repartidor/entregas') ?>" class="btn-cancelar btn-enlace"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</a>
                 <?php endif; ?>
             </footer>
         </form>

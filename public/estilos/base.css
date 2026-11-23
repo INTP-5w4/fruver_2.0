@@ -26,7 +26,7 @@
     --tinta-suave: #4f5d53;
     --linea: #d8dfcc;
     --linea-suave: #e8ecdf;
-    --borde-control: #b9c6ad;
+    --borde-control: #80907a; /* 3.4:1 sobre blanco y 3.1:1 sobre papel (WCAG 1.4.11: borde de campo ≥ 3:1) */
     --mango: #f0b323;
     --mango-claro: #fdf0cf;
     --mango-texto: #7a5300;
@@ -50,6 +50,47 @@
     /* Estructura */
     --alto-encabezado: 56px;
     --ancho-menu: 224px;
+    --alto-nav-inferior: 64px;          /* barra inferior en celular (< 768 px) */
+    --area-segura-abajo: env(safe-area-inset-bottom, 0px);
+
+    /* Espaciado: rejilla de 8 px (con medio paso de 4 px) */
+    --esp-1: 4px;
+    --esp-2: 8px;
+    --esp-3: 12px;
+    --esp-4: 16px;
+    --esp-5: 24px;
+    --esp-6: 32px;
+    --esp-7: 48px;
+
+    /* Tipografía: tamaños y alturas de línea */
+    --t-chico: 13px;
+    --t-cuerpo: 15px;         /* 16 px en celular (abajo) */
+    --t-control: 15px;        /* 16 px en celular: iOS hace zoom con menos */
+    --t-subtitulo: 18px;
+    --t-titulo: 26px;
+    --interlineado: 1.5;
+    --ancho-lectura: 68ch;    /* largo de línea cómodo para párrafos */
+
+    /* Elevación (sombras): solo para lo que flota sobre la página */
+    --elev-1: 0 1px 2px rgba(8, 72, 29, 0.08);
+    --elev-2: 0 6px 18px rgba(8, 72, 29, 0.14);
+    --elev-3: var(--sombra-flotante);
+
+    /* Objetivos táctiles */
+    --tactil-min: 44px;       /* WCAG 2.5.5 / Apple HIG; Material usa 48 px */
+
+    /* Movimiento */
+    --duracion: .18s;
+
+    color-scheme: light;      /* sin modo oscuro todavía: controles del navegador en claro */
+}
+
+/* Celular (< 600 px): letra base de 16 px para no forzar la vista */
+@media (max-width: 767.98px) {
+    :root { --t-control: 16px; }
+}
+@media (max-width: 599.98px) {
+    :root { --t-cuerpo: 16px; --t-titulo: 22px; }
 }
 
 /* ── Reset (el proyecto ya trabajaba con márgenes en cero) ── */
@@ -58,7 +99,7 @@ html { -webkit-text-size-adjust: 100%; }
 body {
     background: var(--papel);
     color: var(--tinta);
-    font: 15px/1.5 var(--f-texto);
+    font: var(--t-cuerpo)/var(--interlineado) var(--f-texto);
     -webkit-font-smoothing: antialiased;
 }
 h1, h2, h3, h4, h5 { font-family: var(--f-titulo); color: var(--tinta); letter-spacing: -0.01em; line-height: 1.2; text-wrap: balance; }
@@ -71,6 +112,9 @@ a:hover { color: var(--hoja-oscura); }
 code { font-size: 0.9em; }
 
 /* ═════════════════════ COMPONENTES ═════════════════════ */
+
+/* Párrafos de ayuda y explicaciones: largo de línea legible */
+.lista-wrapper p, .modal-form p, .tarjeta p { max-width: var(--ancho-lectura); }
 
 /* Botones: 4 tipos (primario, secundario, peligro, ícono) en 2 tamaños */
 .btn {
@@ -208,7 +252,7 @@ code { font-size: 0.9em; }
     border-radius: var(--r-control);
     padding: 8px 11px;
     min-height: 38px;
-    font-size: 14px;
+    font-size: var(--t-control);
     color: var(--tinta);
 }
 .w3-input:focus, .w3-select:focus, .modal-input:focus, .prod-search-input:focus {
@@ -242,6 +286,15 @@ body.w3-light-grey, body.w3-white { background: var(--papel) !important; }
 .w3-table td, .w3-table th { padding: 8px 10px; }
 .w3-bordered tr, .w3-table-all tr { border-bottom: 1px solid var(--linea-suave) !important; }
 .w3-striped tbody tr:nth-child(even) { background: var(--superficie-2) !important; }
+
+/* ═════════════════════ CELULAR Y TABLETA (< 768 px) ═════════════════════
+   Objetivos táctiles de 44 px como mínimo y nada que dependa del puntero (hover). */
+@media (max-width: 767.98px) {
+    .btn, .w3-button, .btn-agregar, .btn-guardar, .btn-cancelar, .btn-chico { min-height: var(--tactil-min); }
+    .btn-icono { width: var(--tactil-min); height: var(--tactil-min); }
+    .w3-input, .w3-select, .modal-input, .prod-search-input, textarea.w3-input { min-height: var(--tactil-min); }
+    .w3-button.w3-small { padding: 10px 14px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }

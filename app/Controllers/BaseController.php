@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\Modelo_repartidor;
 use CodeIgniter\Controller;
+use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\HTTP\RedirectResponse;
@@ -44,6 +45,47 @@ abstract class BaseController extends Controller
 
         // Preload any models, libraries, etc, here.
         $this->session = service('session');
+
+        $this->normalizarTelefonos();
+    }
+
+    /** Campos de teléfono que llegan de los formularios (clientes, repartidores, tienda). */
+    private const CAMPOS_TELEFONO = ['tel', 'telefono', 'tel_contacto'];
+
+    /**
+     * No castigar a la persona por el formato: «222 123-45-67», «(222) 123 4567» o
+     * «+52 222 123 4567» se guardan como «2221234567». Solo se quitan espacios, guiones,
+     * puntos, paréntesis y la lada +52; si el texto trae letras se deja igual para que la
+     * validación diga qué está mal.
+     */
+    private function normalizarTelefonos(): void
+    {
+        if (! $this->request instanceof IncomingRequest || strtoupper($this->request->getMethod()) !== 'POST') {
+            return;
+        }
+
+        $post = $this->request->getPost();
+        if (! is_array($post)) {
+            return;
+        }
+
+        $cambio = false;
+        foreach (self::CAMPOS_TELEFONO as $campo) {
+            $valor = $post[$campo] ?? null;
+            if (! is_string($valor) || preg_match('/^[\d\s\-.()+]+$/', $valor) !== 1 || preg_match('/\D/', $valor) !== 1) {
+                continue;
+            }
+            $digitos = preg_replace('/\D+/', '', $valor);
+            if (str_starts_with(ltrim($valor), '+52') && strlen($digitos) === 12) {
+                $digitos = substr($digitos, 2);
+            }
+            $post[$campo] = $digitos;
+            $cambio       = true;
+        }
+
+        if ($cambio) {
+            $this->request->setGlobal('post', $post);
+        }
     }
 
     /** ¿La persona con sesión iniciada es personal del negocio (admin/superadmin/developer)? */

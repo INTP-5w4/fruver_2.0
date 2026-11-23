@@ -8,7 +8,7 @@
     <script src="<?= base_url('js/cambio_estado.js') . '?v=' . @filemtime(FCPATH . 'js/cambio_estado.js') ?>" defer></script>
     <link rel="stylesheet" href="<?= base_url('estilos/pedido_formulario.css') . '?v=' . @filemtime(FCPATH . 'estilos/pedido_formulario.css') ?>">
     <meta name="csrf-token" content="<?= esc(csrf_hash(), 'attr') ?>">
-    <title>Lista Pedidos</title>
+    <title>Pedidos · Fruver</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
@@ -32,7 +32,7 @@
 <div class="contenedor-boton">
     <div>
         <span class="pagina-sub"><?= (int) $total_pedidos ?> <?= (int) $total_pedidos === 1 ? 'pedido' : 'pedidos' ?><?= ($estado ?? '') !== '' ? ' · ' . esc(estado_pedido_texto($estado)) : '' ?></span>
-        <h1>Productos por pedido</h1>
+        <h1>Pedidos</h1>
     </div>
     <button type="button" onclick="abrirNuevoPedido()" class="btn-agregar">
         <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo pedido
@@ -47,7 +47,7 @@
             <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_p_pedido') . (($estado ?? '') !== '' ? '?estado=' . esc($estado, 'url') : '') ?>" class="w3-button w3-border">Limpiar búsqueda</a>
+            <a href="<?= base_url('lista_p_pedido') . (($estado ?? '') !== '' ? '?estado=' . esc($estado, 'url') : '') ?>" class="w3-button w3-border"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar búsqueda</a>
         <?php endif; ?>
     </div>
 </form>
@@ -127,7 +127,7 @@ $enlacePestana = static function (string $clave) use ($buscar): string {
                                     <option value="<?= esc($sig, 'attr') ?>"><?= esc(estado_pedido_texto($sig)) ?></option>
                                 <?php endforeach; ?>
                             </select>
-                            <noscript><button type="submit" class="btn btn-chico btn-secundario">Cambiar</button></noscript>
+                            <noscript><button type="submit" class="btn btn-chico btn-secundario"><i class="fa-solid fa-pen" aria-hidden="true"></i> Cambiar</button></noscript>
                         </form>
                     <?php endif; ?>
                 </div>
@@ -226,13 +226,13 @@ $enlacePagina = static fn (int $n): string => '?' . http_build_query(array_filte
 ?>
 <nav class="paginacion" aria-label="Páginas">
     <?php if ($pagina_actual > 1): ?>
-        <a href="<?= esc($enlacePagina($pagina_actual - 1), 'attr') ?>" class="w3-button w3-border">← Anterior</a>
+        <a href="<?= esc($enlacePagina($pagina_actual - 1), 'attr') ?>" class="w3-button w3-border"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Anterior</a>
     <?php endif; ?>
 
     <span class="paginacion-estado">Página <?= (int) $pagina_actual ?> de <?= (int) $total_paginas ?></span>
 
     <?php if ($pagina_actual < $total_paginas): ?>
-        <a href="<?= esc($enlacePagina($pagina_actual + 1), 'attr') ?>" class="w3-button w3-border">Siguiente →</a>
+        <a href="<?= esc($enlacePagina($pagina_actual + 1), 'attr') ?>" class="w3-button w3-border"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Siguiente</a>
     <?php endif; ?>
 </nav>
 <?php endif; ?>

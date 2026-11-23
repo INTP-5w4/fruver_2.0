@@ -82,7 +82,12 @@ a.kpi-enlace:hover { border-color: var(--hoja); box-shadow: 0 2px 10px rgba(8, 7
     .inicio-fila--principal { grid-template-columns: 1fr; }
 }
 @media (max-width: 768px) {
-    .inicio-fila { grid-template-columns: 1fr; }
+    /* minmax(0, 1fr): una tabla ancha ya no estira la columna más allá de la pantalla */
+    .inicio-fila, .inicio-fila--principal { grid-template-columns: minmax(0, 1fr); }
+    .tarjeta { min-width: 0; }
+    .tarjeta:has(> .tabla-mini) { overflow-x: auto; }
+    .lista-wrapper .tabla-mini th { white-space: normal; }
+    .tabla-mini .der { padding-right: 8px !important; }
     .grafica-caja { height: 220px; }
 }
 @media (max-width: 480px) {

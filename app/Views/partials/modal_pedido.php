@@ -46,7 +46,7 @@ $unidades = ['Kilogramo' => 'Kilogramo', 'Domo' => 'Domo', 'Ramos' => 'Ramo', 'C
       </header>
 
       <div class="pedido-cuerpo">
-        <p id="<?= $p ?>-ayuda" class="pedido-ayuda">Los campos con <span aria-hidden="true">*</span><span class="sr-solo">asterisco</span> son obligatorios.</p>
+        <p id="<?= $p ?>-ayuda" class="pedido-ayuda"><span aria-hidden="true">*</span> Obligatorio<span class="sr-solo"> (los campos con asterisco)</span></p>
 
         <fieldset class="pedido-seccion">
           <legend>Datos del pedido</legend>
@@ -97,8 +97,7 @@ $unidades = ['Kilogramo' => 'Kilogramo', 'Domo' => 'Domo', 'Ramos' => 'Ramo', 'C
         <fieldset class="pedido-seccion">
           <legend>Productos <span aria-hidden="true">*</span></legend>
           <p class="pedido-teclas" id="<?= $p ?>-teclas">
-            Escribe el producto y elige con <kbd>↓</kbd> <kbd>↑</kbd> y <kbd>Enter</kbd>; en Cantidad,
-            <kbd>Enter</kbd> lo agrega al pedido.
+            Elige con <kbd>↓</kbd> <kbd>↑</kbd> y <kbd>Enter</kbd>. En Cantidad, <kbd>Enter</kbd> agrega.
           </p>
           <div class="pedido-linea">
             <div class="pedido-campo pedido-campo-producto">
@@ -140,8 +139,8 @@ $unidades = ['Kilogramo' => 'Kilogramo', 'Domo' => 'Domo', 'Ramos' => 'Ramo', 'C
 
           <div class="pedido-barra-pref" id="<?= $p ?>-barra-pref" hidden>
             <span>★ Cliente preferencial: precio sugerido −<span class="pref-pct"></span>&nbsp;%.</span>
-            <button type="button" class="btn btn-chico btn-primario" data-pref="aplicar">Aplicar a todo el pedido</button>
-            <button type="button" class="btn btn-chico btn-secundario" data-pref="catalogo">Volver al precio de catálogo</button>
+            <button type="button" class="btn btn-chico btn-primario" data-pref="aplicar"><i class="fa-solid fa-check" aria-hidden="true"></i> Aplicar a todo el pedido</button>
+            <button type="button" class="btn btn-chico btn-secundario" data-pref="catalogo"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Volver al precio de catálogo</button>
           </div>
 
           <div class="tabla-wrapper pedido-carrito">
@@ -181,7 +180,7 @@ $unidades = ['Kilogramo' => 'Kilogramo', 'Domo' => 'Domo', 'Ramos' => 'Ramo', 'C
         <p class="pedido-aviso" id="<?= $p ?>-aviso" role="alert"></p>
         <div class="pedido-pie-fila">
           <span class="pedido-total">Total: <b id="<?= $p ?>-total">$0.00</b></span>
-          <button type="button" class="btn btn-secundario" data-cerrar-pedido>Cancelar</button>
+          <button type="button" class="btn btn-secundario" data-cerrar-pedido><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
           <button type="submit" class="btn btn-primario" id="<?= $p ?>-guardar">
             <i class="fa-solid fa-check" aria-hidden="true"></i> <?= $crear ? 'Guardar pedido' : 'Guardar cambios' ?>
           </button>

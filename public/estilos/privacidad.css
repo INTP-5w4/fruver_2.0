@@ -31,7 +31,7 @@
 .pv-resumen ul { margin: .5rem 0; padding-left: 1.2rem; }
 .pv-resumen li { margin-bottom: .35rem; }
 .pv-enlaces { margin: .5rem 0 0; }
-.pv-version { color: #6b7a99; font-size: .85rem; }
+.pv-version { color: #4f5d53; font-size: .85rem; }
 
 /* ── Formato de consentimiento ─────────────────────────────── */
 .pv-bloque {
@@ -45,7 +45,7 @@
     font-weight: 700;
     color: var(--fv-green-dark);
 }
-.pv-opcional { font-weight: 400; color: #6b7a99; font-size: .9em; }
+.pv-opcional { font-weight: 400; color: #4f5d53; font-size: .9em; }
 .pv-nota { margin: .5rem 0; font-size: .88rem; color: #4a5680; }
 
 .pv-check {
@@ -65,7 +65,7 @@
 .pv-check small {
     display: block;
     margin-top: .15rem;
-    color: #6b7a99;
+    color: #4f5d53;
 }
 .pv-canales { display: flex; flex-wrap: wrap; gap: 0 1.5rem; }
 .pv-check-linea { align-items: center; }
@@ -129,7 +129,7 @@
     background: #f3faf3;
     border-radius: 10px;
 }
-.pv-estado dt { font-size: .8rem; color: #6b7a99; }
+.pv-estado dt { font-size: .8rem; color: #4f5d53; }
 .pv-estado dd { margin: .2rem 0 0; font-weight: 700; }
 .pv-subtitulo { margin-top: 0; color: var(--fv-green-dark); font-size: 1.2rem; }
 

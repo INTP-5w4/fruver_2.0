@@ -18,7 +18,7 @@ $hayFiltros = $tabla !== null || $idRegistro !== null || $buscar !== '';
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoría</title>
+    <title>Auditoría · Fruver</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
@@ -34,9 +34,8 @@ $hayFiltros = $tabla !== null || $idRegistro !== null || $buscar !== '';
 </div>
 
 <p class="w3-small w3-text-grey" style="max-width:760px;">
-    Cada alta, modificación o eliminación de un cliente o un producto queda registrada aquí con la cuenta que la hizo.
-    Los registros no se pueden editar ni borrar. De los clientes se anota qué datos cambiaron, no sus valores,
-    para no duplicar datos personales.
+    Quién dio de alta, cambió o eliminó clientes y productos. No se puede editar ni borrar.
+    De los clientes se anota qué dato cambió, no su valor.
 </p>
 
 <?php if (! $instalada): ?>
@@ -66,7 +65,7 @@ $hayFiltros = $tabla !== null || $idRegistro !== null || $buscar !== '';
 
         <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Filtrar</button>
         <?php if ($hayFiltros): ?>
-            <a href="<?= base_url('auditoria') ?>" class="w3-button w3-border">✕ Limpiar</a>
+            <a href="<?= base_url('auditoria') ?>" class="w3-button w3-border"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>

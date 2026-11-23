@@ -5,7 +5,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= base_url('estilos/cliente_preferencial.css') ?>">
-    <title>Lista Clientes</title>
+    <title>Clientes · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -72,7 +72,7 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_cliente') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_cliente') ?>" class="w3-button w3-red"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>
@@ -136,14 +136,14 @@
                                     '<?= esc($c['telefono'], 'js') ?>'
 
                                 )"
-                                style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                                style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                         </button>
                     </td>
                     <td>
                         <form method="post" action="<?= base_url('borra_id_cliente/' . (int) $c['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
 <?= csrf_field() ?>
-<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+<button type="submit" style="border:none; cursor:pointer; background:none;" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
 </form>
                     </td>
                 </tr>
@@ -174,14 +174,14 @@
                     class="w3-input w3-border w3-margin-bottom" required value="<?= old('ape_mat') ?>"?>
 
                 <label for="edit_tel"><b>Teléfono*</b></label>
-                <input type="text" placeholder="Formato:1234567890" name="tel" id="edit_tel"
+                <input type="text" placeholder="Ej. 222 123 4567" name="tel" id="edit_tel"
                     class="w3-input w3-border w3-margin-bottom" required value="<?= old('tel') ?>">
 
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button"
                             onclick="document.getElementById('modalEditarCliente').style.display='none'"
-                            class="w3-button w3-white">Cancelar</button>
+                            class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
 
             </form>
@@ -214,8 +214,8 @@
                 </div>
 
                 <footer class="w3-container w3-green w3-padding w3-margin-top">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                    <button type="button" id="pref_cancelar" class="w3-button w3-white">Cancelar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" id="pref_cancelar" class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>
@@ -243,13 +243,13 @@
     <input id="cliente-ape-mat" type="text" placeholder="Ej: González" name="ape_mat" class="modal-input" required value="<?= old('ape_mat') ?>">
 
     <label for="cliente-tel"><b>Teléfono*</b></label>
-    <input id="cliente-tel" type="text" placeholder="Formato:1234567890" name="tel" class="modal-input" required value="<?= old('tel') ?>">
+    <input id="cliente-tel" type="text" placeholder="Ej. 222 123 4567" name="tel" class="modal-input" required value="<?= old('tel') ?>">
 
         <footer class="modal-footer">
-            <button type="submit" class="btn-guardar">Guardar</button>
+            <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
             <button type="button"
                 onclick="document.getElementById('modalCrearCliente').style.display='none'"
-                class="btn-cancelar">Cancelar</button>
+                class="btn-cancelar"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
         </footer>
     </header>
 </form>

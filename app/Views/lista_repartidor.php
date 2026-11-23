@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Repartidores</title>
+    <title>Repartidores · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -55,7 +55,7 @@ $nuevos    ??= 0;
                placeholder="Buscar por id, nombre, teléfono o cuenta…" class="w3-input w3-border" aria-label="Buscar repartidor">
         <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar</button>
         <?php if (! empty($buscar)): ?>
-            <a href="<?= base_url('lista_repartidor') ?>" class="w3-button w3-border">Limpiar búsqueda</a>
+            <a href="<?= base_url('lista_repartidor') ?>" class="w3-button w3-border"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar búsqueda</a>
         <?php endif; ?>
     </div>
 </form>
@@ -151,7 +151,7 @@ $nuevos    ??= 0;
     <div id="modalCrearRepartidor" class="w3-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-crear-repartidor">
         <div class="modal-contenido w3-animate-zoom">
             <header class="modal-header">
-                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 <h2 id="titulo-crear-repartidor">Registrar repartidor</h2>
             </header>
 
@@ -164,8 +164,8 @@ $nuevos    ??= 0;
                 <?= view('partials/form_repartidor', ['sufijo' => '_crear', 'conOld' => $hayOld && ! $editando]) ?>
 
                 <footer class="modal-footer">
-                    <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
+                    <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>
@@ -175,7 +175,7 @@ $nuevos    ??= 0;
     <div id="modalEditarRepartidor" class="w3-modal" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="titulo-editar-repartidor">
         <div class="modal-contenido w3-animate-zoom">
             <header class="modal-header">
-                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 <h2 id="titulo-editar-repartidor">Editar repartidor</h2>
             </header>
 
@@ -190,8 +190,8 @@ $nuevos    ??= 0;
                 <?= view('partials/form_repartidor', ['sufijo' => '_editar', 'conOld' => $editando]) ?>
 
                 <footer class="modal-footer">
-                    <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
+                    <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>

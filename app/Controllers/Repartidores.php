@@ -36,7 +36,7 @@ class Repartidores extends BaseController
             ],
             'tel' => [
                 'required'   => 'El Teléfono es obligatorio.',
-                'numeric'    => 'El Teléfono debe contener solo números.',
+                'numeric'    => 'Escribe el teléfono con números (puedes usar espacios o guiones), por ejemplo 222 123 4567.',
                 'max_length' => 'El Teléfono debe tener máximo 12 dígitos.',
             ],
             'dir' => [

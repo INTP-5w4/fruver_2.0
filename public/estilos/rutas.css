@@ -26,6 +26,12 @@
 .rutas-campos .w3-input, .rutas-campos .w3-select { padding: 6px; }
 .rutas-lista { list-style: none; margin: 10px 0; padding: 0; max-height: 46vh; overflow: auto; border-top: 1px solid #eee; }
 .rutas-lista li { display: flex; gap: 8px; align-items: flex-start; padding: 8px 4px; border-bottom: 1px solid #eee; }
+/* Casillas fáciles de tocar (antes 13 px) */
+.rutas-lista input[type="checkbox"], .geo-check input[type="checkbox"] { flex: none; width: 22px; height: 22px; margin: 2px 4px 0 0; accent-color: var(--hoja, #0b7d2e); }
+@media (max-width: 767.98px) {
+    .rutas-lista li { min-height: 48px; padding: 10px 4px; }
+    .geo-check { min-height: 44px; }
+}
 .rutas-lista li.sin-ubicar { opacity: .65; }
 .rutas-lista li .detalle { flex: 1; font-size: .9em; line-height: 1.35; }
 .rutas-lista li .detalle small { color: #666; }

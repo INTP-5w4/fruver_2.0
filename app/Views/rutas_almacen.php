@@ -39,7 +39,7 @@
                 <?php if ($a): ?>
                     <label class="geo-check"><input type="checkbox" name="activo" value="0" <?= (int) $a['activo'] === 1 ? '' : 'checked' ?>> Desactivar (no se ofrece al planear)</label>
                 <?php endif; ?>
-                <button type="submit" class="btn-guardar">Guardar</button>
+                <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
             </form>
         <?php if ($a === null && $almacenes !== []) { ?></details><?php } else { ?></div><?php } ?>
     <?php endforeach; ?>

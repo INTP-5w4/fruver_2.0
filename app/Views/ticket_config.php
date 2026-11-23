@@ -6,7 +6,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= csrf_hash() ?>">
-    <title>Impresora de tickets</title>
+    <title>Impresora · Fruver</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
@@ -53,7 +53,7 @@
                 onclick="ticketAccion(this)" <?= $navegador ? 'disabled' : '' ?>>
             <i class="fa-solid fa-print"></i> Imprimir hoja de prueba
         </button>
-        <a class="w3-button w3-white w3-border" href="<?= base_url('lista_p_pedido') ?>">Volver a pedidos</a>
+        <a class="w3-button w3-white w3-border" href="<?= base_url('lista_p_pedido') ?>"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver a pedidos</a>
     </div>
 
     <div class="w3-panel w3-light-grey">

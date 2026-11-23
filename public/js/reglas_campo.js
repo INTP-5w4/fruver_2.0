@@ -32,7 +32,7 @@
         nom: { req: true, max: 100 },
         ape_pat: { req: true, max: 100 },
         ape_mat: { req: true, max: 100 },
-        tel: { req: true, digitos: true, max: 12 }
+        tel: { req: true, telefono: { min: 7, max: 12 } }
     };
     var CATALOGO = [
         { accion: /\/(guarda|modifica)_cliente$/, campos: PERSONA },
@@ -103,7 +103,7 @@
         },
         { accion: /\/entregas\/\d+\/fallar$/, campos: { incidencia: { req: true, max: 500 } } },
         { accion: /\/rutas\/almacen$/, campos: { nombre: { req: true, max: 100 }, direccion: { req: true, max: 300 } } },
-        { accion: /\/tienda\/pedido$/, campos: { tel: { digitos: true, min: 7, max: 12 }, dir_cp: { alfanum: true, max: 10 } } }
+        { accion: /\/tienda\/pedido$/, campos: { tel: { telefono: { min: 7, max: 12 } }, dir_cp: { alfanum: true, max: 10 } } }
     ];
 
     function extender(a, b) {
@@ -181,6 +181,13 @@
         if (spec.digitos) {
             r.push({ texto: 'Solo números (sin espacios ni guiones)', prueba: function (v) { return /^\d*$/.test(v); } });
         }
+        if (spec.telefono) {
+            // Se aceptan espacios, guiones, puntos, paréntesis y +52: el servidor los quita.
+            var tl = spec.telefono, digitos = function (v) { return v.replace(/^\s*\+52/, '').replace(/\D/g, ''); };
+            r.push({ texto: (tl.min === tl.max ? tl.min : tl.min + ' a ' + tl.max) + ' dígitos (puedes usar espacios o guiones)',
+                mensaje: 'Revisa el teléfono: debe tener ' + (tl.min === 10 ? '10' : tl.min + ' a ' + tl.max) + ' dígitos',
+                prueba: function (v) { var d = digitos(v); return /^[\d\s\-.()+]*$/.test(v) && d.length >= tl.min && d.length <= tl.max; } });
+        }
         if (spec.alfanum) {
             r.push({ texto: 'Solo letras y números, sin espacios ni acentos', prueba: function (v) { return /^[A-Za-z0-9]*$/.test(v); } });
         }
@@ -245,6 +252,12 @@
         if (cat.req === false) { el.required = false; }
         if (cat.max && el.tagName !== 'SELECT' && !(el.maxLength > 0)) { el.maxLength = cat.max; }
         if (cat.min && !(el.minLength > 0)) { el.minLength = cat.min; }
+        if (cat.telefono) {
+            el.setAttribute('inputmode', 'tel');
+            if (!el.getAttribute('autocomplete')) { el.setAttribute('autocomplete', 'tel-national'); }
+            el.removeAttribute('pattern');
+            el.maxLength = cat.telefono.max + 8; // deja espacio para separadores
+        }
         if (cat.digitos) {
             if (!el.getAttribute('inputmode')) { el.setAttribute('inputmode', 'numeric'); }
             if (!el.pattern) { el.pattern = '[0-9]*'; el.setAttribute('data-regla-patron', 'Solo números'); }
@@ -348,7 +361,9 @@
 
     function pintar(el) {
         var reglas = reglasDe(el);
-        if (!reglas.lista.length) { quitarPanel(); return; }
+        // Una lista cuya única regla es «elige una opción» no necesita panel: se entiende sola.
+        var soloElegir = el.tagName === 'SELECT' && reglas.lista.every(function (r) { return r.req || r.nota; });
+        if (!reglas.lista.length || soloElegir) { quitarPanel(); return; }
 
         if (campoActual !== el) {
             quitarPanel();

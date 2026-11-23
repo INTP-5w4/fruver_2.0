@@ -47,7 +47,7 @@ class Auth extends ShieldAuth
      * --------------------------------------------------------------------
      */
     public array $views = [
-        'login'                       => '\CodeIgniter\Shield\Views\login',
+        'login'                       => 'Auth/login', // con ícono en el botón (copia de la de Shield)
         'register'                    => 'Auth/register', // incluye el Aviso de Privacidad
         'layout'                      => 'Auth/layout',
         'action_email_2fa'            => '\CodeIgniter\Shield\Views\email_2fa_show',

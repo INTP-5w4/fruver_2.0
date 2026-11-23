@@ -74,7 +74,7 @@ foreach ($cfg->finalidades as $clave => $f) {
                 </p>
 
                 <div class="pv-acciones">
-                    <button type="submit" class="btn btn-primary">Guardar preferencias</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar preferencias</button>
                 </div>
             </form>
 
@@ -82,7 +82,7 @@ foreach ($cfg->finalidades as $clave => $f) {
                 <form action="<?= site_url('privacidad/revocar') ?>" method="post" class="pv-revocar">
                     <?= csrf_field() ?>
                     <p>¿Prefieres no recibir nada? Retira con un clic tu consentimiento para todas las finalidades voluntarias.</p>
-                    <button type="submit" class="btn btn-secundario">Retirar todos mis consentimientos</button>
+                    <button type="submit" class="btn btn-secundario"><i class="fa-solid fa-user-xmark" aria-hidden="true"></i> Retirar todos mis consentimientos</button>
                 </form>
             <?php endif; ?>
         </div>

@@ -52,6 +52,8 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+    <!-- Íconos (cada acción lleva uno, con su texto) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="<?= base_url('estilos/tienda.css') ?>">
     <?= view('partials/scripts_formularios') ?>
 </head>
@@ -75,14 +77,14 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
             <?php if ($conSesion): ?>
                 <span class="cuenta-saludo">Hola, <strong><?= esc($saludo) ?></strong></span>
                 <?php if ($esPersonal): ?>
-                    <a class="cuenta-enlace" href="<?= base_url('/') ?>">Panel</a>
+                    <a class="cuenta-enlace" href="<?= base_url('/') ?>"><i class="fa-solid fa-gauge" aria-hidden="true"></i><span>Panel</span></a>
                 <?php endif; ?>
-                <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>">Sugerencias</a>
-                <a class="cuenta-enlace" href="<?= base_url('privacidad/preferencias') ?>">Privacidad</a>
-                <a class="cuenta-enlace" href="<?= base_url('logout') ?>">Salir</a>
+                <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>"><i class="fa-regular fa-lightbulb" aria-hidden="true"></i><span>Sugerencias</span></a>
+                <a class="cuenta-enlace" href="<?= base_url('privacidad/preferencias') ?>"><i class="fa-solid fa-user-shield" aria-hidden="true"></i><span>Privacidad</span></a>
+                <a class="cuenta-enlace" href="<?= base_url('logout') ?>"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Salir</span></a>
             <?php else: ?>
-                <a class="cuenta-enlace" href="<?= base_url('login') ?>">Iniciar sesión</a>
-                <a class="cuenta-enlace" href="<?= base_url('register') ?>">Crear cuenta</a>
+                <a class="cuenta-enlace" href="<?= base_url('login') ?>"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i><span>Iniciar sesión</span></a>
+                <a class="cuenta-enlace" href="<?= base_url('register') ?>"><i class="fa-solid fa-user-plus" aria-hidden="true"></i><span>Crear cuenta</span></a>
             <?php endif; ?>
         </nav>
 
@@ -96,8 +98,9 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
     </div>
 
     <nav class="categorias" aria-label="Categorías">
+        <?php $iconoCategoria = ['frutas' => 'fa-apple-whole', 'verduras' => 'fa-carrot', 'hierbas' => 'fa-leaf']; ?>
         <?php foreach ($titulos as $clave => $titulo): ?>
-            <a href="#fila-<?= esc($clave, 'attr') ?>"><?= esc($titulo) ?></a>
+            <a href="#fila-<?= esc($clave, 'attr') ?>"><i class="fa-solid <?= esc($iconoCategoria[$clave] ?? 'fa-basket-shopping', 'attr') ?>" aria-hidden="true"></i> <?= esc($titulo) ?></a>
         <?php endforeach; ?>
     </nav>
 </header>
@@ -151,8 +154,8 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                 <p class="fila-conteo"><?= count($productos) ?> <?= count($productos) === 1 ? 'producto' : 'productos' ?></p>
                 <?php if (count($productos) > 1): ?>
                     <div class="fila-flechas">
-                        <button type="button" data-flecha="-1" aria-label="Ver anteriores de <?= esc($titulo, 'attr') ?>">&#8249;</button>
-                        <button type="button" data-flecha="1" aria-label="Ver siguientes de <?= esc($titulo, 'attr') ?>">&#8250;</button>
+                        <button type="button" data-flecha="-1" aria-label="Ver anteriores de <?= esc($titulo, 'attr') ?>"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+                        <button type="button" data-flecha="1" aria-label="Ver siguientes de <?= esc($titulo, 'attr') ?>"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
                     </div>
                 <?php endif; ?>
             </div>
@@ -195,19 +198,19 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                                 <?php endif; ?>
 
                                 <?php if (! $conSesion): ?>
-                                    <a class="btn btn-borde" href="<?= base_url('login') ?>">Inicia sesión para pedir</a>
+                                    <a class="btn btn-borde" href="<?= base_url('login') ?>"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> Inicia sesión para pedir</a>
                                 <?php elseif ($agotado): ?>
-                                    <button class="btn btn-borde" type="button" disabled>No disponible</button>
+                                    <button class="btn btn-borde" type="button" disabled><i class="fa-solid fa-ban" aria-hidden="true"></i> No disponible</button>
                                 <?php else: ?>
                                     <form class="agregar" method="post" action="<?= base_url('tienda/carrito/agregar') ?>">
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="id_producto" value="<?= (int) $p['id'] ?>">
                                         <div class="cantidad" role="group" aria-label="Cantidad de <?= esc($p['nombre'], 'attr') ?>">
-                                            <button type="button" class="paso" data-paso="-1" aria-label="Una menos">&minus;</button>
+                                            <button type="button" class="paso" data-paso="-1" aria-label="Una menos"><i class="fa-solid fa-minus" aria-hidden="true"></i></button>
                                             <input type="number" name="cantidad" value="1" min="1" max="<?= $stock ?>" inputmode="numeric" aria-label="Cantidad">
-                                            <button type="button" class="paso" data-paso="1" aria-label="Una más">+</button>
+                                            <button type="button" class="paso" data-paso="1" aria-label="Una más"><i class="fa-solid fa-plus" aria-hidden="true"></i> </button>
                                         </div>
-                                        <button class="btn btn-primario" type="submit">Agregar al carrito</button>
+                                        <button class="btn btn-primario" type="submit"><i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar al carrito</button>
                                     </form>
                                 <?php endif; ?>
                             </div>
@@ -223,7 +226,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
 <dialog class="panel-carrito" id="panel-carrito" aria-labelledby="carrito-titulo">
     <div class="panel-cabeza">
         <h2 id="carrito-titulo">Tu carrito</h2>
-        <button type="button" class="panel-cerrar" data-cerrar-carrito aria-label="Cerrar carrito">&times;</button>
+        <button type="button" class="panel-cerrar" data-cerrar-carrito aria-label="Cerrar carrito"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
 
     <div class="panel-cuerpo">
@@ -242,7 +245,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                             </div>
                             <form method="post" action="<?= base_url('tienda/pedido/' . (int) $ped['id'] . '/recargar') ?>">
                                 <?= csrf_field() ?>
-                                <button class="btn btn-borde" type="submit">Volver a pedir</button>
+                                <button class="btn btn-borde" type="submit"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i> Volver a pedir</button>
                             </form>
                         </li>
                     <?php endforeach; ?>
@@ -258,7 +261,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
         <?php if (! $tienePerfil): ?>
             <fieldset class="contacto">
                 <legend>Tus datos de contacto</legend>
-                <p class="contacto-ayuda">Los pedimos una sola vez para que el personal pueda avisarte de tu pedido.</p>
+                <p class="contacto-ayuda">Solo la primera vez, para avisarte de tu pedido.</p>
                 <label><span class="rotulo">Nombre</span>
                     <input type="text" name="nom" value="<?= esc(old('nom'), 'attr') ?>" maxlength="100" autocomplete="given-name" required>
                 </label>
@@ -269,7 +272,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                     <input type="text" name="ape_mat" value="<?= esc(old('ape_mat'), 'attr') ?>" maxlength="100">
                 </label>
                 <label><span class="rotulo">Teléfono</span>
-                    <input type="tel" name="tel" value="<?= esc(old('tel'), 'attr') ?>" maxlength="12" inputmode="numeric" autocomplete="tel-national" required>
+                    <input type="tel" name="tel" value="<?= esc(old('tel'), 'attr') ?>" maxlength="20" inputmode="tel" autocomplete="tel-national" required>
                 </label>
             </fieldset>
         <?php endif; ?>
@@ -325,8 +328,8 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
             <span>Total</span>
             <strong data-total><?= esc($carrito['total_texto'] ?? '$0.00') ?></strong>
         </div>
-        <button class="btn btn-primario btn-grande" type="submit" data-confirmar disabled>Realizar pedido</button>
-        <button class="btn-texto" type="button" data-vaciar>Vaciar carrito</button>
+        <button class="btn btn-primario btn-grande" type="submit" data-confirmar disabled><i class="fa-solid fa-check" aria-hidden="true"></i> Realizar pedido</button>
+        <button class="btn-texto" type="button" data-vaciar><i class="fa-solid fa-trash-can" aria-hidden="true"></i> Vaciar carrito</button>
     </form>
 </dialog>
 <?php endif; ?>

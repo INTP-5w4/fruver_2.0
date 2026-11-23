@@ -26,7 +26,7 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roles</title>
+    <title>Roles · Fruver</title>
     <style>
         .roles-filtros { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
         .roles-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid var(--linea); border-radius: 999px;
@@ -100,7 +100,7 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
                    placeholder="Buscar por id, usuario o correo…" class="w3-input w3-border" aria-label="Buscar cuenta">
             <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar</button>
             <?php if ($buscar !== ''): ?>
-                <a href="<?= base_url('roles') . ($rol !== '' ? '?rol=' . rawurlencode($rol) : '') ?>" class="w3-button w3-border">✕ Limpiar</a>
+                <a href="<?= base_url('roles') . ($rol !== '' ? '?rol=' . rawurlencode($rol) : '') ?>" class="w3-button w3-border"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
             <?php endif; ?>
         </div>
     </form>
@@ -164,7 +164,7 @@ $claseRol = ['superadmin' => 'est-cancelado', 'admin' => 'est-confirmado', 'deve
                                             <option value="<?= esc($clave, 'attr') ?>"<?= $clave === $actual ? ' selected' : '' ?>><?= esc($g['title']) ?></option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <button type="submit" class="w3-button w3-small w3-green">Guardar</button>
+                                    <button type="submit" class="w3-button w3-small w3-green"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                                     <?php if ($pend !== null): ?>
                                         <?php // Se muestra al elegir un rol distinto de repartidor: su ficha se dará de baja. ?>
                                         <div class="roles-baja" hidden>

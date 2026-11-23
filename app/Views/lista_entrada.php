@@ -5,7 +5,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= base_url('estilos/entrada_rapida.css') ?>">
-    <title>Lista Entrada</title>
+    <title>Entradas · Fruver</title>
 </head>
 <body>
         <?php include 'Header.php'; ?>
@@ -54,7 +54,7 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_entrada') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_entrada') ?>" class="w3-button w3-red"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>
@@ -114,7 +114,7 @@
                 <td>
                     <form method="post" action="<?= base_url('borra_id_entrada/' . (int) $e['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
 <?= csrf_field() ?>
-<button type="submit" class="btn-icono"><i class="fa-solid fa-trash-can"></i></button>
+<button type="submit" class="btn-icono" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
 </form>
                 </td>
             </tr>
@@ -181,10 +181,10 @@
             <input id="entrada-p-venta" type="number" placeholder="Ej: 50" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalCrearEntrada').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
         </form>
     </div>
@@ -264,10 +264,10 @@
                    step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalEditarEntrada').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
 
         </form>

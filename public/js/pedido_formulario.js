@@ -423,6 +423,7 @@
             return;
         }
         f.items.value = JSON.stringify(f.lineas);
+        if (f.p === 'c') { f.recordarRepartidor(); }
         f.aviso.textContent = '';
         delete f.modal.dataset.sucio;
     };
@@ -436,7 +437,23 @@
         this.aviso.textContent = '';
         this.pintarCarrito();
         if (this.fecha && this.p === 'c') { this.fecha.value = ahoraLocal(false); }
+        if (this.p === 'c') { this.proponerRepartidor(); }
         if (window.FruverEnvio) { window.FruverEnvio.liberar(this.form); }
+    };
+
+    // El repartidor del pedido anterior viene elegido (se puede cambiar): un paso menos en la tarea
+    // más frecuente. Se guarda solo el número del repartidor en este navegador.
+    var LLAVE_REPARTIDOR = 'fruver.pedido.repartidor';
+    Formulario.prototype.proponerRepartidor = function () {
+        var sel = this.repartidor, guardado = null;
+        if (!sel || sel.value) { return; }
+        try { guardado = window.localStorage.getItem(LLAVE_REPARTIDOR); } catch (e) { guardado = null; }
+        if (guardado && Array.prototype.some.call(sel.options, function (o) { return o.value === guardado; })) {
+            sel.value = guardado;
+        }
+    };
+    Formulario.prototype.recordarRepartidor = function () {
+        try { if (this.repartidor && this.repartidor.value) { window.localStorage.setItem(LLAVE_REPARTIDOR, this.repartidor.value); } } catch (e) { /* sin almacenamiento */ }
     };
 
     Formulario.prototype.abrir = function () {

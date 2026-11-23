@@ -24,7 +24,7 @@
     border: 1px solid var(--linea);
 }
 .com-subtitulo { margin: 0 0 10px; font-size: 1.1rem; color: var(--hoja-oscura); }
-.com-ayuda { display: block; margin: 6px 0; font-size: 0.85rem; color: #6b7a99; }
+.com-ayuda { display: block; margin: 6px 0; font-size: 0.85rem; color: #4f5d53; }
 .com-form-correo { display: grid; gap: 8px; max-width: 520px; }
 .com-tabla { overflow-x: auto; }
 /* El mensaje baja de línea dentro de su columna (las tablas del panel no parten el texto). */

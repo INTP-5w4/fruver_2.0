@@ -83,7 +83,7 @@ class P_pedidos extends BaseController
         $estado = $this->estadoValido();
 
         if (! $this->validate(self::REGLAS_CABECERA) || $estado === null) {
-            return redirect()->back()->with('mensaje', 'Datos del pedido incompletos');
+            return redirect()->back()->with('error', 'Faltan datos del pedido: revisa cliente, fecha, repartidor y estatus.');
         }
 
         try {
@@ -119,7 +119,7 @@ class P_pedidos extends BaseController
         $nuevoEstado = $this->estadoValido();
 
         if (! ctype_digit((string) $idPedido) || $nuevoEstado === null || ! $this->validate(self::REGLAS_CABECERA)) {
-            return redirect()->to('lista_p_pedido')->with('error', 'Datos del pedido incompletos');
+            return redirect()->to('lista_p_pedido')->with('error', 'Faltan datos del pedido: revisa cliente, fecha, repartidor y estatus.');
         }
 
         $m_pedido = new Modelo_pedido();

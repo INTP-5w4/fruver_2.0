@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista Entregas</title>
+    <title>Entregas · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -55,7 +55,7 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_entrega') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_entrega') ?>" class="w3-button w3-red"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>
@@ -108,7 +108,7 @@
                         <?php if (in_array($e['estado'], ['asignada', 'en_ruta'], true)): ?>
                             <form method="post" action="<?= base_url('cancela_entrega/' . (int) $e['id']) ?>" style="display:inline; margin:0;" onsubmit="return confirm('¿Cancelar esta entrega?');">
                                 <?= csrf_field() ?>
-                                <button type="submit" class="btn-icono"><i class="fa-solid fa-ban"></i></button>
+                                <button type="submit" class="btn-icono" aria-label="Cancelar" title="Cancelar"><i class="fa-solid fa-ban" aria-hidden="true"></i></button>
                             </form>
                         <?php else: ?>
                             —
@@ -126,7 +126,7 @@
         <div class="modal-contenido w3-animate-zoom">
 
             <header class="modal-header">
-                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 <h2 id="titulo-asignar-entrega">Asignar repartidor</h2>
             </header>
 
@@ -160,11 +160,11 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <p class="campo-ayuda">El repartidor verá la entrega en su celular solo si tiene cuenta de acceso (columna "Cuenta" en Repartidores).</p>
+                <p class="campo-ayuda">Solo la verá en su celular si tiene cuenta (columna «Cuenta» en Repartidores).</p>
 
                 <footer class="modal-footer">
-                    <button type="submit" class="btn-guardar"<?= empty($pedidos) ? ' disabled' : '' ?>>Asignar</button>
-                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
+                    <button type="submit" class="btn-guardar"<?= empty($pedidos) ? ' disabled' : '' ?>><i class="fa-solid fa-check" aria-hidden="true"></i> Asignar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>

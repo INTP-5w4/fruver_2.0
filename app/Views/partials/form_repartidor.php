@@ -41,7 +41,7 @@ $tipicos     = Combustible::RENDIMIENTO_TIPICO;
        autocomplete="off" value="<?= esc($valor('ape_mat', 'ape_mat'), 'attr') ?>">
 
 <label for="<?= $id('tel') ?>"><b>Teléfono*</b></label>
-<input type="tel" name="tel" id="<?= $id('tel') ?>" class="modal-input" maxlength="12" inputmode="numeric" required
+<input type="tel" name="tel" id="<?= $id('tel') ?>" class="modal-input" maxlength="20" inputmode="tel" required
        pattern="[0-9]*" data-regla-patron="Solo números" placeholder="10 dígitos, ej: 2221234567"
        autocomplete="off" value="<?= esc($valor('tel', 'telefono'), 'attr') ?>">
 

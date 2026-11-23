@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista merma</title>
+    <title>Mermas · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -79,14 +79,14 @@
                                 '<?= esc($m['notas'], 'js') ?>',
                                 '<?= esc($m['id_entrada'], 'js') ?>'
                             )"
-                            style="border:none; cursor:pointer; background:none;">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                            style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                     </button>
                 </td>
                 <td>
                     <form method="post" action="<?= base_url('borra_id_merma/' . (int) $m['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Estás seguro de que quieres eliminar esta merma?');">
 <?= csrf_field() ?>
-<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+<button type="submit" style="border:none; cursor:pointer; background:none;" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
 </form>
                 </td>
             </tr>
@@ -126,10 +126,10 @@
             <textarea id="merma-notas" name="notas" placeholder="Ej: Caducó durante el transporte" rows="3" class="w3-input w3-border w3-margin-bottom"></textarea>
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalCrearMerma').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
         </form>
     </div>
@@ -166,10 +166,10 @@
             </select>
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalEditarMerma').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
 
         </form>

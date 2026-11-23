@@ -14,7 +14,7 @@ $geoId = $geoId ?? 'geo';
     <label><b>Ubicación en el mapa</b></label>
     <div class="geo-buscador" data-geo-buscador></div>
     <div class="geo-mapa" data-geo-mapa></div>
-    <p class="geo-ayuda">Busca la dirección o toca el mapa y arrastra el pin hasta la entrada exacta.</p>
+    <p class="geo-ayuda">Busca la dirección o mueve el pin hasta la entrada.</p>
     <p class="geo-estado" data-mapa-estado hidden></p>
     <input type="hidden" name="geo_lat">
     <input type="hidden" name="geo_lng">

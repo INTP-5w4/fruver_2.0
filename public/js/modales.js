@@ -13,6 +13,9 @@
  *  - Al abrir, el foco va al primer campo; Tab no se sale de la ventana; al cerrar, el foco
  *    regresa al botón que la abrió (WCAG 2.1: 2.1.2, 2.4.3).
  *  - role="dialog" y aria-modal="true", con el título de la ventana como nombre.
+ *  - Toda ventana dice qué es: si no trae encabezado, se le agrega uno con título y ✕.
+ *    El título sale de data-titulo, del texto del botón que la abrió («Nueva merma») o,
+ *    si no, del id («modalEditarMerma» → «Editar merma»).
  *
  * Atributos opcionales en el .w3-modal:
  *   data-al-cerrar="nombreFuncion"  función global que hace el cierre (limpia el estado).
@@ -30,6 +33,7 @@
     var estado = new WeakMap(); // modal → { abierta, origen, inicial }
     var pila = [];              // modales abiertas, la última encima
     var inicioClic = null;
+    var ultimoBoton = null; // último botón o enlace pulsado: el que abrió la ventana
 
     function abierta(m) { return m.style.display === 'block' || getComputedStyle(m).display === 'block'; }
     function visible(el) { return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length); }
@@ -52,6 +56,39 @@
         return m.dataset.sucio === '1' || (!!e && e.inicial !== foto(m));
     }
 
+    /** «modalEditarMerma» → «Editar merma»; «modalCrearExistencias» → «Agregar existencias». */
+    function tituloDelId(id) {
+        var palabras = String(id || '').replace(/^modal/, '').split(/(?=[A-Z])/).filter(Boolean);
+        if (!palabras.length) { return 'Formulario'; }
+        var verbo = { Crear: 'Agregar', Nuevo: 'Agregar', Nueva: 'Agregar' }[palabras[0]] || palabras[0];
+        return [verbo].concat(palabras.slice(1).map(function (p) { return p.toLowerCase(); })).join(' ');
+    }
+
+    /** Encabezado visible (título + ✕) para las ventanas que no traen uno. */
+    function agregarEncabezado(m, contenido) {
+        var cabeza = document.createElement('div');
+        cabeza.className = 'modal-titulo-auto';
+        var h = document.createElement('h2');
+        h.id = (m.id || 'modal') + '-titulo';
+        h.textContent = m.dataset.titulo || tituloDelId(m.id);
+        var cerrarBtn = document.createElement('button');
+        cerrarBtn.type = 'button';
+        cerrarBtn.className = 'modal-titulo-cerrar';
+        cerrarBtn.setAttribute('aria-label', 'Cerrar');
+        cerrarBtn.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+        cerrarBtn.addEventListener('click', function () { intentarCerrar(m); });
+        cabeza.append(h, cerrarBtn);
+        contenido.insertBefore(cabeza, contenido.firstChild);
+        m.setAttribute('aria-labelledby', h.id);
+        return h;
+    }
+
+    function textoDelBoton(b) {
+        if (!b) { return ''; }
+        var t = (b.textContent || '').replace(/[+✕×]/g, '').replace(/\s+/g, ' ').trim();
+        return t.length > 2 && t.length <= 40 ? t : '';
+    }
+
     function preparar(m) {
         if (m.dataset.modalListo) { return; }
         m.dataset.modalListo = '1';
@@ -64,8 +101,8 @@
             if (titulo) {
                 if (!titulo.id) { titulo.id = (m.id || 'modal') + '-titulo'; }
                 m.setAttribute('aria-labelledby', titulo.id);
-            } else if (m.dataset.titulo) {
-                m.setAttribute('aria-label', m.dataset.titulo);
+            } else {
+                agregarEncabezado(m, contenido);
             }
         }
         estado.set(m, { abierta: abierta(m), origen: null, inicial: '' });
@@ -80,7 +117,11 @@
     }
 
     function alAbrir(m, e) {
-        e.origen = document.activeElement && document.activeElement !== document.body ? document.activeElement : null;
+        e.origen = document.activeElement && document.activeElement !== document.body ? document.activeElement : ultimoBoton;
+        // Título agregado: el texto del botón que abrió la ventana es el nombre más claro.
+        var auto = m.querySelector('.modal-titulo-auto h2');
+        var texto = textoDelBoton(e.origen && !m.contains(e.origen) ? e.origen : null);
+        if (auto && !m.dataset.titulo && texto) { auto.textContent = texto; }
         pila = pila.filter(function (x) { return x !== m; });
         pila.push(m);
         // La vista llena los campos antes de mostrar la ventana: la foto se toma ya mostrada.
@@ -121,6 +162,10 @@
     // ── Clic en el fondo ──────────────────────────────────────────────────
     // En fase de captura de window: corre antes que los window.onclick de las vistas.
     window.addEventListener('mousedown', function (ev) { inicioClic = ev.target; }, true);
+    window.addEventListener('click', function (ev) {
+        var b = ev.target.closest ? ev.target.closest('button, a') : null;
+        if (b && !b.closest('.w3-modal')) { ultimoBoton = b; }
+    }, true);
     window.addEventListener('click', function (ev) {
         var m = ev.target;
         if (!m.classList || !m.classList.contains('w3-modal')) { return; }

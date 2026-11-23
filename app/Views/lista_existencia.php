@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista existencia</title>
+    <title>Existencias · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -66,8 +66,8 @@
                                     '<?= esc($e['fecha'], 'js') ?>',
                                     '<?= esc($e['id_producto'], 'js') ?>'
                                 )"
-                                style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                                style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                         </button>
                     </td>
                     <td>
@@ -114,10 +114,10 @@
                 </select>
 
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button"
                             onclick="document.getElementById('modalEditarExistencia').style.display='none'"
-                            class="w3-button w3-white">Cancelar</button>
+                            class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
 
             </form>
@@ -149,10 +149,10 @@
             <input id="existencia-fecha" type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalCrearExistencias').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
 
         </form>

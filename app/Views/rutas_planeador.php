@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="<?= esc(csrf_hash(), 'attr') ?>">
     <?= view('partials/mapa_config', ['almacenMapa' => $almacenMapa]) ?>
     <script src="<?= base_url('js/rutas_planeador.js') ?>?v=<?= @filemtime(FCPATH . 'js/rutas_planeador.js') ?: 1 ?>" defer></script>
-    <title>Rutas de reparto</title>
+    <title>Rutas de reparto · Fruver</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
@@ -90,12 +90,12 @@
 
             <h3 style="margin-top:14px;">2. Pedidos a entregar <small class="w3-text-grey" data-contador>(0 / <?= (int) $maxParadas ?>)</small></h3>
             <?php if ($candidatos === []): ?>
-                <p class="w3-text-grey">No hay pedidos confirmados pendientes de entrega. Confirma pedidos en <a href="<?= base_url('lista_p_pedido') ?>">Productos por pedido</a>.</p>
+                <p class="w3-text-grey">No hay pedidos confirmados pendientes de entrega. Confírmalos en <a href="<?= base_url('lista_p_pedido') ?>">Pedidos</a>.</p>
             <?php else: ?>
                 <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                    <button type="button" class="w3-button w3-small w3-border" data-sel="todos">Todos</button>
-                    <button type="button" class="w3-button w3-small w3-border" data-sel="ninguno">Ninguno</button>
-                    <button type="button" class="w3-button w3-small w3-border" data-sel="repartidor" title="Los ya asignados al repartidor elegido">Del repartidor</button>
+                    <button type="button" class="w3-button w3-small w3-border" data-sel="todos"><i class="fa-solid fa-square-check" aria-hidden="true"></i> Todos</button>
+                    <button type="button" class="w3-button w3-small w3-border" data-sel="ninguno"><i class="fa-solid fa-square" aria-hidden="true"></i> Ninguno</button>
+                    <button type="button" class="w3-button w3-small w3-border" data-sel="repartidor" title="Los ya asignados al repartidor elegido"><i class="fa-solid fa-user" aria-hidden="true"></i> Del repartidor</button>
                 </div>
                 <ul class="rutas-lista" id="listaCandidatos">
                     <?php foreach ($candidatos as $c): ?>
@@ -126,15 +126,15 @@
                         </li>
                     <?php endforeach; ?>
                 </ul>
-                <p class="w3-small w3-text-grey">Los pedidos «sin ubicar» no pueden entrar a la ruta hasta corregir su dirección.</p>
+                <p class="w3-small w3-text-grey">Los pedidos «sin ubicar» no entran a la ruta: corrige su dirección.</p>
             <?php endif; ?>
 
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" class="w3-button w3-green" id="btnCalcular" <?= $almacenes === [] ? 'disabled' : '' ?>>
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Calcular rutas óptimas
+                    <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Calcular rutas óptimas
                 </button>
                 <button type="button" class="w3-button w3-border" id="btnManual" hidden title="Arrastra los pedidos de la lista para cambiar el orden">
-                    <i class="fa-solid fa-hand"></i> Recalcular con mi orden
+                    <i class="fa-solid fa-hand" aria-hidden="true"></i> Recalcular con mi orden
                 </button>
             </div>
             <p class="w3-small" id="estadoCalculo" role="status"></p>
@@ -178,7 +178,7 @@
                             <td><?= esc(rutas_duracion($r['duracion_s'])) ?></td>
                             <td><?= isset($r['costo_combustible']) && $r['costo_combustible'] !== null ? esc(\App\Libraries\Rutas\Combustible::texto((float) $r['litros'], (float) $r['costo_combustible'])) : '—' ?></td>
                             <td><?= esc(rutas_estrategia($r['estrategia'])) ?><?= $r['proveedor'] === 'local' ? ' (aprox.)' : '' ?></td>
-                            <td><a href="<?= base_url('rutas/' . (int) $r['id']) ?>" class="w3-button w3-small w3-border">Ver</a></td>
+                            <td><a href="<?= base_url('rutas/' . (int) $r['id']) ?>" class="w3-button w3-small w3-border"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver</a></td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>

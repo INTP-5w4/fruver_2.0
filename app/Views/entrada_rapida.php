@@ -5,7 +5,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= base_url('estilos/entrada_rapida.css') ?>">
-    <title>Entrada rápida</title>
+    <title>Entrada rápida · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -109,9 +109,9 @@
                 <span id="er-contador">(0)</span>
             </button>
             <?php if (! $todos): ?>
-                <a href="<?= base_url('entrada_rapida?todos=1') ?>" class="w3-button w3-border">Ver todos los productos</a>
+                <a href="<?= base_url('entrada_rapida?todos=1') ?>" class="w3-button w3-border"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver todos los productos</a>
             <?php else: ?>
-                <a href="<?= base_url('entrada_rapida') ?>" class="w3-button w3-border">Solo los de mayor venta</a>
+                <a href="<?= base_url('entrada_rapida') ?>" class="w3-button w3-border"><i class="fa-solid fa-filter" aria-hidden="true"></i> Solo los de mayor venta</a>
             <?php endif; ?>
         </div>
     <?php endif; ?>

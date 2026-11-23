@@ -5,7 +5,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= base_url('estilos/sugerencias.css') ?>">
-    <title>Sugerencias recibidas</title>
+    <title>Sugerencias · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -38,7 +38,7 @@
 </div>
 
 <div class="contenedor-boton sug-barra" style="padding-top: 20px;">
-    <h2 class="sug-titulo">Sugerencias recibidas</h2>
+    <h2 class="sug-titulo">Sugerencias</h2>
     <a href="<?= base_url('crea_sugerencia') ?>" class="btn-agregar btn-enlace">
         <i class="fa-regular fa-lightbulb"></i> + Enviar sugerencia
     </a>
@@ -87,7 +87,7 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
         <?php if ($hayFiltros): ?>
-            <a href="<?= base_url('lista_sugerencia') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_sugerencia') ?>" class="w3-button w3-red"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>

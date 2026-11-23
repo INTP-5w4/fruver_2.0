@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de productos</title>
+    <title>Productos · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -72,14 +72,14 @@
                                     '<?= esc($p['descripcion'], 'js') ?>',
                                     '<?= esc($p['categoria'], 'js') ?>'
                                 )"
-                                style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                                style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                         </button>
                     </td>
                     <td>
                         <form method="post" action="<?= base_url('borra_id_producto/' . (int) $p['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
 <?= csrf_field() ?>
-<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+<button type="submit" style="border:none; cursor:pointer; background:none;" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
 </form>
                     </td>
                 </tr>
@@ -119,10 +119,10 @@
                     class="w3-input w3-border w3-margin-bottom">
 
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button"
                             onclick="document.getElementById('modalEditarProducto').style.display='none'"
-                            class="w3-button w3-white">Cancelar</button>
+                            class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
 
             </form>
@@ -145,8 +145,8 @@
                 <label for="producto-img-2"><b>Imagen*</b></label>
                 <input id="producto-img-2" type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                    <button type="button" onclick="document.getElementById('modalCrearProducto').style.display='none'" class="w3-button w3-white">Cancelar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" onclick="document.getElementById('modalCrearProducto').style.display='none'" class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>

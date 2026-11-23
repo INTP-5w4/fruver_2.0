@@ -34,7 +34,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= base_url('estilos/comunicaciones.css') . '?v=' . @filemtime(FCPATH . 'estilos/comunicaciones.css') ?>">
     <script src="<?= base_url('js/comunicaciones.js') . '?v=' . @filemtime(FCPATH . 'js/comunicaciones.js') ?>" defer></script>
-    <title>Comunicaciones</title>
+    <title>Comunicaciones · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -51,7 +51,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
         <?php endif; ?>
     </div>
 
-    <h2 class="com-titulo">Comunicaciones con clientes</h2>
+    <h2 class="com-titulo">Comunicaciones</h2>
     <p class="com-intro">
         Solo aparecen las personas que <strong>autorizaron</strong> cada finalidad en su cuenta, y solo por los canales
         que eligieron. Si alguien retira su autorización, desaparece de esta lista de inmediato.
@@ -100,7 +100,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
                     <option value="<?= esc($e, 'attr') ?>"<?= $estado === $e ? ' selected' : '' ?>><?= esc(estado_pedido_texto($e)) ?></option>
                 <?php endforeach; ?>
             </select>
-            <noscript><button type="submit" class="w3-button w3-border">Filtrar</button></noscript>
+            <noscript><button type="submit" class="w3-button w3-border"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Filtrar</button></noscript>
         </form>
     <?php endif; ?>
 
@@ -152,7 +152,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
 
     <section class="com-tarjeta com-todos" aria-labelledby="com-todos-titulo">
         <h3 class="com-subtitulo" id="com-todos-titulo">Enviar a todos</h3>
-        <p class="com-ayuda">Se envía el mensaje de arriba, personalizado, a cada persona por el canal que eligió. Quien eligió WhatsApp y correo lo recibe por los dos.</p>
+        <p class="com-ayuda">Le llega a cada persona por el canal que eligió (WhatsApp, correo o ambos).</p>
 
         <div class="com-todos-canales">
         <div class="com-canal">
@@ -166,7 +166,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
                 </button>
                 <div class="com-cola-avance" aria-hidden="true"><span data-com-cola-barra></span></div>
                 <span class="com-ayuda" data-com-cola-estado aria-live="polite"></span>
-                <button type="button" class="com-enlace" data-com-cola-reiniciar hidden>Volver a empezar</button>
+                <button type="button" class="com-enlace" data-com-cola-reiniciar hidden><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Volver a empezar</button>
             </div>
             <p class="com-ayuda">
                 WhatsApp no permite mandar mensajes en masa desde un enlace: se abre un chat por persona con el
@@ -259,7 +259,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
     <dialog class="com-dialogo" id="com-dialogo" aria-labelledby="com-dialogo-titulo">
         <header class="com-dialogo-cabeza">
             <h3 id="com-dialogo-titulo">Mensaje para <span data-com-d-nombre></span></h3>
-            <button type="button" class="com-dialogo-cerrar" data-com-d-cerrar aria-label="Cerrar">&times;</button>
+            <button type="button" class="com-dialogo-cerrar" data-com-d-cerrar aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
         </header>
         <div class="com-dialogo-cuerpo">
             <p class="com-dialogo-texto" data-com-d-texto></p>
@@ -272,7 +272,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
             <button type="button" class="w3-button w3-white w3-border" data-com-d-copiar>
                 <i class="fa-regular fa-copy" aria-hidden="true"></i> <span>Copiar texto</span>
             </button>
-            <button type="button" class="w3-button w3-white w3-border" data-com-d-cerrar>Cerrar</button>
+            <button type="button" class="w3-button w3-white w3-border" data-com-d-cerrar><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cerrar</button>
         </footer>
     </dialog>
 

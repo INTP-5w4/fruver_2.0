@@ -16,7 +16,7 @@ $buscar ??= '';
         <input type="search" name="buscar" value="<?= esc($buscar, 'attr') ?>" placeholder="<?= esc($placeholder, 'attr') ?>"
                class="w3-input w3-border" aria-label="<?= esc($placeholder, 'attr') ?>" autocomplete="off" maxlength="100">
         <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar</button>
-        <a href="<?= base_url($ruta) ?>" class="w3-button w3-border" data-busqueda-limpiar<?= $buscar === '' ? ' hidden' : '' ?>>✕ Limpiar</a>
+        <a href="<?= base_url($ruta) ?>" class="w3-button w3-border" data-busqueda-limpiar<?= $buscar === '' ? ' hidden' : '' ?>><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <span class="buscador-estado" data-busqueda-estado aria-live="polite"></span>
     </div>
 </form>

@@ -26,35 +26,46 @@ body {
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
-.sidebar-nav { display: grid; gap: 14px; padding: 16px 10px 24px; }
+.sidebar-nav { display: grid; gap: 4px; padding: 12px 10px 24px; }
 .nav-grupo { display: grid; gap: 2px; }
+.sidebar-nav > .nav-item + .nav-grupo { margin-top: 6px; }
+/* Encabezado de grupo: se ve y funciona como un botón que pliega (flecha a la derecha) */
 .nav-label {
-    padding: 0 10px 4px;
-    font-size: 10.5px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #8fb79a;
+    display: flex; align-items: center; gap: 10px;
+    min-height: 36px; padding: 0 10px;
+    border-radius: var(--r-control);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #b9d6c0; /* 7.6:1 sobre --hoja-oscura */
+    cursor: pointer; list-style: none; user-select: none;
 }
+.nav-label::-webkit-details-marker { display: none; }
+.nav-label:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.nav-label:focus-visible { outline: 3px solid #9cc2ff; outline-offset: -1px; }
+.nav-flecha { margin-left: auto; font-size: 11px; transition: transform var(--duracion) ease; }
+.nav-grupo:not([open]) .nav-flecha { transform: rotate(-90deg); }
+.nav-opciones { display: grid; gap: 2px; padding-bottom: 6px; }
 .nav-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 34px;
+    min-height: 36px;
     padding: 0 10px;
     border-radius: var(--r-control);
     color: #d9eadc;
     text-decoration: none;
     font-size: 14px;
     font-weight: 500;
-    transition: background-color .15s, color .15s;
+    transition: background-color var(--duracion), color var(--duracion);
 }
 .nav-item i { width: 18px; text-align: center; font-size: 14px; color: #9fc6a9; }
 .nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
 .nav-item:hover i { color: #fff; }
+.nav-item:focus-visible { outline: 3px solid #9cc2ff; outline-offset: -1px; }
 .nav-item.activo { background: var(--papel); color: var(--hoja-oscura); font-weight: 700; }
 .nav-item.activo i { color: var(--hoja); }
-.sidebar-fondo { display: none; }
+
+/* Solo en celular (ver RESPONSIVE): fila del área actual, barra inferior y hoja «Más» */
+.subnav, .nav-inferior, .hoja, .hoja-fondo { display: none; }
 
 /* ── ÁREA DE CONTENIDO ────────────────────────────── */
 .lista-wrapper {
@@ -293,6 +304,20 @@ body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
 .w3-modal table { min-width: unset !important; width: 100% !important; display: table !important; }
 .w3-modal th, .w3-modal td { white-space: normal !important; }
 
+/* Encabezado que js/modales.js agrega a las ventanas que no traían título */
+.modal-titulo-auto {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 12px 12px 22px; background: var(--superficie); border-bottom: 1px solid var(--linea);
+}
+.w3-modal-content .modal-titulo-auto h2 { margin: 0; font-size: 19px; color: var(--tinta); }
+.modal-titulo-cerrar {
+    flex: none; width: 40px; height: 40px; border: 0; border-radius: var(--r-control);
+    background: none; color: var(--tinta-suave); font-size: 18px; cursor: pointer;
+}
+.modal-titulo-cerrar:hover { background: var(--hoja-clara); color: var(--hoja-oscura); }
+/* La ventana de pedido trae su propio encabezado claro: el título va en color de texto */
+.w3-modal-content .pedido-encabezado h2 { color: var(--tinta); }
+
 /* ── AVISOS FLOTANTES (mensajes después de guardar) ── */
 .flash-container {
     position: fixed;
@@ -419,44 +444,208 @@ body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
     .lista-wrapper .footer { margin: 32px -20px -32px; }
 }
 
-/* Celular y tableta vertical: el menú se vuelve un panel que se abre con el botón ☰ */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 272px;
-        transform: translateX(-100%);
-        transition: transform .22s ease;
-        box-shadow: var(--sombra-flotante);
-        z-index: 120;
+/* ── CELULAR (< 768 px) ───────────────────────────────
+   Navegación persistente abajo, al alcance del pulgar, como en las apps del teléfono:
+   4 secciones + «Más». El menú lateral no se usa. */
+@media (max-width: 767.98px) {
+    .sidebar { display: none; }
+    body:has(.nav-inferior) { padding-bottom: calc(var(--alto-nav-inferior) + var(--area-segura-abajo)); }
+
+    .nav-inferior {
+        position: fixed; inset: auto 0 0 0; z-index: 140;
+        display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+        height: calc(var(--alto-nav-inferior) + var(--area-segura-abajo));
+        padding: 0 4px var(--area-segura-abajo);
+        background: var(--superficie);
+        border-top: 1px solid var(--linea);
+        box-shadow: 0 -2px 10px rgba(8, 72, 29, 0.06);
     }
-    body.menu-abierto .sidebar { transform: none; }
-    .sidebar-fondo {
-        position: fixed; inset: var(--alto-encabezado) 0 0 0; z-index: 110;
-        background: rgba(29, 42, 31, 0.45);
+    .nav-inferior-item {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+        min-width: 0; min-height: var(--tactil-min); margin: 6px 2px;
+        border: 0; border-radius: 12px; background: none;
+        color: var(--tinta-suave); font: 600 12px/1.1 var(--f-texto); text-decoration: none;
+        cursor: pointer;
     }
-    body.menu-abierto .sidebar-fondo { display: block; }
-    .nav-item { min-height: 42px; font-size: 15px; }
+    .nav-inferior-item i { font-size: 19px; }
+    .nav-inferior-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-inferior-item.activo { color: var(--hoja-oscura); background: var(--hoja-clara); }
+    .nav-inferior-item.activo i { color: var(--hoja); }
+    .nav-inferior-item:focus-visible { outline: 3px solid var(--foco); outline-offset: -3px; }
+
+    /* Pantallas del área actual: pestañas que se deslizan, arriba del contenido */
+    .subnav {
+        display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+        padding: 10px 16px 2px; scroll-padding-inline: 16px;
+    }
+    .subnav::-webkit-scrollbar { display: none; }
+    .subnav-item {
+        flex: none; display: inline-flex; align-items: center; gap: 7px;
+        min-height: var(--tactil-min); padding: 0 14px;
+        border: 1px solid var(--borde-control); border-radius: var(--r-pildora);
+        background: var(--superficie); color: var(--tinta); font-size: 14px; font-weight: 600; text-decoration: none;
+    }
+    .subnav-item i { color: var(--tinta-suave); }
+    .subnav-item.activo { background: var(--hoja-oscura); border-color: var(--hoja-oscura); color: #fff; }
+    .subnav-item.activo i { color: #fff; }
+
+    /* Hoja «Más»: todas las opciones, agrupadas, en una lista fácil de tocar */
+    .hoja-fondo:not([hidden]) {
+        display: block; position: fixed; inset: 0; z-index: 210;
+        background: rgba(29, 42, 31, 0.5);
+    }
+    .hoja:not([hidden]) {
+        display: flex; flex-direction: column;
+        position: fixed; inset: auto 0 0 0; z-index: 220;
+        max-height: 86vh; max-height: 86dvh;
+        background: var(--superficie);
+        border-radius: 18px 18px 0 0;
+        box-shadow: var(--elev-3);
+        padding-bottom: var(--area-segura-abajo);
+        animation: hoja-sube var(--duracion) ease-out;
+    }
+    body.hoja-abierta { overflow: hidden; }
+    .hoja-cabeza {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 14px 12px 8px 20px; border-bottom: 1px solid var(--linea-suave);
+    }
+    .hoja-cabeza h2 { font-size: 18px; margin: 0; }
+    .hoja-cerrar {
+        width: var(--tactil-min); height: var(--tactil-min); border: 0; border-radius: 50%;
+        background: var(--superficie-2); color: var(--tinta); font-size: 18px; cursor: pointer;
+    }
+    .hoja-cuerpo { overflow-y: auto; overscroll-behavior: contain; padding: 4px 12px 16px; }
+    .hoja-grupo { padding: 10px 0 4px; }
+    .hoja-grupo + .hoja-grupo { border-top: 1px solid var(--linea-suave); }
+    .hoja-grupo h3 {
+        margin: 0 8px 4px; font: 700 12px/1.4 var(--f-texto); letter-spacing: .08em; text-transform: uppercase;
+        color: var(--tinta-suave);
+    }
+    .hoja-item {
+        display: flex; align-items: center; gap: 14px;
+        min-height: 48px; padding: 0 12px; border-radius: var(--r-tarjeta);
+        color: var(--tinta); font-size: 16px; font-weight: 500; text-decoration: none;
+    }
+    .hoja-item i { width: 22px; text-align: center; color: var(--hoja); font-size: 17px; }
+    .hoja-item.activo { background: var(--hoja-clara); color: var(--hoja-oscura); font-weight: 700; }
+    .hoja-item.hoja-salir, .hoja-item.hoja-salir i { color: var(--alerta); }
 
     .lista-wrapper { margin-left: 0; padding: 0 16px 28px; padding-top: 0 !important; }
     .lista-wrapper .footer { margin: 28px -16px -28px; }
     body:has(> .sidebar) > .footer { padding-left: 0; }
-    .contenedor-boton > .btn-agregar { flex: 1 1 100%; justify-content: center; min-height: 44px; }
+    .contenedor-boton { padding-top: 14px !important; }
+    .contenedor-boton > .btn-agregar { flex: 1 1 100%; justify-content: center; min-height: 48px; }
     .contenedor-boton__acciones { flex: 1 1 100%; }
-    .contenedor-boton__acciones > .btn-agregar { flex: 1 1 0; justify-content: center; min-height: 44px; width: auto; }
+    .contenedor-boton__acciones > .btn-agregar { flex: 1 1 0; justify-content: center; min-height: 48px; width: auto; }
     .lista-wrapper > form[method="get"] .w3-input { max-width: none; flex: 1 1 200px; }
     .lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir),
-    .lista-wrapper td > form > button:not(.w3-button):not(.btn) { width: 42px; height: 42px; }
+    .lista-wrapper td > form > button:not(.w3-button):not(.btn),
+    .lista-wrapper td > a.accion { width: var(--tactil-min); height: var(--tactil-min); }
+    .tabla-pedidos .acciones-fila .btn-icono { width: var(--tactil-min); height: var(--tactil-min); }
+    .btn-expandir { width: var(--tactil-min); height: var(--tactil-min); }
+    .pestana { min-height: var(--tactil-min); }
+    .paginacion .w3-button, .paginacion a { min-width: var(--tactil-min); min-height: var(--tactil-min); }
+    .lista-wrapper .estado-rapido .cambio-estado select { height: var(--tactil-min); line-height: 42px; max-width: 170px; font-size: 14px; }
+    .sug-pildora { min-height: var(--tactil-min); display: inline-flex; align-items: center; }
     .detalle-inner { padding: 12px 14px 14px; }
-    .w3-modal { padding: 12px 10px 24px !important; }
+    .footer_container { justify-content: center; text-align: center; padding: 14px 16px; }
+    .flash-container { top: auto; bottom: calc(var(--alto-nav-inferior) + var(--area-segura-abajo) + 12px); right: 12px; left: 12px; width: auto; }
+    body:not(:has(.nav-inferior)) .flash-container { bottom: calc(var(--area-segura-abajo) + 12px); }
+
+    /* Ventanas: a pantalla completa, con los botones fijos abajo (al alcance del pulgar) */
+    .w3-modal { padding: 0 !important; }
+    .w3-modal > .w3-modal-content,
+    .w3-modal > .modal-contenido {
+        max-width: none !important; width: 100% !important;
+        min-height: 100vh; min-height: 100dvh; max-height: none !important;
+        border-radius: 0 !important; overflow: visible !important; box-shadow: none;
+    }
+    .w3-modal-content > header, .w3-modal-content > div > header, .modal-header, .modal-titulo-auto { position: sticky; top: 0; z-index: 3; }
+    .modal-titulo-cerrar { width: var(--tactil-min); height: var(--tactil-min); }
+    /* El formulario llena la pantalla y su pie queda abajo aunque haya pocos campos */
+    .w3-modal > .w3-modal-content { display: flex; flex-direction: column; }
+    .w3-modal > .w3-modal-content > form:has(> footer) { flex: 1 0 auto; display: flex; flex-direction: column; }
+    .w3-modal > .w3-modal-content > form:has(> footer) > footer { margin-top: auto !important; }
+    /* Entra desde abajo, como las pantallas del teléfono (no con zoom) */
+    .w3-modal .w3-animate-zoom { animation: modal-sube var(--duracion) ease-out; }
+    .w3-modal footer.w3-container, .w3-modal .modal-footer {
+        position: sticky; bottom: 0; z-index: 3;
+        padding-bottom: calc(12px + var(--area-segura-abajo)) !important;
+        box-shadow: 0 -2px 10px rgba(8, 72, 29, 0.06);
+    }
+    .w3-modal footer .w3-button, .w3-modal footer .btn, .modal-footer > .btn, .modal-footer > button { min-height: 48px; }
     body > .modal-contenido, .formulario-pagina { width: calc(100% - 20px) !important; margin: 16px auto !important; }
     .modal-form, .formulario-pagina > form.modal-form, body > .modal-contenido > form.modal-form { padding: 16px 16px 0; }
     .modal-footer, .formulario-pagina .modal-footer, body > .modal-contenido .modal-footer { margin: 6px -16px 0; padding: 12px 16px !important; }
-    .footer_container { justify-content: center; text-align: center; padding: 14px 16px; }
+}
+
+/* Escritorio sin menú lateral (repartidor): sus secciones como pestañas bajo la barra superior.
+   «Más» no hace falta: sus opciones ya están en la barra superior. */
+@media (min-width: 768px) {
+    body:not(:has(.sidebar)) .nav-inferior {
+        display: flex; gap: 4px; padding: 10px 28px 0; border-bottom: 1px solid var(--linea); background: var(--superficie);
+    }
+    body:not(:has(.sidebar)) .nav-inferior-item {
+        display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; margin-bottom: -1px;
+        border-bottom: 3px solid transparent; color: var(--tinta-suave); font-weight: 600; font-size: 15px; text-decoration: none;
+    }
+    body:not(:has(.sidebar)) .nav-inferior-item:hover { color: var(--hoja-oscura); }
+    body:not(:has(.sidebar)) .nav-inferior-item.activo { color: var(--hoja-oscura); border-bottom-color: var(--hoja); }
+    body:not(:has(.sidebar)) .nav-inferior [data-abrir-hoja] { display: none; }
+}
+
+@keyframes modal-sube { from { transform: translateY(16px); opacity: .7; } to { transform: none; opacity: 1; } }
+@keyframes hoja-sube { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+/* ── TABLAS COMO TARJETAS (< 600 px) ──────────────────
+   panel.js pone en cada celda el nombre de su columna (data-etiqueta). Cada fila se vuelve
+   una tarjeta: el dato a la derecha y su nombre a la izquierda; las acciones, al pie. */
+@media (max-width: 599.98px) {
+    .tabla-wrapper:has(> table.tabla-tarjetas) { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+    .lista-wrapper table.tabla-tarjetas,
+    .lista-wrapper table.tabla-tarjetas > tbody { display: block; width: 100%; min-width: 0 !important; border: 0; background: transparent; overflow: visible; }
+    .lista-wrapper table.tabla-tarjetas > thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .lista-wrapper table.tabla-tarjetas > caption { display: block; text-align: left; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px;
+        margin-bottom: 12px; padding: 4px 14px 6px;
+        background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--r-tarjeta);
+    }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td {
+        flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 8px;
+        min-width: 0; min-height: var(--tactil-min); padding: 8px 0; text-align: right;
+        white-space: normal; overflow-wrap: anywhere; border-bottom: 1px solid var(--linea-suave);
+        max-width: none !important; width: auto !important;
+    }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td[data-etiqueta]::before {
+        content: attr(data-etiqueta); flex: 0 0 auto; max-width: 45%; margin-right: auto;
+        text-align: left; font-size: 13px; font-weight: 600; color: var(--tinta-suave);
+    }
+    /* Varios elementos en una celda (insignia + nota + botón): bajan de renglón, no se aplastan */
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td > * { flex: 0 0 auto; max-width: 100%; }
+    .lista-wrapper table.tabla-tarjetas button:not(.w3-button):not(.btn) { min-height: var(--tactil-min); min-width: var(--tactil-min); }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-completa { justify-content: center; text-align: center; }
+    /* Acciones (editar, borrar...): juntas al pie de la tarjeta, sin etiqueta */
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-accion {
+        flex: 0 0 auto; order: 99; border-bottom: 0; padding: 6px 0 2px; justify-content: flex-end;
+    }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-accion::before { content: none !important; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-accion-primera { margin-left: auto; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr:hover > td { background: transparent; }
+    .lista-wrapper table.tabla-tarjetas .acciones-fila { flex-wrap: wrap; justify-content: flex-end; }
+    .lista-wrapper table.tabla-tarjetas .resumen-productos { max-width: 60vw; white-space: normal; }
+    .lista-wrapper table.tabla-tarjetas td.celda-texto { max-width: none; min-width: 0; }
+    .lista-wrapper table.tabla-tarjetas td a:not(.btn):not(.btn-icono):not(.w3-button) { display: inline-flex; align-items: center; min-height: var(--tactil-min); }
+    /* Detalle de un pedido: debajo de su tarjeta */
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle { padding: 0; margin-top: -8px; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle:not(.abierto) { display: none; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle > td { display: block; flex-basis: 100%; min-height: 0; padding: 0; text-align: left; border: 0; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle .detalle-inner { padding: 10px 12px 12px; }
+    .tabla-wrapper .paginacion { position: static; border-top: 0; }
 }
 
 @media (max-width: 480px) {
     .pagina-titulo, .contenedor-boton > h1, .contenedor-boton > h2 { font-size: 22px; }
-    /* iOS hace zoom al enfocar campos con letra menor a 16px */
-    input, select, textarea, .w3-input, .w3-select, .modal-input, .prod-search-input { font-size: 16px !important; }
     .w3-modal footer.w3-container, .modal-footer { flex-direction: column-reverse; }
     .w3-modal footer .w3-button, .modal-footer > * { width: 100%; }
 }

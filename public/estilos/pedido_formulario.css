@@ -99,3 +99,24 @@
 .pedido-pie-fila { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
 .pedido-total { margin-right: auto; font-size: 15px; }
 .pedido-total b { font-size: 17px; color: var(--hoja-oscura); }
+
+/* Celular (< 768 px): la ventana ocupa toda la pantalla; encabezado y botones quedan fijos
+   y el contenido se desplaza entre ellos (el botón Guardar siempre al alcance del pulgar). */
+@media (max-width: 767.98px) {
+    .pedido-modal { padding: 0 !important; }
+    .pedido-modal > .w3-modal-content {
+        width: 100% !important; max-width: none !important;
+        height: 100vh; height: 100dvh; min-height: 0; max-height: none !important;
+        overflow-y: auto !important; border-radius: 0 !important;
+    }
+    .pedido-cerrar { width: var(--tactil-min); height: var(--tactil-min); }
+    .pedido-cuerpo { padding: 6px 16px 8px; }
+    .pedido-pie { padding: 10px 16px calc(12px + var(--area-segura-abajo)); }
+    .pedido-pie-fila .btn { min-height: 48px; }
+    .pedido-pie-fila .btn-primario { flex: 1 1 auto; }
+    .pedido-agregar { min-height: 48px; }
+}
+/* En pantallas táctiles no hay flechas ni Enter a la mano: la ayuda de teclado sobra */
+@media (pointer: coarse) {
+    .pedido-teclas { display: none; }
+}

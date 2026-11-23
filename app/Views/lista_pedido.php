@@ -5,7 +5,7 @@
     <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
-    <title>Lista pedido</title>
+    <title>Pedidos · Fruver</title>
 </head>
 <body>
         <?php include 'Header.php'; ?>
@@ -50,7 +50,7 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_pedido') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_pedido') ?>" class="w3-button w3-red"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>
@@ -78,8 +78,8 @@
                 </td>
                 <td>
                     <a href="<?= base_url('ticket_pedido/' . (int) $p['id']) ?>"
-                       class="btn-ticket-wa" title="Enviar el ticket del pedido por WhatsApp">
-                        <i class="fa-brands fa-whatsapp"></i>
+                       class="btn-ticket-wa" title="Enviar el ticket del pedido por WhatsApp" aria-label="Enviar el ticket del pedido por WhatsApp">
+                        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
                     </a>
                 </td>
                 <td>
@@ -89,14 +89,14 @@
                                 '<?= esc($p['id_cliente'], 'js') ?>',
                                 '<?= esc($p['id_repartidor'], 'js') ?>'
                             )"
-                            style="border:none; cursor:pointer; background:none;">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                            style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                     </button>
                 </td>
                 <td>
                     <form method="post" action="<?= base_url('borra_id_pedido/' . (int) $p['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
 <?= csrf_field() ?>
-<button type="submit" style="border:none; cursor:pointer; background:none;"><i class="fa-solid fa-trash-can"></i></button>
+<button type="submit" style="border:none; cursor:pointer; background:none;" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
 </form>
                 </td>
             </tr>
@@ -140,10 +140,10 @@
 
 
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button"
                             onclick="document.getElementById('modalEditarPedido').style.display='none'"
-                            class="w3-button w3-white">Cancelar</button>
+                            class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
 
             </form>
@@ -185,8 +185,8 @@
                     <?php endforeach; ?>
                 </select>
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                    <button type="button" onclick="document.getElementById('modalCrearPedido').style.display='none'" class="w3-button w3-white">Cancelar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" onclick="document.getElementById('modalCrearPedido').style.display='none'" class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>

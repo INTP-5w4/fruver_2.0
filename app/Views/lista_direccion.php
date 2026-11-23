@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <?= view('partials/mapa_config') ?>
     <script src="<?= base_url('js/geo_direccion.js') ?>" defer></script>
-    <title>Lista Direcciones</title>
+    <title>Direcciones · Fruver</title>
 </head>
 <body>
         <?php include 'Header.php'; ?>
@@ -65,7 +65,7 @@ $reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion
                value="<?= esc($buscar ?? '', 'attr') ?>" class="w3-input w3-border" aria-label="Buscar dirección">
         <button type="submit" class="w3-button w3-green"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar</button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_direccion') ?>" class="w3-button w3-border">Limpiar búsqueda</a>
+            <a href="<?= base_url('lista_direccion') ?>" class="w3-button w3-border"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar búsqueda</a>
         <?php endif; ?>
     </div>
 </form>
@@ -142,7 +142,7 @@ $reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion
                     <td>
                         <form method="post" action="<?= base_url('borra_id_direccion/' . (int) $d['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
 <?= csrf_field() ?>
-<button type="submit" class="btn-icono"><i class="fa-solid fa-trash-can"></i></button>
+<button type="submit" class="btn-icono" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
 </form>
                     </td>
                 </tr>
@@ -156,7 +156,7 @@ $reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion
         <div class="modal-contenido w3-animate-zoom">
 
             <header class="modal-header">
-                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 <h2 id="titulo-crear-direccion">Registrar dirección</h2>
             </header>
 
@@ -174,8 +174,8 @@ $reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion
                 ]) ?>
 
                 <footer class="modal-footer">
-                    <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
+                    <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>
@@ -186,7 +186,7 @@ $reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion
         <div class="modal-contenido w3-animate-zoom">
 
             <header class="modal-header">
-                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar">&times;</button>
+                <button type="button" class="modal-cerrar" data-cerrar-modal aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 <h2 id="titulo-editar-direccion">Editar dirección</h2>
             </header>
 
@@ -206,8 +206,8 @@ $reabrir  = $hayOld ? ($editando ? 'modalEditarDireccion' : 'modalCrearDireccion
                 ]) ?>
 
                 <footer class="modal-footer">
-                    <button type="submit" class="btn-guardar">Guardar</button>
-                    <button type="button" class="btn-cancelar" data-cerrar-modal>Cancelar</button>
+                    <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" class="btn-cancelar" data-cerrar-modal><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>

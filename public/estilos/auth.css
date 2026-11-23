@@ -56,6 +56,8 @@ body.fv-auth {
     font-size: 13px;
     color: var(--fv-green-dark);
 }
+/* Cada enlace en una pieza (no se parte entre renglones) y con área cómoda para el dedo */
+.fv-auth-footer a { display: inline-block; white-space: nowrap; padding: 12px 4px; }
 
 /* ── Utilidades que usan las vistas de Shield ───────────────── */
 .container { width: 100%; }
@@ -106,7 +108,7 @@ body.fv-auth {
     left: 0;
     padding: 1rem 0.75rem;
     pointer-events: none;
-    color: #6b7a99;
+    color: #4f5d53;
     transform-origin: 0 0;
     transition: opacity .1s ease-in-out, transform .1s ease-in-out;
 }

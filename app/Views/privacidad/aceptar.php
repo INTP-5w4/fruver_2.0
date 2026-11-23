@@ -56,8 +56,8 @@
                 </p>
 
                 <div class="pv-acciones">
-                    <a class="btn btn-secundario" href="<?= site_url('logout') ?>">No acepto, cerrar sesión</a>
-                    <button type="submit" class="btn btn-primary">Aceptar y continuar</button>
+                    <a class="btn btn-secundario" href="<?= site_url('logout') ?>"><i class="fa-solid fa-xmark" aria-hidden="true"></i> No acepto, cerrar sesión</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check" aria-hidden="true"></i> Aceptar y continuar</button>
                 </div>
             </form>
         </div>
