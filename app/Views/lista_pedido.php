@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <title>Lista pedido</title>
+    <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
+    <title>Pedidos · Fruver</title>
 </head>
 <body>
         <?php include 'Header.php'; ?>
@@ -17,21 +16,22 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 20px;">
+<div class="contenedor-boton">
+    <h1>Pedidos</h1>
     <button onclick="document.getElementById('modalCrearPedido').style.display='block'"
             class="btn-agregar">
-        + Nuevo Pedido
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo pedido
     </button>
 </div>
 
@@ -40,6 +40,7 @@
         <input
             type="text"
             name="buscar"
+            aria-label="Buscar pedido"
             value="<?= esc($buscar ?? '') ?>"
             placeholder="Buscar por nombre del repartidor..."
             class="w3-input w3-border"
@@ -49,7 +50,7 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_pedido') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_pedido') ?>" class="w3-button w3-red"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>
@@ -60,37 +61,43 @@
             <th>Fecha</th>
             <th>Nombre del cliente</th>
             <th>Nombre del repartidor</th>
+            <th>WhatsApp</th>
             <th>Editar</th>
             <th>Eliminar</th>
         </thead>
         <tbody>
             <?php foreach($pedidos as $p): ?>
             <tr>
-                <td><?= $p['id'] ?></td>
-                <td><?= $p['fecha'] ?></td>
+                <td><?= esc($p['id']) ?></td>
+                <td><?= esc($p['fecha']) ?></td>
                 <td><?php $c = $clientes[$p['id_cliente']] ?? null;
-                    echo $c ? "{$c['nombre']} {$c['ape_pat']} {$c['ape_mat']}" : 'Desconocido'; ?>
+                    echo $c ? esc("{$c['nombre']} {$c['ape_pat']} {$c['ape_mat']}") : 'Desconocido'; ?>
                 </td>
-                <td><?php $r = $repartidores[$p['id_repartidor']] ?? null;
-                    echo $r ? "{$r['nombre']} {$r['ape_pat']} {$r['ape_mat']}" : 'Desconocido'; ?>
+                <td><?php $r = $p['id_repartidor'] !== null ? ($repartidores[$p['id_repartidor']] ?? null) : null;
+                    echo $r ? esc("{$r['nombre']} {$r['ape_pat']} {$r['ape_mat']}") : 'Sin asignar'; ?>
+                </td>
+                <td>
+                    <a href="<?= base_url('ticket_pedido/' . (int) $p['id']) ?>"
+                       class="btn-ticket-wa" title="Enviar el ticket del pedido por WhatsApp" aria-label="Enviar el ticket del pedido por WhatsApp">
+                        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                    </a>
                 </td>
                 <td>
                     <button onclick="abrirModal(
-                                '<?= $p['id'] ?>',
-                                '<?= $p['fecha'] ?>',
-                                '<?= $p['id_cliente'] ?>',
-                                '<?= $p['id_repartidor'] ?>'
+                                '<?= esc($p['id'], 'js') ?>',
+                                '<?= esc($p['fecha'], 'js') ?>',
+                                '<?= esc($p['id_cliente'], 'js') ?>',
+                                '<?= esc($p['id_repartidor'], 'js') ?>'
                             )"
-                            style="border:none; cursor:pointer; background:none;">
-                        <i class="fa-solid fa-pen-to-square"></i>
+                            style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                     </button>
                 </td>
                 <td>
-                    <a href="<?= base_url('borra_id_pedido/'.$p['id']) ?>">
-                        <button style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </a>
+                    <form method="post" action="<?= base_url('borra_id_pedido/' . (int) $p['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" style="border:none; cursor:pointer; background:none;" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+</form>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -101,39 +108,42 @@
     <div id="modalEditarPedido" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
             <form action="<?= base_url('modifica_pedido') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Fecha*</b></label>
+                <label for="edit_fecha"><b>Fecha*</b></label>
                 <input type="date" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Cliente*</b></label>
+                <label for="edit_id_cliente"><b>Cliente*</b></label>
                 <select name="id_cliente" id="edit_id_cliente"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach ($clientes as $c): ?>
-                        <option value="<?= $c['id'] ?>">
-                            <?= $c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat'] ?>
+                        <option value="<?= esc($c['id']) ?>">
+                            <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
 
-                <label><b>Repartidor*</b></label>
+                <label for="edit_id_repartidor"><b>Repartidor*</b></label>
                 <select name="id_repartidor" id="edit_id_repartidor"
                         class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach ($repartidores as $r): ?>
-                        <option value="<?= $r['id'] ?>">
-                            <?= $r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat'] ?>
+                        <?php $deBaja = \App\Models\Modelo_repartidor::deBaja($r); ?>
+                        <?php // Uno dado de baja va oculto: solo se conserva si ya era el del pedido que se edita. ?>
+                        <option value="<?= esc($r['id']) ?>"<?= $deBaja ? ' hidden data-baja="1"' : '' ?>>
+                            <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?><?= $deBaja ? ' (dado de baja)' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
 
 
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button"
                             onclick="document.getElementById('modalEditarPedido').style.display='none'"
-                            class="w3-button w3-white">Cancelar</button>
+                            class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
 
             </form>
@@ -153,31 +163,30 @@
             document.getElementById('modalEditarPedido').style.display = 'block';
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalEditarPedido');
-            if (event.target === modal) modal.style.display = 'none';
-        };
     </script>
     <div id="modalCrearPedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_pedido') ?>" method="post" class="w3-container w3-padding-16">
-                <label><b>Fecha*</b></label>
-                <input type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" required>
-                <label><b>Cliente*</b></label>
-                <select name="id_cliente" class="w3-select w3-border w3-margin-bottom" required>
+<?= csrf_field() ?>
+<?= campo_envio_unico() ?>
+                <label for="pedido-fecha"><b>Fecha*</b></label>
+                <input id="pedido-fecha" type="date" name="fecha" class="w3-input w3-border w3-margin-bottom" required>
+                <label for="pedido-id-cliente"><b>Cliente*</b></label>
+                <select id="pedido-id-cliente" name="id_cliente" class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach ($clientes as $c): ?>
                         <option value="<?= esc($c['id']) ?>"><?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?></option>
                     <?php endforeach; ?>
                 </select>               
-                <label><b>Repartidor*</b></label>
-                <select name="id_repartidor" class="w3-select w3-border w3-margin-bottom" required>
+                <label for="pedido-id-repartidor"><b>Repartidor*</b></label>
+                <select id="pedido-id-repartidor" name="id_repartidor" class="w3-select w3-border w3-margin-bottom" required>
                     <?php foreach ($repartidores as $r): ?>
+                        <?php if (\App\Models\Modelo_repartidor::deBaja($r)) { continue; } ?>
                         <option value="<?= esc($r['id']) ?>"><?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?></option>
                     <?php endforeach; ?>
                 </select>
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                    <button type="button" onclick="document.getElementById('modalCrearPedido').style.display='none'" class="w3-button w3-white">Cancelar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" onclick="document.getElementById('modalCrearPedido').style.display='none'" class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>

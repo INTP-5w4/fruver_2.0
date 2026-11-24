@@ -2,10 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
     <link rel="stylesheet" href="<?= base_url('estilos/sugerencias.css') ?>">
     <title>Buzón de sugerencias</title>
 </head>
@@ -33,7 +31,15 @@
 
     <main class="sugerencia-wrapper">
         <section class="sugerencia-card">
-            <h1>Buzón de sugerencias</h1>
+            <div class="sugerencia-cabecera">
+                <h1>Buzón de sugerencias</h1>
+                <?php if (! empty($esPersonal)): ?>
+                    <!-- Solo el personal (superadmin, admin, developer) puede leer lo recibido -->
+                    <a href="<?= base_url('lista_sugerencia') ?>" class="w3-button w3-border">
+                        <i class="fa-solid fa-inbox"></i> Ver sugerencias recibidas
+                    </a>
+                <?php endif; ?>
+            </div>
             <p class="sugerencia-intro">
                 ¿Tienes una idea para mejorar FRUVER? Cuéntanosla. Tu usuario y tu rol se registran
                 automáticamente junto con tu sugerencia.
@@ -77,7 +83,7 @@
                 <?php endif; ?>
 
                 <div class="sugerencia-acciones">
-                    <a href="<?= base_url('/') ?>" class="w3-button w3-light-grey">Volver</a>
+                    <a href="<?= base_url($volver ?? '/') ?>" class="w3-button w3-light-grey">Volver</a>
                     <button type="submit" class="w3-button w3-green">Enviar sugerencia</button>
                 </div>
             </form>
@@ -86,16 +92,6 @@
 
     <?php include 'Footer.php'; ?>
 
-    <script>
-        // Contador de caracteres de la descripción (solo mejora de usabilidad).
-        (function () {
-            const area = document.getElementById('descripcion');
-            const cuenta = document.getElementById('contador-desc');
-            if (!area || !cuenta) return;
-            const actualiza = () => { cuenta.textContent = area.value.length; };
-            area.addEventListener('input', actualiza);
-            actualiza();
-        })();
-    </script>
+    <script src="<?= base_url('js/sugerencias.js') ?>"></script>
 </body>
 </html>

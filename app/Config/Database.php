@@ -158,6 +158,25 @@ class Database extends Config
     //    ];
 
     /**
+     * Cuenta de ADMINISTRACIÓN de la base (crear tablas y triggers, otorgar permisos).
+     *
+     * La aplicación web nunca la usa: se conecta con "default", una cuenta de privilegios
+     * mínimos (App\Libraries\PrivilegiosBd, `php spark bd:asegurar`). Esta solo la usan
+     * `php spark bd:migrar`, `respaldo:crear` y `roles:sincronizar`.
+     *
+     * Credenciales: database.admin.username y database.admin.password. En producción NO
+     * se escriben en .env: se ponen como variables de entorno (database_admin_username,
+     * database_admin_password) solo en la sesión o tarea programada que las necesita.
+     * Sin configurar, se usan las de "default" (instalación nueva, antes de bd:asegurar).
+     *
+     * @var array<string, mixed>
+     */
+    public array $admin = [
+        'username' => '',
+        'password' => '',
+    ];
+
+    /**
      * This database connection is used when running PHPUnit database tests.
      *
      * @var array<string, mixed>
@@ -200,5 +219,19 @@ class Database extends Config
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';
         }
+
+        // "admin" = conexión "default" con otras credenciales (o las mismas si no se configuraron).
+        $credenciales = $this->admin;
+        $this->admin  = $this->default;
+        if (trim((string) $credenciales['username']) !== '') {
+            $this->admin['username'] = (string) $credenciales['username'];
+            $this->admin['password'] = (string) $credenciales['password'];
+        }
+    }
+
+    /** ¿Se configuró una cuenta de administración distinta de la de la aplicación? */
+    public function adminSeparado(): bool
+    {
+        return $this->admin['username'] !== $this->default['username'];
     }
 }

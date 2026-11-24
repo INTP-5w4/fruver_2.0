@@ -1,35 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <title>Lista estatus</title>
+    <title>Estatus de pedidos · Fruver</title>
 </head>
 <body>
         <?php include 'Header.php'; ?>
+    <?php include 'sidebar.php'; ?>
+
+<div class="lista-wrapper">
 
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 80px;">
+<div class="contenedor-boton">
+    <h1>Estatus de pedidos</h1>
     <button onclick="document.getElementById('modalCrearEstatus').style.display='block'"
             class="btn-agregar">
-        + Nuevo Estatus
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo estatus
     </button>
 </div>
 
@@ -45,27 +46,26 @@
         <tbody>
             <?php foreach($estatus as $e): ?>
                 <tr>
-                    <td><?= $e['id'] ?></td>
-                    <td><?= $e['estado'] ?></td>
-                    <td><?= $e['fecha'] ?></td>
-                    <td><?= $e['id_pedido'] ?></td>
+                    <td><?= esc($e['id']) ?></td>
+                    <td><?= estado_pedido($e['estado']) ?></td>
+                    <td><?= esc($e['fecha']) ?></td>
+                    <td><?= esc($e['id_pedido']) ?></td>
                     <td>
                         <button onclick="abrirModal(
-                                    '<?= $e['id'] ?>',
-                                    '<?= $e['estado'] ?>',
-                                    '<?= $e['fecha'] ?>',
-                                    '<?= $e['id_pedido'] ?>'
+                                    '<?= esc($e['id'], 'js') ?>',
+                                    '<?= esc($e['estado'], 'js') ?>',
+                                    '<?= esc($e['fecha'], 'js') ?>',
+                                    '<?= esc($e['id_pedido'], 'js') ?>'
                                 )"
-                                style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                                style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                         </button>
                     </td>
                     <td>
-                        <a href="<?= base_url('borra_id_estatus/'.$e['id']) ?>">
-                            <button style="border:none; cursor:pointer; background:none;">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </a>
+                        <form method="post" action="<?= base_url('borra_id_estatus/' . (int) $e['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" style="border:none; cursor:pointer; background:none;" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+</form>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -76,10 +76,11 @@
     <div id="modalEditarEstatus" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
             <form action="<?= base_url('modifica_estatus') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Estado*</b></label>
+                <label for="edit_edo"><b>Estado*</b></label>
                 <select name="edo" id="edit_edo" class="w3-select w3-border w3-margin-bottom" required>
                     <option value="pedido_realizado">Pedido realizado</option>
                     <option value="pedido_confirmado">Pedido confirmado</option>
@@ -90,20 +91,20 @@
                     <option value="pedido_cancelado">Pedido cancelado</option>
                 </select>
 
-                <label><b>Fecha*</b></label>
+                <label for="edit_fecha"><b>Fecha*</b></label>
                 <input type="date" name="fecha" id="edit_fecha"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-               <label><b>ID Pedido*</b></label>
+               <label for="edit_id_pedido"><b>ID Pedido*</b></label>
                <input type="number" name="id_pedido" id="edit_id_pedido"
                 class="w3-input w3-border w3-margin-bottom"
               readonly style="background-color:#f1f1f1; cursor:not-allowed;" required>
 
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button"
                             onclick="document.getElementById('modalEditarEstatus').style.display='none'"
-                            class="w3-button w3-white">Cancelar</button>
+                            class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
 
             </form>
@@ -113,16 +114,17 @@
 <div id="modalCrearEstatus" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_estatus') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
-            <label><b>Pedido*</b></label>
-            <select name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
+            <label for="estatus-id-pedido"><b>Pedido*</b></label>
+            <select id="estatus-id-pedido" name="id_pedido" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($pedidos as $p): ?>
                     <option value="<?= esc($p['id']) ?>"><?= esc($p['id']) ?></option>
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Estado*</b></label>
-            <select name="edo" class="w3-select w3-border w3-margin-bottom" required>
+            <label for="estatus-edo"><b>Estado*</b></label>
+            <select id="estatus-edo" name="edo" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="pedido_realizado">Pedido realizado</option>
                 <option value="pedido_confirmado">Pedido confirmado</option>
                 <option value="pedido_en_transito">Pedido en tránsito</option>
@@ -132,19 +134,21 @@
                 <option value="pedido_cancelado">Pedido cancelado</option>
             </select>
 
-            <label><b>Fecha*</b></label>
-            <input type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
+            <label for="estatus-fecha"><b>Fecha*</b></label>
+            <input id="estatus-fecha" type="timestamp" name="fecha" class="w3-input w3-border w3-margin-bottom" value="<?= date('Y-m-d H:i:s') ?>">
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalCrearEstatus').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
 
         </form>
     </div>
 </div>
+
+</div><!-- /.lista-wrapper -->
 
 <?php include 'Footer.php'; ?>
 
@@ -157,10 +161,6 @@
             document.getElementById('modalEditarEstatus').style.display = 'block';
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalEditarEstatus');
-            if (event.target === modal) modal.style.display = 'none';
-        };
     </script>
 </body>
 </html>

@@ -1,33 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Title</title>
+    <title>Modificar repartidor</title>
 </head>
 <body>
-    <form action="<?= base_url('modifica_repartidor')?>" method="post">
-        <input type="hidden" name="id" value="<?= $repartidores['id'] ?>">
+<?php include 'Header.php'; ?>
+    <div class="formulario-pagina">
 
-        <label for="nom">Nombre</label><br>
-        <input type="text" name="nom" id="" value="<?= $repartidores['nombre']  ?>"><br>
+        <header class="modal-header">
+            <h2>Modificar repartidor</h2>
+        </header>
 
-        <label for="ape_pat">Apellido Paterno</label><br>
-        <input type="text" name="ape_pat" id="" value="<?= $repartidores['ape_pat']  ?>"><br>
+        <form action="<?= base_url('modifica_repartidor') ?>" method="post" class="modal-form">
+            <?= csrf_field() ?>
+            <?= view('partials/aviso_formulario') ?>
 
-        <label for="ape_mat">Apellido materno</label><br>
-        <input type="text" name="ape_mat" id="" value="<?= $repartidores['ape_mat']  ?>"><br>
+            <input type="hidden" name="id" value="<?= (int) $repartidores['id'] ?>">
 
-        <label for="tel">Telefono</label><br>
-        <input type="text" name="tel" id="" value="<?= $repartidores['telefono']  ?>"><br>
+            <?= view('partials/form_repartidor', ['rep' => $repartidores, 'sufijo' => '_modifica']) ?>
 
-        <label for="dir">Dirección</label><br>
-        <input type="text" name="dir" id="" value="<?= $repartidores['direccion']  ?>"><br>
-
-        <label for="not">Notas</label><br>
-        <textarea name="not" id=""><?= $repartidores['notas'] ?></textarea><br>
-
-        <input type="submit" value="Enviar">
-    </form>
+            <footer class="modal-footer">
+                <button type="submit" class="btn-guardar">Guardar</button>
+                <a href="<?= base_url('lista_repartidor') ?>" class="btn-cancelar btn-enlace">Cancelar</a>
+            </footer>
+        </form>
+    </div>
 </body>
 </html>

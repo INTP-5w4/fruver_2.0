@@ -25,6 +25,19 @@ class Toolbar extends BaseConfig
 {
     /**
      * --------------------------------------------------------------------------
+     * ¿Barra de depuración activa? (solo aplica cuando CI_DEBUG es true)
+     * --------------------------------------------------------------------------
+     *
+     * Por petición recolecta variables y consultas y escribe ~70 KB en writable/debugbar:
+     * unas 2/3 partes del tiempo de cada página en development. Apágala desde .env
+     * (toolbar.activa = false) para pruebas de carga o cuando varias personas usan el
+     * sistema a la vez; los errores detallados de development se siguen mostrando.
+     * Se consulta en Config\Filters (filtro "toolbar") y Config\Events (colectores).
+     */
+    public bool $activa = true;
+
+    /**
+     * --------------------------------------------------------------------------
      * Toolbar Collectors
      * --------------------------------------------------------------------------
      *

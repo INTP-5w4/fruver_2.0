@@ -3,12 +3,19 @@
 namespace App\Controllers;
 
 use App\Models\Modelo_sugerencia;
-use CodeIgniter\Controller;
+use App\Models\PdoModelo;
+use Throwable;
 
-class Sugerencias extends Controller
+/**
+ * Buzón de sugerencias: cualquier usuario con sesión (de cualquier rol) puede sugerir
+ * mejoras para el software.
+ *
+ * El usuario y el rol se toman SIEMPRE de la sesión de Shield, nunca del formulario,
+ * para que nadie pueda enviar una sugerencia a nombre de otra persona u otro rol.
+ * El CSRF lo exige el filtro global (Config\Filters), por eso el formulario lleva csrf_field().
+ */
+class Sugerencias extends BaseController
 {
-    protected $helpers = ['form', 'url'];
-
     // Anti-spam: máximo de sugerencias válidas por usuario dentro de la ventana de tiempo.
     private const LIMITE_ENVIOS    = 5;
     private const VENTANA_SEGUNDOS = 600; // 10 minutos
@@ -18,13 +25,65 @@ class Sugerencias extends Controller
     // ─────────────────────────────────────────────────────────────
     public function crea_sugerencia()
     {
-        if (! auth()->loggedIn()) {
-            return redirect()->to('login');
+        $usuario = auth()->user();
+
+        // "Volver" lleva a la pantalla de inicio de cada rol.
+        if ($this->esPersonal()) {
+            $volver = '/';
+        } elseif ($usuario !== null && $usuario->inGroup('repartidor')) {
+            $volver = 'repartidor/entregas';
+        } else {
+            $volver = 'main_page_4';
         }
 
         return view('crea_sugerencia', [
             'valoraciones' => Modelo_sugerencia::VALORACIONES,
+            'esPersonal'   => $this->esPersonal(),
+            'volver'       => $volver,
         ]);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // LECTURA (solo personal: superadmin, admin y developer)
+    // ─────────────────────────────────────────────────────────────
+    public function lista_sugerencia()
+    {
+        // La ruta ya exige el grupo; se repite aquí porque este controlador también atiende
+        // el formulario público y un cambio futuro de rutas no debe abrir la lista a otros roles.
+        if (! $this->esPersonal()) {
+            return redirect()->to(site_url('/'))->with('error', 'No tienes permiso para ver las sugerencias.');
+        }
+
+        // textoGet() ignora arreglos (?buscar[]=x), que harían fallar un (string) con error 500.
+        $buscar     = $this->textoGet('buscar', 100);
+        $valoracion = $this->textoGet('valoracion', 50);
+        $orden      = $this->textoGet('orden', 20);
+
+        // Lista blanca: cualquier otro valor se ignora.
+        if (! in_array($valoracion, Modelo_sugerencia::VALORACIONES, true)) {
+            $valoracion = '';
+        }
+        if (! in_array($orden, Modelo_sugerencia::ORDENES, true)) {
+            $orden = 'recientes';
+        }
+
+        try {
+            $m_sugerencia = new Modelo_sugerencia();
+
+            return view('lista_sugerencia', [
+                'sugerencias'  => $m_sugerencia->listar($buscar, $valoracion, $orden),
+                'pager'        => $m_sugerencia->pager,
+                'conteos'      => $m_sugerencia->conteos(),
+                'buscar'       => $buscar,
+                'valoracion'   => $valoracion,
+                'orden'        => $orden,
+                'valoraciones' => Modelo_sugerencia::VALORACIONES,
+            ]);
+        } catch (Throwable $e) {
+            // Por ejemplo: la tabla aún no existe porque no se corrió la migración.
+            return redirect()->to(site_url('/'))
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudieron cargar las sugerencias.'));
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -32,29 +91,25 @@ class Sugerencias extends Controller
     // ─────────────────────────────────────────────────────────────
     public function guarda_sugerencia()
     {
-        $user = auth()->user();
-        if ($user === null) {
-            return redirect()->to('login');
+        $usuario = auth()->user();
+        if ($usuario === null) {
+            return redirect()->to(site_url('login'));
         }
 
-        $m_sugerencia = new Modelo_sugerencia();
+        $roles = $usuario->getGroups();
+        sort($roles); // orden estable: "admin, user" sin depender del orden en la BD
 
-        // Usuario y rol se toman SIEMPRE de la sesión, nunca del formulario,
-        // para que nadie pueda suplantar a otro usuario ni a otro rol.
-        $roles = $user->getGroups();
-        sort($roles); // orden estable: "admin, user" y no depende del orden en la BD
         $datos = [
             'titulo'      => $this->limpiaTexto($this->textoPost('titulo'), false),
             'descripcion' => $this->limpiaTexto($this->textoPost('descripcion'), true),
             'valoracion'  => $this->textoPost('valoracion'),
-            'id_usuario'  => (int) $user->id,
-            'usuario'     => mb_substr((string) ($user->username ?: $user->email), 0, 100),
-            'rol'         => mb_substr($roles ? implode(', ', $roles) : 'sin rol', 0, 100),
+            'id_usuario'  => (int) $usuario->id,
+            'usuario'     => mb_substr((string) ($usuario->username ?: $usuario->email), 0, 100),
+            'rol'         => mb_substr($roles !== [] ? implode(', ', $roles) : 'sin rol', 0, 100),
         ];
 
-        // Valores que se devuelven al formulario si algo falla. Se usan los datos ya saneados
-        // (NO el POST crudo con withInput()), así un arreglo o un UTF-8 inválido enviado a mano
-        // nunca llega a la sesión ni rompe la siguiente carga del formulario.
+        // Lo que se devuelve al formulario si algo falla. Son los datos ya saneados (no el
+        // POST crudo con withInput()), así que un arreglo enviado a mano nunca llega a la sesión.
         $viejo = [
             'titulo'      => $datos['titulo'],
             'descripcion' => $datos['descripcion'],
@@ -64,38 +119,55 @@ class Sugerencias extends Controller
         ];
 
         // 1) Validación en servidor (longitudes y valoración dentro de la lista blanca).
-        if (! $m_sugerencia->validate($datos)) {
-            return redirect()->to('crea_sugerencia')
+        $validacion = service('validation');
+        $validacion->setRules([
+            'titulo'      => 'required|min_length[3]|max_length[' . Modelo_sugerencia::TITULO_MAX . ']|sin_groserias',
+            'descripcion' => 'required|min_length[10]|max_length[' . Modelo_sugerencia::DESCRIPCION_MAX . ']|sin_groserias',
+            'valoracion'  => 'required|in_list[' . implode(',', Modelo_sugerencia::VALORACIONES) . ']',
+        ], [
+            'titulo' => [
+                'required'   => 'El título es obligatorio.',
+                'min_length' => 'El título debe tener al menos 3 caracteres.',
+                'max_length' => 'El título no puede superar los ' . Modelo_sugerencia::TITULO_MAX . ' caracteres.',
+            ],
+            'descripcion' => [
+                'required'   => 'La descripción es obligatoria.',
+                'min_length' => 'La descripción debe tener al menos 10 caracteres.',
+                'max_length' => 'La descripción no puede superar los ' . Modelo_sugerencia::DESCRIPCION_MAX . ' caracteres.',
+            ],
+            'valoracion' => [
+                'required' => 'Selecciona qué tan importante es tu sugerencia.',
+                'in_list'  => 'La valoración seleccionada no es válida.',
+            ],
+        ]);
+
+        if (! $validacion->run($datos)) {
+            return redirect()->to(site_url('crea_sugerencia'))
                 ->with('viejo', $viejo)
-                ->with('errores', $m_sugerencia->errors());
+                ->with('errores', $validacion->getErrors());
         }
 
         // 2) Límite de envíos por usuario (solo cuenta las sugerencias válidas).
         $throttler = service('throttler');
-        if (! $throttler->check('sugerencia_' . $user->id, self::LIMITE_ENVIOS, self::VENTANA_SEGUNDOS)) {
+        if (! $throttler->check('sugerencia_' . $usuario->id, self::LIMITE_ENVIOS, self::VENTANA_SEGUNDOS)) {
             $minutos = max(1, (int) ceil($throttler->getTokenTime() / 60));
 
-            return redirect()->to('crea_sugerencia')
+            return redirect()->to(site_url('crea_sugerencia'))
                 ->with('viejo', $viejo)
                 ->with('error', "Has enviado muchas sugerencias seguidas. Intenta de nuevo en {$minutos} minuto(s).");
         }
 
-        // 3) Inserción (consultas parametrizadas por el Query Builder del modelo).
+        // 3) Inserción (sentencia preparada de PDO dentro del modelo).
         try {
-            $guardado = $m_sugerencia->insert($datos);
-        } catch (\Throwable $e) {
-            // El detalle técnico va al log; al usuario solo un mensaje genérico.
-            log_message('error', 'Buzón de sugerencias: no se pudo guardar. ' . $e->getMessage());
-            $guardado = false;
-        }
-
-        if ($guardado === false) {
-            return redirect()->to('crea_sugerencia')
+            (new Modelo_sugerencia())->guardar($datos);
+        } catch (Throwable $e) {
+            // mensajeSeguro registra el detalle técnico en el log y devuelve un texto genérico.
+            return redirect()->to(site_url('crea_sugerencia'))
                 ->with('viejo', $viejo)
-                ->with('error', 'No se pudo guardar tu sugerencia. Inténtalo de nuevo más tarde.');
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo guardar tu sugerencia. Inténtalo de nuevo más tarde.'));
         }
 
-        return redirect()->to('crea_sugerencia')
+        return redirect()->to(site_url('crea_sugerencia'))
             ->with('mensaje', '¡Gracias! Tu sugerencia fue enviada correctamente.');
     }
 
@@ -105,7 +177,7 @@ class Sugerencias extends Controller
 
     /**
      * Devuelve el valor POST solo si es texto. Si alguien envía "titulo[]=x"
-     * (un arreglo) se trata como vacío, así no se rompe la validación ni el modelo.
+     * (un arreglo) se trata como vacío y la validación lo rechaza.
      */
     private function textoPost(string $campo): string
     {
@@ -115,10 +187,19 @@ class Sugerencias extends Controller
     }
 
     /**
+     * Parámetro de la URL como texto recortado. Si llega un arreglo u otro tipo, devuelve ''.
+     */
+    private function textoGet(string $campo, int $max): string
+    {
+        $valor = $this->request->getGet($campo);
+
+        return is_string($valor) ? mb_substr(trim($valor), 0, $max) : '';
+    }
+
+    /**
      * Normaliza el texto: quita caracteres de control, caracteres que invierten el sentido
      * de lectura (suplantación visual) y espacios sobrantes. NO elimina etiquetas HTML:
      * la protección contra XSS se hace escapando la salida con esc() en las vistas.
-     * Si el texto no es UTF-8 válido, devuelve cadena vacía y la validación lo rechaza.
      */
     private function limpiaTexto(string $texto, bool $multilinea): string
     {

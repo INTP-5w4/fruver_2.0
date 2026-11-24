@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Config;
 
+use App\Validation\ComposicionContrasena;
 use CodeIgniter\Shield\Config\Auth as ShieldAuth;
 use CodeIgniter\Shield\Authentication\Actions\ActionInterface;
 use CodeIgniter\Shield\Authentication\AuthenticatorInterface;
@@ -46,9 +47,9 @@ class Auth extends ShieldAuth
      * --------------------------------------------------------------------
      */
     public array $views = [
-        'login'                       => '\CodeIgniter\Shield\Views\login',
-        'register'                    => '\CodeIgniter\Shield\Views\register',
-        'layout'                      => '\CodeIgniter\Shield\Views\layout',
+        'login'                       => 'Auth/login', // con ícono en el botón (copia de la de Shield)
+        'register'                    => 'Auth/register', // incluye el Aviso de Privacidad
+        'layout'                      => 'Auth/layout',
         'action_email_2fa'            => '\CodeIgniter\Shield\Views\email_2fa_show',
         'action_email_2fa_verify'     => '\CodeIgniter\Shield\Views\email_2fa_verify',
         'action_email_2fa_email'      => '\CodeIgniter\Shield\Views\Email\email_2fa_email',
@@ -76,7 +77,7 @@ class Auth extends ShieldAuth
     public array $redirects = [
         'register'          => '/',
         'login'             => '/',
-        'logout'            => 'login',
+        'logout'            => 'main_page_4',
         'force_reset'       => '/',
         'permission_denied' => '/',
         'group_denied'      => '/',
@@ -183,6 +184,15 @@ class Auth extends ShieldAuth
      */
     public bool $allowMagicLinkLogins = true;
 
+    public function __construct()
+    {
+        parent::__construct();
+
+        // El enlace para recuperar el acceso llega por correo: sin servidor de correo
+        // configurado se oculta en el login en lugar de prometer un correo que no saldrá.
+        $this->allowMagicLinkLogins = $this->allowMagicLinkLogins && \App\Libraries\Correo::configurado();
+    }
+
     /**
      * --------------------------------------------------------------------
      * Magic Link Lifetime
@@ -206,9 +216,11 @@ class Auth extends ShieldAuth
      *
      * @var array<string, bool|int|string>
      */
+    // "Recordarme" apagado: una cookie de 30 días volvería a abrir la sesión sin contraseña
+    // y anularía el cierre por 30 minutos de inactividad (Config\Session, Filters\SesionGuard).
     public array $sessionConfig = [
         'field'              => 'user',
-        'allowRemembering'   => true,
+        'allowRemembering'   => false,
         'rememberCookieName' => 'remember',
         'rememberLength'     => 30 * DAY,
     ];
@@ -229,6 +241,13 @@ class Auth extends ShieldAuth
             'max_length[30]',
             'min_length[3]',
             'regex_match[/\A[a-zA-Z0-9\.]+\z/]',
+            'usuario_sin_groserias',
+        ],
+        // Mensajes propios en español (app/Language/es/Auth.php). Shield agrega is_unique al registrar.
+        'errors' => [
+            'regex_match' => 'Auth.errorUsernameFormato',
+            'is_unique'   => 'Auth.errorUsernameUnico',
+            'usuario_sin_groserias' => 'Auth.errorUsernameGroseria',
         ],
     ];
 
@@ -247,6 +266,9 @@ class Auth extends ShieldAuth
             'required',
             'max_length[254]',
             'valid_email',
+        ],
+        'errors' => [
+            'is_unique' => 'Auth.errorEmailUnico',
         ],
     ];
 
@@ -272,6 +294,8 @@ class Auth extends ShieldAuth
      */
     public array $passwordValidators = [
         CompositionValidator::class,
+        ComposicionContrasena::class, // minúscula, mayúscula, número y símbolo
+
         NothingPersonalValidator::class,
         DictionaryValidator::class,
         // PwnedValidator::class,

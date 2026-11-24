@@ -24,6 +24,19 @@ use CodeIgniter\HotReloader\HotReloader;
  */
 
 Events::on('pre_system', static function (): void {
+    /*
+     * Carpetas de trabajo de writable/. Vienen en el repositorio (con su index.html), pero
+     * si una instalación las pierde (copia sin carpetas vacías, limpieza manual) se crean
+     * aquí, antes de que la caché (límite de intentos de login) o la sesión las necesiten.
+     */
+    foreach (['cache', 'session', 'logs', 'uploads', 'debugbar'] as $carpeta) {
+        $ruta = WRITEPATH . $carpeta;
+
+        if (! is_dir($ruta) && ! @mkdir($ruta, 0775, true) && ! is_dir($ruta)) {
+            throw new \RuntimeException('No se pudo crear la carpeta ' . $ruta . '. Revisa los permisos de writable/.');
+        }
+    }
+
     if (ENVIRONMENT !== 'testing') {
         if (ini_get('zlib.output_compression')) {
             throw FrameworkException::forEnabledZlibOutputCompression();
@@ -42,7 +55,7 @@ Events::on('pre_system', static function (): void {
      * --------------------------------------------------------------------
      * If you delete, they will no longer be collected.
      */
-    if (CI_DEBUG && ! is_cli()) {
+    if (CI_DEBUG && ! is_cli() && config(Toolbar::class)->activa) {
         Events::on('DBQuery', 'CodeIgniter\Debug\Toolbar\Collectors\Database::collect');
         service('toolbar')->respond();
         // Hot Reload route - for framework use on the hot reloader.
@@ -51,5 +64,27 @@ Events::on('pre_system', static function (): void {
                 (new HotReloader())->run();
             });
         }
+    }
+});
+
+/*
+ * --------------------------------------------------------------------
+ * Repartidores automáticos
+ * --------------------------------------------------------------------
+ * Al iniciar sesión, una cuenta del grupo "repartidor" que todavía no tiene ficha en la
+ * tabla `repartidor` recibe una, ya enlazada, para que vea sus entregas desde el primer
+ * día. Él mismo completa sus datos la primera vez que entra (filtro repartidordatos →
+ * repartidor/mis-datos); el personal también puede hacerlo en Repartidores. (También se revisa al abrir
+ * Repartidores, Entregas, Rutas y los formularios de pedido.)
+ */
+Events::on('login', static function ($usuario): void {
+    if (! is_object($usuario) || ! method_exists($usuario, 'inGroup') || ! $usuario->inGroup('repartidor')) {
+        return;
+    }
+
+    try {
+        (new \App\Models\Modelo_repartidor())->sincronizarCuentas((int) $usuario->id);
+    } catch (\Throwable $e) {
+        log_message('error', 'No se pudo crear la ficha de repartidor al iniciar sesión: ' . $e->getMessage());
     }
 });

@@ -58,7 +58,15 @@ class Modules extends BaseModules
      *
      * @var array{only?: list<string>, exclude?: list<string>}
      */
-    public $composerPackages = [];
+    // Solo estos paquetes traen Registrar/Services que CI debe descubrir. Sin la lista,
+    // en cada petición se busca en TODOS los paquetes de vendor/ (incluidos los de pruebas).
+    // Si instalas un paquete de CodeIgniter que traiga su propia configuración, agrégalo aquí.
+    public $composerPackages = [
+        'only' => [
+            'codeigniter4/shield',
+            'codeigniter4/settings',
+        ],
+    ];
 
     /**
      * --------------------------------------------------------------------------

@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea existencia</title>
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <form action="<?= base_url('guarda_existencia') ?>" method="post">
+<?= csrf_field() ?>
         <label for="e_total">Existencias totales</label><br>
         <input type="number" name="e_total" id="e_total"><br>
 
@@ -17,12 +20,12 @@
         <input type="number" name="e_venta" id="e_venta"><br>
 
         <label for="fecha">Fecha</label><br>
-        <input type="timestamp" name="fecha" id="fecha" value="<?= $timestamp ?>"><br>
+        <input type="timestamp" name="fecha" id="fecha" value="<?= esc($timestamp) ?>"><br>
 
         <label for="id_producto">Producto</label><br>
         <select name="id_producto" id="id_producto">
             <?php foreach($productos as $p): ?>
-                <option value="<?= $p['id'] ?>"><?= $p['nombre'] ?></option>
+                <option value="<?= esc($p['id']) ?>"><?= esc($p['nombre']) ?></option>
             <?php endforeach; ?>
         </select><br>
         <input type="submit" value="Enviar">

@@ -1,0 +1,696 @@
+<?php
+
+namespace App\Controllers;
+
+use App\Libraries\Rutas\ArbolExpansionMinima;
+use App\Libraries\Rutas\Combustible;
+use App\Libraries\Rutas\CspMapas;
+use App\Libraries\Rutas\Dijkstra;
+use App\Libraries\Rutas\EnlaceNavegacion;
+use App\Libraries\Rutas\ErrorProveedorRutas;
+use App\Libraries\Rutas\GrafoCalles;
+use App\Libraries\Rutas\OpcionesRuta;
+use App\Libraries\Rutas\Parada;
+use App\Libraries\Rutas\PlaneadorRutas;
+use App\Libraries\Rutas\Punto;
+use App\Libraries\Rutas\ResultadoRuta;
+use App\Libraries\Rutas\TransporteCurl;
+use App\Libraries\Rutas\UbicadorDirecciones;
+use App\Models\Modelo_almacen;
+use App\Models\Modelo_cliente;
+use App\Models\Modelo_direccion;
+use App\Models\Modelo_pedido;
+use App\Models\Modelo_repartidor;
+use App\Models\Modelo_ruta;
+use App\Models\PdoModelo;
+use DomainException;
+use InvalidArgumentException;
+use Throwable;
+
+/**
+ * Planeación de rutas de reparto (personal).
+ *
+ * Flujo:
+ *  1. planeador: el admin elige fecha, repartidor, almacén y los pedidos.
+ *  2. opciones (JSON): el servidor arma las paradas DESDE LA BASE DE DATOS (nunca
+ *     confía en coordenadas del navegador), pide al servicio de mapas (openrouteservice
+ *     o Google) 2–3 opciones y las guarda en sesión con un token.
+ *  3. guardar: con el token y la opción elegida crea la ruta y sus entregas.
+ */
+class Rutas extends BaseController
+{
+    private const SESION = 'rutas_calculo';
+
+    private function sinMigracion()
+    {
+        return view('rutas_sin_migracion');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // PLANEADOR
+    // ─────────────────────────────────────────────────────────────
+
+    public function planeador()
+    {
+        $m_ruta = new Modelo_ruta();
+        if (! $m_ruta->esquemaListo()) {
+            return $this->sinMigracion();
+        }
+
+        $fecha = $this->request->getGet('fecha');
+        $fecha = is_string($fecha) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha) === 1 ? $fecha : date('Y-m-d');
+
+        $almacenes = (new Modelo_almacen())->activos();
+        $cfg       = config('Rutas');
+
+        CspMapas::permitir($this->response);
+
+        return view('rutas_planeador', [
+            'fecha'        => $fecha,
+            'candidatos'   => $m_ruta->candidatos(),
+            'rutas'        => $m_ruta->deFecha($fecha),
+            'repartidores' => $this->repartidores(),
+            'almacenes'    => $almacenes,
+            'almacenMapa'  => $almacenes[0] ?? null,
+            'horaSalida'   => $cfg->horaSalida,
+            'maxParadas'   => PlaneadorRutas::crear($cfg)->maxParadas(),
+            'conServicio'  => $cfg->conServicio(),
+            'proveedor'    => $cfg->nombreProveedor(),
+            'conMapa'      => $cfg->conMapa(),
+        ]);
+    }
+
+    /** POST (JSON): calcula las opciones de ruta para comparar. */
+    public function opciones()
+    {
+        $m_ruta = new Modelo_ruta();
+        if (! $m_ruta->esquemaListo()) {
+            return $this->json(false, mensaje_tecnico('Falta correr la migración de rutas (php spark migrate).', 'Las rutas de reparto aún no están activadas. Avisa al administrador del sistema.'), [], 409);
+        }
+
+        $reglas = [
+            'id_repartidor' => 'required|is_natural_no_zero',
+            'id_almacen'    => 'required|is_natural_no_zero',
+            'fecha'         => 'required|valid_date[Y-m-d]',
+            // En arreglo: la expresión regular contiene "|" y rompería el formato con barras.
+            'hora'          => ['required', 'regex_match[/^([01]\d|2[0-3]):[0-5]\d$/]'],
+            'regresa'       => 'permit_empty|in_list[0,1]',
+            'estrategia'    => 'permit_empty|in_list[manual]',
+        ];
+        if (! $this->validate($reglas)) {
+            return $this->json(false, $this->primerError(), [], 422);
+        }
+
+        $ids = $this->idsPedido();
+        $max = PlaneadorRutas::crear()->maxParadas();
+        if ($ids === []) {
+            return $this->json(false, 'Elige al menos un pedido.', [], 422);
+        }
+        if (count($ids) > $max) {
+            return $this->json(false, "Una ruta admite máximo {$max} paradas. Divide los pedidos en dos rutas.", [], 422);
+        }
+
+        $repartidor = (new Modelo_repartidor())->find((int) $this->request->getPost('id_repartidor'));
+        $almacen    = (new Modelo_almacen())->find((int) $this->request->getPost('id_almacen'));
+        $origen     = $almacen !== null ? Modelo_almacen::punto($almacen) : null;
+
+        if ($repartidor === null || $origen === null || (int) $almacen['activo'] !== 1) {
+            return $this->json(false, 'Repartidor o almacén no válido.', [], 422);
+        }
+        if (Modelo_repartidor::deBaja($repartidor)) {
+            return $this->json(false, Modelo_repartidor::nombreCompleto($repartidor) . ' fue dado de baja como repartidor; elige otro.', [], 422);
+        }
+
+        // Solo pedidos que de verdad se pueden rutear (confirmados / asignados sin ruta).
+        $permitidos = array_map('intval', array_column($m_ruta->candidatos(), 'id_pedido'));
+        $ajenos     = array_diff($ids, $permitidos);
+        if ($ajenos !== []) {
+            return $this->json(false, 'Los pedidos #' . implode(', #', $ajenos) . ' ya no se pueden poner en una ruta. Recarga la página.', [], 409);
+        }
+
+        [$filas, $sinUbicar] = $this->paradasConCoordenadas($m_ruta, $ids);
+        if ($sinUbicar !== []) {
+            return $this->json(false, 'Estos pedidos no tienen la dirección ubicada en el mapa: #' . implode(', #', $sinUbicar)
+                . '. Corrige la dirección (o acomoda el pin) y vuelve a intentar.', ['sin_ubicar' => $sinUbicar], 422);
+        }
+
+        $preferenciales = array_flip((new Modelo_cliente())->idsPreferenciales());
+        $paradas = [];
+        foreach ($ids as $id) {
+            $f         = $filas[$id];
+            $paradas[] = new Parada(
+                'p' . $id,
+                Punto::desde($f['lat'], $f['lng']),
+                Modelo_pedido::horaValida($f['ventana_fin']),
+                isset($preferenciales[(int) $f['id_cliente']]) ? 1 : 0
+            );
+        }
+
+        $vehiculo = (string) ($repartidor['vehiculo'] ?? 'moto');
+        $salida   = PlaneadorRutas::salida($this->post('fecha'), $this->post('hora'));
+        $regresa  = $this->request->getPost('regresa') !== '0';
+
+        try {
+            $op        = new OpcionesRuta('rapida', array_key_exists($vehiculo, OpcionesRuta::MODOS) ? $vehiculo : 'moto', $salida, $regresa);
+            $planeador = PlaneadorRutas::crear();
+            $opciones  = $this->post('estrategia') === 'manual'
+                ? ['manual' => $planeador->calcular($origen, $paradas, $op->con('manual'))]
+                : $planeador->opciones($origen, $paradas, $op);
+        } catch (InvalidArgumentException $e) {
+            // "Falta la llave … (rutas.llave…)" es un detalle de configuración: solo para superadmin/developer.
+            $mensaje = str_contains($e->getMessage(), 'rutas.llave')
+                ? mensaje_tecnico($e->getMessage(), 'El servicio de mapas no está disponible. Avisa al administrador del sistema.')
+                : $e->getMessage();
+
+            return $this->json(false, $mensaje, [], 422);
+        } catch (Throwable $e) {
+            return $this->json(false, PdoModelo::mensajeSeguro($e, 'No se pudo calcular la ruta.'), [], 500);
+        }
+
+        $token = bin2hex(random_bytes(12));
+        $this->guardarCalculo($token, [
+            'id_repartidor' => (int) $repartidor['id'],
+            'id_almacen'    => (int) $almacen['id'],
+            'fecha'         => $this->post('fecha'),
+            'salida'        => $salida->format(DATE_ATOM),
+            'regresa'       => $regresa,
+            'ids'           => $ids,
+            'opciones'      => array_map(static fn (ResultadoRuta $r) => $r->aArreglo(), $opciones),
+        ]);
+
+        $minutos = config('Rutas')->minutosPorParada;
+        // Coordenadas de un nodo del árbol de expansión mínima ("almacen" o "p{id}").
+        $coordenada = static fn (string $nodo): array => $nodo === ArbolExpansionMinima::ALMACEN
+            ? ['lat' => $origen->lat, 'lng' => $origen->lng]
+            : ['lat' => (float) $filas[(int) substr($nodo, 1)]['lat'], 'lng' => (float) $filas[(int) substr($nodo, 1)]['lng']];
+
+        $salidaJs = [];
+        foreach ($opciones as $clave => $r) {
+            $etas = $r->etas($salida, $minutos);
+            $gas  = Combustible::calcular($r->distanciaM, $repartidor);
+            $salidaJs[$clave] = [
+                'estrategia' => $clave,
+                'proveedor'  => $r->proveedor,
+                'orden'      => array_map(static fn (string $c) => (int) substr($c, 1), $r->orden),
+                'etas'       => array_combine(array_map(static fn (string $c) => substr($c, 1), array_keys($etas)), array_map('rutas_hora', $etas)),
+                'km'         => rutas_km($r->distanciaM),
+                'tiempo'     => rutas_duracion($r->duracionS),
+                'fin'        => rutas_hora($r->fin($salida, $minutos)),
+                'polyline'   => $r->polyline,
+                'aviso'      => $r->aviso,
+                // Árbol de expansión mínima (solo en la opción «arbol»): costo y aristas para el mapa.
+                'arbol'      => $r->arbol === null ? null : [
+                    'costo'   => rutas_km($r->arbol['costo_m']),
+                    'aristas' => array_map(static fn (array $a): array => [$coordenada($a[0]), $coordenada($a[1])], $r->arbol['aristas']),
+                ],
+                // Costo de traslado: null en bicicleta.
+                'combustible' => $gas === null ? null : [
+                    'texto'     => Combustible::texto($gas['litros'], $gas['costo'], $gas['combustible']),
+                    'porParada' => '$' . number_format($gas['costo'] / max(1, count($r->orden)), 2),
+                    'detalle'   => number_format($gas['rendimiento'], 1) . ' km/L'
+                        . ($gas['estimado'] ? ' (típico de ' . (Modelo_repartidor::VEHICULOS[$vehiculo] ?? $vehiculo) . '; captura el real en Repartidores)' : '')
+                        . ' · $' . number_format($gas['precio'], 2) . '/L',
+                ],
+            ];
+        }
+
+        $puntos = [];
+        foreach ($ids as $id) {
+            $puntos[$id] = [
+                'lat'     => (float) $filas[$id]['lat'],
+                'lng'     => (float) $filas[$id]['lng'],
+                'cliente' => $filas[$id]['cliente'],
+                'dir'     => Modelo_ruta::textoDireccion($filas[$id]),
+            ];
+        }
+
+        return $this->json(true, '', [
+            'token'    => $token,
+            'opciones' => $salidaJs,
+            'puntos'   => $puntos,
+            'almacen'  => ['lat' => $origen->lat, 'lng' => $origen->lng],
+            'regresa'  => $regresa,
+        ]);
+    }
+
+    /** POST: crea la ruta con la opción elegida. */
+    public function guardar()
+    {
+        $token      = $this->post('token');
+        $estrategia = $this->post('estrategia');
+        $calculos   = (array) session(self::SESION);
+        $calculo    = $calculos[$token] ?? null;
+
+        if ($calculo === null || ! isset($calculo['opciones'][$estrategia])) {
+            return redirect()->to('rutas')->with('error', 'El cálculo expiró o no es válido. Vuelve a calcular la ruta.');
+        }
+
+        $r       = ResultadoRuta::desdeArreglo($calculo['opciones'][$estrategia]);
+        $salida  = new \DateTimeImmutable($calculo['salida']);
+        $etas    = $r->etas($salida, config('Rutas')->minutosPorParada);
+        $paradas = [];
+
+        foreach ($r->orden as $i => $clave) {
+            $paradas[] = [
+                'id_pedido'         => (int) substr($clave, 1),
+                'eta'               => $etas[$clave] ?? null,
+                'distancia_tramo_m' => $r->tramos[$i]['distancia_m'] ?? null,
+                'duracion_tramo_s'  => $r->tramos[$i]['duracion_s'] ?? null,
+            ];
+        }
+
+        $gas = Combustible::calcular($r->distanciaM, (new Modelo_repartidor())->find((int) $calculo['id_repartidor']) ?? []);
+
+        // Manual y árbol conservan su nombre aunque se midan sin servicio: su orden no es el aproximado.
+        $m_ruta     = new Modelo_ruta();
+        $estrategia = $r->proveedor === 'local' && ! in_array($r->estrategia, ['manual', 'arbol'], true) ? 'aproximada' : $r->estrategia;
+        if ($estrategia === 'arbol' && ! $m_ruta->aceptaEstrategia('arbol')) {
+            $estrategia = 'manual'; // sin la migración AddEstrategiaArbol la columna no acepta «arbol»
+        }
+
+        try {
+            $idRuta = $m_ruta->crear([
+                'fecha'           => $calculo['fecha'],
+                'id_repartidor'   => $calculo['id_repartidor'],
+                'id_almacen'      => $calculo['id_almacen'],
+                'estrategia'      => $estrategia,
+                'regresa_almacen' => $calculo['regresa'] ? 1 : 0,
+                'distancia_m'     => $r->distanciaM,
+                'duracion_s'      => $r->duracionS,
+                'polyline'        => $r->polyline,
+                'proveedor'       => $r->proveedor,
+                'creada_por'      => (int) auth()->id(),
+                // Se ignoran si aún no existe la migración de combustible.
+                'litros'            => $gas['litros'] ?? null,
+                'costo_combustible' => $gas['costo'] ?? null,
+                'precio_litro'      => $gas['precio'] ?? null,
+            ], $paradas);
+        } catch (DomainException $e) {
+            return redirect()->to('rutas?fecha=' . rawurlencode($calculo['fecha']))->with('error', $e->getMessage());
+        } catch (Throwable $e) {
+            return redirect()->to('rutas?fecha=' . rawurlencode($calculo['fecha']))
+                ->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo guardar la ruta.'));
+        }
+
+        unset($calculos[$token]);
+        session()->set(self::SESION, $calculos);
+
+        return redirect()->to('rutas/' . $idRuta)->with('mensaje', 'Ruta asignada. El repartidor ya la ve en su teléfono.');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // DETALLE / CANCELAR
+    // ─────────────────────────────────────────────────────────────
+
+    public function detalle($id = null)
+    {
+        $m_ruta = new Modelo_ruta();
+        if (! $m_ruta->esquemaListo()) {
+            return $this->sinMigracion();
+        }
+
+        $ruta = ctype_digit((string) $id) ? $m_ruta->detalle((int) $id) : null;
+        if ($ruta === null) {
+            return redirect()->to('rutas')->with('error', 'La ruta no existe.');
+        }
+
+        helper('whatsapp');
+
+        $paradas = array_map(static function (array $p) use ($ruta): array {
+            $punto        = Punto::desde($p['lat'], $p['lng']);
+            $p['navegar'] = EnlaceNavegacion::hacia($punto, $p['place_id'] ?? null, (string) $ruta['vehiculo'], Modelo_ruta::textoDireccion($p));
+            $p['aviso_wa'] = $p['eta'] && in_array($p['estado'], ['asignada', 'en_ruta'], true)
+                ? whatsapp_url(
+                    whatsapp_telefono($p['telefono_cliente']),
+                    'Hola ' . whatsapp_texto($p['cliente']) . ', tu pedido #' . (int) $p['id_pedido']
+                    . ' de Fruver llegará aproximadamente a las ' . rutas_hora($p['eta']) . '. ¡Gracias!'
+                )
+                : null;
+
+            return $p;
+        }, $m_ruta->paradas((int) $id));
+
+        CspMapas::permitir($this->response);
+
+        return view('rutas_detalle', [
+            'ruta'        => $ruta,
+            'paradas'     => $paradas,
+            'almacenMapa' => ['lat' => $ruta['almacen_lat'], 'lng' => $ruta['almacen_lng']],
+        ]);
+    }
+
+    public function cancelar($id = null)
+    {
+        $ok = ctype_digit((string) $id) && (new Modelo_ruta())->cancelar((int) $id);
+
+        return redirect()->to($ok ? 'rutas' : 'rutas/' . (int) $id)->with(
+            $ok ? 'mensaje' : 'error',
+            $ok ? 'Ruta cancelada. Sus pedidos siguen asignados al repartidor y se pueden volver a planear.'
+                : 'Solo se puede cancelar una ruta que aún no sale.'
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // ALMACÉN (punto de salida)
+    // ─────────────────────────────────────────────────────────────
+
+    public function almacen()
+    {
+        if (! (new Modelo_ruta())->esquemaListo()) {
+            return $this->sinMigracion();
+        }
+
+        $almacenes = (new Modelo_almacen())->findAll();
+        CspMapas::permitir($this->response);
+
+        return view('rutas_almacen', [
+            'almacenes'   => $almacenes,
+            'almacenMapa' => $almacenes[0] ?? null,
+        ]);
+    }
+
+    public function guarda_almacen()
+    {
+        $reglas = [
+            'id'        => 'permit_empty|is_natural_no_zero',
+            'nombre'    => 'required|max_length[100]|sin_groserias',
+            'direccion' => 'required|max_length[300]|sin_groserias',
+            'geo_lat'   => 'required|decimal|greater_than_equal_to[-90]|less_than_equal_to[90]',
+            'geo_lng'   => 'required|decimal|greater_than_equal_to[-180]|less_than_equal_to[180]',
+        ];
+        $mensajes = [
+            'geo_lat' => ['required' => 'Ubica el almacén en el mapa (busca la dirección o toca el mapa).'],
+            'geo_lng' => ['required' => 'Ubica el almacén en el mapa (busca la dirección o toca el mapa).'],
+        ];
+
+        $id     = $this->post('id');
+        $actual = $id !== '' && ctype_digit($id) ? (new Modelo_almacen())->find((int) $id) : null;
+
+        // Al editar sin mover el pin se conservan las coordenadas actuales.
+        $conservaPin = $actual !== null && $this->post('geo_lat') === '';
+        if ($conservaPin) {
+            unset($reglas['geo_lat'], $reglas['geo_lng']);
+        }
+
+        if (! $this->validate($reglas, $mensajes)) {
+            return $this->volverConErrores();
+        }
+
+        $datos = [
+            'nombre'    => $this->post('nombre'),
+            'direccion' => $this->post('direccion'),
+            'activo'    => $this->request->getPost('activo') === '0' ? 0 : 1,
+        ];
+        if (! $conservaPin) {
+            $datos['lat']      = (float) $this->post('geo_lat');
+            $datos['lng']      = (float) $this->post('geo_lng');
+            $datos['place_id'] = $this->post('geo_place_id') !== '' ? mb_substr($this->post('geo_place_id'), 0, 255) : null;
+        }
+
+        try {
+            $m = new Modelo_almacen();
+            $actual !== null ? $m->update((int) $actual['id'], $datos) : $m->insert($datos);
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()->with('error', PdoModelo::mensajeSeguro($e, 'No se pudo guardar el almacén.'));
+        }
+
+        return redirect()->to('rutas/almacen')->with('mensaje', 'Almacén guardado.');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // COMBUSTIBLE (precios por litro para el costo de traslado)
+    // ─────────────────────────────────────────────────────────────
+
+    public function combustible()
+    {
+        $m = new Modelo_repartidor();
+
+        return view('rutas_combustible', [
+            'precios'      => Combustible::precios(),
+            'actualizados' => Combustible::actualizados(),
+            'fabrica'      => config('Rutas')->preciosCombustible,
+            'repartidores' => $m->activos(),
+            'conColumnas'  => $m->tieneCombustible(),
+        ]);
+    }
+
+    public function guarda_combustible()
+    {
+        $reglas = [];
+        foreach (array_keys(Combustible::TIPOS) as $tipo) {
+            $reglas['precio_' . $tipo] = [
+                'label' => Combustible::TIPOS[$tipo],
+                'rules' => 'required|decimal|greater_than[0]|less_than_equal_to[100]',
+                'errors' => [
+                    'required'           => 'Escribe el precio de {field}.',
+                    'decimal'            => 'El precio de {field} debe ser un número (por ejemplo 23.90).',
+                    'greater_than'       => 'El precio de {field} debe ser mayor que cero.',
+                    'less_than_equal_to' => 'El precio de {field} parece demasiado alto.',
+                ],
+            ];
+        }
+
+        if (! $this->validate($reglas)) {
+            return $this->volverConErrores();
+        }
+
+        try {
+            Combustible::guardarPrecios(array_combine(
+                array_keys(Combustible::TIPOS),
+                array_map(fn (string $t): float => (float) $this->post('precio_' . $t), array_keys(Combustible::TIPOS))
+            ));
+        } catch (Throwable $e) {
+            return redirect()->back()->withInput()->with('error', PdoModelo::mensajeSeguro($e, 'No se pudieron guardar los precios.'));
+        }
+
+        return redirect()->to('rutas/combustible')->with('mensaje', 'Precios actualizados. Las rutas nuevas ya los usan.');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+
+    /** @return list<int> ids de pedido en el orden recibido, sin repetir */
+    private function idsPedido(): array
+    {
+        $crudos = $this->request->getPost('pedidos');
+        if (! is_array($crudos)) {
+            return [];
+        }
+
+        $ids = [];
+        foreach ($crudos as $v) {
+            if (is_string($v) && ctype_digit($v) && (int) $v > 0) {
+                $ids[(int) $v] = (int) $v;
+            }
+        }
+
+        return array_values($ids);
+    }
+
+    /**
+     * Lee las paradas de la BD; a las que no tienen coordenadas intenta ubicarlas
+     * con el servicio de mapas (una vez). Devuelve [filas por id, ids que siguen sin ubicar].
+     *
+     * @return array{0:array<int,array<string,mixed>>,1:list<int>}
+     */
+    private function paradasConCoordenadas(Modelo_ruta $m_ruta, array $ids): array
+    {
+        $filas       = $m_ruta->paradasDePedidos($ids);
+        $reintentar  = false;
+        $m_direccion = new Modelo_direccion();
+        $ubicador    = null;
+        $conBusqueda = config('Rutas')->conServicio();
+
+        foreach ($ids as $id) {
+            $f = $filas[$id] ?? null;
+            if ($f !== null && $f['id_direccion'] !== null && Punto::desde($f['lat'], $f['lng']) === null && $conBusqueda) {
+                $ubicador ??= UbicadorDirecciones::crear($m_direccion);
+                $d = $m_direccion->find((int) $f['id_direccion']);
+                if ($d !== null) {
+                    $ubicador->ubicar((int) $d['id'], $d, null, true);
+                    $reintentar = true;
+                }
+            }
+        }
+
+        if ($reintentar) {
+            $filas = $m_ruta->paradasDePedidos($ids);
+        }
+
+        $sin = [];
+        foreach ($ids as $id) {
+            if (! isset($filas[$id]) || Punto::desde($filas[$id]['lat'], $filas[$id]['lng']) === null) {
+                $sin[] = $id;
+            }
+        }
+
+        return [$filas, $sin];
+    }
+
+    /** Guarda el cálculo en sesión (máximo 5 recientes). */
+    private function guardarCalculo(string $token, array $datos): void
+    {
+        $calculos          = (array) session(self::SESION);
+        $calculos[$token]  = $datos;
+        session()->set(self::SESION, array_slice($calculos, -5, null, true));
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // DIJKSTRA ENTRE DOS PUNTOS (calles de OpenStreetMap)
+    // ─────────────────────────────────────────────────────────────
+
+    /** Página para calcular el camino de menor costo entre dos puntos con Dijkstra. */
+    public function dijkstra()
+    {
+        $m_ruta = new Modelo_ruta();
+        if (! $m_ruta->esquemaListo()) {
+            return $this->sinMigracion();
+        }
+
+        $almacenes = (new Modelo_almacen())->activos();
+        CspMapas::permitir($this->response);
+
+        return view('rutas_dijkstra', [
+            'almacenes'   => $almacenes,
+            'direcciones' => (new Modelo_direccion())->ubicadas(),
+            'almacenMapa' => $almacenes[0] ?? null,
+        ]);
+    }
+
+    /** POST (JSON): descarga las calles, arma el grafo y corre Dijkstra. */
+    public function dijkstra_calcular()
+    {
+        $reglas = [
+            'origen'   => ['required', 'regex_match[/^[ad]\d{1,10}$/]'],
+            'destino'  => ['required', 'regex_match[/^[ad]\d{1,10}$/]'],
+            'criterio' => 'required|in_list[tiempo,distancia]',
+        ];
+        if (! $this->validate($reglas)) {
+            return $this->json(false, 'Elige el origen, el destino y el criterio.', [], 422);
+        }
+
+        // Las coordenadas salen de la base de datos, nunca del navegador.
+        $origen  = $this->puntoDijkstra($this->post('origen'));
+        $destino = $this->puntoDijkstra($this->post('destino'));
+        if ($origen === null || $destino === null) {
+            return $this->json(false, 'El origen o el destino no existe o no está ubicado en el mapa.', [], 422);
+        }
+        if ($this->post('origen') === $this->post('destino')) {
+            return $this->json(false, 'El origen y el destino son el mismo punto.', [], 422);
+        }
+
+        $cfg   = config('Rutas');
+        $recta = $origen['punto']->distanciaA($destino['punto']) / 1000;
+        if ($recta > $cfg->maxKmDijkstra) {
+            return $this->json(false, 'Los puntos están a ' . number_format($recta, 1) . ' km en línea recta; el máximo para descargar las calles es '
+                . number_format($cfg->maxKmDijkstra, 0) . ' km.', [], 422);
+        }
+
+        // La descarga de calles puede tardar casi un minuto: más margen que el límite normal de PHP.
+        set_time_limit(max(60, $cfg->tiempoEsperaOverpassSeg + 60));
+
+        $criterio = $this->post('criterio');
+        $horas    = max(0, $cfg->horasCacheCalles);
+        $cacheKey = static fn (string $consulta): string => 'calles_osm_' . md5($consulta);
+
+        try {
+            $t0    = microtime(true);
+            $grafo = GrafoCalles::descargar(
+                $origen['punto'], $destino['punto'], new TransporteCurl(), $cfg->urlOverpass, $cfg->velocidadesVia,
+                $cfg->radioCallesLocalesM, $cfg->tiempoEsperaOverpassSeg,
+                $horas > 0 ? static fn (string $q): ?array => cache($cacheKey($q)) ?: null : null,
+                $horas > 0 ? static function (string $q, array $json) use ($cacheKey, $horas): void { cache()->save($cacheKey($q), $json, $horas * 3600); } : null,
+                $cfg->kmTodasLasCalles,
+            );
+            $tDescarga = microtime(true) - $t0;
+        } catch (ErrorProveedorRutas $e) {
+            log_message('error', 'Dijkstra: ' . $e->getMessage());
+
+            return $this->json(false, $e->getMessage(), [], 502);
+        } catch (Throwable $e) {
+            return $this->json(false, PdoModelo::mensajeSeguro($e, 'No se pudieron descargar las calles.'), [], 500);
+        }
+
+        if ($grafo->numNodos() === 0) {
+            return $this->json(false, 'No se encontraron calles en esa zona.', [], 422);
+        }
+
+        // Origen y destino se «pegan» al nodo de calle más cercano.
+        [$nOrigen, $dOrigen]   = $grafo->nodoMasCercano($origen['punto']);
+        [$nDestino, $dDestino] = $grafo->nodoMasCercano($destino['punto']);
+        if ($dOrigen > 1000 || $dDestino > 1000) {
+            return $this->json(false, 'El ' . ($dOrigen > 1000 ? 'origen' : 'destino') . ' queda a más de 1 km de cualquier calle del mapa.', [], 422);
+        }
+
+        $t1        = microtime(true);
+        $resultado = Dijkstra::caminoMasCorto($grafo->adyacencia($criterio), $nOrigen, $nDestino);
+        $tDijkstra = microtime(true) - $t1;
+
+        if ($resultado === null) {
+            return $this->json(false, 'No hay camino por calles entre esos puntos (puede faltar una calle en el mapa o un sentido de circulación lo impide).', [], 422);
+        }
+
+        $medida = $grafo->medir($resultado['camino'], $criterio);
+
+        // Comparación con el servicio de rutas (openrouteservice o Google), si hay.
+        $servicio = null;
+        $planeador = PlaneadorRutas::crear($cfg);
+        if ($planeador->hayServicio()) {
+            try {
+                $op = new OpcionesRuta('manual', 'auto', new \DateTimeImmutable('+1 hour'), false);
+                $r  = $planeador->calcular($origen['punto'], [new Parada('p0', $destino['punto'])], $op);
+                if ($r->proveedor !== 'local') {
+                    $servicio = [
+                        'nombre'   => $cfg->nombreProveedor(),
+                        'km'       => rutas_km($r->distanciaM),
+                        'tiempo'   => rutas_duracion($r->duracionS),
+                        'polyline' => $r->polyline,
+                    ];
+                }
+            } catch (Throwable $e) {
+                log_message('error', 'Dijkstra: no se pudo comparar con el servicio de rutas. ' . $e->getMessage());
+            }
+        }
+
+        return $this->json(true, '', [
+            'origen'   => ['nombre' => $origen['nombre'], 'lat' => $origen['punto']->lat, 'lng' => $origen['punto']->lng],
+            'destino'  => ['nombre' => $destino['nombre'], 'lat' => $destino['punto']->lat, 'lng' => $destino['punto']->lng],
+            'camino'   => $grafo->coordenadas($resultado['camino']),
+            'km'       => rutas_km((int) round($medida['metros'])),
+            'tiempo'   => rutas_duracion((int) round($medida['segundos'])),
+            'criterio' => $criterio,
+            'grafo'    => [
+                'nodos'       => $grafo->numNodos(),
+                'aristas'     => $grafo->numAristas(),
+                'visitados'   => $resultado['visitados'],
+                'nodosCamino' => count($resultado['camino']),
+                'acercamiento' => (int) round(max($dOrigen, $dDestino)),
+                'msDescarga'  => (int) round($tDescarga * 1000),
+                'msDijkstra'  => (int) round($tDijkstra * 1000),
+            ],
+            'servicio' => $servicio,
+        ]);
+    }
+
+    /** "a3" = almacén 3, "d15" = dirección 15. @return array{punto:Punto,nombre:string}|null */
+    private function puntoDijkstra(string $clave): ?array
+    {
+        $id = (int) substr($clave, 1);
+
+        if ($clave[0] === 'a') {
+            $a = (new Modelo_almacen())->find($id);
+            $p = $a !== null && (int) $a['activo'] === 1 ? Modelo_almacen::punto($a) : null;
+
+            return $p === null ? null : ['punto' => $p, 'nombre' => 'Almacén: ' . $a['nombre']];
+        }
+
+        $d = (new Modelo_direccion())->find($id);
+        $p = $d !== null ? Punto::desde($d['lat'] ?? null, $d['lng'] ?? null) : null;
+
+        return $p === null ? null : ['punto' => $p, 'nombre' => Modelo_ruta::textoDireccion($d)];
+    }
+
+    private function json(bool $ok, string $mensaje, array $extra = [], int $codigo = 200)
+    {
+        return $this->response->setStatusCode($codigo)->setJSON(['ok' => $ok, 'mensaje' => $mensaje, 'csrf' => csrf_hash()] + $extra);
+    }
+}

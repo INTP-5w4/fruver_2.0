@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Modifica existencia</title>
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <form action="<?= base_url('modifica_existencia') ?>" method="post">
-        <input type="hidden" name="id" value="<?= $existencias['id'] ?>">
+<?= csrf_field() ?>
+        <input type="hidden" name="id" value="<?= esc($existencias['id']) ?>">
         
         <label for="e_total">Existencias totales:</label><br>
         <input type="number" name="e_total" id="e_total" value="<?= esc($existencias['e_total']) ?>" required><br>

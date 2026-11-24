@@ -1,0 +1,16 @@
+/* Estado de cliente preferencial (lista_cliente) */
+.pref-celda { white-space: normal; min-width: 190px; }
+.pref-origen { display:inline-block; margin-left:4px; color:#4f5d53; font-size:12px; }
+.pref-motivo { display:block; margin:4px 0; color:#455a64; font-size:12px; max-width:260px;
+               overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.btn-pref { display:inline-flex; align-items:center; gap:6px; margin-top:4px; padding:3px 12px; min-height:34px;
+            border:1px solid #b0bec5; border-radius:17px; background:#fff; color:#455a64; font-size:12px; cursor:pointer; }
+.btn-pref { white-space:nowrap; overflow-wrap:normal; flex-shrink:0; }
+.btn-pref i { color:#b27a00; }
+.btn-pref:hover:not([disabled]) { background:#fff8e1; border-color:#ffb300; }
+.btn-pref[disabled] { opacity:.5; cursor:not-allowed; }
+.pref-cliente { font-weight:600; margin:0 0 4px; }
+.pref-actual { color:#4f5d53; font-size:13px; margin:0 0 12px; }
+.pref-opcion { display:flex; gap:10px; align-items:flex-start; margin:8px 0; cursor:pointer; }
+.pref-opcion input { margin-top:4px; }
+.pref-contador { color:#4f5d53; }

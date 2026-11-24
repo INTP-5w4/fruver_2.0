@@ -2,29 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Productos</title>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
 </head>
 <body class="w3-light-grey">
+<?php include 'Header.php'; ?>
 
 <!-- Mensajes de error y éxito -->
 <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
+        <p><?= esc(session()->getFlashdata('error')) ?></p>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('mensaje')): ?>
     <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
+        <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('errors')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
         <?php foreach (session()->getFlashdata('errors') as $e): ?>
-            <p><?= $e ?></p>
+            <p><?= esc($e) ?></p>
         <?php endforeach; ?>
     </div>
 <?php endif; ?>
@@ -48,38 +49,39 @@
         <!-- Error dentro del modal -->
         <?php if (session()->getFlashdata('error')): ?>
             <div class="w3-panel w3-red w3-margin">
-                <p><?= session()->getFlashdata('error') ?></p>
+                <p><?= esc(session()->getFlashdata('error')) ?></p>
             </div>
         <?php endif; ?>
 
         <?php if (session()->getFlashdata('errors')): ?>
             <div class="w3-panel w3-red w3-margin">
                 <?php foreach (session()->getFlashdata('errors') as $e): ?>
-                    <p><?= $e ?></p>
+                    <p><?= esc($e) ?></p>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
 
         <form action="<?= base_url('guarda_producto') ?>" method="post"
               enctype="multipart/form-data" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
-            <label><b>Nombre</b></label>
-            <input type="text" name="nom" class="w3-input w3-border w3-margin-bottom"
+            <label for="nuevo-producto-nom"><b>Nombre</b></label>
+            <input id="nuevo-producto-nom" type="text" name="nom" class="w3-input w3-border w3-margin-bottom"
                    placeholder="Ej: Tomate Saladet" required>
 
-            <label><b>Descripción</b></label>
-            <textarea name="desc" class="w3-input w3-border w3-margin-bottom"
+            <label for="nuevo-producto-desc"><b>Descripción</b></label>
+            <textarea id="nuevo-producto-desc" name="desc" class="w3-input w3-border w3-margin-bottom"
                       rows="4" required></textarea>
 
-            <label><b>Categoría</b></label>
-            <select name="cat" class="w3-select w3-border w3-margin-bottom">
+            <label for="nuevo-producto-cat"><b>Categoría</b></label>
+            <select id="nuevo-producto-cat" name="cat" class="w3-select w3-border w3-margin-bottom">
                 <option value="frutas">Frutas</option>
                 <option value="verduras">Verduras</option>
                 <option value="yerbas">Yerbas</option>
             </select>
 
-            <label><b>Imagen</b></label>
-            <input type="file" name="img" class="w3-input w3-border w3-margin-bottom">
+            <label for="nuevo-producto-img"><b>Imagen</b></label>
+            <input id="nuevo-producto-img" type="file" name="img" class="w3-input w3-border w3-margin-bottom">
 
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
@@ -93,12 +95,6 @@
 </div>
 
 <script>
-    window.onclick = function(event) {
-        const modal = document.getElementById('modalProducto');
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
 
     // Si hay error, abre el modal automáticamente
     <?php if (session()->getFlashdata('error') || session()->getFlashdata('errors')): ?>

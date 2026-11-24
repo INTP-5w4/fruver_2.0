@@ -2,30 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crea pedido</title>
 </head>
 <body>
+<?php include 'Header.php'; ?>
     <form action="<?= base_url('modifica_pedido') ?>" method="post">
-        <input type="hidden" name="id" value="<?= $pedidos['id'] ?>">
+<?= csrf_field() ?>
+        <input type="hidden" name="id" value="<?= esc($pedidos['id']) ?>">
         <label for="fecha">Fecha</label><br>
-        <input type="date" name="fecha" id="" value="<?= $pedidos['fecha']?>"><br>
+        <input id="fecha" type="date" name="fecha" value="<?= esc($pedidos['fecha']) ?>"><br>
 
         <label for="id_cliente">Cliente</label><br>
-        <select name="id_cliente">
+        <select id="id_cliente" name="id_cliente">
             <?php foreach ($clientes as $c): ?>
-                <option value="<?= $c['id'] ?>" <?= ($c['id'] == $pedidos['id_cliente']) ? 'selected' : '' ?>>
-        <?= $c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat'] ?>
+                <option value="<?= esc($c['id']) ?>" <?= ($c['id'] == $pedidos['id_cliente']) ? 'selected' : '' ?>>
+        <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
     </option>
 <?php endforeach; ?>
 </select><br>
                 
         <label for="id_repartidor">Repartidor</label><br>
-        <select name="id_repartidor" id="">
+        <select id="id_repartidor" name="id_repartidor">
 
             <?php foreach ($repartidores as $r): ?>
-                <option value="<?= $r['id'] ?>" <?= ($r['id'] == $pedidos['id_cliente']) ? 'selected' :'' ?>>
-                    <?= $r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat'] ?></option>
+                <?php $esSuyo = $r['id'] == $pedidos['id_repartidor'];
+                // Uno dado de baja solo aparece si ya era el de este pedido (su historial).
+                if (\App\Models\Modelo_repartidor::deBaja($r) && ! $esSuyo) { continue; } ?>
+                <option value="<?= esc($r['id']) ?>" <?= $esSuyo ? 'selected' : '' ?>>
+                    <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?><?= \App\Models\Modelo_repartidor::deBaja($r) ? ' (dado de baja)' : '' ?></option>
                 <?php endforeach; ?>
         </select><br>
         <input type="submit" value="Enviar">

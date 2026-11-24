@@ -1,554 +1,724 @@
-/* ═══════════════════════════════════════════════════
-   FRUVER — estilosPaginas.css
-   ═══════════════════════════════════════════════════ */
-
-/* ── RESET BASE ── */
-html {
-    height: 100%;
-    box-sizing: border-box;
-}
-
-*, *::before, *::after {
-    box-sizing: inherit;
-}
+/* ═══════════════════════════════════════════════════════════════════
+   estilosPaginas.css — Estructura del panel de Fruver
+   Menú lateral, área de contenido, tablas, modales, avisos y pie.
+   Usa los tokens de base.css (se carga después de él).
+   Puntos de corte: 1024px, 768px y 480px.
+   ═══════════════════════════════════════════════════════════════════ */
 
 body {
     min-height: 100vh;
-    margin: 0;
-    padding: 0;
     display: flex;
     flex-direction: column;
-    background-color: #f7f7f7;
-    font-family: sans-serif;
+    padding-top: var(--alto-encabezado);
 }
 
-/* ═══════════════════════════════════════════════════
-   CONTENEDOR DE TABLA — scrollbar horizontal siempre
-   ═══════════════════════════════════════════════════ */
+/* ── MENÚ LATERAL ─────────────────────────────────── */
+.sidebar {
+    position: fixed;
+    top: var(--alto-encabezado);
+    left: 0;
+    bottom: 0;
+    width: var(--ancho-menu);
+    background: var(--hoja-oscura);
+    color: #cfe3d4;
+    overflow-y: auto;
+    z-index: 90;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+.sidebar-nav { display: grid; gap: 4px; padding: 12px 10px 24px; }
+.nav-grupo { display: grid; gap: 2px; }
+.sidebar-nav > .nav-item + .nav-grupo { margin-top: 6px; }
+/* Encabezado de grupo: se ve y funciona como un botón que pliega (flecha a la derecha) */
+.nav-label {
+    display: flex; align-items: center; gap: 10px;
+    min-height: 36px; padding: 0 10px;
+    border-radius: var(--r-control);
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #b9d6c0; /* 7.6:1 sobre --hoja-oscura */
+    cursor: pointer; list-style: none; user-select: none;
+}
+.nav-label::-webkit-details-marker { display: none; }
+.nav-label:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.nav-label:focus-visible { outline: 3px solid #9cc2ff; outline-offset: -1px; }
+.nav-flecha { margin-left: auto; font-size: 11px; transition: transform var(--duracion) ease; }
+.nav-grupo:not([open]) .nav-flecha { transform: rotate(-90deg); }
+.nav-opciones { display: grid; gap: 2px; padding-bottom: 6px; }
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    padding: 0 10px;
+    border-radius: var(--r-control);
+    color: #d9eadc;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color var(--duracion), color var(--duracion);
+}
+.nav-item i { width: 18px; text-align: center; font-size: 14px; color: #9fc6a9; }
+.nav-item:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.nav-item:hover i { color: #fff; }
+.nav-item:focus-visible { outline: 3px solid #9cc2ff; outline-offset: -1px; }
+
+/* En tableta/táctil (≤1024 px, donde el menú lateral se toca con el dedo) los ítems y
+   los títulos de grupo cumplen el objetivo táctil de 44 px. En escritorio (ratón) se
+   quedan compactos como los diseñó la pantalla. */
+@media (max-width: 1024px) {
+    .nav-label, .nav-item, .subnav-item { min-height: var(--tactil-min); }
+}
+.nav-item.activo { background: var(--papel); color: var(--hoja-oscura); font-weight: 700; }
+.nav-item.activo i { color: var(--hoja); }
+
+/* Solo en celular (ver RESPONSIVE): fila del área actual, barra inferior y hoja «Más» */
+.subnav, .nav-inferior, .hoja, .hoja-fondo { display: none; }
+
+/* ── ÁREA DE CONTENIDO ────────────────────────────── */
+.lista-wrapper {
+    margin-left: var(--ancho-menu);
+    padding: 0 28px 40px;
+    min-height: calc(100vh - var(--alto-encabezado));
+    flex: 1 0 auto;
+}
+/* Vistas sin menú lateral (repartidor, buzón para clientes) */
+body:not(:has(.sidebar)) .lista-wrapper { margin-left: 0; }
+
+/* Barra de título + botón "+ Nuevo..." de las listas */
+.contenedor-boton {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 16px;
+    padding: 24px 0 16px !important; /* las vistas traen padding-top en línea distinto en cada una */
+}
+.contenedor-boton > h1,
+.contenedor-boton > h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+/* Varios botones en la barra: juntos a la derecha, misma altura */
+.contenedor-boton__acciones { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.contenedor-boton__acciones > .btn-agregar { display: inline-flex; align-items: center; gap: 6px; margin: 0; }
+
+/* Títulos de las pantallas que aún usan su propia clase */
+.com-titulo, .er-titulo, .ticket-titulo, .sug-titulo,
+.lista-wrapper > h2:first-child, .lista-wrapper > div:first-of-type > h2 {
+    font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--tinta);
+}
+.lista-wrapper > h2:first-child { padding: 24px 0 16px !important; }
+
+/* Buscadores de las listas */
+.lista-wrapper > form[method="get"],
+.lista-wrapper form.buscador-lista { margin-bottom: 16px; }
+.lista-wrapper > form[method="get"] > div { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.lista-wrapper > form[method="get"] .w3-input { max-width: 360px; }
+
+/* ── TABLAS ───────────────────────────────────────── */
 .tabla-wrapper {
     width: 100%;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
+    scrollbar-width: thin;
+    scrollbar-color: var(--hoja-suave) transparent;
 }
-
-/* Scrollbar visible y estilizada (Webkit) */
-.tabla-wrapper::-webkit-scrollbar {
-    height: 8px;
-}
-.tabla-wrapper::-webkit-scrollbar-track {
-    background: #e8f5e9;
-    border-radius: 4px;
-}
-.tabla-wrapper::-webkit-scrollbar-thumb {
-    background: #3AA346;
-    border-radius: 4px;
-}
-.tabla-wrapper::-webkit-scrollbar-thumb:hover {
-    background: #007542;
-}
-
-/* ═══════════════════════════════════════════════════
-   TABLAS — estilos base
-   ═══════════════════════════════════════════════════ */
-table {
+.lista-wrapper table:not(.w3-table):not(.mini) {
     width: 100%;
-    min-width: max-content;      /* Nunca se comprime; activa la scrollbar */
     border-collapse: collapse;
-    margin-top: 0;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 117, 66, 0.15);
-    table-layout: auto;
+    background: var(--superficie);
 }
-
-thead {
-    background: linear-gradient(135deg, #007542, #3AA346);
-    color: white;
+.tabla-wrapper > table { min-width: max-content; }
+/* Tablas que no están dentro de .tabla-wrapper reciben su propio borde */
+.lista-wrapper > table:not(.w3-table),
+.contenedor-boton ~ table:not(.w3-table) {
+    display: block;
+    overflow-x: auto;
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
 }
-
-th {
-    padding: 14px 16px;
+.lista-wrapper th {
+    padding: 10px 14px;
     text-align: left;
-    font-weight: bold;
-    letter-spacing: 0.8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    font-size: 13px;
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--tinta-suave);
+    background: var(--superficie-2);
+    border-bottom: 1px solid var(--linea);
     white-space: nowrap;
 }
-
-th:last-child { border-right: none; }
-
-td {
-    padding: 12px 16px;
+.lista-wrapper td {
+    padding: 11px 14px;
     text-align: left;
-    border-bottom: 1px solid #e0e0e0;
-    color: #333;
-    border-right: 1px solid rgba(0, 117, 66, 0.1);
+    border-bottom: 1px solid var(--linea-suave);
+    color: var(--tinta);
     white-space: nowrap;
-}
-
-td:last-child { border-right: none; }
-
-tbody tr:nth-child(even) {
-    background-color: #f9fff9;
-}
-
-/* Hover sólo en filas "normales" (no en la fila de detalle) */
-tbody tr.fila-pedido:hover td,
-tbody tr:not(.fila-detalle):hover td {
-    background-color: #f0fff4;
-    border-left: 3px solid #9BE931;
-}
-
-/* ═══════════════════════════════════════════════════
-   FILA DETALLE EXPANDIBLE (lista_p_pedido)
-   ═══════════════════════════════════════════════════ */
-.fila-detalle {
-    display: none;
-    background: #f0fff4;
-}
-
-.fila-detalle.abierto {
-    display: table-row;
-}
-
-.fila-detalle > td {
-    padding: 0;
-    border-top: none;
-    white-space: normal;        /* El detalle sí puede envolver texto */
-}
-
-.detalle-inner {
-    padding: 12px 24px 16px 40px;
-    border-left: 4px solid #3AA346;
-    overflow-x: auto;           /* Scrollbar propia del detalle si es muy ancho */
-}
-
-/* Tabla interior del detalle */
-.detalle-inner table {
-    margin-top: 8px;
-    box-shadow: none;
-    border-radius: 0;
-    min-width: 400px;           /* Ancho mínimo razonable para la sub-tabla */
-}
-
-.detalle-inner thead {
-    background: linear-gradient(135deg, #3AA346, #58BB43);
-}
-
-.detalle-inner th,
-.detalle-inner td {
-    font-size: 12px;
-    padding: 7px 12px;
-}
-
-/* Botón chevron expandir */
-.btn-expandir {
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: #007542;
-    font-size: 14px;
-    padding: 0 4px;
-    transition: transform 0.25s ease;
-    display: inline-flex;
-    align-items: center;
-}
-
-.btn-expandir.abierto {
-    transform: rotate(90deg);
-}
-
-/* Resumen de productos (celda recortada) */
-.resumen-productos {
-    font-size: 12px;
-    color: #555;
-    max-width: 220px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: inline-block;
     vertical-align: middle;
 }
+.lista-wrapper tbody tr:last-child td { border-bottom: 0; }
+.lista-wrapper tbody tr:not(.fila-detalle):hover td { background: #f6faf1; }
+.lista-wrapper td img { border-radius: var(--r-control); }
 
-/* Total del pedido */
-.total-pedido {
-    font-weight: bold;
-    color: #007542;
-    white-space: nowrap;
-}
-
-/* Cursor pointer en filas expandibles */
-.fila-pedido {
+/* Botones de acción sueltos dentro de las celdas (editar, borrar...) */
+.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):not(.btn-pref),
+.lista-wrapper td > form > button:not(.w3-button):not(.btn),
+.lista-wrapper td > a.accion {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    border: 1px solid transparent !important; border-radius: var(--r-control);
+    background: transparent !important; color: var(--tinta-suave);
     cursor: pointer;
 }
+.lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):not(.btn-pref):hover,
+.lista-wrapper td > a.accion:hover { background: var(--hoja-clara) !important; color: var(--hoja-oscura); }
+.lista-wrapper td > form > button:not(.w3-button):not(.btn):hover { background: var(--alerta-claro) !important; color: var(--alerta); }
 
-/* ═══════════════════════════════════════════════════
-   CONTENEDOR BOTÓN Y BOTÓN AGREGAR
-   ═══════════════════════════════════════════════════ */
-.contenedor-boton {
-    padding: 10px 16px;
+/* ── FILA DE DETALLE (Productos por pedido) ───────── */
+.fila-pedido { cursor: pointer; }
+.fila-detalle { display: none; }
+.fila-detalle.abierto { display: table-row; }
+.fila-detalle > td { padding: 0 !important; white-space: normal; background: #f6faf1; }
+.detalle-inner { padding: 14px 24px 18px 52px; overflow-x: auto; }
+.detalle-inner > b { font-family: var(--f-titulo); font-size: 14px; }
+.detalle-inner table { margin-top: 8px; min-width: 420px; border: 1px solid var(--linea-suave); border-radius: var(--r-control); }
+.detalle-inner th, .detalle-inner td { font-size: 12.5px; padding: 7px 12px !important; }
+.btn-expandir {
+    border: none; background: none; cursor: pointer; color: var(--hoja);
+    width: 28px; height: 28px; border-radius: var(--r-control);
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: transform .2s ease, background-color .15s;
 }
-
-.btn-agregar {
-    background: linear-gradient(135deg, #007542, #3AA346);
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    letter-spacing: 0.5px;
-    transition: background 0.2s;
+.btn-expandir:hover { background: var(--hoja-clara); }
+.btn-expandir.abierto { transform: rotate(90deg); }
+.resumen-productos {
+    font-size: 13px; color: var(--tinta-suave);
+    max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: inline-block; vertical-align: middle;
 }
+.total-pedido { font-weight: 700; color: var(--tinta); white-space: nowrap; }
 
-.btn-agregar:hover {
-    background: linear-gradient(135deg, #3AA346, #58BB43);
+/* Productos por pedido: cliente y repartidor pueden ocupar dos líneas para que
+   el estado y las acciones quepan sin desplazarse a lo ancho */
+.lista-wrapper .tabla-wrapper > .tabla-pedidos { min-width: 0; }
+.tabla-pedidos > tbody > tr > td:nth-child(4),
+.tabla-pedidos > tbody > tr > td:nth-child(7) { white-space: normal; min-width: 130px; max-width: 200px; }
+.tabla-pedidos > tbody > tr > td:first-child { width: 40px; padding-right: 0; }
+.tabla-pedidos .resumen-productos { max-width: 150px; }
+.lista-wrapper .tabla-pedidos > thead > tr > th,
+.lista-wrapper .tabla-pedidos > tbody > tr:not(.fila-detalle) > td { padding-left: 10px; padding-right: 10px; }
+.tabla-pedidos .acciones-fila .btn-icono { width: 30px; height: 30px; }
+@media (max-width: 1024px) { .lista-wrapper .tabla-wrapper > .tabla-pedidos { min-width: max-content; } }
+
+/* Miniatura de producto en las listas */
+.miniatura { width: 44px; height: 44px; object-fit: cover; border-radius: var(--r-control); border: 1px solid var(--linea); display: block; }
+.sin-foto { font-size: 12.5px; color: var(--tinta-suave); }
+
+/* Columna de acciones con íconos (editar, imprimir, eliminar...) */
+.lista-wrapper .col-acciones { text-align: right; }
+.acciones-fila { display: flex; gap: 2px; justify-content: flex-end; align-items: center; }
+.acciones-fila form { display: inline-flex; margin: 0; }
+.paginacion-estado { align-self: center; padding: 0 8px; color: var(--tinta-suave); font-size: 13px; }
+.tabla-wrapper .paginacion { margin: 0; padding: 12px; border-top: 1px solid var(--linea-suave); position: sticky; left: 0; }
+
+/* Pestañas por estado (Productos por pedido) */
+.pestanas-estado {
+    display: flex; gap: 2px; margin-bottom: 14px;
+    border-bottom: 1px solid var(--linea);
+    overflow-x: auto; scrollbar-width: none;
 }
-
-.btn-icono {
-    border: none;
-    cursor: pointer;
-    background: none;
+.pestanas-estado::-webkit-scrollbar { display: none; }
+.pestana {
+    display: inline-flex; align-items: center; gap: 7px; flex: none;
+    padding: 9px 12px; margin-bottom: -1px;
+    color: var(--tinta-suave); font-weight: 600; font-size: 14px; text-decoration: none;
+    border-bottom: 2px solid transparent;
 }
+.pestana b { font-size: 11.5px; font-weight: 700; line-height: 19px; padding: 0 7px; border-radius: var(--r-pildora); background: var(--linea-suave); color: var(--tinta-suave); }
+.pestana:hover { color: var(--hoja-oscura); }
+.pestana.activa { color: var(--hoja-oscura); border-bottom-color: var(--hoja); }
+.pestana.activa b { background: var(--hoja); color: #fff; }
 
-/* ═══════════════════════════════════════════════════
-   MODALES PROPIOS (.modal-*)
-   ═══════════════════════════════════════════════════ */
-.modal-contenido {
-    max-width: 500px;
-    margin: auto;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 117, 66, 0.2);
+/* ── MODALES ──────────────────────────────────────── */
+/* El fondo va por encima del menú lateral (z 90/120) y de la barra superior (z 130):
+   antes quedaba debajo y el menú tapaba la mitad izquierda del formulario. */
+.w3-modal {
+    z-index: 200 !important;
+    background-color: rgba(29, 42, 31, 0.55) !important;
+    padding: 56px 16px 40px !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
-
-.modal-header {
-    background: linear-gradient(135deg, #007542, #3AA346);
-    color: white;
-    padding: 16px;
-    position: relative;
-}
-
-.modal-header h2 {
-    margin: 0;
-}
-
-.modal-cerrar {
-    position: absolute;
-    right: 16px;
-    top: 12px;
-    cursor: pointer;
-    font-size: 22px;
-    color: white;
-    background: none;
-    border: none;
-    line-height: 1;
-}
-
-.modal-form {
-    padding: 16px;
-    background: white;
-}
-
-.modal-form label {
-    color: #007542;
-    font-weight: bold;
-    display: block;
-    margin-bottom: 4px;
-}
-
-.modal-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 14px;
-    border: 1px solid #3AA346;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.modal-footer {
-    padding: 12px 16px;
-    display: flex;
-    gap: 8px;
-    background: #f9fff9;
-    border-top: 1px solid #e0efe0;
-}
-
-.btn-guardar,
-.btn-cancelar {
-    border: none;
-    padding: 8px 18px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #007542;
-    background: white;
-    font-weight: bold;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    transition: background 0.15s;
-}
-
-.btn-guardar:hover,
-.btn-cancelar:hover {
-    background: #C1FF1C;
-    color: #007542;
-}
-
-/* ═══════════════════════════════════════════════════
-   PROTECCIÓN — tablas dentro de modales w3.css
-   ═══════════════════════════════════════════════════ */
-.w3-modal table {
-    min-width: unset !important;
+/* Ancho fijo y centrado: .modal-contenido no es una clase de W3 y ocupaba toda la pantalla;
+   .w3-modal-content de W3 crece a 900px en pantallas grandes. */
+.w3-modal > .w3-modal-content,
+.w3-modal > .modal-contenido {
     width: 100% !important;
+    max-width: 600px;
+    margin: 0 auto !important;
 }
-
-.w3-modal th,
-.w3-modal td {
-    white-space: normal !important;
+.w3-modal-content, .modal-contenido {
+    border-radius: 12px !important;
+    overflow: hidden;
+    background: var(--superficie);
+    box-shadow: var(--sombra-flotante);
 }
+.w3-modal-content > form.w3-container { padding: 22px 22px 0 !important; }
+.w3-modal-content label { display: block; margin-bottom: 4px; font-size: 13.5px; color: var(--tinta); }
+.w3-modal-content > header,
+.w3-modal-content > div > header,
+.modal-header {
+    position: relative;
+    background: var(--hoja-oscura) !important;
+    color: #fff !important;
+    padding: 16px 20px;
+}
+.modal-header h2, .modal-header h3, .w3-modal-content header h2, .w3-modal-content header h3 { color: #fff; font-size: 19px; margin: 0; padding-right: 40px; overflow-wrap: anywhere; }
+.modal-header > form, .modal-header + form { color: var(--tinta); }
+.modal-cerrar, .w3-modal-content header .w3-display-topright {
+    position: absolute; right: 12px; top: 10px;
+    width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: var(--r-control); cursor: pointer; font-size: 22px; line-height: 1;
+    color: #fff; background: none; border: none;
+}
+.modal-cerrar:hover { background: rgba(255, 255, 255, 0.14); }
+.modal-form { padding: 18px 20px 4px; background: var(--superficie); min-width: 0; }
+.modal-header > .modal-form { margin: 14px -20px -16px; }
+.modal-form label { color: var(--tinta); font-weight: 600; display: block; margin-bottom: 4px; font-size: 13.5px; }
+.modal-input { display: block; width: 100%; max-width: 100%; margin-bottom: 14px; }
+/* Campos sueltos de W3 dentro de un formulario de modal (p. ej. Entregas) */
+.modal-form > .w3-input, .modal-form > .w3-select, .modal-form > select, .modal-form > textarea {
+    display: block; width: 100%; max-width: 100%; margin-bottom: 14px;
+}
+.modal-form textarea { resize: vertical; min-height: 80px; }
+.modal-form .campo-ayuda { margin: -8px 0 14px; font-size: 12.5px; color: var(--tinta-suave); }
+/* Pie de los formularios en modal: antes una franja verde con botones blancos */
+.w3-modal footer.w3-container, .modal-footer {
+    display: flex !important; flex-direction: row-reverse; justify-content: flex-start; gap: 8px;
+    margin: 6px -22px 0; padding: 14px 22px !important;
+    background: var(--superficie-2) !important; color: var(--tinta) !important;
+    border-top: 1px solid var(--linea);
+}
+.modal-footer { margin: 6px -20px 0; }
+.w3-modal footer .w3-right { float: none !important; }
+.w3-modal footer button[type="submit"].w3-button,
+.w3-modal footer .w3-button.w3-right {
+    background-color: var(--hoja) !important; color: #fff !important; border-color: var(--hoja) !important;
+}
+.w3-modal footer button[type="submit"].w3-button:hover,
+.w3-modal footer .w3-button.w3-right:hover { background-color: var(--hoja-oscura) !important; }
+.w3-modal table { min-width: unset !important; width: 100% !important; display: table !important; }
+.w3-modal th, .w3-modal td { white-space: normal !important; }
 
-/* ═══════════════════════════════════════════════════
-   ALERTAS FLASH
-   ═══════════════════════════════════════════════════ */
+/* Encabezado que js/modales.js agrega a las ventanas que no traían título */
+.modal-titulo-auto {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 12px 12px 12px 22px; background: var(--superficie); border-bottom: 1px solid var(--linea);
+}
+.w3-modal-content .modal-titulo-auto h2 { margin: 0; font-size: 19px; color: var(--tinta); }
+.modal-titulo-cerrar {
+    flex: none; width: 40px; height: 40px; border: 0; border-radius: var(--r-control);
+    background: none; color: var(--tinta-suave); font-size: 18px; cursor: pointer;
+}
+.modal-titulo-cerrar:hover { background: var(--hoja-clara); color: var(--hoja-oscura); }
+/* La ventana de pedido trae su propio encabezado claro: el título va en color de texto */
+.w3-modal-content .pedido-encabezado h2 { color: var(--tinta); }
+
+/* ── AVISOS FLOTANTES (mensajes después de guardar) ── */
 .flash-container {
     position: fixed;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9998;
-    width: 60vw;
+    top: calc(var(--alto-encabezado) + 14px);
+    right: 20px;
+    z-index: 150; /* sobre la barra superior (130), debajo de los modales (200) */
+    width: min(420px, calc(100vw - 32px));
+    display: grid;
+    gap: 8px;
     pointer-events: none;
+    transition: opacity .4s ease;
 }
-
+.flash-container.oculto { opacity: 0; }
 .flash-container .w3-panel {
-    border-radius: 12px;
-    padding: 20px 30px;
-    margin: 0;
-    text-align: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    display: flex; align-items: center; gap: 10px;
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    border-radius: var(--r-tarjeta);
+    box-shadow: var(--sombra-flotante);
     pointer-events: auto;
 }
+.flash-container .w3-panel.w3-green { background: var(--tinta) !important; color: #fff !important; border-color: var(--tinta) !important; }
+.flash-container .w3-panel.w3-green::before { content: "✓"; color: #7fd99a; font-weight: 700; }
+.flash-container .w3-panel.w3-red { background: var(--alerta) !important; color: #fff !important; border-color: var(--alerta) !important; }
+.flash-container .w3-panel p { color: inherit; font-weight: 600; font-size: 14.5px; margin: 0; text-align: left; }
 
-.flash-container .w3-panel p {
-    color: white;
-    font-weight: bold;
-    font-size: 20px;
-    margin: 0;
+/* ── FORMULARIOS DE PÁGINA COMPLETA ───────────────── */
+.formulario-pagina, body > .modal-contenido {
+    width: min(560px, calc(100% - 32px)); max-width: 560px; margin: 32px auto !important;
+    background: var(--superficie); border: 1px solid var(--linea); border-radius: 12px; overflow: hidden;
 }
-
-/* ═══════════════════════════════════════════════════
-   FORMULARIO DE PÁGINA COMPLETA
-   ═══════════════════════════════════════════════════ */
-.formulario-pagina {
-    max-width: 500px;
-    margin: 40px auto;
-    padding: 0 16px;
+.formulario-pagina > .modal-footer { margin: 6px 0 0; }
+/* Formularios de página completa: el <form class="modal-form"> va dentro de la tarjeta,
+   sin una segunda tarjeta encima (antes se veía una caja dentro de otra). */
+.formulario-pagina > form.modal-form, body > .modal-contenido > form.modal-form {
+    width: auto; margin: 0; border: 0; border-radius: 0; display: block; padding: 20px 22px 0;
 }
+.formulario-pagina .modal-footer, body > .modal-contenido .modal-footer { margin: 6px -22px 0; }
+/* Pantallas antiguas cuyo formulario es hijo directo de <body> */
+body > form, body > .formulario-pagina > form:not(.modal-form) {
+    width: min(560px, calc(100% - 32px));
+    margin: 32px auto;
+    padding: 24px;
+    background: var(--superficie);
+    border: 1px solid var(--linea);
+    border-radius: var(--r-tarjeta);
+    display: grid;
+    gap: 6px;
+}
+body > form input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]),
+body > form select,
+body > form textarea {
+    width: 100%; min-height: 38px; padding: 8px 11px; margin-bottom: 8px;
+    border: 1px solid var(--borde-control); border-radius: var(--r-control); background: var(--superficie);
+}
+body > form button, body > form input[type="submit"] {
+    justify-self: start; min-height: 38px; padding: 0 18px; margin-top: 6px;
+    background: var(--hoja); color: #fff; border: 0; border-radius: var(--r-control); font-weight: 600; cursor: pointer;
+}
+body > form br { display: none; }
 
-/* ═══════════════════════════════════════════════════
-   FOOTER STICKY AL FONDO
-   ═══════════════════════════════════════════════════ */
+/* ── PAGINACIÓN ───────────────────────────────────── */
+.paginacion, .lista-wrapper .w3-bar:has(> a.w3-button) {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 20px;
+}
+.paginacion .w3-button { min-width: 38px; }
+
+/* ── PIE ──────────────────────────────────────────── */
 .footer {
-    background: #00910a;
     margin-top: auto;
     flex-shrink: 0;
     width: 100%;
-    box-shadow: 0 -2px 8px rgba(0, 117, 66, 0.2);
+    border-top: 1px solid var(--linea);
+    background: var(--papel);
 }
-
+body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
+.lista-wrapper .footer { margin: 40px -28px -40px; width: auto; }
 .footer_container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 32px;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    padding: 16px 28px;
 }
+.footer_brand { display: flex; align-items: baseline; gap: 10px; }
+.footer_logo { font-family: var(--f-titulo); font-weight: 800; color: var(--hoja-oscura); font-size: 16px; }
+.footer_tagline, .footer_copy { color: var(--tinta-suave); font-size: 13px; }
 
-.footer_brand {
-    display: flex;
-    flex-direction: column;
-}
-
-.footer_logo {
-    color: #ffffff;
-    font-size: 1.2em;
-    font-weight: 700;
-    letter-spacing: 2px;
-}
-
-.footer_tagline {
-    color: rgba(255, 255, 255, 0.75);
-    font-size: 0.75em;
-    letter-spacing: 0.5px;
-    margin-top: 2px;
-}
-
-.footer_copy {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.8em;
-    letter-spacing: 0.3px;
-}
-
-/* Alternativa global — afecta todas las tablas del body directo */
-body > div > table,
-.dashboard-main table:not(.w3-table),
-.contenedor-boton ~ table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* ── SIDEBAR FIXED ──────────────────────────────── */
-.sidebar {
-    position: fixed;
-    top: 55px;           /* igual a la altura del header */
-    left: 0;
-    width: 200px;
-    height: calc(100vh - 55px);
-    background: #ffffff;
-    border-right: 1px solid rgba(0, 117, 66, 0.15);
-    box-shadow: 2px 0 8px rgba(0, 117, 66, 0.08);
-    overflow-y: auto;
-    z-index: 90;         /* debajo del header (z-index:100) */
-}
-
-.sidebar-nav {
-    padding: 16px 0;
-}
-
-.nav-label {
-    padding: 8px 16px 4px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: #3AA346;
-    margin: 0;
-}
-
-.nav-item {
-    display: block;
-    padding: 10px 16px;
-    color: #333;
-    text-decoration: none;
-    font-size: 14px;
-    border-left: 3px solid transparent;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.nav-item:hover {
-    background: #f0fff4;
-    border-left-color: #3AA346;
-    color: #007542;
-}
-
-.nav-item.activo {
-    background: #e6ffed;
-    border-left-color: #007542;
-    color: #007542;
-    font-weight: 600;
-}
-
-/* ── WRAPPER para vistas de lista ───────────────── */
-.lista-wrapper {
-    margin-left: 200px;  /* ancho de la sidebar */
-    padding: 0 16px 32px;
-    min-height: calc(100vh - 55px);
-}
-/* ═══════════════════════════════════════════════════
-   BUSCADOR AUTOCOMPLETE DE PRODUCTO (modales)
-   Compartido por lista_p_pedido y cualquier vista
-   que cargue estilosPaginas.css
-   ═══════════════════════════════════════════════════ */
-.prod-search-wrap {
-    position: relative;
-    margin-bottom: 8px;
-}
-.prod-search-wrap .search-icon {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #888;
-    pointer-events: none;
-}
-.prod-search-input {
-    width: 100%;
-    padding: 8px 12px 8px 34px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    font-size: 14px;
-    border-radius: 4px;
-}
-.prod-search-input:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 2px rgba(76,175,80,.2);
-}
+/* ── BUSCADOR DE PRODUCTOS EN MODALES ─────────────── */
+.prod-search-wrap { position: relative; margin-bottom: 8px; }
+.prod-search-wrap .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--tinta-suave); pointer-events: none; }
+.prod-search-input { width: 100%; padding-left: 34px !important; }
 .prod-resultados {
-    position: absolute;
-    z-index: 10000;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-top: none;
-    max-height: 220px;
-    overflow-y: auto;
-    width: 100%;
-    display: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,.15);
+    position: absolute; z-index: 10000; width: 100%; display: none;
+    max-height: 220px; overflow-y: auto; margin-top: 4px;
+    background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--r-control);
+    box-shadow: var(--sombra-flotante);
 }
 .prod-resultados .prod-item {
-    padding: 8px 12px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    border-bottom: 1px solid #f0f0f0;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding: 8px 12px; cursor: pointer; font-size: 14px; border-bottom: 1px solid var(--linea-suave);
 }
-.prod-resultados .prod-item:hover,
-.prod-resultados .prod-item.activo { background: #e8f5e9; }
-.prod-resultados .prod-item .stock-pill {
-    font-size: 11px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-.prod-resultados .prod-item .stock-pill.con-stock { background:#d4edda; color:#155724; }
-.prod-resultados .prod-item .stock-pill.sin-stock  { background:#f8d7da; color:#721c24; }
-.prod-resultados .sin-resultados {
-    padding: 10px 12px;
-    color: #888;
-    font-size: 13px;
-}
+.prod-resultados .prod-item:hover, .prod-resultados .prod-item.activo { background: var(--hoja-clara); }
+.prod-resultados .prod-item .stock-pill { font-size: 11.5px; padding: 2px 8px; border-radius: var(--r-pildora); font-weight: 600; white-space: nowrap; }
+.prod-resultados .prod-item .stock-pill.con-stock { background: var(--hoja-clara); color: #0b6b28; }
+.prod-resultados .prod-item .stock-pill.sin-stock { background: var(--alerta-claro); color: var(--alerta); }
+.prod-resultados .sin-resultados { padding: 10px 12px; color: var(--tinta-suave); font-size: 13px; }
 .prod-badge {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #f1f8f1;
-    border: 1px solid #a5d6a7;
-    border-radius: 6px;
-    padding: 8px 12px;
-    margin-bottom: 8px;
-    font-size: 13px;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding: 8px 12px;
+    background: var(--hoja-clara); border: 1px solid var(--hoja-suave); border-radius: var(--r-control); font-size: 13px;
 }
 .prod-badge .badge-nombre { font-weight: 600; flex: 1; }
-.prod-badge .badge-stock  { font-size: 12px; color: #2e7d32; font-weight: 600; }
-.prod-badge .badge-limpiar {
-    cursor: pointer;
-    color: #c62828;
-    font-size: 16px;
-    line-height: 1;
-    background: none;
-    border: none;
-    padding: 0;
+.prod-badge .badge-stock { font-size: 12px; color: #0b6b28; font-weight: 600; }
+.prod-badge .badge-limpiar { cursor: pointer; color: var(--alerta); font-size: 16px; line-height: 1; background: none; border: none; padding: 0; }
+.prod-badge.sin-stock { border-color: var(--alerta-borde); background: var(--alerta-claro); }
+.prod-badge.sin-stock .badge-stock { color: var(--alerta); }
+.search-hint { font-size: 12px; color: var(--tinta-suave); margin-bottom: 8px; }
+
+/* Historial (trazabilidad) dentro del detalle de un pedido */
+.bitacora-titulo { display: block; margin-top: 16px; }
+.bitacora-tabla td { vertical-align: top; white-space: normal !important; }
+
+/* ═════════════════════ RESPONSIVE ═════════════════════ */
+@media (max-width: 1024px) {
+    :root { --ancho-menu: 200px; }
+    .lista-wrapper { padding: 0 20px 32px; }
+    .lista-wrapper .footer { margin: 32px -20px -32px; }
 }
-.prod-badge.sin-stock { border-color:#ef9a9a; background:#fff5f5; }
-.prod-badge.sin-stock .badge-stock { color:#c62828; }
-.search-hint { font-size: 12px; color: #999; margin-bottom: 8px; }
+
+/* ── CELULAR (< 768 px) ───────────────────────────────
+   Navegación persistente abajo, al alcance del pulgar, como en las apps del teléfono:
+   4 secciones + «Más». El menú lateral no se usa. */
+@media (max-width: 767.98px) {
+    .sidebar { display: none; }
+    body:has(.nav-inferior) { padding-bottom: calc(var(--alto-nav-inferior) + var(--area-segura-abajo)); }
+
+    .nav-inferior {
+        position: fixed; inset: auto 0 0 0; z-index: 140;
+        display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+        height: calc(var(--alto-nav-inferior) + var(--area-segura-abajo));
+        padding: 0 4px var(--area-segura-abajo);
+        background: var(--superficie);
+        border-top: 1px solid var(--linea);
+        box-shadow: 0 -2px 10px rgba(8, 72, 29, 0.06);
+    }
+    .nav-inferior-item {
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+        min-width: 0; min-height: var(--tactil-min); margin: 6px 2px;
+        border: 0; border-radius: 12px; background: none;
+        color: var(--tinta-suave); font: 600 12px/1.1 var(--f-texto); text-decoration: none;
+        cursor: pointer;
+    }
+    .nav-inferior-item i { font-size: 19px; }
+    .nav-inferior-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-inferior-item.activo { color: var(--hoja-oscura); background: var(--hoja-clara); }
+    .nav-inferior-item.activo i { color: var(--hoja); }
+    .nav-inferior-item:focus-visible { outline: 3px solid var(--foco); outline-offset: -3px; }
+
+    /* Pantallas del área actual: pestañas que se deslizan, arriba del contenido */
+    .subnav {
+        display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+        padding: 10px 16px 2px; scroll-padding-inline: 16px;
+    }
+    .subnav::-webkit-scrollbar { display: none; }
+    .subnav-item {
+        flex: none; display: inline-flex; align-items: center; gap: 7px;
+        min-height: var(--tactil-min); padding: 0 14px;
+        border: 1px solid var(--borde-control); border-radius: var(--r-pildora);
+        background: var(--superficie); color: var(--tinta); font-size: 14px; font-weight: 600; text-decoration: none;
+    }
+    .subnav-item i { color: var(--tinta-suave); }
+    .subnav-item.activo { background: var(--hoja-oscura); border-color: var(--hoja-oscura); color: #fff; }
+    .subnav-item.activo i { color: #fff; }
+
+    /* Hoja «Más»: todas las opciones, agrupadas, en una lista fácil de tocar */
+    .hoja-fondo:not([hidden]) {
+        display: block; position: fixed; inset: 0; z-index: 210;
+        background: rgba(29, 42, 31, 0.5);
+    }
+    .hoja:not([hidden]) {
+        display: flex; flex-direction: column;
+        position: fixed; inset: auto 0 0 0; z-index: 220;
+        max-height: 86vh; max-height: 86dvh;
+        background: var(--superficie);
+        border-radius: 18px 18px 0 0;
+        box-shadow: var(--elev-3);
+        padding-bottom: var(--area-segura-abajo);
+        animation: hoja-sube var(--duracion) ease-out;
+    }
+    body.hoja-abierta { overflow: hidden; }
+    .hoja-cabeza {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 14px 12px 8px 20px; border-bottom: 1px solid var(--linea-suave);
+    }
+    .hoja-cabeza h2 { font-size: 18px; margin: 0; }
+    .hoja-cerrar {
+        width: var(--tactil-min); height: var(--tactil-min); border: 0; border-radius: 50%;
+        background: var(--superficie-2); color: var(--tinta); font-size: 18px; cursor: pointer;
+    }
+    .hoja-cuerpo { overflow-y: auto; overscroll-behavior: contain; padding: 4px 12px 16px; }
+    .hoja-grupo { padding: 10px 0 4px; }
+    .hoja-grupo + .hoja-grupo { border-top: 1px solid var(--linea-suave); }
+    .hoja-grupo h3 {
+        margin: 0 8px 4px; font: 700 12px/1.4 var(--f-texto); letter-spacing: .08em; text-transform: uppercase;
+        color: var(--tinta-suave);
+    }
+    .hoja-item {
+        display: flex; align-items: center; gap: 14px;
+        min-height: 48px; padding: 0 12px; border-radius: var(--r-tarjeta);
+        color: var(--tinta); font-size: 16px; font-weight: 500; text-decoration: none;
+    }
+    .hoja-item i { width: 22px; text-align: center; color: var(--hoja); font-size: 17px; }
+    .hoja-item.activo { background: var(--hoja-clara); color: var(--hoja-oscura); font-weight: 700; }
+    .hoja-item.hoja-salir, .hoja-item.hoja-salir i { color: var(--alerta); }
+
+    .lista-wrapper { margin-left: 0; padding: 0 16px 28px; padding-top: 0 !important; }
+    .lista-wrapper .footer { margin: 28px -16px -28px; }
+    body:has(> .sidebar) > .footer { padding-left: 0; }
+    .contenedor-boton { padding-top: 14px !important; }
+    .contenedor-boton > .btn-agregar { flex: 1 1 100%; justify-content: center; min-height: 48px; }
+    .contenedor-boton__acciones { flex: 1 1 100%; }
+    .contenedor-boton__acciones > .btn-agregar { flex: 1 1 0; justify-content: center; min-height: 48px; width: auto; }
+    .lista-wrapper > form[method="get"] .w3-input { max-width: none; flex: 1 1 200px; }
+    .lista-wrapper td > button:not(.w3-button):not(.btn):not(.btn-expandir):not(.btn-pref),
+    .lista-wrapper td > form > button:not(.w3-button):not(.btn),
+    .lista-wrapper td > a.accion { width: var(--tactil-min); height: var(--tactil-min); }
+    .btn-pref { min-height: var(--tactil-min); }
+    .tabla-pedidos .acciones-fila .btn-icono { width: var(--tactil-min); height: var(--tactil-min); }
+    .btn-expandir { width: var(--tactil-min); height: var(--tactil-min); }
+    .pestana { min-height: var(--tactil-min); }
+    .paginacion .w3-button, .paginacion a { min-width: var(--tactil-min); min-height: var(--tactil-min); }
+    .lista-wrapper .estado-rapido .cambio-estado select { height: var(--tactil-min); line-height: 42px; max-width: 170px; font-size: 14px; }
+    .sug-pildora { min-height: var(--tactil-min); display: inline-flex; align-items: center; }
+    .detalle-inner { padding: 12px 14px 14px; }
+    .footer_container { justify-content: center; text-align: center; padding: 14px 16px; }
+    .flash-container { top: auto; bottom: calc(var(--alto-nav-inferior) + var(--area-segura-abajo) + 12px); right: 12px; left: 12px; width: auto; }
+    body:not(:has(.nav-inferior)) .flash-container { bottom: calc(var(--area-segura-abajo) + 12px); }
+
+    /* Ventanas: a pantalla completa, con los botones fijos abajo (al alcance del pulgar) */
+    .w3-modal { padding: 0 !important; }
+    .w3-modal > .w3-modal-content,
+    .w3-modal > .modal-contenido {
+        max-width: none !important; width: 100% !important;
+        min-height: 100vh; min-height: 100dvh; max-height: none !important;
+        border-radius: 0 !important; overflow: visible !important; box-shadow: none;
+    }
+    .w3-modal-content > header, .w3-modal-content > div > header, .modal-header, .modal-titulo-auto { position: sticky; top: 0; z-index: 3; }
+    .modal-titulo-cerrar { width: var(--tactil-min); height: var(--tactil-min); }
+    /* El formulario llena la pantalla y su pie queda abajo aunque haya pocos campos */
+    .w3-modal > .w3-modal-content { display: flex; flex-direction: column; }
+    .w3-modal > .w3-modal-content > form:has(> footer) { flex: 1 0 auto; display: flex; flex-direction: column; }
+    .w3-modal > .w3-modal-content > form:has(> footer) > footer { margin-top: auto !important; }
+    /* Entra desde abajo, como las pantallas del teléfono (no con zoom) */
+    .w3-modal .w3-animate-zoom { animation: modal-sube var(--duracion) ease-out; }
+    .w3-modal footer.w3-container, .w3-modal .modal-footer {
+        position: sticky; bottom: 0; z-index: 3;
+        padding-bottom: calc(12px + var(--area-segura-abajo)) !important;
+        box-shadow: 0 -2px 10px rgba(8, 72, 29, 0.06);
+    }
+    .w3-modal footer .w3-button, .w3-modal footer .btn, .modal-footer > .btn, .modal-footer > button { min-height: 48px; }
+    body > .modal-contenido, .formulario-pagina { width: calc(100% - 20px) !important; margin: 16px auto !important; }
+    .modal-form, .formulario-pagina > form.modal-form, body > .modal-contenido > form.modal-form { padding: 16px 16px 0; }
+    .modal-footer, .formulario-pagina .modal-footer, body > .modal-contenido .modal-footer { margin: 6px -16px 0; padding: 12px 16px !important; }
+}
+
+/* Escritorio sin menú lateral (repartidor): sus secciones como pestañas bajo la barra superior.
+   «Más» no hace falta: sus opciones ya están en la barra superior. */
+@media (min-width: 768px) {
+    body:not(:has(.sidebar)) .nav-inferior {
+        display: flex; gap: 4px; padding: 10px 28px 0; border-bottom: 1px solid var(--linea); background: var(--superficie);
+    }
+    body:not(:has(.sidebar)) .nav-inferior-item {
+        display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; margin-bottom: -1px;
+        border-bottom: 3px solid transparent; color: var(--tinta-suave); font-weight: 600; font-size: 15px; text-decoration: none;
+    }
+    body:not(:has(.sidebar)) .nav-inferior-item:hover { color: var(--hoja-oscura); }
+    body:not(:has(.sidebar)) .nav-inferior-item.activo { color: var(--hoja-oscura); border-bottom-color: var(--hoja); }
+    body:not(:has(.sidebar)) .nav-inferior [data-abrir-hoja] { display: none; }
+}
+
+@keyframes modal-sube { from { transform: translateY(16px); opacity: .7; } to { transform: none; opacity: 1; } }
+@keyframes hoja-sube { from { transform: translateY(24px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+/* ── TABLAS COMO TARJETAS (< 600 px) ──────────────────
+   panel.js pone en cada celda el nombre de su columna (data-etiqueta). Cada fila se vuelve
+   una tarjeta: el dato a la derecha y su nombre a la izquierda; las acciones, al pie. */
+@media (max-width: 599.98px) {
+    .tabla-wrapper:has(> table.tabla-tarjetas) { background: transparent; border: 0; border-radius: 0; overflow: visible; }
+    .lista-wrapper table.tabla-tarjetas,
+    .lista-wrapper table.tabla-tarjetas > tbody { display: block; width: 100%; min-width: 0 !important; border: 0; background: transparent; overflow: visible; }
+    .lista-wrapper table.tabla-tarjetas > thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .lista-wrapper table.tabla-tarjetas > caption { display: block; text-align: left; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr {
+        display: flex; flex-wrap: wrap; align-items: center; gap: 0 4px;
+        margin-bottom: 12px; padding: 4px 14px 6px;
+        background: var(--superficie); border: 1px solid var(--linea); border-radius: var(--r-tarjeta);
+    }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td {
+        flex: 1 1 100%; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 4px 8px;
+        min-width: 0; min-height: var(--tactil-min); padding: 8px 0; text-align: right;
+        white-space: normal; overflow-wrap: anywhere; border-bottom: 1px solid var(--linea-suave);
+        max-width: none !important; width: auto !important;
+    }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td[data-etiqueta]::before {
+        content: attr(data-etiqueta); flex: 0 0 auto; max-width: 45%; margin-right: auto;
+        text-align: left; font-size: 13px; font-weight: 600; color: var(--tinta-suave);
+    }
+    /* Varios elementos en una celda (insignia + nota + botón): bajan de renglón, no se aplastan */
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td > * { flex: 0 0 auto; max-width: 100%; }
+    .lista-wrapper table.tabla-tarjetas button:not(.w3-button):not(.btn) { min-height: var(--tactil-min); min-width: var(--tactil-min); }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-completa { justify-content: center; text-align: center; }
+    /* Acciones (editar, borrar...): juntas al pie de la tarjeta, sin etiqueta */
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-accion {
+        flex: 0 0 auto; order: 99; border-bottom: 0; padding: 6px 0 2px; justify-content: flex-end;
+    }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-accion::before { content: none !important; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr > td.celda-accion-primera { margin-left: auto; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr:hover > td { background: transparent; }
+    .lista-wrapper table.tabla-tarjetas .acciones-fila { flex-wrap: wrap; justify-content: flex-end; }
+    .lista-wrapper table.tabla-tarjetas .resumen-productos { max-width: 60vw; white-space: normal; }
+    .lista-wrapper table.tabla-tarjetas td.celda-texto { max-width: none; min-width: 0; }
+    .lista-wrapper table.tabla-tarjetas td a:not(.btn):not(.btn-icono):not(.w3-button) { display: inline-flex; align-items: center; min-height: var(--tactil-min); }
+    /* Detalle de un pedido: debajo de su tarjeta */
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle { padding: 0; margin-top: -8px; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle:not(.abierto) { display: none; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle > td { display: block; flex-basis: 100%; min-height: 0; padding: 0; text-align: left; border: 0; }
+    .lista-wrapper table.tabla-tarjetas > tbody > tr.fila-detalle .detalle-inner { padding: 10px 12px 12px; }
+    .tabla-wrapper .paginacion { position: static; border-top: 0; }
+}
+
+@media (max-width: 480px) {
+    .pagina-titulo, .contenedor-boton > h1, .contenedor-boton > h2 { font-size: 22px; }
+    .w3-modal footer.w3-container, .modal-footer { flex-direction: column-reverse; }
+    .w3-modal footer .w3-button, .modal-footer > * { width: 100%; }
+}
+
+/* Pantallas de formulario de una sola columna (p. ej. almacén de rutas) */
+.lista-angosta { max-width: 900px; }
+
+/* ── Ayudas de formularios y listas ───────────────── */
+.modal-form > .aviso { margin-bottom: 14px; }
+.modal-form .opcional { font-weight: 400; color: var(--tinta-suave); font-size: 12.5px; }
+.aviso-lista { margin-bottom: 16px; }
+/* Celdas con texto largo (dirección, notas): bajan de renglón en vez de ensanchar la tabla */
+.lista-wrapper td.celda-texto { white-space: normal; min-width: 160px; max-width: 280px; overflow-wrap: anywhere; }
+.lista-wrapper td .est { margin-left: 6px; vertical-align: middle; }
+.lista-wrapper td .est:first-child { margin-left: 0; }
+
+/* ── Búsqueda mientras se escribe (public/js/busqueda_viva.js) ── */
+.buscador-lista [hidden] { display: none !important; }
+.buscador-lista .w3-input { flex: 1 1 260px; max-width: 420px; }
+.buscador-estado { font-size: 13px; color: var(--tinta-suave); }
+[data-busqueda-resultados] { transition: opacity .15s; }
+[data-busqueda-resultados].buscando { opacity: .55; }
+
+/* ── Cambio rápido de estatus (Productos por pedido, public/js/cambio_estado.js) ── */
+.lista-wrapper td.celda-estado { white-space: normal; }
+.estado-rapido { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.cambio-estado { display: inline-flex; margin: 0; }
+/* Selector con forma de píldora, como las insignias: sin el estilo nativo del navegador y con su propia flecha. */
+.lista-wrapper .cambio-estado select {
+    -webkit-appearance: none; appearance: none;
+    height: 26px; min-height: 0; width: auto; max-width: 132px; margin: 0;
+    padding: 0 26px 0 11px;
+    font-family: inherit; font-size: 12px; font-weight: 600; line-height: 24px; color: var(--tinta-suave);
+    cursor: pointer; text-overflow: ellipsis;
+    background-color: var(--superficie);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230b7d2e' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 10px 6px;
+    border: 1px solid var(--borde-control); border-radius: var(--r-pildora);
+    box-shadow: 0 1px 0 rgba(8, 72, 29, .04);
+    transition: border-color .15s, background-color .15s, color .15s;
+}
+.lista-wrapper .cambio-estado select:hover {
+    border-color: var(--hoja); background-color: var(--hoja-clara); color: var(--hoja-oscura);
+}
+.lista-wrapper .cambio-estado select:focus { outline: none; }
+.lista-wrapper .cambio-estado select:focus-visible {
+    border-color: var(--hoja); color: var(--hoja-oscura);
+    box-shadow: 0 0 0 3px rgba(11, 125, 46, .22);
+}
+.lista-wrapper .cambio-estado select option { font-weight: 500; color: #1f2a22; background: #fff; }
+.estado-rapido.guardando { opacity: .55; pointer-events: none; }
+.lista-wrapper tr.fila-movida td { opacity: .5; }
+
+/* Entregas: pedidos pendientes de asignar (se asignan desde su propia fila) */
+.por-asignar {
+    margin: 0 0 18px; padding: 14px 16px;
+    border: 1px solid var(--borde-control); border-left: 4px solid var(--hoja);
+    border-radius: var(--r-control); background: var(--superficie-2);
+}
+.por-asignar h2 { margin: 0 0 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.por-asignar-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.por-asignar-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 12px; background: var(--superficie); border: 1px solid var(--linea-suave); border-radius: var(--r-control);
+}
+.por-asignar-datos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.por-asignar-datos span { color: var(--tinta-suave); font-size: 13px; }
+@media (max-width: 560px) { .por-asignar-item { flex-wrap: wrap; } .por-asignar-item .btn { flex: 1 1 100%; justify-content: center; } }

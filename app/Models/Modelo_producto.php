@@ -1,71 +1,280 @@
-<?php 
+<?php
+
 namespace App\Models;
 
-use CodeIgniter\Model;
+use App\Libraries\CodigoProducto;
+use PDOException;
+use RuntimeException;
 
-class Modelo_producto extends Model{
-    protected $table      = 'producto';
-    // Uncomment below if you want add primary key
-    protected $primaryKey = 'id';
-    protected $allowedFields = ['nombre', 'descripcion', 'categoria', 'img'];
-        public function getproducto($id){
-        return $this->where('id',$id)-> first();
-    }
+class Modelo_producto extends PdoModelo
+{
+    protected string $tabla         = 'producto';
+    protected string $llavePrimaria = 'id';
 
-    public function borrar($id){
-        if($this->delete($id))
-            return true;
-            else
-                return false;
-        
-    }
-    //Busquedas
-    public function busqueda_compleja($filtros){
-        $builder=$this->builder();
-        if (!empty($filtros['f'])){
-            $builder->groupStart()->like('nombre',$filtros['f'])->groupEnd();
+    protected array $camposPermitidos = ['nombre', 'descripcion', 'categoria', 'img', 'codigo'];
+
+    /** Categorías válidas (coinciden con el ENUM de la columna producto.categoria). */
+    public const CATEGORIAS = ['frutas', 'hierbas', 'verduras'];
+
+    /**
+     * Lista paginada de productos con búsqueda opcional (admin).
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function listar(?string $buscar = '', int $porPagina = 20): array
+    {
+        $buscar = trim((string) $buscar);
+        $where  = '';
+        $params = [];
+
+        if ($buscar !== '') {
+            $like  = $this->patronLike($buscar);
+            $parte = [];
+
+            if (ctype_digit($buscar)) {
+                $parte[]  = 'id = ?';
+                $params[] = (int) $buscar;
+            }
+
+            $parte[] = 'codigo LIKE ?';
+            $parte[] = 'nombre LIKE ?';
+            $parte[] = 'descripcion LIKE ?';
+            $parte[] = 'categoria LIKE ?';
+            array_push($params, $like, $like, $like, $like);
+
+            $where = ' WHERE ' . implode(' OR ', $parte);
         }
-        if (!empty($filtros['categoria'])){
-            $builder->where('categoria_id', $filtros['categoria']);
+
+        return $this->paginarSql(
+            'SELECT * FROM producto' . $where . ' ORDER BY id DESC',
+            $params,
+            $porPagina
+        );
+    }
+
+    /**
+     * Productos con menos stock (suma de entradas).
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function productosLowStock(int $limite = 5): array
+    {
+        return $this->filas(
+            'SELECT p.nombre, SUM(e.cantidad) AS total
+               FROM producto p
+          LEFT JOIN entrada e ON e.id_producto = p.id
+           GROUP BY p.id, p.nombre
+           ORDER BY total ASC
+              LIMIT ' . max(1, $limite)
+        );
+    }
+
+    /**
+     * Los 5 productos más vendidos.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function topProductos(): array
+    {
+        return $this->filas(
+            'SELECT p.nombre, SUM(pp.total) AS total_vendido
+               FROM producto_pedido pp
+               JOIN producto p ON p.id = pp.id_producto
+           GROUP BY pp.id_producto, p.nombre
+           ORDER BY total_vendido DESC
+              LIMIT 5'
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // CÓDIGO ÚNICO DE PRODUCTO
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Inserta un producto y le asigna su código único (ver App\Libraries\CodigoProducto).
+     *
+     * El código se calcula con categoría + nombre. Si ya existe, se le agrega un consecutivo
+     * (-02, -03...). Si dos personas guardan al mismo tiempo y chocan en el índice UNIQUE,
+     * se vuelve a calcular y se reintenta. Los demás errores (por ejemplo el trigger
+     * no_duplica_producto, que rechaza un nombre repetido) se propagan tal cual para que
+     * el controlador los muestre con PdoModelo::mensajeSeguro().
+     *
+     * @param  array<string,mixed> $datos nombre, descripcion, categoria, img
+     * @return string El código asignado (el id nuevo queda en insertID()).
+     */
+    public function insertarConCodigo(array $datos): string
+    {
+        $base = CodigoProducto::base((string) ($datos['categoria'] ?? ''), (string) ($datos['nombre'] ?? ''));
+
+        for ($intento = 1; $intento <= 5; $intento++) {
+            $codigo = CodigoProducto::siguienteLibre($base, $this->codigosConBase($base));
+
+            try {
+                $this->insert([...$datos, 'codigo' => $codigo]);
+
+                return $codigo;
+            } catch (PDOException $e) {
+                // 1062 = entrada duplicada en el índice UNIQUE de `codigo`: alguien tomó ese
+                // código justo antes. Se recalcula y se reintenta.
+                $choqueDeCodigo = (int) ($e->errorInfo[1] ?? 0) === 1062
+                    && str_contains((string) ($e->errorInfo[2] ?? ''), 'uq_producto_codigo');
+
+                if (! $choqueDeCodigo || $intento === 5) {
+                    throw $e;
+                }
+            }
         }
-        $orden= $filtros['orden']??'id';
-        $dir=$filtros['dir']??'ASC';
-        $builder->orderBy($orden,$dir);
-        return $this;
-    }
-    public function productosLowStock(int $limit = 5): array
-{
-    return $this->db->table('producto p')
-        ->select('p.nombre, SUM(e.cantidad) AS total')
-        ->join('entrada e', 'e.id_producto = p.id', 'left')
-        ->groupBy('p.id, p.nombre')
-        ->orderBy('total', 'ASC')
-        ->limit($limit)
-        ->get()
-        ->getResultArray();
-}
-public function topProductos()
-{
-    return $this->db->table('producto_pedido pp')
-        ->select('p.nombre, SUM(pp.total) AS total_vendido')
-        ->join('producto p', 'p.id = pp.id_producto')
-        ->groupBy('pp.id_producto')
-        ->orderBy('total_vendido', 'DESC')
-        ->limit(5)
-        ->get()->getResultArray();
-}
-public function aplicarBusqueda(string $buscar): static
-{
-    if (!empty($buscar)) {
-        $this->groupStart()
-                ->where('id', $buscar)
-                ->orLike('nombre', $buscar)
-                ->orLike('descripcion', $buscar)
-                ->orLike('categoria', $buscar)
-             ->groupEnd();
+
+        // No se llega aquí: el bucle siempre devuelve o lanza.
+        throw new \RuntimeException('No se pudo generar un código único de producto.');
     }
 
-    return $this;
-}
+    /**
+     * Códigos ya usados que empiezan con $base (el propio base y sus consecutivos -NN).
+     *
+     * @return list<string>
+     */
+    private function codigosConBase(string $base): array
+    {
+        $filas = $this->filas(
+            'SELECT codigo FROM producto WHERE codigo = ? OR codigo LIKE ?',
+            [$base, addcslashes($base, '%_\\') . '-%']
+        );
 
+        return array_column($filas, 'codigo');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // CATÁLOGO PÚBLICO (landing page main_page_4)
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * SQL base del catálogo: producto + su entrada más reciente (precio y unidad de venta)
+     * + el stock disponible (e_venta sumado por producto, igual que
+     * Modelo_existencia::stockDisponiblePorProducto).
+     *
+     * Solo aparecen productos con precio de venta > 0 (los que aún no tienen precio
+     * no se pueden vender).
+     */
+    private function sqlCatalogo(): string
+    {
+        // precio = el más barato entre el precio de venta y la mejor oferta vigente (o el de venta
+        // si no hay oferta). precio_antes guarda el original para tacharlo en la tienda. La oferta
+        // se aplica aquí para que valga igual en la tienda y en el recálculo del carrito.
+        return 'SELECT p.id, p.nombre, p.descripcion, p.img, p.categoria,
+                       COALESCE(LEAST(e.precio_venta_u, (
+                           SELECT MIN(CASE WHEN o.tipo = \'porcentaje\'
+                                           THEN ROUND(e.precio_venta_u * (1 - o.valor / 100))
+                                           ELSE o.valor END)
+                             FROM oferta o
+                            WHERE o.activa = 1
+                              AND (o.fecha_inicio IS NULL OR o.fecha_inicio <= CURDATE())
+                              AND (o.fecha_fin    IS NULL OR o.fecha_fin    >= CURDATE())
+                              AND ((o.alcance = \'categoria\' AND o.categoria = p.categoria)
+                                OR (o.alcance = \'productos\' AND EXISTS (
+                                        SELECT 1 FROM oferta_producto op
+                                         WHERE op.id_oferta = o.id AND op.id_producto = p.id)))
+                       )), e.precio_venta_u) AS precio,
+                       e.precio_venta_u AS precio_antes,
+                       e.u_venta        AS unidad,
+                       GREATEST(COALESCE(x.e_venta, 0), 0) AS stock
+                  FROM producto p
+                  JOIN (SELECT id_producto, MAX(id) AS max_id
+                          FROM entrada
+                      GROUP BY id_producto) ult ON ult.id_producto = p.id
+                  JOIN entrada e ON e.id = ult.max_id
+             LEFT JOIN (SELECT id_producto, SUM(COALESCE(e_venta, 0)) AS e_venta
+                          FROM existencia
+                      GROUP BY id_producto) x ON x.id_producto = p.id
+                 WHERE e.precio_venta_u > 0';
+    }
+
+    /**
+     * Catálogo de la landing en UNA sola consulta, repartido en una fila por categoría.
+     *
+     * Devuelve siempre las tres llaves (frutas, hierbas, verduras), aunque alguna venga
+     * vacía. Dentro de cada fila van primero los productos con stock y luego por nombre.
+     * $texto (opcional) filtra por nombre o descripción; $porCategoria limita cada fila.
+     *
+     * @return array<string, list<array<string,mixed>>>
+     */
+    public function catalogoAgrupado(?string $texto = null, int $porCategoria = 24): array
+    {
+        $categorias = self::CATEGORIAS;
+        $marcas     = implode(',', array_fill(0, count($categorias), '?'));
+
+        $sql    = $this->sqlCatalogo() . " AND p.categoria IN ({$marcas})";
+        $params = $categorias;
+
+        $texto = trim((string) $texto);
+        if ($texto !== '') {
+            $like     = $this->patronLike($texto);
+            $sql     .= ' AND (p.nombre LIKE ? OR p.descripcion LIKE ?)';
+            $params[] = $like;
+            $params[] = $like;
+        }
+
+        // Tope de seguridad por si algún día el catálogo crece mucho.
+        $sql .= ' ORDER BY (GREATEST(COALESCE(x.e_venta, 0), 0) > 0) DESC, p.nombre ASC LIMIT 600';
+
+        $filas = array_fill_keys($categorias, []);
+
+        foreach ($this->filas($sql, $params) as $fila) {
+            if (count($filas[$fila['categoria']]) < $porCategoria) {
+                $filas[$fila['categoria']][] = $fila;
+            }
+        }
+
+        return $filas;
+    }
+
+    /**
+     * "Para ti": productos con stock que el cliente ha pedido más veces (y más recientemente).
+     * Finalidad voluntaria V4: el controlador solo lo llama si la cuenta la autorizó.
+     *
+     * @return list<array<string,mixed>> mismas columnas que el catálogo
+     */
+    public function recomendadosParaCliente(int $idCliente, int $limite = 12): array
+    {
+        return $this->filas(
+            'SELECT cat.*
+               FROM (' . $this->sqlCatalogo() . ') cat
+               JOIN (SELECT pp.id_producto, COUNT(DISTINCT ped.id) AS veces, MAX(ped.id) AS ultimo
+                       FROM pedido ped
+                       JOIN producto_pedido pp ON pp.id_pedido = ped.id
+                      WHERE ped.id_cliente = ?
+                   GROUP BY pp.id_producto) h ON h.id_producto = cat.id
+              WHERE cat.stock > 0
+           ORDER BY h.veces DESC, h.ultimo DESC
+              LIMIT ' . max(1, min(24, $limite)),
+            [$idCliente]
+        );
+    }
+
+    /**
+     * Datos vigentes (precio, unidad, stock) de varios productos a la vez, indexados por id.
+     * Se usa para volver a calcular el carrito en el servidor: el precio NUNCA se toma
+     * de lo que mande el navegador.
+     *
+     * @param  list<int> $ids
+     * @return array<int, array<string,mixed>>
+     */
+    public function catalogoPorIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids), fn ($i) => $i > 0)));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $marcas = implode(',', array_fill(0, count($ids), '?'));
+        $filas  = $this->filas($this->sqlCatalogo() . " AND p.id IN ({$marcas})", $ids);
+
+        $mapa = [];
+        foreach ($filas as $fila) {
+            $mapa[(int) $fila['id']] = $fila;
+        }
+
+        return $mapa;
+    }
 }

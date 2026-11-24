@@ -60,6 +60,8 @@ writable/session/*
 writable/uploads/*
 !writable/uploads/index.html
 
+writable/tickets/*
+
 writable/debugbar/*
 !writable/debugbar/index.html
 
@@ -124,3 +126,22 @@ _modules/*
 
 /results/
 /phpunit*.xml
+
+#-------------------------
+# Sesiones mal ubicadas (session.savePath vacío/"null" crea esta carpeta pública)
+#-------------------------
+public/null/
+
+# Evidencias de entrega (fotos privadas)
+writable/uploads/evidencias/*
+writable/respaldos/*
+
+#-------------------------
+# Volcados de base de datos (pueden traer datos personales, LFPDPPP)
+# Solo se versionan los scripts de estructura de database_cambios/ (sin datos).
+#-------------------------
+*.sql
+*.sql.gz
+*.sql.zip
+*.dump
+!database_cambios/*.sql

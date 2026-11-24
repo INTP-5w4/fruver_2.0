@@ -2,20 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <title>Lista Pedidos</title>
-    <style>
-        /* Fix lupa — W3.CSS sobreescribe el padding del input */
-        .prod-search-input {
-            padding: 8px 12px 8px 34px !important;
-            box-sizing: border-box !important;
-        }
-    </style>
+    <link rel="stylesheet" href="<?= base_url('estilos/ticket.css') ?>">
+    <script src="<?= base_url('js/cambio_estado.js') . '?v=' . @filemtime(FCPATH . 'js/cambio_estado.js') ?>" defer></script>
+    <link rel="stylesheet" href="<?= base_url('estilos/pedido_formulario.css') . '?v=' . @filemtime(FCPATH . 'estilos/pedido_formulario.css') ?>">
+    <meta name="csrf-token" content="<?= esc(csrf_hash(), 'attr') ?>">
+    <title>Pedidos · Fruver</title>
 </head>
 <body>
 <?php include 'Header.php'; ?>
@@ -26,45 +19,70 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 20px;">
-    <button onclick="document.getElementById('modalCrearPpedido').style.display='block'"
-            class="btn-agregar">
-        + Nuevo Pedido
-    </button>
+<div class="contenedor-boton">
+    <div>
+        <span class="pagina-sub"><?= (int) $total_pedidos ?> <?= (int) $total_pedidos === 1 ? 'pedido' : 'pedidos' ?><?= ($estado ?? '') !== '' ? ' · ' . esc(estado_pedido_texto($estado)) : '' ?></span>
+        <h1>Pedidos</h1>
+    </div>
+    <div class="contenedor-boton__acciones">
+        <a href="<?= base_url('impresora') ?>" class="btn-cancelar" title="Configurar la impresora de tickets"
+           aria-label="Configurar la impresora de tickets">
+            <i class="fa-solid fa-gear" aria-hidden="true"></i> Configurar impresora
+        </a>
+        <button type="button" onclick="abrirNuevoPedido()" class="btn-agregar">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo pedido
+        </button>
+    </div>
 </div>
 
-<form method="get" action="<?= base_url('lista_p_pedido') ?>" class="w3-margin-bottom">
-    <div style="display:flex; gap:8px;">
-        <input
-            type="text"
-            name="buscar"
-            value="<?= esc($buscar ?? '') ?>"
-            placeholder="Buscar por id..."
-            class="w3-input w3-border"
-            style="max-width:350px;"
-        >
+<form method="get" action="<?= base_url('lista_p_pedido') ?>">
+    <div>
+        <?php if (($estado ?? '') !== ''): ?><input type="hidden" name="estado" value="<?= esc($estado, 'attr') ?>"><?php endif; ?>
+        <input type="text" name="buscar" value="<?= esc($buscar ?? '', 'attr') ?>" placeholder="Buscar por número de pedido…" class="w3-input w3-border" aria-label="Buscar pedido">
         <button type="submit" class="w3-button w3-green">
-            <i class="fa-solid fa-magnifying-glass"></i> Buscar
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_p_pedido') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_p_pedido') . (($estado ?? '') !== '' ? '?estado=' . esc($estado, 'url') : '') ?>" class="w3-button w3-border"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar búsqueda</a>
         <?php endif; ?>
     </div>
 </form>
 
+<?php
+// Pestañas por estado, en el orden en que avanza un pedido. Conservan la búsqueda.
+$pestanas = ['' => 'Todos'];
+foreach (array_keys(\App\Models\Modelo_pedido::TRANSICIONES) as $clave) {
+    $pestanas[$clave] = estado_pedido_texto($clave);
+}
+$enlacePestana = static function (string $clave) use ($buscar): string {
+    $q = array_filter(['estado' => $clave, 'buscar' => (string) ($buscar ?? '')], static fn ($v) => $v !== '');
+
+    return base_url('lista_p_pedido') . ($q !== [] ? '?' . http_build_query($q) : '');
+};
+?>
+<nav class="pestanas-estado" aria-label="Filtrar por estado">
+    <?php foreach ($pestanas as $clave => $texto): ?>
+        <?php $n = $clave === '' ? array_sum($conteoEstados ?? []) : (int) (($conteoEstados ?? [])[$clave] ?? 0); ?>
+        <?php if ($clave !== '' && $n === 0 && ($estado ?? '') !== $clave) { continue; } ?>
+        <a href="<?= esc($enlacePestana($clave), 'attr') ?>" class="pestana<?= ($estado ?? '') === $clave ? ' activa' : '' ?>"<?= ($estado ?? '') === $clave ? ' aria-current="page"' : '' ?>>
+            <?= esc($texto) ?> <b class="num"><?= $n ?></b>
+        </a>
+    <?php endforeach; ?>
+</nav>
+
 <!-- ══ TABLA PRINCIPAL ══ -->
 <div class="tabla-wrapper">
-<table>
+<table class="tabla-pedidos">
     <thead>
         <tr>
             <th></th>
@@ -75,17 +93,18 @@
             <th>Total pedido</th>
             <th>Repartidor</th>
             <th>Estatus</th>
-            <th>Editar</th>
-            <th>Eliminar</th>
+            <th class="col-acciones">Acciones</th>
         </tr>
     </thead>
     <tbody>
     <?php foreach ($pedidos_agrupados as $pedido): ?>
 
-        <tr class="fila-pedido" style="cursor:pointer;" onclick="toggleDetalle(<?= $pedido['id_pedido'] ?>)">
+        <tr class="fila-pedido" onclick="toggleDetalle(<?= esc($pedido['id_pedido'], 'js') ?>)">
             <td>
-                <button class="btn-expandir" id="btn-<?= $pedido['id_pedido'] ?>">
-                    <i class="fa-solid fa-chevron-right"></i>
+                <button type="button" class="btn-expandir" id="btn-<?= esc($pedido['id_pedido']) ?>"
+                        aria-expanded="false" aria-controls="detalle-<?= (int) $pedido['id_pedido'] ?>"
+                        aria-label="Ver los productos del pedido <?= (int) $pedido['id_pedido'] ?>">
+                    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
                 </button>
             </td>
             <td><b>#<?= esc($pedido['id_pedido']) ?></b></td>
@@ -98,31 +117,60 @@
             </td>
             <td class="total-pedido">$<?= number_format($pedido['total_pedido'], 2) ?></td>
             <td><?= esc($pedido['nombre_repartidor'].' '.$pedido['ape_pat_repartidor'].' '.$pedido['ape_mat_repartidor']) ?></td>
-            <td>
-                <span class="w3-tag w3-round w3-blue-gray">
-                    <?= esc(str_replace('_', ' ', $pedido['estado_actual'] ?? 'pendiente')) ?>
-                </span>
+            <?php
+                $estadoFila  = $pedido['estado_actual'] ?? 'pedido_pendiente';
+                $siguientes  = \App\Models\Modelo_pedido::TRANSICIONES[$estadoFila] ?? [];
+            ?>
+            <td class="celda-estado" onclick="event.stopPropagation()">
+                <div class="estado-rapido" data-estado-rapido>
+                    <?= estado_pedido($estadoFila) ?>
+                    <?php if ($siguientes !== []): ?>
+                        <form method="post" action="<?= base_url('pedido/' . (int) $pedido['id_pedido'] . '/estado') ?>" class="cambio-estado" data-cambio-estado>
+                            <?= csrf_field() ?>
+                            <select name="estado" aria-label="Cambiar el estatus del pedido <?= (int) $pedido['id_pedido'] ?>" title="Cambiar estatus">
+                                <option value="" selected disabled>Cambiar a…</option>
+                                <?php foreach ($siguientes as $sig): ?>
+                                    <option value="<?= esc($sig, 'attr') ?>"><?= esc(estado_pedido_texto($sig)) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <noscript><button type="submit" class="btn btn-chico btn-secundario"><i class="fa-solid fa-pen" aria-hidden="true"></i> Cambiar</button></noscript>
+                        </form>
+                    <?php endif; ?>
+                </div>
             </td>
-            <td onclick="event.stopPropagation()">
-                <button onclick="abrirEditarPedido('<?= esc($pedido['id_pedido']) ?>')"
-                        style="border:none; cursor:pointer; background:none;">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                </button>
-            </td>
-            <td onclick="event.stopPropagation()">
-                <a href="<?= base_url('borra_pedido_completo/'.$pedido['id_pedido']) ?>"
-                onclick="return confirm('¿Eliminar este pedido y todos sus productos?')">
-                    <button style="border:none; cursor:pointer; background:none;">
-                        <i class="fa-solid fa-trash-can"></i>
+            <td class="col-acciones" onclick="event.stopPropagation()">
+                <div class="acciones-fila">
+                    <a href="<?= base_url('ticket_pedido/' . (int) $pedido['id_pedido']) ?>" class="btn-icono"
+                       title="Enviar el ticket por WhatsApp" aria-label="Enviar el ticket del pedido <?= (int) $pedido['id_pedido'] ?> por WhatsApp">
+                        <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                    </a>
+                    <button type="button" class="btn-icono" title="Imprimir ticket" aria-label="Imprimir el ticket del pedido <?= (int) $pedido['id_pedido'] ?>"
+                            data-url="<?= base_url('imprime_ticket/' . (int) $pedido['id_pedido']) ?>"
+                            onclick="imprimirTicket(this, event)">
+                        <i class="fa-solid fa-print" aria-hidden="true"></i>
                     </button>
-                </a>
+                    <button type="button" class="btn-icono" title="Volver a pedir lo mismo" aria-label="Volver a pedir lo mismo que el pedido <?= (int) $pedido['id_pedido'] ?>"
+                            onclick="recargarPedido('<?= esc($pedido['id_pedido'], 'js') ?>')">
+                        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn-icono" title="Editar" aria-label="Editar el pedido <?= (int) $pedido['id_pedido'] ?>"
+                            onclick="abrirEditarPedido('<?= esc($pedido['id_pedido'], 'js') ?>')">
+                        <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                    </button>
+                    <form method="post" action="<?= base_url('borra_pedido_completo/' . (int) $pedido['id_pedido']) ?>" class="form-borrar" onsubmit="return confirm('¿Eliminar este pedido y todos sus productos?');">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn-icono peligro" title="Eliminar" aria-label="Eliminar el pedido <?= (int) $pedido['id_pedido'] ?>">
+                            <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                </div>
             </td>
         </tr>
 
-        <tr class="fila-detalle" id="detalle-<?= $pedido['id_pedido'] ?>">
-            <td colspan="10">
+        <tr class="fila-detalle" id="detalle-<?= esc($pedido['id_pedido']) ?>">
+            <td colspan="9">
                 <div class="detalle-inner">
-                    <b>Productos del pedido #<?= $pedido['id_pedido'] ?>:</b>
+                    <b>Productos del pedido #<?= esc($pedido['id_pedido']) ?>:</b>
                     <table class="w3-table w3-bordered w3-small">
                         <thead>
                             <tr>
@@ -145,6 +193,27 @@
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+
+                    <?php $movimientos = $bitacora[(int) $pedido['id_pedido']] ?? []; ?>
+                    <?php if ($movimientos !== []): ?>
+                        <!-- Trazabilidad (Aviso de Privacidad 3.2): quién capturó y quién modificó el pedido -->
+                        <b class="bitacora-titulo">Historial del pedido #<?= esc($pedido['id_pedido']) ?>:</b>
+                        <table class="w3-table w3-bordered w3-small bitacora-tabla">
+                            <thead>
+                                <tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($movimientos as $m): ?>
+                                <tr>
+                                    <td><?= esc(date('d/m/Y H:i', strtotime((string) $m['fecha']))) ?></td>
+                                    <td><?= esc($m['usuario']) ?></td>
+                                    <td><?= esc(\App\Models\Modelo_bitacora_pedido::ACCIONES[$m['accion']] ?? $m['accion']) ?></td>
+                                    <td><?= esc($m['detalle'] ?? '') ?></td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
                 </div>
             </td>
         </tr>
@@ -154,848 +223,64 @@
 </table>
 
 <?php if ($total_paginas > 1): ?>
-<div style="display:flex; gap:8px; margin-top:16px; margin-bottom:16px;">
+<?php
+// Conserva la búsqueda y el estado al cambiar de página
+$enlacePagina = static fn (int $n): string => '?' . http_build_query(array_filter(
+    ['estado' => $estado ?? '', 'buscar' => (string) ($buscar ?? ''), 'page' => $n],
+    static fn ($v) => $v !== ''
+));
+?>
+<nav class="paginacion" aria-label="Páginas">
     <?php if ($pagina_actual > 1): ?>
-        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual - 1 ?>"
-        class="w3-button w3-green">← Anterior</a>
+        <a href="<?= esc($enlacePagina($pagina_actual - 1), 'attr') ?>" class="w3-button w3-border"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Anterior</a>
     <?php endif; ?>
 
-    <span class="w3-button w3-white w3-border">
-        Página <?= $pagina_actual ?> de <?= $total_paginas ?>
-        (<?= $total_pedidos ?> pedidos)
-    </span>
+    <span class="paginacion-estado">Página <?= (int) $pagina_actual ?> de <?= (int) $total_paginas ?></span>
 
     <?php if ($pagina_actual < $total_paginas): ?>
-        <a href="?buscar=<?= esc($buscar) ?>&page=<?= $pagina_actual + 1 ?>"
-           class="w3-button w3-green">Siguiente →</a>
+        <a href="<?= esc($enlacePagina($pagina_actual + 1), 'attr') ?>" class="w3-button w3-border"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Siguiente</a>
     <?php endif; ?>
-</div>
+</nav>
 <?php endif; ?>
 
 </div><!-- /tabla-wrapper -->
 
 
-<!-- ══════════════════════════════════════════════════════════
-     MODAL CREAR — Wizard 3 pasos
-     ══════════════════════════════════════════════════════════ -->
-<div id="modalCrearPpedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
-  <div class="w3-modal-content w3-animate-zoom" style="max-width:580px;max-height:90vh;overflow-y:auto;">
-    <div class="w3-container w3-padding-16">
-
-      <div class="w3-bar w3-margin-bottom" style="border-bottom:1px solid #ddd;">
-        <div id="tab1" class="w3-bar-item w3-center w3-padding-small"
-             style="width:33%;border-bottom:3px solid green;font-weight:bold;cursor:default">1. Pedido</div>
-        <div id="tab2" class="w3-bar-item w3-center w3-padding-small"
-             style="width:33%;border-bottom:3px solid #ccc;cursor:default">2. Productos</div>
-        <div id="tab3" class="w3-bar-item w3-center w3-padding-small"
-             style="width:33%;border-bottom:3px solid #ccc;cursor:default">3. Estatus</div>
-      </div>
-
-      <!-- PASO 1 -->
-      <div id="paso1">
-        <label><b>Fecha*</b></label>
-        <input type="date" id="ped_fecha" class="w3-input w3-border w3-margin-bottom">
-        <label><b>Cliente*</b></label>
-        <select id="ped_id_cliente" class="w3-select w3-border w3-margin-bottom">
-          <?php foreach ($clientes as $c): ?>
-            <option value="<?= esc($c['id']) ?>">
-              <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-        <label><b>Repartidor*</b></label>
-        <select id="ped_id_repartidor" class="w3-select w3-border w3-margin-bottom">
-          <?php foreach ($repartidores as $r): ?>
-            <option value="<?= esc($r['id']) ?>">
-              <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-      </div>
-
-      <!-- PASO 2 -->
-      <div id="paso2" style="display:none;">
-
-        <label><b>Producto*</b></label>
-        <p class="search-hint"><i class="fa-solid fa-circle-info"></i> Escribe al menos 3 caracteres para buscar</p>
-
-        <!-- Buscador -->
-        <div class="prod-search-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text"
-                 id="cp_buscar"
-                 class="prod-search-input"
-                 placeholder="Buscar producto..."
-                 autocomplete="off">
-          <div id="cp_resultados" class="prod-resultados"></div>
-        </div>
-
-        <!-- Badge del producto seleccionado -->
-        <div id="cp_badge" class="prod-badge" style="display:none;">
-          <span class="badge-nombre" id="cp_badge_nombre"></span>
-          <span class="badge-stock"  id="cp_badge_stock"></span>
-          <button type="button" class="badge-limpiar" onclick="cpLimpiarSeleccion()" title="Cambiar producto">✕</button>
-        </div>
-
-        <!-- ID del producto seleccionado (hidden) -->
-        <input type="hidden" id="cp_id_producto">
-
-        <label><b>Unidad de venta*</b></label>
-        <select id="cp_u_venta" class="w3-select w3-border w3-margin-bottom">
-          <option value="Kilogramo">Kilogramo</option>
-          <option value="Domo">Domo</option>
-          <option value="Ramos">Ramo</option>
-          <option value="Caja">Caja</option>
-        </select>
-        <label><b>Cantidad*</b></label>
-        <input type="number" id="cp_cant" placeholder="Ej: 5" class="w3-input w3-border w3-margin-bottom">
-        <label><b>Precio de venta (unitario)*</b></label>
-        <input type="number" id="cp_p_venta" placeholder="Ej: 45.00" step="0.01" class="w3-input w3-border w3-margin-bottom">
-        <button type="button" onclick="agregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
-          + Agregar producto
-        </button>
-
-        <div id="carritoContainer" style="display:none;">
-          <hr><b>Carrito:</b>
-          <table class="w3-table w3-bordered w3-small w3-margin-top">
-            <thead class="w3-green">
-              <tr><th>Producto</th><th>Unidad</th><th>Cant</th><th>Precio</th><th>Total</th><th></th></tr>
-            </thead>
-            <tbody id="carritoBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- PASO 3 -->
-      <div id="paso3" style="display:none;">
-        <label><b>Estado inicial*</b></label>
-        <select id="est_estado" class="w3-select w3-border w3-margin-bottom">
-        <option value="pedido_realizado">Pedido realizado</option>
-        </select>
-        <label><b>Fecha y hora*</b></label>
-        <input type="datetime-local" id="est_fecha" class="w3-input w3-border w3-margin-bottom">
-      </div>
-
-      <form id="formCarrito" action="<?= base_url('guarda_pedido_completo') ?>" method="post">
-        <?= csrf_field() ?>
-        <input type="hidden" name="origen"        value="lista_p_pedido">
-        <input type="hidden" name="fecha"         id="fn_fecha">
-        <input type="hidden" name="id_cliente"    id="fn_id_cliente">
-        <input type="hidden" name="id_repartidor" id="fn_id_repartidor">
-        <input type="hidden" name="items"         id="inputItems">
-        <input type="hidden" name="estado"        id="fn_estado">
-        <input type="hidden" name="fecha_estatus" id="fn_fecha_estatus">
-      </form>
-
-      <footer class="w3-container w3-green w3-padding w3-margin-top">
-        <button type="button" id="btnGuardar" onclick="enviarCarrito()"
-                class="w3-button w3-white w3-right" style="display:none;">Guardar todo</button>
-        <button type="button" id="btnSiguiente" onclick="siguientePaso()"
-                class="w3-button w3-white w3-right">Siguiente →</button>
-        <button type="button" id="btnAtras" onclick="anteriorPaso()"
-                class="w3-button w3-white" style="display:none;">← Atrás</button>
-        <button type="button" onclick="cerrarModal()" class="w3-button w3-white">Cancelar</button>
-      </footer>
-
-    </div>
-  </div>
-</div>
-
-
-<!-- ══════════════════════════════════════════════════════════
-     MODAL EDITAR — Wizard 3 pasos
-     ══════════════════════════════════════════════════════════ -->
-<div id="modalEditarPedido" class="w3-modal" style="padding-top:100px;z-index:9999;">
-  <div class="w3-modal-content w3-animate-zoom" style="max-width:580px;max-height:90vh;overflow-y:auto;">
-    <div class="w3-container w3-padding-16">
-
-      <div class="w3-bar w3-margin-bottom" style="border-bottom:1px solid #ddd;">
-        <div id="etab1" class="w3-bar-item w3-center w3-padding-small"
-             style="width:33%;border-bottom:3px solid green;font-weight:bold;cursor:default">1. Pedido</div>
-        <div id="etab2" class="w3-bar-item w3-center w3-padding-small"
-             style="width:33%;border-bottom:3px solid #ccc;cursor:default">2. Productos</div>
-        <div id="etab3" class="w3-bar-item w3-center w3-padding-small"
-             style="width:33%;border-bottom:3px solid #ccc;cursor:default">3. Estatus</div>
-      </div>
-
-      <!-- PASO 1 -->
-      <div id="epaso1">
-        <label><b>Fecha*</b></label>
-        <input type="date" id="eped_fecha" class="w3-input w3-border w3-margin-bottom">
-        <label><b>Cliente*</b></label>
-        <select id="eped_id_cliente" class="w3-select w3-border w3-margin-bottom">
-          <?php foreach ($clientes as $c): ?>
-            <option value="<?= esc($c['id']) ?>">
-              <?= esc($c['nombre'].' '.$c['ape_pat'].' '.$c['ape_mat']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-        <label><b>Repartidor*</b></label>
-        <select id="eped_id_repartidor" class="w3-select w3-border w3-margin-bottom">
-        <?php foreach ($repartidores as $r): ?>
-            <option value="<?= esc($r['id']) ?>">
-            <?= esc($r['nombre'].' '.$r['ape_pat'].' '.$r['ape_mat']) ?>
-            </option>
-        <?php endforeach; ?>
-        </select>
-    </div>
-
-    <!-- PASO 2 -->
-      <div id="epaso2" style="display:none;">
-
-        <label><b>Producto*</b></label>
-        <p class="search-hint"><i class="fa-solid fa-circle-info"></i> Escribe al menos 3 caracteres para buscar</p>
-
-        <!-- Buscador -->
-        <div class="prod-search-wrap">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text"
-                 id="ecp_buscar"
-                 class="prod-search-input"
-                 placeholder="Buscar producto..."
-                 autocomplete="off">
-          <div id="ecp_resultados" class="prod-resultados"></div>
-        </div>
-
-        <!-- Badge del producto seleccionado -->
-        <div id="ecp_badge" class="prod-badge" style="display:none;">
-          <span class="badge-nombre" id="ecp_badge_nombre"></span>
-          <span class="badge-stock"  id="ecp_badge_stock"></span>
-          <button type="button" class="badge-limpiar" onclick="ecpLimpiarSeleccion()" title="Cambiar producto">✕</button>
-        </div>
-
-        <!-- ID del producto seleccionado (hidden) -->
-        <input type="hidden" id="ecp_id_producto">
-
-        <label><b>Unidad de venta*</b></label>
-        <select id="ecp_u_venta" class="w3-select w3-border w3-margin-bottom">
-          <option value="Kilogramo">Kilogramo</option>
-          <option value="Domo">Domo</option>
-          <option value="Ramos">Ramo</option>
-          <option value="Caja">Caja</option>
-        </select>
-        <label><b>Cantidad*</b></label>
-        <input type="number" id="ecp_cant" placeholder="Ej: 5" class="w3-input w3-border w3-margin-bottom">
-        <label><b>Precio de venta (unitario)*</b></label>
-        <input type="number" id="ecp_p_venta" placeholder="Ej: 45.00" step="0.01" class="w3-input w3-border w3-margin-bottom">
-        <button type="button" onclick="eAgregarAlCarrito()" class="w3-button w3-blue w3-margin-bottom">
-          + Agregar producto
-        </button>
-
-        <div id="eCarritoContainer" style="display:none;">
-          <hr><b>Carrito:</b>
-          <table class="w3-table w3-bordered w3-small w3-margin-top">
-            <thead class="w3-green">
-              <tr><th>Producto</th><th>Unidad</th><th>Cant</th><th>Precio</th><th>Total</th><th></th></tr>
-            </thead>
-            <tbody id="eCarritoBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- PASO 3 -->
-      <div id="epaso3" style="display:none;">
-        <label><b>Nuevo estado*</b></label>
-        <select id="eest_estado" class="w3-select w3-border w3-margin-bottom">
-          <option value="pedido_realizado">Pedido realizado</option>
-          <option value="pedido_confirmado">Pedido confirmado</option>
-          <option value="pedido_en_transito">Pedido en tránsito</option>
-          <option value="pedido_entregado">Pedido entregado</option>
-          <option value="pedido_a_credito">Pedido a crédito</option>
-          <option value="pedido_pagado">Pedido pagado</option>
-          <option value="pedido_cancelado">Pedido cancelado</option>
-        </select>
-        <label><b>Fecha y hora*</b></label>
-        <input type="datetime-local" id="eest_fecha" class="w3-input w3-border w3-margin-bottom">
-      </div>
-
-      <form id="eFormCarrito" action="<?= base_url('modifica_pedido_completo') ?>" method="post">
-        <?= csrf_field() ?>
-        <input type="hidden" name="origen"        value="lista_p_pedido">
-        <input type="hidden" name="id_pedido"     id="efn_id_pedido">
-        <input type="hidden" name="fecha"         id="efn_fecha">
-        <input type="hidden" name="id_cliente"    id="efn_id_cliente">
-        <input type="hidden" name="id_repartidor" id="efn_id_repartidor">
-        <input type="hidden" name="items"         id="eInputItems">
-        <input type="hidden" name="estado"        id="efn_estado">
-        <input type="hidden" name="fecha_estatus" id="efn_fecha_estatus">
-      </form>
-
-      <footer class="w3-container w3-green w3-padding w3-margin-top">
-        <button type="button" id="eBtnGuardar" onclick="eEnviarCarrito()"
-                class="w3-button w3-white w3-right" style="display:none;">Guardar cambios</button>
-        <button type="button" id="eBtnSiguiente" onclick="eSiguientePaso()"
-                class="w3-button w3-white w3-right">Siguiente →</button>
-        <button type="button" id="eBtnAtras" onclick="eAnteriorPaso()"
-                class="w3-button w3-white" style="display:none;">← Atrás</button>
-        <button type="button" onclick="eCerrarModal()" class="w3-button w3-white">Cancelar</button>
-      </footer>
-
-    </div>
-  </div>
-</div>
+<!-- Ventanas «Nuevo pedido» y «Editar pedido»: una sola pantalla cada una -->
+<?= view('partials/modal_pedido', ['modo' => 'crear', 'clientes' => $clientes, 'repartidores' => $repartidores, 'idsPreferenciales' => $idsPreferenciales]) ?>
+<?= view('partials/modal_pedido', ['modo' => 'editar', 'clientes' => $clientes, 'repartidores' => $repartidores, 'idsPreferenciales' => $idsPreferenciales]) ?>
 
 <?php include 'Footer.php'; ?>
 
-<!-- ══════════════════════════════════════════════════════════
-     DATOS DEL SERVIDOR
-     ══════════════════════════════════════════════════════════ -->
-<script>
-const stockPorProducto = <?= json_encode($stockPorProducto) ?>;
- 
-const nombreProducto = {
-  <?php foreach ($productos as $pr): ?>
-    <?= $pr['id'] ?>: "<?= esc($pr['nombre']) ?>",
-  <?php endforeach; ?>
-};
- 
-// Catálogo completo para el buscador
-// Ahora incluye u_venta y precio sugeridos desde la última entrada
-const catalogoProductos = <?= json_encode(array_map(fn($p) => [
-    'id'        => (int)$p['id'],
-    'nombre'    => $p['nombre'],
-    'categoria' => $p['categoria'] ?? '',
-    'u_venta'   => $uVentaSugeridaPorProducto[$p['id']] ?? '',
-    'precio'    => $precioSugeridoPorProducto[$p['id']] ?? '',
-], $productos)) ?>;
-</script>
- 
- 
-<!-- ══════════════════════════════════════════════════════════
-     BLOQUE 2 — JAVASCRIPT PRINCIPAL  (reemplaza el bloque original)
-     ══════════════════════════════════════════════════════════ -->
-<script>
- 
-// ─────────────────────────────────────────────────────────────
-// UTILIDADES
-// ─────────────────────────────────────────────────────────────
- 
-/** Debounce genérico */
-function debounce(fn, ms) {
-    let timer;
-    return function (...args) {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn.apply(this, args), ms);
-    };
+<?php
+// Datos para public/js/pedido_formulario.js (precio y unidad sugeridos: los de la última entrada).
+$estadosTexto = [];
+foreach (array_keys(\App\Models\Modelo_pedido::TRANSICIONES) as $claveEstado) {
+    $estadosTexto[$claveEstado] = estado_pedido_texto($claveEstado);
 }
- 
-/** Expandir / colapsar detalle de la tabla */
-function toggleDetalle(idPedido) {
-    const fila = document.getElementById('detalle-' + idPedido);
-    const btn  = document.getElementById('btn-' + idPedido);
-    fila.classList.toggle('abierto');
-    btn.classList.toggle('abierto');
-}
- 
- 
-// ─────────────────────────────────────────────────────────────
-// BUSCADOR GENÉRICO DE PRODUCTOS
-//
-//   prefijo     → 'cp_'  (crear) | 'ecp_' (editar)
-//   onSeleccion → callback(id, nombre, stock, producto)
-//                 Se llama al elegir un producto. Úsalo para
-//                 auto-rellenar unidad y precio.
-// ─────────────────────────────────────────────────────────────
-function crearBuscadorProducto(prefijo, onSeleccion) {
- 
-    const inputBuscar   = document.getElementById(prefijo + 'buscar');
-    const divResultados = document.getElementById(prefijo + 'resultados');
-    const divBadge      = document.getElementById(prefijo + 'badge');
-    const spanNombre    = document.getElementById(prefijo + 'badge_nombre');
-    const spanStock     = document.getElementById(prefijo + 'badge_stock');
-    const inputHidden   = document.getElementById(prefijo + 'id_producto');
- 
-    const selectCat = prefijo === 'cp_'
-        ? document.getElementById('filtroCategoriaCrear')
-        : document.getElementById('filtroCategoriaEditar');
- 
-    /** Filtra el catálogo y renderiza resultados */
-    function buscar(texto) {
-        const query     = texto.trim().toLowerCase();
-        const categoria = selectCat ? selectCat.value : '';
-
-        // Con menos de 3 caracteres mostramos todos (o filtrados por categoría)
-        let candidatos;
-        if (query.length > 0 && query.length < 3) {
-            // Está escribiendo pero aún no llega a 3 — no hacer nada
-            return;
-        } else if (query.length === 0) {
-            // Sin texto — mostrar todos
-            candidatos = catalogoProductos.filter(p =>
-                !categoria || p.categoria === categoria
-            );
-        } else {
-            // 3+ caracteres — filtrar por nombre y categoría
-            candidatos = catalogoProductos.filter(p => {
-                const coincideNombre    = p.nombre.toLowerCase().includes(query);
-                const coincideCategoria = !categoria || p.categoria === categoria;
-                return coincideNombre && coincideCategoria;
-            });
-        }
- 
-        if (candidatos.length === 0) {
-            divResultados.innerHTML = '<div class="sin-resultados">Sin resultados para "' + texto + '"</div>';
-            divResultados.style.display = 'block';
-            return;
-        }
- 
-        // Ordenar: primero los que tienen stock
-        candidatos.sort((a, b) => {
-            const sa = stockPorProducto[a.id] ?? 0;
-            const sb = stockPorProducto[b.id] ?? 0;
-            return sb - sa;
-        });
- 
-        divResultados.innerHTML = candidatos.map(p => {
-            const stock     = stockPorProducto[p.id] ?? 0;
-            const pillClass = stock > 0 ? 'con-stock' : 'sin-stock';
-            const pillText  = stock > 0 ? 'Stock: ' + stock : 'Sin stock';
-            return `<div class="prod-item"
-                         data-id="${p.id}"
-                         data-nombre="${p.nombre.replace(/"/g,'&quot;')}"
-                         data-stock="${stock}">
-                      <span>${p.nombre}</span>
-                      <span class="stock-pill ${pillClass}">${pillText}</span>
-                    </div>`;
-        }).join('');
- 
-        // ── Click en cada ítem ──────────────────────────────────
-        divResultados.querySelectorAll('.prod-item').forEach(el => {
-            el.addEventListener('click', () => {
-                const id       = el.dataset.id;
-                const nombre   = el.dataset.nombre;
-                const stock    = parseInt(el.dataset.stock, 10);
-                // Recuperar el objeto completo del catálogo para obtener
-                // u_venta y precio sugeridos
-                const producto = catalogoProductos.find(p => p.id == id) ?? {};
- 
-                seleccionar(id, nombre, stock);
- 
-                // Disparar callback con datos completos del producto
-                if (onSeleccion) onSeleccion(id, nombre, stock, producto);
-            });
-        });
- 
-        divResultados.style.display = 'block';
-    }
- 
-    /** Muestra badge y oculta el input de búsqueda */
-    function seleccionar(id, nombre, stock) {
-        inputHidden.value      = id;
-        spanNombre.textContent = nombre;
- 
-        const sinStock = stock <= 0;
-        spanStock.textContent = sinStock ? '⚠ Sin stock disponible' : '✓ Stock disponible: ' + stock;
-        divBadge.className    = 'prod-badge' + (sinStock ? ' sin-stock' : '');
-        divBadge.style.display = 'flex';
- 
-        inputBuscar.value           = '';
-        divResultados.style.display = 'none';
-        divResultados.innerHTML     = '';
-        inputBuscar.style.display   = 'none';
-    }
- 
-    /** Limpia la selección para volver a buscar */
-    window[prefijo.replace('_','') + 'LimpiarSeleccion'] = function () {
-        inputHidden.value           = '';
-        divBadge.style.display      = 'none';
-        inputBuscar.style.display   = '';
-        inputBuscar.value           = '';
-        inputBuscar.focus();
-    };
- 
-    // Escuchar escritura con debounce de 600 ms
-    inputBuscar.addEventListener('input', debounce(function () {
-        buscar(this.value);
-    }, 600));
-
-    // Mostrar todos los productos al hacer focus en el campo
-    inputBuscar.addEventListener('focus', function () {
-        if (this.value.trim().length < 3) {
-            buscar('');
-        }
-    });
- 
-    // Cerrar resultados al hacer clic fuera
-    document.addEventListener('click', function (e) {
-        if (!inputBuscar.contains(e.target) && !divResultados.contains(e.target)) {
-            divResultados.style.display = 'none';
-        }
-    });
- 
-    // Reactivar búsqueda si cambia la categoría
-    if (selectCat) {
-        selectCat.addEventListener('change', () => {
-            if (inputBuscar.style.display !== 'none' && inputBuscar.value.length >= 3) {
-                buscar(inputBuscar.value);
-            }
-        });
-    }
-}
- 
-// ── Helper: intenta seleccionar la opción más cercana en un <select> ──
-function matchearUnidad(selectEl, sugerida) {
-    if (!sugerida) return;
-    const s = sugerida.toLowerCase();
-    for (const opt of selectEl.options) {
-        const v = opt.value.toLowerCase();
-        if (v === s || v.startsWith(s) || s.startsWith(v)) {
-            opt.selected = true;
-            return;
-        }
-    }
-    // Si no hay match exacto, dejar la primera opción (el usuario puede cambiar)
-}
- 
-// ── Inicializar buscador CREAR con callback de auto-relleno ──────────
-crearBuscadorProducto('cp_', function(id, nombre, stock, producto) {
-    // Auto-rellenar unidad de venta
-    matchearUnidad(document.getElementById('cp_u_venta'), producto.u_venta);
- 
-    // Auto-rellenar precio (editable por el usuario)
-    if (producto.precio) {
-        document.getElementById('cp_p_venta').value = parseFloat(producto.precio).toFixed(2);
-    }
-});
- 
-// ── Inicializar buscador EDITAR con callback de auto-relleno ─────────
-crearBuscadorProducto('ecp_', function(id, nombre, stock, producto) {
-    // Auto-rellenar unidad de venta
-    matchearUnidad(document.getElementById('ecp_u_venta'), producto.u_venta);
- 
-    // Auto-rellenar precio (editable por el usuario)
-    if (producto.precio) {
-        document.getElementById('ecp_p_venta').value = parseFloat(producto.precio).toFixed(2);
-    }
-});
- 
- 
-// ════════════════════════════════════════════════════════════
-//  WIZARD CREAR
-// ════════════════════════════════════════════════════════════
-let carrito    = [];
-let pasoActual = 1;
- 
-function mostrarPaso(n) {
-    [1, 2, 3].forEach(i => {
-        document.getElementById('paso' + i).style.display = i === n ? 'block' : 'none';
-        const tab = document.getElementById('tab' + i);
-        tab.style.borderBottom = i === n ? '3px solid green' : '3px solid #ccc';
-        tab.style.fontWeight   = i === n ? 'bold' : 'normal';
-    });
-    document.getElementById('btnAtras').style.display     = n > 1 ? 'inline-block' : 'none';
-    document.getElementById('btnSiguiente').style.display = n < 3 ? 'inline-block' : 'none';
-    document.getElementById('btnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
-    pasoActual = n;
-}
- 
-function siguientePaso() {
-    if (pasoActual === 1 && !validarPaso1()) return;
-    if (pasoActual === 2 && !validarPaso2()) return;
-    if (pasoActual < 3) mostrarPaso(pasoActual + 1);
-    if (pasoActual === 3) {
-        const now   = new Date();
-        const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        document.getElementById('est_fecha').value = local;
-    }
-}
- 
-function anteriorPaso() {
-    if (pasoActual > 1) mostrarPaso(pasoActual - 1);
-}
- 
-function validarPaso1() {
-    if (!document.getElementById('ped_fecha').value ||
-        !document.getElementById('ped_id_cliente').value ||
-        !document.getElementById('ped_id_repartidor').value) {
-        alert('Completa todos los campos del pedido.');
-        return false;
-    }
-    return true;
-}
- 
-function validarPaso2() {
-    if (carrito.length === 0) {
-        alert('Agrega al menos un producto al carrito.');
-        return false;
-    }
-    return true;
-}
- 
-function agregarAlCarrito() {
-    const id_producto = document.getElementById('cp_id_producto').value;
-    const u_venta     = document.getElementById('cp_u_venta').value;
-    const cant        = parseFloat(document.getElementById('cp_cant').value);
-    const p_venta     = parseFloat(document.getElementById('cp_p_venta').value);
- 
-    if (!id_producto) { alert('Selecciona un producto primero.'); return; }
-    if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
- 
-    const disponible  = stockPorProducto[id_producto] ?? 0;
-    const yaEnCarrito = carrito
-        .filter(i => i.id_producto === id_producto)
-        .reduce((sum, i) => sum + i.cant, 0);
- 
-    if (yaEnCarrito + cant > disponible) {
-        const maxPosible = disponible - yaEnCarrito;
-        alert(maxPosible <= 0
-            ? `"${nombreProducto[id_producto]}" ya no tiene stock disponible.`
-            : `Stock insuficiente. Puedes agregar máximo ${maxPosible} más de "${nombreProducto[id_producto]}".`
-        );
-        return;
-    }
- 
-    carrito.push({ id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
-    renderCarrito();
- 
-    cpLimpiarSeleccion();
-    document.getElementById('cp_cant').value    = '';
-    document.getElementById('cp_p_venta').value = '';
-}
- 
-function renderCarrito() {
-    const tbody = document.getElementById('carritoBody');
-    tbody.innerHTML = '';
-    let total = 0;
-    carrito.forEach((item, i) => {
-        total += parseFloat(item.total);
-        tbody.innerHTML += `
-          <tr>
-            <td>${nombreProducto[item.id_producto]}</td>
-            <td>${item.u_venta}</td>
-            <td>${item.cant}</td>
-            <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-            <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-            <td><button type="button" onclick="quitarItem(${i})"
-                class="w3-button w3-red w3-small">✕</button></td>
-          </tr>`;
-    });
-    tbody.innerHTML += `
-      <tr>
-        <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
-        <td><strong>${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</strong></td>
-        <td></td>
-      </tr>`;
-
-    document.getElementById('carritoContainer').style.display = carrito.length ? 'block' : 'none';
-}
- 
-function quitarItem(i) { carrito.splice(i, 1); renderCarrito(); }
- 
-function enviarCarrito() {
-    const estado   = document.getElementById('est_estado').value;
-    const fechaEst = document.getElementById('est_fecha').value;
-    if (!estado || !fechaEst) { alert('Completa estado y fecha.'); return; }
- 
-    document.getElementById('fn_fecha').value         = document.getElementById('ped_fecha').value;
-    document.getElementById('fn_id_cliente').value    = document.getElementById('ped_id_cliente').value;
-    document.getElementById('fn_id_repartidor').value = document.getElementById('ped_id_repartidor').value;
-    document.getElementById('inputItems').value       = JSON.stringify(carrito);
-    document.getElementById('fn_estado').value        = estado;
-    document.getElementById('fn_fecha_estatus').value = fechaEst;
-    document.getElementById('formCarrito').submit();
-}
- 
-function cerrarModal() {
-    carrito = [];
-    renderCarrito();
-    mostrarPaso(1);
-    cpLimpiarSeleccion();
-    document.getElementById('ped_fecha').value          = '';
-    document.getElementById('cp_cant').value    = '';
-    document.getElementById('cp_p_venta').value = '';
-    document.getElementById('modalCrearPpedido').style.display = 'none';
-}
- 
- 
-// ════════════════════════════════════════════════════════════
-//  WIZARD EDITAR
-// ════════════════════════════════════════════════════════════
-let carritoEditar = [];
-let ePasoActual   = 1;
- 
-function eMostrarPaso(n) {
-    [1, 2, 3].forEach(i => {
-        document.getElementById('epaso' + i).style.display = i === n ? 'block' : 'none';
-        const tab = document.getElementById('etab' + i);
-        tab.style.borderBottom = i === n ? '3px solid green' : '3px solid #ccc';
-        tab.style.fontWeight   = i === n ? 'bold' : 'normal';
-    });
-    document.getElementById('eBtnAtras').style.display     = n > 1 ? 'inline-block' : 'none';
-    document.getElementById('eBtnSiguiente').style.display = n < 3 ? 'inline-block' : 'none';
-    document.getElementById('eBtnGuardar').style.display   = n === 3 ? 'inline-block' : 'none';
-    ePasoActual = n;
-}
- 
-function eSiguientePaso() {
-    if (ePasoActual === 1 && !eValidarPaso1()) return;
-    if (ePasoActual === 2 && !eValidarPaso2()) return;
-    if (ePasoActual < 3) eMostrarPaso(ePasoActual + 1);
-    if (ePasoActual === 3) {
-        const now   = new Date();
-        const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        document.getElementById('eest_fecha').value = local;
-    }
-}
- 
-function eAnteriorPaso() {
-    if (ePasoActual > 1) eMostrarPaso(ePasoActual - 1);
-}
- 
-function eValidarPaso1() {
-    if (!document.getElementById('eped_fecha').value ||
-        !document.getElementById('eped_id_cliente').value ||
-        !document.getElementById('eped_id_repartidor').value) {
-        alert('Completa todos los campos del pedido.');
-        return false;
-    }
-    return true;
-}
- 
-function eValidarPaso2() {
-    if (carritoEditar.length === 0) {
-        alert('El carrito no puede quedar vacío.');
-        return false;
-    }
-    return true;
-}
- 
-async function abrirEditarPedido(idPedido) {
-    try {
-        const res  = await fetch(`<?= base_url('api_pedido/') ?>${idPedido}`);
-        const data = await res.json();
- 
-        document.getElementById('efn_id_pedido').value      = idPedido;
-        document.getElementById('eped_fecha').value         = data.pedido.fecha;
-        document.getElementById('eped_id_cliente').value    = data.pedido.id_cliente;
-        document.getElementById('eped_id_repartidor').value = data.pedido.id_repartidor;
- 
-        carritoEditar = data.items.map(item => ({
-            id:          item.id,
-            id_producto: item.id_producto,
-            u_venta:     item.unidad_venta,
-            cant:        parseFloat(item.cant),
-            p_venta:     parseFloat(item.precio_venta),
-            total:       parseFloat(item.total).toFixed(2),
-        }));
-        eRenderCarrito();
- 
-        const select     = document.getElementById('eest_estado');
-        const permitidos = data.transiciones_validas;
-        Array.from(select.options).forEach(opt => {
-            const esPermitido = permitidos.includes(opt.value);
-            opt.disabled      = !esPermitido;
-            opt.style.color   = esPermitido ? '' : '#aaa';
-        });
-        const primeraValida = select.querySelector('option:not([disabled])');
-        if (primeraValida) primeraValida.selected = true;
- 
-        if (permitidos.length === 0) {
-            alert(`Este pedido está en "${data.estado_actual.replace(/_/g,' ')}" y no admite más cambios.`);
-            return;
-        }
- 
-        ecpLimpiarSeleccion();
-        eMostrarPaso(1);
-        document.getElementById('modalEditarPedido').style.display = 'block';
- 
-    } catch (e) {
-        alert('Error al cargar los datos del pedido.');
-        console.error(e);
-    }
-}
- 
-function eAgregarAlCarrito() {
-    const id_producto = document.getElementById('ecp_id_producto').value;
-    const u_venta     = document.getElementById('ecp_u_venta').value;
-    const cant        = parseFloat(document.getElementById('ecp_cant').value);
-    const p_venta     = parseFloat(document.getElementById('ecp_p_venta').value);
- 
-    if (!id_producto) { alert('Selecciona un producto primero.'); return; }
-    if (!cant || !p_venta) { alert('Completa cantidad y precio.'); return; }
- 
-    const disponible  = stockPorProducto[id_producto] ?? 0;
-    const yaEnCarrito = carritoEditar
-        .filter(i => i.id_producto === id_producto)
-        .reduce((sum, i) => sum + i.cant, 0);
- 
-    if (yaEnCarrito + cant > disponible) {
-        const maxPosible = disponible - yaEnCarrito;
-        alert(maxPosible <= 0
-            ? `"${nombreProducto[id_producto]}" ya no tiene stock disponible.`
-            : `Stock insuficiente. Puedes agregar máximo ${maxPosible} más de "${nombreProducto[id_producto]}".`
-        );
-        return;
-    }
- 
-    carritoEditar.push({ id: null, id_producto, u_venta, cant, p_venta, total: (cant * p_venta).toFixed(2) });
-    eRenderCarrito();
- 
-    ecpLimpiarSeleccion();
-    document.getElementById('ecp_cant').value    = '';
-    document.getElementById('ecp_p_venta').value = '';
-}
- 
-function eRenderCarrito() {
-    const tbody = document.getElementById('eCarritoBody');
-    tbody.innerHTML = '';
-    let total = 0;
-    carritoEditar.forEach((item, i) => {
-        total += parseFloat(item.total);
-        tbody.innerHTML += `
-        <tr>
-            <td>${nombreProducto[item.id_producto]}</td>
-            <td>${item.u_venta}</td>
-            <td>${item.cant}</td>
-            <td>${parseFloat(item.p_venta).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-            <td>${parseFloat(item.total).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</td>
-            <td><button type="button" onclick="eQuitarItem(${i})"
-                class="w3-button w3-red w3-small">✕</button></td>
-        </tr>`;
-    });
-    tbody.innerHTML += `
-      <tr>
-        <td colspan="4" style="text-align:right;"><strong>Total:</strong></td>
-        <td><strong>${total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })}</strong></td>
-        <td></td>
-      </tr>`;
-    document.getElementById('eCarritoContainer').style.display = carritoEditar.length ? 'block' : 'none';
-}
- 
-function eQuitarItem(i) { carritoEditar.splice(i, 1); eRenderCarrito(); }
- 
-function eEnviarCarrito() {
-    const estado   = document.getElementById('eest_estado').value;
-    const fechaEst = document.getElementById('eest_fecha').value;
-    if (!estado || !fechaEst) { alert('Completa estado y fecha.'); return; }
- 
-    document.getElementById('efn_fecha').value         = document.getElementById('eped_fecha').value;
-    document.getElementById('efn_id_cliente').value    = document.getElementById('eped_id_cliente').value;
-    document.getElementById('efn_id_repartidor').value = document.getElementById('eped_id_repartidor').value;
-    document.getElementById('eInputItems').value       = JSON.stringify(carritoEditar);
-    document.getElementById('efn_estado').value        = estado;
-    document.getElementById('efn_fecha_estatus').value = fechaEst;
-    document.getElementById('eFormCarrito').submit();
-}
- 
-function eCerrarModal() {
-    carritoEditar = [];
-    eRenderCarrito();
-    eMostrarPaso(1);
-    ecpLimpiarSeleccion();
-    document.getElementById('ecp_cant').value    = '';
-    document.getElementById('ecp_p_venta').value = '';
-    document.getElementById('modalEditarPedido').style.display = 'none';
-}
- 
-// Cerrar modales al hacer clic fuera
-window.onclick = function (event) {
-    if (event.target === document.getElementById('modalCrearPpedido'))  cerrarModal();
-    if (event.target === document.getElementById('modalEditarPedido')) eCerrarModal();
-};
- 
-</script>
+?>
+<script type="application/json" id="datos-pedido"><?= json_seguro([
+    'catalogo' => array_map(static fn (array $p): array => [
+        'id'        => (int) $p['id'],
+        'nombre'    => (string) $p['nombre'],
+        'categoria' => (string) ($p['categoria'] ?? ''),
+        'u_venta'   => (string) ($uVentaSugeridaPorProducto[$p['id']] ?? ''),
+        'precio'    => $precioSugeridoPorProducto[$p['id']] ?? '',
+    ], $productos),
+    'stock'          => $stockPorProducto,
+    'preferenciales' => array_map('intval', $idsPreferenciales),
+    'descuento'      => (float) $descuentoPreferencial,
+    'estados'        => $estadosTexto,
+    'urls'           => [
+        'pedido'       => base_url('api_pedido/'),
+        'recargar'     => base_url('api_recargar_pedido/'),
+        'crearCliente' => base_url('clientes/crear-rapido'),
+    ],
+]) ?></script>
 
 </div><!-- /.lista-wrapper -->
+<script src="<?= base_url('js/impresion_ticket.js') ?>"></script>
+<script src="<?= base_url('js/direccion_pedido.js') ?>"></script>
+<script src="<?= base_url('js/pedido_formulario.js') . '?v=' . @filemtime(FCPATH . 'js/pedido_formulario.js') ?>"></script>
 </body>
 </html>

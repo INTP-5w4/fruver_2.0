@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <title>Lista de productos</title>
+    <title>Productos · Fruver</title>
 </head>
 <body>
     <?php include 'Header.php'; ?>
@@ -16,47 +14,32 @@
 <div class="flash-container">
     <?php if (session()->getFlashdata('error')): ?>
         <div class="w3-panel w3-red w3-animate-opacity">
-            <p><?= session()->getFlashdata('error') ?></p>
+            <p><?= esc(session()->getFlashdata('error')) ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (session()->getFlashdata('mensaje')): ?>
         <div class="w3-panel w3-green w3-animate-opacity">
-            <p><?= session()->getFlashdata('mensaje') ?></p>
+            <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
         </div>
     <?php endif; ?>
 </div>
 
-<div class="contenedor-boton" style="padding-top: 20px;">
+<div class="contenedor-boton">
+    <h1>Productos</h1>
     <button onclick="document.getElementById('modalCrearProducto').style.display='block'"
             class="btn-agregar">
-        + Nuevo Producto
+        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo producto
     </button>
 </div>
-<form method="get" action="<?= base_url('lista_producto') ?>" class="w3-margin-bottom">
-    <div style="display:flex; gap:8px;">
-        <input
-            type="text"
-            name="buscar"
-            value="<?= esc($buscar ?? '') ?>"
-            placeholder="Buscar por id..."
-            class="w3-input w3-border"
-            style="max-width:350px;"
-        >
-        <button type="submit" class="w3-button w3-green">
-            <i class="fa-solid fa-magnifying-glass"></i> Buscar
-        </button>
-        <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_producto') ?>" class="w3-button w3-red">✕ Limpiar</a>
-        <?php endif; ?>
-    </div>
-</form>
+<?= view('partials/buscador_lista', ['ruta' => 'lista_producto', 'buscar' => $buscar ?? '', 'placeholder' => 'Buscar por nombre, código, descripción, categoría o id…']) ?>
 
-<div class="tabla-wrapper">
+<div class="tabla-wrapper" data-busqueda-resultados>
     <table>
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Código</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
                 <th>Categoria</th>
@@ -66,55 +49,64 @@
             </tr>
         </thead>
         <tbody>
+            <?php helper('tienda'); // tienda_img_url(): miniatura del producto ?>
             <?php foreach ($productos as $p): ?>
                 <tr>
-                    <td><?= $p['id'] ?></td>
+                    <td><?= esc($p['id']) ?></td>
+                    <td><?= esc($p['codigo'] ?? '—') ?></td>
                     <td><?= esc($p['nombre']) ?></td>
                     <td><?= esc($p['descripcion']) ?></td>
                     <td><?= esc($p['categoria']) ?></td>
-                    <td><?= esc($p['img']) ?></td>
+                    <td>
+                        <?php $foto = tienda_img_url($p['img']); ?>
+                        <?php if ($foto !== ''): ?>
+                            <img src="<?= esc($foto, 'attr') ?>" alt="<?= esc($p['nombre'], 'attr') ?>" class="miniatura" width="44" height="44" loading="lazy">
+                        <?php else: ?>
+                            <span class="sin-foto">Sin foto</span>
+                        <?php endif; ?>
+                    </td>
                     <td>
                         <button onclick="abrirModal(
-                                    '<?= $p['id'] ?>',
-                                    '<?= esc($p['nombre']) ?>',
-                                    '<?= esc($p['descripcion']) ?>',
-                                    '<?= esc($p['categoria']) ?>'
+                                    '<?= esc($p['id'], 'js') ?>',
+                                    '<?= esc($p['nombre'], 'js') ?>',
+                                    '<?= esc($p['descripcion'], 'js') ?>',
+                                    '<?= esc($p['categoria'], 'js') ?>'
                                 )"
-                                style="border:none; cursor:pointer; background:none;">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                                style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
+                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
                         </button>
                     </td>
                     <td>
-                        <a href="<?= base_url('borra_id_producto/'.$p['id']) ?>">
-                            <button style="border:none; cursor:pointer; background:none;">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </a>
+                        <form method="post" action="<?= base_url('borra_id_producto/' . (int) $p['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" style="border:none; cursor:pointer; background:none;" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+</form>
                     </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
-</div>
     <?= $pager->links('default', 'w3_pager') ?>
+</div>
 
     <!-- MODAL EDITAR PRODUCTO -->
     <div id="modalEditarProducto" class="w3-modal" style="padding-top:100px; z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px; max-height:90vh; overflow-y:auto;">
             <form action="<?= base_url('modifica_producto') ?>" method="post"
                 enctype="multipart/form-data" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
                 <input type="hidden" name="id" id="edit_id">
 
-                <label><b>Nombre*</b></label>
+                <label for="edit_nom"><b>Nombre*</b></label>
                 <input type="text" name="nom" id="edit_nom"
                     class="w3-input w3-border w3-margin-bottom" required>
 
-                <label><b>Descripción*</b></label>
+                <label for="edit_desc"><b>Descripción*</b></label>
                 <textarea name="desc" id="edit_desc" rows="4"
                     class="w3-input w3-border w3-margin-bottom" required></textarea>
 
-                <label><b>Categoría*</b></label>
+                <label for="edit_cat"><b>Categoría*</b></label>
                 <select name="cat" id="edit_cat"
                 class="w3-select w3-border w3-margin-bottom" required>
                     <option value="frutas">Frutas</option>
@@ -122,15 +114,15 @@
                     <option value="hierbas">Hierbas</option>
                 </select>
 
-                <label><b>Imagen*</b> <span style="font-weight:normal;">(opcional, solo si deseas cambiarla)</span></label>
-                <input type="file" name="img"
+                <label for="producto-img"><b>Imagen*</b> <span style="font-weight:normal;">(opcional, solo si deseas cambiarla)</span></label>
+                <input id="producto-img" type="file" name="img"
                     class="w3-input w3-border w3-margin-bottom">
 
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button"
                             onclick="document.getElementById('modalEditarProducto').style.display='none'"
-                            class="w3-button w3-white">Cancelar</button>
+                            class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
 
             </form>
@@ -139,21 +131,22 @@
     <div id="modalCrearProducto" class="w3-modal" style="padding-top:100px;z-index:9999;">
         <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
             <form action="<?= base_url('guarda_producto') ?>" method="post" enctype="multipart/form-data" class="w3-container w3-padding-16">
-                <label><b>Nombre*</b></label>
-                <input type="text" name="nom" placeholder="Ej: Tomate Saladet" class="w3-input w3-border w3-margin-bottom" required>
-                <label><b>Descripción*</b></label>
-                <textarea name="desc" rows="4" class="w3-input w3-border w3-margin-bottom" required></textarea>
-                <label><b>Categoría*</b></label>
-                <select name="cat" class="w3-select w3-border w3-margin-bottom" required>
+<?= csrf_field() ?>
+                <label for="producto-nom"><b>Nombre*</b></label>
+                <input id="producto-nom" type="text" name="nom" placeholder="Ej: Tomate Saladet" class="w3-input w3-border w3-margin-bottom" required>
+                <label for="producto-desc"><b>Descripción*</b></label>
+                <textarea id="producto-desc" name="desc" rows="4" class="w3-input w3-border w3-margin-bottom" required></textarea>
+                <label for="producto-cat"><b>Categoría*</b></label>
+                <select id="producto-cat" name="cat" class="w3-select w3-border w3-margin-bottom" required>
                     <option value="frutas">Frutas</option>
                     <option value="verduras">Verdura</option>
                     <option value="hierbas">Hierba</option>
                 </select>
-                <label><b>Imagen*</b></label>
-                <input type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
+                <label for="producto-img-2"><b>Imagen*</b></label>
+                <input id="producto-img-2" type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
                 <footer class="w3-container w3-green w3-padding">
-                    <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
-                    <button type="button" onclick="document.getElementById('modalCrearProducto').style.display='none'" class="w3-button w3-white">Cancelar</button>
+                    <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+                    <button type="button" onclick="document.getElementById('modalCrearProducto').style.display='none'" class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
                 </footer>
             </form>
         </div>
@@ -171,10 +164,6 @@
             document.getElementById('modalEditarProducto').style.display = 'block';
         }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('modalEditarProducto');
-            if (event.target === modal) modal.style.display = 'none';
-        };
     </script>
 
 </body>

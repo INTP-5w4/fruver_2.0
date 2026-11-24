@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <meta charset="UTF-8">
+    <meta charset="UTF-8">
+    <?= view('partials/estilos_panel') ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/5/w3.css">
-    <link rel="stylesheet" href="<?= base_url('estilos/estilosPaginas.css') ?>">
-    <link rel="stylesheet" href="<?= base_url('estilos/Header.css') ?>">
-    <title>Lista Entrada</title>
+    <link rel="stylesheet" href="<?= base_url('estilos/entrada_rapida.css') ?>">
+    <title>Entradas · Fruver</title>
 </head>
 <body>
         <?php include 'Header.php'; ?>
@@ -16,29 +15,36 @@
 <div class="flash-container">
         <?php if (session()->getFlashdata('error')): ?>
     <div class="w3-panel w3-red w3-animate-opacity">
-        <p><?= session()->getFlashdata('error') ?></p>
+        <p><?= esc(session()->getFlashdata('error')) ?></p>
     </div>
 <?php endif; ?>
 
 <?php if (session()->getFlashdata('mensaje')): ?>
     <div class="w3-panel w3-green w3-animate-opacity">
-        <p><?= session()->getFlashdata('mensaje') ?></p>
+        <p><?= esc(session()->getFlashdata('mensaje')) ?></p>
     </div>
 <?php endif; ?>
 
 </div>
 
-<div class="contenedor-boton"style=" padding-top: 20px;">
-    <button onclick="document.getElementById('modalCrearEntrada').style.display='block'"
-            class="btn-agregar">
-        + Nueva Entrada
-    </button>
+<div class="contenedor-boton">
+    <h1>Entradas</h1>
+    <div class="contenedor-boton__acciones">
+        <button type="button" onclick="document.getElementById('modalCrearEntrada').style.display='block'"
+                class="btn-agregar">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Nueva entrada
+        </button>
+        <a href="<?= base_url('entrada_rapida') ?>" class="btn-agregar btn-enlace" title="Registrar varias entradas escribiendo solo la cantidad">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i> Entrada rápida
+        </a>
+    </div>
 </div>
 <form method="get" action="<?= base_url('lista_entrada') ?>" class="w3-margin-bottom">
     <div style="display:flex; gap:8px;">
         <input
             type="text"
             name="buscar"
+            aria-label="Buscar entrada"
             value="<?= esc($buscar ?? '') ?>"
             placeholder="Buscar por id..."
             class="w3-input w3-border"
@@ -48,7 +54,7 @@
             <i class="fa-solid fa-magnifying-glass"></i> Buscar
         </button>
         <?php if (!empty($buscar)): ?>
-            <a href="<?= base_url('lista_entrada') ?>" class="w3-button w3-red">✕ Limpiar</a>
+            <a href="<?= base_url('lista_entrada') ?>" class="w3-button w3-red"><i class="fa-solid fa-eraser" aria-hidden="true"></i> Limpiar</a>
         <?php endif; ?>
     </div>
 </form>
@@ -77,40 +83,39 @@
         <tbody>
             <?php foreach($entradas as $e): ?>
             <tr>
-                <td><?= $e['id'] ?></td>
-                <td><?= $e['fecha'] ?></td>
-                <td><?= $e['fecha_cad'] ?></td>
-                <td><?= $e['cantidad'] ?></td>
-                <td><?= $e['u_compra'] ?></td>
-                <td><?= $e['equivalente'] ?></td>
-                <td><?= $e['conversion'] ?></td>
-                <td><?= $e['u_venta'] ?></td>
-                <td><?= $e['precio_compra_u'] ?></td>
-                <td><?= $e['cantidad'] * $e['precio_compra_u'] ?></td>
-                <td><?= $e['precio_venta_u'] ?></td>
+                <td><?= esc($e['id']) ?></td>
+                <td><?= esc($e['fecha']) ?></td>
+                <td><?= esc($e['fecha_cad']) ?></td>
+                <td><?= esc($e['cantidad']) ?></td>
+                <td><?= esc($e['u_compra']) ?></td>
+                <td><?= esc($e['equivalente']) ?></td>
+                <td><?= esc($e['conversion']) ?></td>
+                <td><?= esc($e['u_venta']) ?></td>
+                <td><?= esc($e['precio_compra_u']) ?></td>
+                <td><?= esc($e['cantidad'] * $e['precio_compra_u']) ?></td>
+                <td><?= esc($e['precio_venta_u']) ?></td>
                 <td><?= esc($e['nombre_producto']) ?></td>
                 </td>
                 <td>
                 <button onclick="abrirModal(
-                    '<?= $e['id'] ?>',
-                    '<?= $e['fecha'] ?>',
-                    '<?= $e['fecha_cad'] ?>',
-                    '<?= $e['cantidad'] ?>',
-                    '<?= $e['u_compra'] ?>',
-                    '<?= $e['u_venta'] ?>',
-                    '<?= $e['equivalente'] ?>',
-                    '<?= $e['precio_compra_u'] ?>',
-                    '<?= $e['precio_venta_u'] ?>',
-                    '<?= $e['id_producto'] ?>'
+                    '<?= esc($e['id'], 'js') ?>',
+                    '<?= esc($e['fecha'], 'js') ?>',
+                    '<?= esc($e['fecha_cad'], 'js') ?>',
+                    '<?= esc($e['cantidad'], 'js') ?>',
+                    '<?= esc($e['u_compra'], 'js') ?>',
+                    '<?= esc($e['u_venta'], 'js') ?>',
+                    '<?= esc($e['equivalente'], 'js') ?>',
+                    '<?= esc($e['precio_compra_u'], 'js') ?>',
+                    '<?= esc($e['precio_venta_u'], 'js') ?>',
+                    '<?= esc($e['id_producto'], 'js') ?>'
                 )" class="btn-icono">
                         <i class="fa-solid fa-pen-to-square"></i>
                 </td>
                 <td>
-                    <a href="<?= base_url('borra_id_entrada/'.$e['id']) ?>">
-                        <button class="btn-icono">
-                            <i class="fa-solid fa-trash-can"></i>
-                        </button>
-                    </a>
+                    <form method="post" action="<?= base_url('borra_id_entrada/' . (int) $e['id']) ?>" class="form-borrar" style="display:inline; margin:0;" onsubmit="return confirm('¿Eliminar este registro?');">
+<?= csrf_field() ?>
+<button type="submit" class="btn-icono" aria-label="Eliminar" title="Eliminar"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+</form>
                 </td>
             </tr>
             <?php endforeach; ?>
@@ -121,11 +126,12 @@
 <div id="modalCrearEntrada" class="w3-modal" style="padding-top:100px;z-index:9999;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('guarda_entrada') ?>" method="post" class="w3-container w3-padding-16">
-            <label><b>Fecha de entrada</b></label>
-            <input type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
+<?= csrf_field() ?>
+            <label for="entrada-f-ent"><b>Fecha de entrada</b></label>
+            <input id="entrada-f-ent" type="date" name="f_ent" class="w3-input w3-border w3-margin-bottom" required>
             <!-- NUEVO: Filtro de categoría -->
 
-            <label><b>Categoría</b></label>
+            <label for="filtroCategoriaEntrada"><b>Categoría</b></label>
             <select id="filtroCategoriaEntrada" class="w3-select w3-border w3-margin-bottom">
                 <option value="">— Todas —</option>
                 <option value="frutas">Frutas</option>
@@ -133,7 +139,7 @@
                 <option value="hierbas">Hierbas</option>
             </select>
 
-            <label><b>Producto</b></label>
+            <label for="selectProductoEntrada"><b>Producto</b></label>
             <select id="selectProductoEntrada" name="id_producto" class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($productos as $p): ?>
                     <option value="<?= esc($p['id']) ?>"
@@ -143,11 +149,11 @@
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Cantidad</b></label>
-            <input type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
+            <label for="entrada-cant"><b>Cantidad</b></label>
+            <input id="entrada-cant" type="number" placeholder="Ej: 50" name="cant" class="w3-input w3-border w3-margin-bottom" min="1" required>
 
-            <label><b>Unidad de compra</b></label>
-            <select name="u_com" class="w3-select w3-border w3-margin-bottom" required>
+            <label for="entrada-u-com"><b>Unidad de compra</b></label>
+            <select id="entrada-u-com" name="u_com" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="Caja">Caja</option>
                 <option value="Arpilla">Arpilla</option>
                 <option value="Bulto">Bulto</option>
@@ -155,8 +161,8 @@
                 <option value="Mazo">Mazo</option>
             </select>
 
-            <label><b>Unidad de venta</b></label>
-            <select name="u_ven" class="w3-select w3-border w3-margin-bottom" required>
+            <label for="entrada-u-ven"><b>Unidad de venta</b></label>
+            <select id="entrada-u-ven" name="u_ven" class="w3-select w3-border w3-margin-bottom" required>
                 <option value="Kilogramo">Kilogramo</option>
                 <option value="Litro">Litro</option>
                 <option value="Caja">Caja</option>
@@ -165,20 +171,20 @@
                 <option value="Ramo">Ramo</option>
             </select>
 
-            <label><b>Equivalente</b></label>
-            <input type="number" placeholder="Ej: 20" name="equi" class="w3-input w3-border w3-margin-bottom">
+            <label for="entrada-equi"><b>Equivalente</b></label>
+            <input id="entrada-equi" type="number" placeholder="Ej: 20" name="equi" class="w3-input w3-border w3-margin-bottom">
 
-            <label><b>Precio de compra</b></label>
-            <input type="number" placeholder="Ej: 45" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            <label for="entrada-p-compra"><b>Precio de compra</b></label>
+            <input id="entrada-p-compra" type="number" placeholder="Ej: 45" name="p_compra" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
             
-            <label><b>Precio de venta(Unitario)</b></label>
-            <input type="number" placeholder="Ej: 50" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
+            <label for="entrada-p-venta"><b>Precio de venta(Unitario)</b></label>
+            <input id="entrada-p-venta" type="number" placeholder="Ej: 50" name="p_venta" step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalCrearEntrada').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
         </form>
     </div>
@@ -190,17 +196,18 @@
 <div id="modalEditarEntrada" class="w3-modal" style="display:none;">
     <div class="w3-modal-content w3-animate-zoom" style="max-width:500px;max-height:90vh;overflow-y:auto;">
         <form action="<?= base_url('modifica_entrada') ?>" method="post" class="w3-container w3-padding-16">
+<?= csrf_field() ?>
 
             <input type="hidden" name="id" id="edit_id">
 
-            <label><b>Fecha de entrada*</b></label>
+            <label for="edit_f_ent"><b>Fecha de entrada*</b></label>
             <input type="date" name="f_ent" id="edit_f_ent"
                 class="w3-input w3-border w3-margin-bottom" required>
-            <label><b>Fecha de caducidad</b></label>
+            <label for="edit_f_cad"><b>Fecha de caducidad</b></label>
             <input type="date" name="f_cad" id="edit_f_cad"
             class="w3-input w3-border w3-margin-bottom"> 
             <!-- Filtro de categoría (igual que en crear) -->
-            <label><b>Categoría</b></label>
+            <label for="filtroCategoriaEditar"><b>Categoría</b></label>
             <select id="filtroCategoriaEditar" class="w3-select w3-border w3-margin-bottom">
                 <option value="">— Todas —</option>
                 <option value="frutas">Frutas</option>
@@ -208,7 +215,7 @@
                 <option value="hierbas">Hierbas</option>
             </select>
 
-            <label><b>Producto*</b></label>
+            <label for="edit_id_producto"><b>Producto*</b></label>
             <select name="id_producto" id="edit_id_producto"
                     class="w3-select w3-border w3-margin-bottom" required>
                 <?php foreach ($productos as $p): ?>
@@ -219,11 +226,11 @@
                 <?php endforeach; ?>
             </select>
 
-            <label><b>Cantidad*</b></label>
+            <label for="edit_cant"><b>Cantidad*</b></label>
             <input type="number" name="cant" id="edit_cant" placeholder="Ej: 50"
                    class="w3-input w3-border w3-margin-bottom" min="1" required>
 
-            <label><b>Unidad de compra*</b></label>
+            <label for="edit_u_com"><b>Unidad de compra*</b></label>
             <select name="u_com" id="edit_u_com"
                     class="w3-select w3-border w3-margin-bottom" required>
                 <option value="Caja">Caja</option>
@@ -233,7 +240,7 @@
                 <option value="Mazo">Mazo</option>
             </select>
 
-            <label><b>Unidad de venta*</b></label>
+            <label for="edit_u_ven"><b>Unidad de venta*</b></label>
             <select name="u_ven" id="edit_u_ven"
                     class="w3-select w3-border w3-margin-bottom" required>
                 <option value="Kilogramo">Kilogramo</option>
@@ -244,23 +251,23 @@
                 <option value="Ramo">Ramo</option>
             </select>
 
-            <label><b>Equivalente</b></label>
+            <label for="edit_equi"><b>Equivalente</b></label>
             <input type="number" name="equi" id="edit_equi" placeholder="Ej: 20"
                    class="w3-input w3-border w3-margin-bottom">
 
-            <label><b>Precio de compra (Unitario)*</b></label>
+            <label for="edit_precio_compra"><b>Precio de compra (Unitario)*</b></label>
             <input type="number" name="p_compra" id="edit_precio_compra" placeholder="Ej: 45"
                    step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
-            <label><b>Precio de venta (Unitario)*</b></label>
+            <label for="edit_precio_venta"><b>Precio de venta (Unitario)*</b></label>
             <input type="number" name="p_venta" id="edit_precio_venta" placeholder="Ej: 50"
                    step="0.01" class="w3-input w3-border w3-margin-bottom" required>
 
             <footer class="w3-container w3-green w3-padding">
-                <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
+                <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                 <button type="button"
                         onclick="document.getElementById('modalEditarEntrada').style.display='none'"
-                        class="w3-button w3-white">Cancelar</button>
+                        class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
             </footer>
 
         </form>
@@ -319,12 +326,6 @@ function abrirModal(id, fecha, fecha_cad, cantidad, u_compra, u_venta, equivalen
     document.getElementById('modalEditarEntrada').style.display = 'block';
 }
 
-window.onclick = function(event) {
-    if (event.target === document.getElementById('modalEditarEntrada'))
-        document.getElementById('modalEditarEntrada').style.display = 'none';
-    if (event.target === document.getElementById('modalCrearEntrada'))
-        document.getElementById('modalCrearEntrada').style.display = 'none';
-};
     </script>
 </body>
 </html>

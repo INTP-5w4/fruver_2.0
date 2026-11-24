@@ -1,0 +1,53 @@
+# ──────────────────────────────────────────────────────────────────────
+# Protección de la raíz del proyecto
+#
+# XAMPP sirve todo C:/xampp/htdocs, así que sin este archivo cualquiera en la
+# red podría descargar .env (credenciales y llave de openrouteservice), los
+# volcados .sql, el historial .git, etc. Solo public/ debe ser accesible por web.
+#
+# En producción lo ideal es un VirtualHost con DocumentRoot en .../fruver_2.0/public;
+# este archivo es la defensa para cuando el proyecto vive dentro de htdocs.
+# ──────────────────────────────────────────────────────────────────────
+
+Options -Indexes
+ServerSignature Off
+
+# No anunciar la versión de PHP (aplica también a public/).
+<IfModule mod_headers.c>
+    Header always unset X-Powered-By
+    Header unset X-Powered-By
+</IfModule>
+
+# Capa 1 — Solo public/ es alcanzable (la regla principal).
+# public/.htaccess tiene su propio RewriteEngine, por lo que sus reglas no se mezclan con estas.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # La raíz manda a la aplicación.
+    # (%{REQUEST_URI} = "/fruver_2.0/": funciona sin importar el nombre de la carpeta)
+    RewriteRule ^$ %{REQUEST_URI}public/ [R=302,L]
+
+    # Lo que está dentro de public/ sigue su curso normal.
+    RewriteRule ^public(/|$) - [L]
+
+    # Todo lo demás (app/, vendor/, writable/, .env, *.sql, .git/...) no existe para la web.
+    RewriteRule ^ - [R=404,L]
+</IfModule>
+
+# Capa 2 — Archivos sensibles en cualquier carpeta, aunque mod_rewrite no esté activo.
+<FilesMatch "(^\.|\.(env|sql|patch|diff|lock|json|md|dist|xml|log|ini|sh|bat|bak|old|orig|swp|zip|gz|7z|tar|yml|yaml|neon|phar)$|^(spark|builds|tatus|preload\.php|LICENSE)$)">
+    <IfModule authz_core_module>
+        Require all denied
+    </IfModule>
+    <IfModule !authz_core_module>
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Capa 3 — Carpetas que nunca deben servirse (respaldo si mod_rewrite no está activo).
+<IfModule mod_alias.c>
+    RedirectMatch 404 "/\.(git|vscode|github)(/|$)"
+    <IfModule !mod_rewrite.c>
+        RedirectMatch 404 "/(app|vendor|tests|build|docs|database_cambios|writable)(/|$)"
+    </IfModule>
+</IfModule>

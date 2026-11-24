@@ -1,34 +1,80 @@
-*{
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-}
-/* Header.css */
-header {
+/* ═══════════════════════════════════════════════════════════════════
+   Header.css — Barra superior de Fruver (app/Views/Header.php)
+   Usa los tokens de base.css. Alto fijo: --alto-encabezado.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.encabezado {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 100;
-}
-
-body {
-    padding-top: 55px; /* igual a la altura de tu header */
-}
-.header_container{
+    inset: 0 0 auto 0;
+    z-index: 130;
+    height: var(--alto-encabezado);
     display: flex;
-    background-color: #00910a;
     align-items: center;
-    justify-content: flex-start;
-}
-.logo{
-    margin: 0.2em 0.4em;
-    color: #ffffff;
-    font-size: 2em;
-    font-weight: 600;
-}
-.logo a {
-    text-decoration: none !important;
-    color: #ffffff !important;
+    gap: 12px;
+    padding-right: 16px;
+    background: var(--superficie);
+    border-bottom: 1px solid var(--linea);
 }
 
+.encabezado-marca {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    height: 100%;
+    padding: 0 18px;
+    color: var(--hoja-oscura);
+    font: 800 23px/1 var(--f-titulo);
+    letter-spacing: -0.02em;
+    text-decoration: none;
+}
+.encabezado-marca i { color: var(--hoja); font-size: 18px; }
+.encabezado-marca:hover { color: var(--hoja-oscura); }
+/* Con menú lateral, la marca ocupa el ancho del menú y continúa su color */
+body:has(> .sidebar) .encabezado-marca { width: var(--ancho-menu); background: var(--hoja-oscura); color: #fff; }
+body:has(> .sidebar) .encabezado-marca i { color: var(--mango); }
+
+.encabezado-acciones { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+.encabezado-enlace, .encabezado-salir {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 36px; padding: 0 11px;
+    border-radius: var(--r-control);
+    color: var(--tinta-suave); font-size: 14px; font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.encabezado-enlace:hover, .encabezado-salir:hover { background: var(--hoja-clara); color: var(--hoja-oscura); }
+.encabezado-salir:hover { background: var(--alerta-claro); color: var(--alerta); }
+
+.encabezado-persona {
+    display: flex; align-items: center; gap: 9px;
+    margin: 0 4px 0 10px; padding-left: 14px;
+    border-left: 1px solid var(--linea);
+}
+.encabezado-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--mango); color: #3a2a00; font-weight: 700; font-size: 13px;
+}
+.encabezado-persona-texto { display: grid; line-height: 1.2; }
+.encabezado-persona-texto b { font-size: 13.5px; font-weight: 600; color: var(--tinta); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.encabezado-persona-texto small { font-size: 11.5px; color: var(--tinta-suave); }
+
+@media (max-width: 1024px) {
+    .encabezado-enlace span { display: none; }
+    .encabezado-enlace { padding: 0 10px; }
+}
+
+@media (max-width: 767.98px) {
+    body:has(> .sidebar) .encabezado-marca { width: auto; background: none; color: var(--hoja-oscura); padding: 0 8px; }
+    body:has(> .sidebar) .encabezado-marca i { color: var(--hoja); }
+    .encabezado-persona-texto, .encabezado-salir span { display: none; }
+    .encabezado-persona { margin-left: 4px; padding-left: 8px; }
+    /* Con barra inferior, las acciones de la cuenta están en «Más»: arriba solo la marca */
+    body:has(.nav-inferior) .encabezado-acciones { display: none; }
+    .encabezado-marca { min-height: var(--tactil-min); }
+}
+
+@media (max-width: 480px) {
+    .encabezado { gap: 4px; padding-right: 8px; }
+    .encabezado-marca { font-size: 20px; padding: 0 10px; }
+    .encabezado-enlace, .encabezado-salir { width: var(--tactil-min); height: var(--tactil-min); padding: 0; justify-content: center; }
+    .encabezado-persona { display: none; }
+}

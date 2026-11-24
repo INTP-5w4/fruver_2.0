@@ -1,0 +1,71 @@
+/* Ofertas (lista_oferta): lista + ventana de crear/editar. Usa los tokens de base.css. */
+
+.oferta-ayuda { color: var(--tinta-suave); margin: -6px 0 14px; max-width: 70ch; }
+
+.oferta-descuento {
+    display: inline-block; padding: 2px 10px; border-radius: 12px; font-weight: 700;
+    background: var(--hoja-clara); color: var(--hoja-oscura); white-space: nowrap;
+}
+
+/* Insignia de estado */
+.est-oferta { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.est-oferta--ok   { background: var(--hoja-clara); color: var(--hoja-oscura); }
+.est-oferta--prog { background: #fff3d6; color: #8a5a00; }
+.est-oferta--ven  { background: var(--alerta-claro); color: var(--alerta); }
+.est-oferta--off  { background: #eceff1; color: #556; }
+
+/* ── Ventana de oferta ─────────────────────────────────────────────── */
+.oferta-modal .w3-modal-content { max-width: 620px; border-radius: var(--r-tarjeta); overflow: hidden; }
+
+.of-campo { display: block; margin: 10px 0; }
+.of-campo > span { display: block; margin-bottom: 4px; font-weight: 600; color: var(--tinta); }
+
+.of-grupo { border: 1px solid var(--linea); border-radius: var(--r-tarjeta); padding: 12px 14px; margin: 14px 0; }
+.of-grupo > legend { padding: 0 6px; font-weight: 700; color: var(--tinta); }
+
+.of-radio { display: inline-flex; align-items: center; gap: 8px; margin: 2px 16px 2px 0; cursor: pointer; }
+
+.of-valor { display: flex; align-items: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.of-valor-signo {
+    flex: 0 0 auto; width: 34px; height: 38px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: var(--r-control); background: var(--superficie-2); border: 1px solid var(--linea);
+    font-weight: 700; color: var(--tinta-suave);
+}
+.of-valor .w3-input { max-width: 160px; }
+.of-nota { display: block; width: 100%; color: var(--tinta-suave); font-size: 13px; }
+
+.of-bloque { margin-top: 12px; }
+
+/* Selector de productos */
+.of-picker-barra { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.of-picker-barra .w3-input { max-width: 260px; }
+.of-conteo { color: var(--tinta-suave); font-size: 14px; }
+.of-conteo #of-sel-n { font-weight: 700; color: var(--hoja-oscura); }
+
+.of-picker {
+    max-height: 240px; overflow-y: auto; border: 1px solid var(--linea); border-radius: var(--r-control);
+    background: var(--superficie-2); padding: 4px;
+}
+.of-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--r-control);
+    cursor: pointer; min-height: var(--tactil-min);
+}
+.of-item:hover { background: var(--hoja-clara); }
+.of-item input { width: 18px; height: 18px; flex: 0 0 auto; }
+.of-item-nombre { flex: 1 1 auto; color: var(--tinta); }
+.of-item-cat { flex: 0 0 auto; font-size: 12px; color: var(--tinta-suave); background: var(--superficie); border: 1px solid var(--linea); border-radius: 10px; padding: 1px 8px; }
+.of-item.oculto { display: none; }
+.of-item:has(input:checked) { background: var(--hoja-clara); outline: 1px solid var(--hoja-suave); }
+
+.of-fechas { display: flex; gap: 14px; flex-wrap: wrap; }
+.of-fechas .of-campo { flex: 1 1 160px; margin: 6px 0; }
+.of-activa { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; }
+
+.of-acciones { display: flex; justify-content: flex-end; gap: 10px; margin: 18px 0 6px; flex-wrap: wrap; }
+
+/* En celular la ventana ocupa la pantalla (como el resto de modales del panel) */
+@media (max-width: 599.98px) {
+    .of-acciones .btn { flex: 1 1 100%; justify-content: center; }
+    .of-valor .w3-input { max-width: none; flex: 1 1 120px; }
+    .of-picker-barra .w3-input { max-width: none; flex: 1 1 100%; }
+}
