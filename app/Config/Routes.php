@@ -50,6 +50,7 @@ $routes->group('tienda', ['filter' => 'session'], static function (RouteCollecti
     $routes->post('carrito/vaciar', 'Tienda::vaciar');
     $routes->post('pedido', 'Tienda::confirmar');
     $routes->post('pedido/(:num)/recargar', 'Tienda::recargar/$1');
+    $routes->get('mis-pedidos', 'Tienda::misPedidos');
 });
 
 // ───────────── BUZÓN DE SUGERENCIAS (cualquier usuario con sesión, de cualquier rol) ─────────────
@@ -78,6 +79,9 @@ $routes->group('repartidor', ['filter' => ['group:repartidor', 'repartidordatos'
     $routes->get('ruta/(:num)', 'Entregas::mi_ruta/$1');
     $routes->post('ruta/(:num)/iniciar', 'Entregas::iniciar_ruta/$1');
     $routes->post('ruta/(:num)/reoptimizar', 'Entregas::reoptimizar/$1');
+    
+    // Consulta de existencias (solo lectura).
+    $routes->get('existencias', 'Existencias::consulta_repartidor');
 });
 
 // ───────────── ROLES (solo superadmin: asignar un rol es dar permisos) ─────────────

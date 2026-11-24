@@ -320,7 +320,7 @@ class Comunicaciones extends BaseController
             '{nombre}'    => (string) ($d['nombre'] ?? '') !== '' ? (string) $d['nombre'] : (string) $d['username'],
             '{productos}' => $d['productos'] !== [] ? implode(', ', $d['productos']) : 'tus productos de siempre',
             '{pedido}'    => $d['pedido'] !== null
-                ? 'pedido #' . $d['pedido']['id'] . ' del ' . date('d/m/Y', strtotime($d['pedido']['fecha']))
+                ? 'pedido del ' . date('d/m/Y', strtotime($d['pedido']['fecha']))
                 : 'último pedido',
             '{tienda}'    => site_url('main_page_4'),
         ];
@@ -343,7 +343,7 @@ class Comunicaciones extends BaseController
 
         return [
             '{nombre}'  => (string) $p['nombre'],
-            '{pedido}'  => 'pedido #' . (int) $p['id'],
+            '{pedido}'  => 'pedido',
             '{detalle}' => $detalle !== [] ? implode("\n", $detalle) : '(sin productos)',
             '{total}'   => '$' . number_format((float) $p['total'], 2),
             '{estado}'  => mb_strtolower(estado_pedido_texto($p['estado'])),

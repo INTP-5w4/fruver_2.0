@@ -29,7 +29,10 @@ foreach (['superadmin' => 'Superadministración', 'admin' => 'Administración', 
                     <i class="fa-solid fa-store" aria-hidden="true"></i><span>Tienda</span>
                 </a>
             <?php endif; ?>
-            <?php if ($esRepartidorHeader): ?>
+                       <?php if ($esRepartidorHeader): ?>
+                <a href="<?= base_url('repartidor/existencias') ?>" class="encabezado-enlace" title="Consultar las existencias del inventario">
+                    <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i><span>Existencias</span>
+                </a>
                 <a href="<?= base_url('repartidor/mis-datos') ?>" class="encabezado-enlace" title="Tus datos de repartidor y tu vehículo">
                     <i class="fa-solid fa-id-badge" aria-hidden="true"></i><span>Mis datos</span>
                 </a>

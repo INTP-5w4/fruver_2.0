@@ -193,6 +193,20 @@ class Tienda extends BaseController
     // ─────────────────────────────────────────────────────────────
     // CONFIRMAR PEDIDO
     // ─────────────────────────────────────────────────────────────
+    
+        public function misPedidos()
+    {
+        $usuario = auth()->user();
+        $perfil  = (new Modelo_cliente())->buscarPorUsuario((int) $usuario->id);
+
+        $this->cspEstricta();
+
+        return view('mis_pedidos', [
+            'saludo'  => $perfil['nombre'] ?? ($usuario->username ?? ''),
+            'pedidos' => $perfil !== null ? (new Modelo_pedido())->pedidosDeCliente((int) $perfil['id']) : [],
+        ]);
+    }
+    
     public function confirmar()
     {
         $usuario = auth()->user();
@@ -280,7 +294,7 @@ class Tienda extends BaseController
         $ticket = (new Modelo_pedido())->ticket($idPedido);
 
         if ($ticket !== null) {
-            Correo::enviar($correo, 'FRUVER · Recibimos tu pedido #' . $idPedido, view('correos/pedido_confirmado', ['ticket' => $ticket]));
+            Correo::enviar($correo, 'FRUVER · Recibimos tu pedido', view('correos/pedido_confirmado', ['ticket' => $ticket]));
         }
     }
         // ─────────────────────────────────────────────────────────────

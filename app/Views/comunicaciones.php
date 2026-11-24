@@ -128,7 +128,7 @@ $urlPestana = static fn (array $extra): string => base_url('comunicaciones') . '
             <p class="com-ayuda">
                 Puedes usar
                 <?php if ($esPedidos): ?>
-                    <code>{nombre}</code>, <code>{pedido}</code> (número), <code>{detalle}</code> (productos, cantidades e importes),
+                    <code>{nombre}</code>, <code>{pedido}</code> (la palabra «pedido», sin número), <code>{detalle}</code> (productos, cantidades e importes),
                     <code>{total}</code>, <code>{estado}</code>, <code>{hora}</code> (llegada estimada si va en una ruta), <code>{fecha}</code> y <code>{tienda}</code>.
                 <?php else: ?>
                     <code>{nombre}</code>, <code>{tienda}</code><?= $finalidad === 'v2' ? ', <code>{productos}</code> (lo que más pide)' : '' ?><?= $finalidad === 'v3' ? ', <code>{pedido}</code> (su último pedido)' : '' ?>.

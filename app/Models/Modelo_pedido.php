@@ -671,6 +671,27 @@ class Modelo_pedido extends PdoModelo
         );
     }
 
+        /**
+     * Pedidos de un cliente con su detalle (productos, total y estado), del más reciente al más antiguo.
+     * Para la página "Mis pedidos" de la tienda.
+     *
+     * @return list<array<string,mixed>>
+     */
+    public function pedidosDeCliente(int $idCliente, int $limite = 30): array
+    {
+        $pedidos = [];
+
+        foreach ($this->recientesDeCliente($idCliente, $limite) as $reciente) {
+            $ticket = $this->ticket((int) $reciente['id']);
+
+            if ($ticket !== null) {
+                $pedidos[] = $ticket;
+            }
+        }
+
+        return $pedidos;
+    }
+
     // ─────────────────────────────────────────────────────────────
     // PEDIDOS DE LA TIENDA (landing main_page_4)
     // ─────────────────────────────────────────────────────────────

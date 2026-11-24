@@ -79,7 +79,8 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                 <?php if ($esPersonal): ?>
                     <a class="cuenta-enlace" href="<?= base_url('/') ?>"><i class="fa-solid fa-gauge" aria-hidden="true"></i><span>Panel</span></a>
                 <?php endif; ?>
-                <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>"><i class="fa-regular fa-lightbulb" aria-hidden="true"></i><span>Sugerencias</span></a>
+  <a class="cuenta-enlace" href="<?= base_url('tienda/mis-pedidos') ?>"><i class="fa-solid fa-receipt" aria-hidden="true"></i><span>Mis pedidos</span></a>
+                <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>">Sugerencias</a>
                 <a class="cuenta-enlace" href="<?= base_url('privacidad/preferencias') ?>"><i class="fa-solid fa-user-shield" aria-hidden="true"></i><span>Privacidad</span></a>
                 <a class="cuenta-enlace" href="<?= base_url('logout') ?>"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Salir</span></a>
             <?php else: ?>
@@ -108,8 +109,9 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
 <div class="avisos" aria-live="polite" data-avisos>
     <?php if (is_array($pedidoOk)): ?>
         <p class="aviso aviso-ok" role="status">
-            Pedido #<?= (int) $pedidoOk['id'] ?> registrado por <strong><?= esc(tienda_dinero($pedidoOk['total'])) ?></strong>.
+            Pedido registrado por <strong><?= esc(tienda_dinero($pedidoOk['total'])) ?></strong>.
             El personal de Fruver lo revisará para confirmarlo.
+            <a href="<?= base_url('tienda/mis-pedidos') ?>">Ver mi pedido</a>
         </p>
     <?php endif; ?>
     <?php if ($flashError): ?>
@@ -244,8 +246,8 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                     <?php foreach ($pedidosAnteriores as $ped): ?>
                         <li class="anterior">
                             <div class="anterior-datos">
-                                <strong>Pedido #<?= (int) $ped['id'] ?></strong>
-                                <span class="anterior-fecha"><?= esc($ped['fecha']) ?> · <?= esc(tienda_dinero($ped['total'])) ?></span>
+                                <strong>Pedido del <?= esc(date('d/m/Y', strtotime((string) $ped['fecha']))) ?></strong>
+                                <span class="anterior-fecha"><?= esc(tienda_dinero($ped['total'])) ?></span>
                                 <span class="anterior-productos"><?= esc($ped['productos'] ?? '') ?></span>
                             </div>
                             <form method="post" action="<?= base_url('tienda/pedido/' . (int) $ped['id'] . '/recargar') ?>">

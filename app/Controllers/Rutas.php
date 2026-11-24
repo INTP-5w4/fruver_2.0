@@ -322,7 +322,7 @@ class Rutas extends BaseController
             $p['aviso_wa'] = $p['eta'] && in_array($p['estado'], ['asignada', 'en_ruta'], true)
                 ? whatsapp_url(
                     whatsapp_telefono($p['telefono_cliente']),
-                    'Hola ' . whatsapp_texto($p['cliente']) . ', tu pedido #' . (int) $p['id_pedido']
+                    'Hola ' . whatsapp_texto($p['cliente']) . ', tu pedido'
                     . ' de Fruver llegará aproximadamente a las ' . rutas_hora($p['eta']) . '. ¡Gracias!'
                 )
                 : null;

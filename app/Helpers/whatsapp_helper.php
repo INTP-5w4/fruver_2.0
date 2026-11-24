@@ -117,7 +117,6 @@ if (! function_exists('whatsapp_mensaje_pedido')) {
         $lineas = [
             '*FRUVER* - Resumen de tu pedido',
             '',
-            'Pedido *#' . (int) $ticket['id'] . '*',
         ];
 
         if ($fecha !== '') {

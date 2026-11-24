@@ -87,6 +87,15 @@ class Existencias extends BaseController
         return view('lista_existencia', $datos);
     }
 
+    public function consulta_repartidor()
+    {
+        $existencias = (new Modelo_existencia())->listarFiltrado();
+
+        usort($existencias, static fn (array $a, array $b): int => strcasecmp((string) $a['nombre_producto'], (string) $b['nombre_producto']));
+
+        return view('existencias_repartidor', ['existencias' => $existencias]);
+    }
+
     public function eliminar_datos($id = null)
     {
         try {

@@ -11,7 +11,7 @@ $cant   = static fn ($v): string => rtrim(rtrim(number_format((float) $v, 2, '.'
 ?>
 <div style="font-family:Arial,Helvetica,sans-serif;color:#2B3674;max-width:560px;margin:0 auto;">
     <h1 style="color:#007542;font-size:22px;margin:0 0 8px;">FRUVER</h1>
-    <p>Hola <?= esc($ticket['cliente']) ?>, recibimos tu pedido <strong>#<?= (int) $ticket['id'] ?></strong>.
+    <p>Hola <?= esc($ticket['cliente']) ?>, recibimos tu pedido.
         El personal lo revisará para confirmarlo y coordinar la entrega.</p>
 
     <table style="width:100%;border-collapse:collapse;font-size:14px;" cellpadding="6">
