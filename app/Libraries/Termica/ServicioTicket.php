@@ -19,6 +19,10 @@ class ServicioTicket
     public function __construct(?Impresora $config = null)
     {
         $this->config = $config ?? config(Impresora::class);
+
+        // Los ajustes guardados desde /impresora (writable/impresora_ajustes.json) ganan
+        // sobre los valores de Config\Impresora y de .env.
+        AjustesImpresora::aplicar($this->config);
     }
 
     public function config(): Impresora

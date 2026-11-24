@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Libraries\Termica\AjustesImpresora;
 use App\Libraries\Termica\ImpresoraException;
 use App\Libraries\Termica\ServicioTicket;
 use App\Models\Modelo_pedido;
@@ -144,7 +145,34 @@ class Tickets extends BaseController
         return view('ticket_config', [
             'resumen'   => $servicio->resumen(),
             'navegador' => $servicio->usaNavegador(),
+            'cfg'       => $servicio->config(),
+            'tecnico'   => es_tecnico(),
         ]);
+    }
+
+    /**
+     * Guarda los parámetros editados en /impresora (writable/impresora_ajustes.json).
+     * El personal edita contenido y formato; la conexión/hardware solo superadmin/developer.
+     */
+    public function guardar()
+    {
+        if (! $this->esPersonal()) {
+            return redirect()->to(site_url('/'))->with('error', 'No tienes permiso para configurar la impresora.');
+        }
+
+        [$valores, $errores] = AjustesImpresora::validar($this->request->getPost(), es_tecnico());
+
+        if ($errores !== []) {
+            return redirect()->to('impresora')->withInput()
+                ->with('error', 'No se guardó: ' . implode(' ', $errores));
+        }
+
+        if (! AjustesImpresora::guardar($valores)) {
+            return redirect()->to('impresora')
+                ->with('error', 'No se pudieron guardar los ajustes. Revisa los permisos de escritura de la carpeta writable/.');
+        }
+
+        return redirect()->to('impresora')->with('mensaje', 'Configuración de la impresora guardada.');
     }
 
     public function prueba(): ResponseInterface

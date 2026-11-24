@@ -40,6 +40,25 @@
     </div>
 </div>
 
+<?php if (! empty($pedidos)): ?>
+<section class="por-asignar" aria-labelledby="por-asignar-titulo">
+    <h2 id="por-asignar-titulo"><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Pedidos por asignar (<?= count($pedidos) ?>)</h2>
+    <ul class="por-asignar-lista">
+        <?php foreach ($pedidos as $pa): ?>
+            <li class="por-asignar-item">
+                <span class="por-asignar-datos">
+                    <strong>Pedido #<?= (int) $pa['id'] ?></strong>
+                    <span><?= esc($pa['cliente']) ?> · <?= esc($pa['fecha']) ?></span>
+                </span>
+                <button type="button" class="btn btn-chico btn-primario" data-asignar="<?= (int) $pa['id'] ?>">
+                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Asignar
+                </button>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</section>
+<?php endif; ?>
+
 <form method="get" action="<?= base_url('lista_entrega') ?>" class="w3-margin-bottom">
     <div>
         <input
@@ -177,6 +196,16 @@
         document.addEventListener('click', function (ev) {
             var cerrar = ev.target.closest('[data-cerrar-modal]');
             if (cerrar) { cerrar.closest('.w3-modal').style.display = 'none'; return; }
+
+            // «Asignar» desde la fila: abre el modal con ese pedido ya elegido.
+            var asignar = ev.target.closest('[data-asignar]');
+            if (asignar) {
+                var sel = document.getElementById('id_pedido');
+                if (sel) { sel.value = asignar.dataset.asignar; }
+                document.getElementById('modalAsignarEntrega').style.display = 'block';
+                var rep = document.getElementById('id_repartidor');
+                if (rep) { rep.focus(); }
+            }
         });
     </script>
 </body>

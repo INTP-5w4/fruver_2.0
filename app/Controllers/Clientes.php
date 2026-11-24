@@ -13,7 +13,7 @@ class Clientes extends BaseController
         'reglas' => [
             'nom'     => 'required|max_length[100]|sin_groserias',
             'ape_pat' => 'required|max_length[100]|sin_groserias',
-            'ape_mat' => 'required|max_length[100]|sin_groserias',
+            'ape_mat' => 'permit_empty|max_length[100]|sin_groserias',
             'tel'     => 'required|numeric|max_length[12]',
         ],
         'errores' => [

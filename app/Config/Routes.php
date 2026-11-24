@@ -202,6 +202,7 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     $routes->get('ticket_impreso/(:num)', 'Tickets::vista/$1');
     $routes->post('imprime_ticket/(:num)', 'Tickets::imprimir/$1');
     $routes->get('impresora', 'Tickets::configuracion');
+    $routes->post('impresora/guardar', 'Tickets::guardar');
     $routes->post('impresora/prueba', 'Tickets::prueba');
     $routes->post('impresora/conexion', 'Tickets::conexion');
 

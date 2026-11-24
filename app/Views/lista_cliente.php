@@ -169,9 +169,9 @@
                 <input type="text" name="ape_pat" id="edit_ape_pat"
                     class="w3-input w3-border w3-margin-bottom" required value="<?= old('ape_pat') ?>">
 
-                <label for="edit_ape_mat"><b>Apellido Materno*</b></label>
+                <label for="edit_ape_mat"><b>Apellido Materno</b> (opcional)</label>
                 <input type="text" name="ape_mat" id="edit_ape_mat"
-                    class="w3-input w3-border w3-margin-bottom" required value="<?= old('ape_mat') ?>"?>
+                    class="w3-input w3-border w3-margin-bottom" value="<?= old('ape_mat') ?>">
 
                 <label for="edit_tel"><b>Teléfono*</b></label>
                 <input type="text" placeholder="Ej. 222 123 4567" name="tel" id="edit_tel"
@@ -239,8 +239,8 @@
     <label for="cliente-ape-pat"><b>Apellido Paterno*</b></label>
     <input id="cliente-ape-pat" type="text" placeholder="Ej: Pérez"name="ape_pat" class="modal-input" required value="<?= old('ape_pat') ?>">
 
-    <label for="cliente-ape-mat"><b>Apellido Materno*</b></label>
-    <input id="cliente-ape-mat" type="text" placeholder="Ej: González" name="ape_mat" class="modal-input" required value="<?= old('ape_mat') ?>">
+    <label for="cliente-ape-mat"><b>Apellido Materno</b> (opcional)</label>
+    <input id="cliente-ape-mat" type="text" placeholder="Ej: González" name="ape_mat" class="modal-input" value="<?= old('ape_mat') ?>">
 
     <label for="cliente-tel"><b>Teléfono*</b></label>
     <input id="cliente-tel" type="text" placeholder="Ej. 222 123 4567" name="tel" class="modal-input" required value="<?= old('tel') ?>">

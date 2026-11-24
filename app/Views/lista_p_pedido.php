@@ -34,9 +34,15 @@
         <span class="pagina-sub"><?= (int) $total_pedidos ?> <?= (int) $total_pedidos === 1 ? 'pedido' : 'pedidos' ?><?= ($estado ?? '') !== '' ? ' · ' . esc(estado_pedido_texto($estado)) : '' ?></span>
         <h1>Pedidos</h1>
     </div>
-    <button type="button" onclick="abrirNuevoPedido()" class="btn-agregar">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo pedido
-    </button>
+    <div class="contenedor-boton__acciones">
+        <a href="<?= base_url('impresora') ?>" class="btn-cancelar" title="Configurar la impresora de tickets"
+           aria-label="Configurar la impresora de tickets">
+            <i class="fa-solid fa-gear" aria-hidden="true"></i> Configurar impresora
+        </a>
+        <button type="button" onclick="abrirNuevoPedido()" class="btn-agregar">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo pedido
+        </button>
+    </div>
 </div>
 
 <form method="get" action="<?= base_url('lista_p_pedido') ?>">

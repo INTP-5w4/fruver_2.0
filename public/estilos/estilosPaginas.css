@@ -706,3 +706,19 @@ body:has(> .sidebar) > .footer { padding-left: var(--ancho-menu); }
 .lista-wrapper .cambio-estado select option { font-weight: 500; color: #1f2a22; background: #fff; }
 .estado-rapido.guardando { opacity: .55; pointer-events: none; }
 .lista-wrapper tr.fila-movida td { opacity: .5; }
+
+/* Entregas: pedidos pendientes de asignar (se asignan desde su propia fila) */
+.por-asignar {
+    margin: 0 0 18px; padding: 14px 16px;
+    border: 1px solid var(--borde-control); border-left: 4px solid var(--hoja);
+    border-radius: var(--r-control); background: var(--superficie-2);
+}
+.por-asignar h2 { margin: 0 0 10px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.por-asignar-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.por-asignar-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 12px; background: var(--superficie); border: 1px solid var(--linea-suave); border-radius: var(--r-control);
+}
+.por-asignar-datos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.por-asignar-datos span { color: var(--tinta-suave); font-size: 13px; }
+@media (max-width: 560px) { .por-asignar-item { flex-wrap: wrap; } .por-asignar-item .btn { flex: 1 1 100%; justify-content: center; } }
