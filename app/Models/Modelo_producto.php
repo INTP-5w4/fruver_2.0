@@ -11,7 +11,7 @@ class Modelo_producto extends PdoModelo
     protected string $tabla         = 'producto';
     protected string $llavePrimaria = 'id';
 
-    protected array $camposPermitidos = ['nombre', 'descripcion', 'categoria', 'img', 'codigo'];
+    protected array $camposPermitidos = ['nombre', 'descripcion', 'categoria', 'img', 'codigo', 'codigo_barras'];
 
     /** Categorías válidas (coinciden con el ENUM de la columna producto.categoria). */
     public const CATEGORIAS = ['frutas', 'hierbas', 'verduras'];

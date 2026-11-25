@@ -40,6 +40,7 @@
             <tr>
                 <th>ID</th>
                 <th>Código</th>
+                <th>Cód. barras</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
                 <th>Categoria</th>
@@ -54,6 +55,7 @@
                 <tr>
                     <td><?= esc($p['id']) ?></td>
                     <td><?= esc($p['codigo'] ?? '—') ?></td>
+                    <td><?= esc($p['codigo_barras'] ?? '—') ?></td>
                     <td><?= esc($p['nombre']) ?></td>
                     <td><?= esc($p['descripcion']) ?></td>
                     <td><?= esc($p['categoria']) ?></td>
@@ -70,7 +72,8 @@
                                     '<?= esc($p['id'], 'js') ?>',
                                     '<?= esc($p['nombre'], 'js') ?>',
                                     '<?= esc($p['descripcion'], 'js') ?>',
-                                    '<?= esc($p['categoria'], 'js') ?>'
+                                    '<?= esc($p['categoria'], 'js') ?>',
+                                    '<?= esc($p['codigo_barras'] ?? '', 'js') ?>'
                                 )"
                                 style="border:none; cursor:pointer; background:none;" aria-label="Editar" title="Editar">
                             <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
@@ -114,6 +117,11 @@
                     <option value="hierbas">Hierbas</option>
                 </select>
 
+                <label for="edit_barras"><b>Código de barras</b> (opcional)</label>
+                <input type="text" name="barras" id="edit_barras" maxlength="50" autocomplete="off"
+                    onkeydown="if (event.key === 'Enter') event.preventDefault()"
+                    class="w3-input w3-border w3-margin-bottom">
+
                 <label for="producto-img"><b>Imagen*</b> <span style="font-weight:normal;">(opcional, solo si deseas cambiarla)</span></label>
                 <input id="producto-img" type="file" name="img"
                     class="w3-input w3-border w3-margin-bottom">
@@ -144,6 +152,8 @@
                 </select>
                 <label for="producto-img-2"><b>Imagen*</b></label>
                 <input id="producto-img-2" type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
+                <label for="producto-barras"><b>Código de barras</b> (opcional)</label>
+                <input id="producto-barras" type="text" name="barras" maxlength="50" autocomplete="off" placeholder="Escanéalo o escríbelo" onkeydown="if (event.key === 'Enter') event.preventDefault()" class="w3-input w3-border w3-margin-bottom">
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
                     <button type="button" onclick="document.getElementById('modalCrearProducto').style.display='none'" class="w3-button w3-white"><i class="fa-solid fa-xmark" aria-hidden="true"></i> Cancelar</button>
@@ -156,11 +166,12 @@
 
 
     <script>
-        function abrirModal(id, nombre, descripcion, categoria) {
+        function abrirModal(id, nombre, descripcion, categoria, barras) {
             document.getElementById('edit_id').value = id;
             document.getElementById('edit_nom').value = nombre;
             document.getElementById('edit_desc').value = descripcion;
             document.getElementById('edit_cat').value = categoria;
+            document.getElementById('edit_barras').value = barras || '';
             document.getElementById('modalEditarProducto').style.display = 'block';
         }
 

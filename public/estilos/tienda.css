@@ -194,7 +194,7 @@ button { cursor: pointer; }
 .nombre { margin: 0; font-family: var(--f-titulo); font-weight: 700; font-size: 1.15rem; line-height: 1.2; }
 .desc {
     margin: 0; color: var(--tinta-suave); font-size: 0.9rem; line-height: 1.35;
-    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
     height: 2.7em;
 }
 
@@ -441,3 +441,9 @@ button { cursor: pointer; }
 .mi-pedido-tabla thead th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--tinta-suave); }
 .mi-pedido-tabla tfoot th { border-bottom: 0; }
 .mi-pedido-tabla .mi-pedido-importe { text-align: right; }
+/* Dirección de entrega guardada + botón para cambiarla */
+.entrega .entrega-actual { grid-column: 1 / -1; margin: 0; }
+.entrega .entrega-cambiar { grid-column: 1 / -1; display: block; width: 100%; }
+.entrega .entrega-cambiar > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; font-weight: 600; color: var(--azul, #1a5fb4); }
+.entrega .entrega-cambiar label,
+.entrega .entrega-cambiar .contacto-ayuda { margin-top: 10px; }

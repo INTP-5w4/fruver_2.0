@@ -38,6 +38,11 @@ class Productos extends BaseController
             'required' => 'La categoría es obligatoria.',
             'in_list'  => 'Elige una categoría válida: frutas, verduras o hierbas.',
         ],
+        'barras' => [
+            'max_length'          => 'El código de barras admite máximo 50 caracteres.',
+            'alpha_numeric_punct' => 'El código de barras solo admite letras, números y signos.',
+            'is_unique'           => 'Ese código de barras ya está registrado en otro producto.',
+        ],
     ];
 
     // ─────────────────────────────────────────────────────────────
@@ -114,6 +119,10 @@ class Productos extends BaseController
             'label' => 'Archivo de imagen',
             'rules' => 'uploaded[img]|' . self::REGLAS_IMAGEN,
         ];
+        $reglas['barras'] = [
+            'label' => 'Código de barras',
+            'rules' => 'permit_empty|max_length[50]|alpha_numeric_punct|is_unique[producto.codigo_barras]',
+        ];
 
         // Se valida TODO antes de guardar el archivo: así no quedan imágenes huérfanas.
         if (! $this->validate($reglas, self::MENSAJES)) {
@@ -126,10 +135,11 @@ class Productos extends BaseController
 
         try {
             $codigo = (new Modelo_producto())->insertarConCodigo([
-                'nombre'      => $this->post('nom'),
-                'descripcion' => $this->post('desc'),
-                'categoria'   => $this->post('cat'),
-                'img'         => $nombre_img,
+                'nombre'        => $this->post('nom'),
+                'descripcion'   => $this->post('desc'),
+                'categoria'     => $this->post('cat'),
+                'img'           => $nombre_img,
+                'codigo_barras' => $this->codigoBarras(),
             ]);
         } catch (Throwable $e) {
             $this->borrarImagen($nombre_img);
@@ -178,8 +188,15 @@ class Productos extends BaseController
         }
 
         $reglas = self::REGLAS_TEXTO;
+        $reglas['id'] = 'required|is_natural_no_zero';
 
-        $file        = $this->request->getFile('img');
+        // Único entre los demás productos: se excluye el propio (campo id del formulario).
+        $reglas['barras'] = [
+            'label' => 'Código de barras',
+            'rules' => 'permit_empty|max_length[50]|alpha_numeric_punct|is_unique[producto.codigo_barras,id,{id}]',
+        ];
+
+        $file           = $this->request->getFile('img');
         $hayImagenNueva = $file !== null && $file->isValid() && ! $file->hasMoved();
 
         if ($hayImagenNueva) {
@@ -197,13 +214,21 @@ class Productos extends BaseController
             $file->move(ROOTPATH . 'public/uploads', $nombre_img);
         }
 
+        $datos = [
+            'nombre'      => $this->post('nom'),
+            'descripcion' => $this->post('desc'),
+            'categoria'   => $this->post('cat'),
+            'img'         => $nombre_img,
+        ];
+
+        // Solo se toca el código de barras si el formulario trae ese campo;
+        // así una vista sin el campo no borra el que ya estaba guardado.
+        if ($this->request->getPost('barras') !== null) {
+            $datos['codigo_barras'] = $this->codigoBarras();
+        }
+
         try {
-            $m_producto->update($id, [
-                'nombre'      => $this->post('nom'),
-                'descripcion' => $this->post('desc'),
-                'categoria'   => $this->post('cat'),
-                'img'         => $nombre_img,
-            ]);
+            $m_producto->update($id, $datos);
         } catch (Throwable $e) {
             if ($hayImagenNueva) {
                 $this->borrarImagen($nombre_img);
@@ -262,6 +287,14 @@ class Productos extends BaseController
         }
 
         return redirect()->to('lista_producto')->with('mensaje', 'Producto eliminado correctamente.');
+    }
+
+    /** Código de barras del formulario: sin espacios en los extremos y NULL si viene vacío. */
+    private function codigoBarras(): ?string
+    {
+        $valor = trim((string) $this->request->getPost('barras'));
+
+        return $valor === '' ? null : $valor;
     }
 
     /** Borra un archivo de public/uploads. basename() impide salirse de esa carpeta. */

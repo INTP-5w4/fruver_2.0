@@ -441,6 +441,9 @@ if (($r['sugerencias_7d'] ?? 0) > 0) {
                 </select>
                 <label><b>Imagen*</b></label>
                 <input type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
+                <label><b>Código de barras</b> (opcional)</label>
+                <input type="text" name="barras" maxlength="50" autocomplete="off" placeholder="Escanéalo o escríbelo" onkeydown="if (event.key === 'Enter') event.preventDefault()" class="w3-input w3-border w3-margin-bottom">
+                <input type="text" name="barras" maxlength="50" autocomplete="off" placeholder="Escanéalo o escríbelo" onkeydown="if (event.key === 'Enter') event.preventDefault()" class="w3-input w3-border w3-margin-bottom">
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
                     <button type="button" onclick="document.getElementById('modalProducto').style.display='none'" class="w3-button w3-white">Cancelar</button>

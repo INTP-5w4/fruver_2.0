@@ -83,6 +83,12 @@
             <label for="nuevo-producto-img"><b>Imagen</b></label>
             <input id="nuevo-producto-img" type="file" name="img" class="w3-input w3-border w3-margin-bottom">
 
+            <label for="nuevo-producto-barras"><b>Código de barras</b> (opcional)</label>
+            <input id="nuevo-producto-barras" type="text" name="barras" maxlength="50" autocomplete="off"
+                   value="<?= esc(old('barras'), 'attr') ?>"
+                   onkeydown="if (event.key === 'Enter') event.preventDefault()"
+                   class="w3-input w3-border w3-margin-bottom">
+
             <footer class="w3-container w3-green w3-padding">
                 <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
                 <button type="button"

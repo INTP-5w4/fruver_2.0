@@ -357,7 +357,8 @@ class Tienda extends BaseController
         $mias   = $m->deCliente($idCliente);
         $elegida = $this->post('id_direccion');
 
-        if ($elegida !== 'nueva' && $mias !== []) {
+        $escribioNueva = trim((string) $this->post('dir_calle')) !== '';
+        if ($elegida !== 'nueva' && ! $escribioNueva && $mias !== []) {
             $id = $m->resolverParaPedido($idCliente, ctype_digit($elegida) ? (int) $elegida : null);
 
             return $id ?? 'Elige una de tus direcciones de entrega.';
