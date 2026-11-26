@@ -65,11 +65,16 @@ class Rutas extends BaseController
 
         CspMapas::permitir($this->response);
 
+        helper('entregas');
+        $candidatos   = $m_ruta->candidatos();
+        $repartidores = $this->repartidores();
+
         return view('rutas_planeador', [
             'fecha'        => $fecha,
-            'candidatos'   => $m_ruta->candidatos(),
+            'candidatos'   => $candidatos,
+            'gruposEstado' => agrupar_por_estado($candidatos, $repartidores, 'estado_dir'),
             'rutas'        => $m_ruta->deFecha($fecha),
-            'repartidores' => $this->repartidores(),
+            'repartidores' => $repartidores,
             'almacenes'    => $almacenes,
             'almacenMapa'  => $almacenes[0] ?? null,
             'horaSalida'   => $cfg->horaSalida,

@@ -21,7 +21,7 @@ class Modelo_producto extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listar(?string $buscar = '', int $porPagina = 20): array
+    public function listar(?string $buscar = '', int $porPagina = 10): array
     {
         $buscar = trim((string) $buscar);
         $where  = '';
@@ -193,7 +193,8 @@ class Modelo_producto extends PdoModelo
      * Catálogo de la landing en UNA sola consulta, repartido en una fila por categoría.
      *
      * Devuelve siempre las tres llaves (frutas, hierbas, verduras), aunque alguna venga
-     * vacía. Dentro de cada fila van primero los productos con stock y luego por nombre.
+     * vacía. Solo aparecen productos con existencias (los agotados se ocultan de la tienda,
+     * igual que la vista define "agotado": floor(stock) < 1). Dentro de cada fila van por nombre.
      * $texto (opcional) filtra por nombre o descripción; $porCategoria limita cada fila.
      *
      * @return array<string, list<array<string,mixed>>>
@@ -203,7 +204,9 @@ class Modelo_producto extends PdoModelo
         $categorias = self::CATEGORIAS;
         $marcas     = implode(',', array_fill(0, count($categorias), '?'));
 
-        $sql    = $this->sqlCatalogo() . " AND p.categoria IN ({$marcas})";
+        // Oculta los agotados: solo productos con al menos 1 de existencia disponible.
+        $sql    = $this->sqlCatalogo() . " AND p.categoria IN ({$marcas})"
+                . ' AND GREATEST(COALESCE(x.e_venta, 0), 0) >= 1';
         $params = $categorias;
 
         $texto = trim((string) $texto);
@@ -215,7 +218,7 @@ class Modelo_producto extends PdoModelo
         }
 
         // Tope de seguridad por si algún día el catálogo crece mucho.
-        $sql .= ' ORDER BY (GREATEST(COALESCE(x.e_venta, 0), 0) > 0) DESC, p.nombre ASC LIMIT 600';
+        $sql .= ' ORDER BY p.nombre ASC LIMIT 600';
 
         $filas = array_fill_keys($categorias, []);
 

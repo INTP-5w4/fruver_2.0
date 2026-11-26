@@ -9,6 +9,7 @@
 .er-precio { width:105px; min-width:90px; }
 .er-tabla tr.er-con-cantidad td { background:var(--hoja-clara); }
 .er-acciones { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin:16px 0; }
+.er-acciones-top { margin:0 0 12px; }
 .er-acciones .btn-agregar[disabled] { opacity:.5; cursor:not-allowed; }
 .er-nota { color:#4f5d53; font-size:13px; }
 .btn-enlace { display:inline-block; text-decoration:none; }

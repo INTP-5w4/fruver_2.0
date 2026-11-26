@@ -230,15 +230,32 @@ $enlacePagina = static fn (int $n): string => '?' . http_build_query(array_filte
     static fn ($v) => $v !== ''
 ));
 ?>
+<?php
+$vent  = 2;
+$desde = max(1, (int) $pagina_actual - $vent);
+$hasta = min((int) $total_paginas, (int) $pagina_actual + $vent);
+?>
 <nav class="paginacion" aria-label="Páginas">
     <?php if ($pagina_actual > 1): ?>
-        <a href="<?= esc($enlacePagina($pagina_actual - 1), 'attr') ?>" class="w3-button w3-border"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Anterior</a>
+        <a href="<?= esc($enlacePagina($pagina_actual - 1), 'attr') ?>" class="w3-button w3-border" aria-label="Página anterior">&laquo;</a>
     <?php endif; ?>
 
-    <span class="paginacion-estado">Página <?= (int) $pagina_actual ?> de <?= (int) $total_paginas ?></span>
+    <?php if ($desde > 1): ?>
+        <a href="<?= esc($enlacePagina(1), 'attr') ?>" class="w3-button w3-border">1</a>
+        <?php if ($desde > 2): ?><span class="paginacion-estado">…</span><?php endif; ?>
+    <?php endif; ?>
+
+    <?php for ($i = $desde; $i <= $hasta; $i++): ?>
+        <a href="<?= esc($enlacePagina($i), 'attr') ?>" class="w3-button <?= $i === (int) $pagina_actual ? 'w3-green' : 'w3-border' ?>"<?= $i === (int) $pagina_actual ? ' aria-current="page"' : '' ?>><?= $i ?></a>
+    <?php endfor; ?>
+
+    <?php if ($hasta < $total_paginas): ?>
+        <?php if ($hasta < $total_paginas - 1): ?><span class="paginacion-estado">…</span><?php endif; ?>
+        <a href="<?= esc($enlacePagina((int) $total_paginas), 'attr') ?>" class="w3-button w3-border"><?= (int) $total_paginas ?></a>
+    <?php endif; ?>
 
     <?php if ($pagina_actual < $total_paginas): ?>
-        <a href="<?= esc($enlacePagina($pagina_actual + 1), 'attr') ?>" class="w3-button w3-border"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> Siguiente</a>
+        <a href="<?= esc($enlacePagina($pagina_actual + 1), 'attr') ?>" class="w3-button w3-border" aria-label="Página siguiente">&raquo;</a>
     <?php endif; ?>
 </nav>
 <?php endif; ?>

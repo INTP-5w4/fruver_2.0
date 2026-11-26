@@ -38,16 +38,80 @@ class Entregas extends BaseController
 
     public function lista_entrega()
     {
-        $buscar    = $this->textoBusqueda();
-        $m_entrega = new Modelo_entrega();
+        $buscar       = $this->textoBusqueda();
+        $m_entrega    = new Modelo_entrega();
+        $pedidos      = $m_entrega->pedidosAsignables();
+        $repartidores = $this->repartidores();
 
         return view('lista_entrega', [
             'entregas'     => $m_entrega->listarTodas($buscar),
             'pager'        => $m_entrega->pager,
             'buscar'       => $buscar,
-            'pedidos'      => $m_entrega->pedidosAsignables(),
-            'repartidores' => $this->repartidores(),
+            'pedidos'      => $pedidos,
+            'grupos'       => $this->agruparPorEstado($pedidos, $repartidores),
+            'repartidores' => $repartidores,
         ]);
+    }
+
+    /**
+     * Agrupa los pedidos por asignar según el estado de la dirección de entrega y sugiere
+     * un repartidor por grupo (reparto equitativo round-robin, los que tienen cuenta primero),
+     * para que el administrador asigne todo un estado de un solo clic.
+     *
+     * @param list<array<string,mixed>> $pedidos
+     * @param list<array<string,mixed>> $repartidores
+     *
+     * @return list<array{estado:string, repartidor_sugerido:?int, pedidos:list<array<string,mixed>>}>
+     */
+    private function agruparPorEstado(array $pedidos, array $repartidores): array
+    {
+        helper('entregas');
+
+        return agrupar_por_estado($pedidos, $repartidores);
+    }
+
+    /**
+     * Asigna de una sola vez todos los pedidos de un grupo (un estado) al mismo repartidor.
+     * Asigna uno por uno: los que se puedan, y reporta los que no (sin frenar a los demás).
+     */
+    public function asigna_grupo()
+    {
+        $idRepartidor = (int) $this->request->getPost('id_repartidor');
+        $ids          = $this->request->getPost('id_pedidos');
+
+        if ($idRepartidor < 1 || ! is_array($ids) || $ids === []) {
+            return redirect()->to('lista_entrega')->with('error', 'Elige un repartidor y deja al menos un pedido en el grupo.');
+        }
+
+        $m      = new Modelo_entrega();
+        $ok     = 0;
+        $fallos = [];
+
+        foreach ($ids as $idPedido) {
+            if (! ctype_digit((string) $idPedido)) {
+                continue;
+            }
+
+            try {
+                $m->asignar((int) $idPedido, $idRepartidor);
+                $ok++;
+            } catch (DomainException $e) {
+                $fallos[] = '#' . (int) $idPedido . ' (' . $e->getMessage() . ')';
+            } catch (Throwable $e) {
+                $fallos[] = '#' . (int) $idPedido . ' (' . PdoModelo::mensajeSeguro($e, 'no se pudo asignar') . ')';
+            }
+        }
+
+        if ($ok === 0) {
+            return redirect()->to('lista_entrega')->with('error', 'No se asignó ningún pedido. ' . implode(' · ', $fallos));
+        }
+
+        $texto = $ok . ' pedido(s) asignado(s) al repartidor.';
+        if ($fallos !== []) {
+            $texto .= ' No se pudieron asignar ' . count($fallos) . ': ' . implode(' · ', $fallos);
+        }
+
+        return redirect()->to('lista_entrega')->with($fallos === [] ? 'mensaje' : 'error', $texto);
     }
 
     public function asigna_entrega()

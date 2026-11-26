@@ -80,7 +80,7 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                     <a class="cuenta-enlace" href="<?= base_url('/') ?>"><i class="fa-solid fa-gauge" aria-hidden="true"></i><span>Panel</span></a>
                 <?php endif; ?>
   <a class="cuenta-enlace" href="<?= base_url('tienda/mis-pedidos') ?>"><i class="fa-solid fa-receipt" aria-hidden="true"></i><span>Mis pedidos</span></a>
-                <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>">Sugerencias</a>
+                <a class="cuenta-enlace" href="<?= base_url('crea_sugerencia') ?>"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i><span>Sugerencias</span></a>
                 <a class="cuenta-enlace" href="<?= base_url('privacidad/preferencias') ?>"><i class="fa-solid fa-user-shield" aria-hidden="true"></i><span>Privacidad</span></a>
                 <a class="cuenta-enlace" href="<?= base_url('logout') ?>"><i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i><span>Salir</span></a>
             <?php else: ?>
@@ -147,12 +147,6 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
         <section class="fila fila-<?= esc($clave, 'attr') ?>" id="fila-<?= esc($clave, 'attr') ?>" aria-labelledby="titulo-<?= esc($clave, 'attr') ?>">
             <div class="fila-cabeza">
                 <h2 id="titulo-<?= esc($clave, 'attr') ?>"><?= esc($titulo) ?></h2>
-                <?php if ($clave === \App\Controllers\Tienda::PARA_TI): ?>
-                    <p class="fila-nota">
-                        Según tus pedidos anteriores (lo autorizaste).
-                        <a href="<?= base_url('privacidad/preferencias') ?>">Cambiar</a>
-                    </p>
-                <?php endif; ?>
                 <p class="fila-conteo"><?= count($productos) ?> <?= count($productos) === 1 ? 'producto' : 'productos' ?></p>
                 <?php if (count($productos) > 1): ?>
                     <div class="fila-flechas">

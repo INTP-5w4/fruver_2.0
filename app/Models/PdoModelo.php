@@ -231,7 +231,7 @@ abstract class PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    protected function paginarSql(string $sql, array $params = [], int $porPagina = 20, string $grupo = 'default'): array
+    protected function paginarSql(string $sql, array $params = [], int $porPagina = 10, string $grupo = 'default'): array
     {
         $total = (int) $this->valor("SELECT COUNT(*) FROM ({$sql}) AS conteo", $params);
 

@@ -18,7 +18,7 @@ class Modelo_roles extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listar(string $buscar = '', string $rol = '', int $porPagina = 25): array
+    public function listar(string $buscar = '', string $rol = '', int $porPagina = 10): array
     {
         $where  = ['u.deleted_at IS NULL'];
         $params = [];

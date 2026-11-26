@@ -58,6 +58,13 @@
             </p>
         </div>
     <?php else: ?>
+        <div class="er-acciones er-acciones-top">
+            <button type="submit" class="btn-agregar er-guardar" disabled>
+                <i class="fa-solid fa-boxes-packing"></i> Registrar entradas
+                <span class="er-contador">(0)</span>
+            </button>
+        </div>
+
         <div class="tabla-wrapper">
             <table class="er-tabla">
                 <thead>
@@ -88,13 +95,17 @@
                                    aria-label="Cantidad de <?= esc($p['nombre'], 'attr') ?>">
                         </td>
                         <td>
+                            <?php $pcompra = esc(number_format((float) $p['precio_compra_u'], 2, '.', ''), 'attr'); ?>
                             <input type="number" inputmode="decimal" name="p_compra[<?= $id ?>]" class="w3-input w3-border er-precio"
-                                   min="0" max="99999999" step="0.01" placeholder="<?= esc(number_format((float) $p['precio_compra_u'], 2, '.', ''), 'attr') ?>"
+                                   min="0" max="99999999" step="0.01" placeholder="<?= $pcompra ?>"
+                                   value="<?= $pcompra ?>" data-original="<?= $pcompra ?>"
                                    aria-label="Precio de compra de <?= esc($p['nombre'], 'attr') ?>">
                         </td>
                         <td>
+                            <?php $pventa = esc(number_format((float) $p['precio_venta_u'], 2, '.', ''), 'attr'); ?>
                             <input type="number" inputmode="decimal" name="p_venta[<?= $id ?>]" class="w3-input w3-border er-precio"
-                                   min="0" max="99999999" step="0.01" placeholder="<?= esc(number_format((float) $p['precio_venta_u'], 2, '.', ''), 'attr') ?>"
+                                   min="0" max="99999999" step="0.01" placeholder="<?= $pventa ?>"
+                                   value="<?= $pventa ?>" data-original="<?= $pventa ?>"
                                    aria-label="Precio de venta de <?= esc($p['nombre'], 'attr') ?>">
                         </td>
                     </tr>
@@ -104,9 +115,9 @@
         </div>
 
         <div class="er-acciones">
-            <button type="submit" id="er-guardar" class="btn-agregar" disabled>
+            <button type="submit" class="btn-agregar er-guardar" disabled>
                 <i class="fa-solid fa-boxes-packing"></i> Registrar entradas
-                <span id="er-contador">(0)</span>
+                <span class="er-contador">(0)</span>
             </button>
             <?php if (! $todos): ?>
                 <a href="<?= base_url('entrada_rapida?todos=1') ?>" class="w3-button w3-border"><i class="fa-solid fa-eye" aria-hidden="true"></i> Ver todos los productos</a>

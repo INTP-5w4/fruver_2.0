@@ -6,9 +6,9 @@
     var form = document.getElementById('form-rapida');
     if (!form) { return; }
 
-    var boton    = document.getElementById('er-guardar');
-    var contador = document.getElementById('er-contador');
-    var cants    = form.querySelectorAll('.er-cant');
+    var botones    = form.querySelectorAll('.er-guardar');
+    var contadores = form.querySelectorAll('.er-contador');
+    var cants      = form.querySelectorAll('.er-cant');
 
     function actualizar() {
         var n = 0;
@@ -18,8 +18,8 @@
             input.closest('tr').classList.toggle('er-con-cantidad', con);
             if (con) { n++; }
         });
-        if (boton)    { boton.disabled = n === 0; }
-        if (contador) { contador.textContent = '(' + n + ')'; }
+        botones.forEach(function (b) { b.disabled = n === 0; });
+        contadores.forEach(function (c) { c.textContent = '(' + n + ')'; });
     }
 
     cants.forEach(function (input) { input.addEventListener('input', actualizar); });
@@ -35,7 +35,23 @@
 
     // Evita doble envío
     form.addEventListener('submit', function () {
-        if (boton) { boton.disabled = true; }
+        botones.forEach(function (b) { b.disabled = true; });
+    });
+
+    // Precios precargados con la última entrada: al enfocar un campo que aún no se ha
+    // tocado se vacía (para teclear el nuevo sin tener que borrar); al escribir queda
+    // "tocado" y ya no se vacía; si se deja en blanco al salir, vuelve el valor
+    // original (el backend también copia el último si el campo queda vacío).
+    form.querySelectorAll('.er-precio').forEach(function (input) {
+        var original = input.dataset.original || input.value || '';
+        input.addEventListener('focus', function () {
+            if (input.dataset.tocado !== '1') { input.value = ''; }
+            else { input.select(); }
+        });
+        input.addEventListener('input', function () { input.dataset.tocado = '1'; });
+        input.addEventListener('blur', function () {
+            if (input.value.trim() === '') { input.value = original; input.dataset.tocado = ''; }
+        });
     });
 
     actualizar();

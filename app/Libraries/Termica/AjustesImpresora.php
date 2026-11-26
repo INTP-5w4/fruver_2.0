@@ -37,6 +37,46 @@ class AjustesImpresora
     public const CORTES         = ['parcial', 'completo', 'ninguno'];
     public const CONEXIONES     = ['navegador', 'red', 'windows', 'puerto', 'cups', 'archivo'];
 
+    /**
+     * Valores estándar sugeridos para los campos de conexión que, de fábrica, van vacíos.
+     * Así el formulario no se muestra en blanco: se ofrece un valor razonable y editable
+     * (no cambia el comportamiento en modo «navegador», donde estos campos no se usan).
+     *  - host             : rango privado típico de una impresora de red/WiFi.
+     *  - nombreCompartido : nombre habitual de las térmicas genéricas de 80 mm.
+     *  - puerto           : primer puerto serie/USB habitual en Windows.
+     */
+    public const SUGERIDOS_CONEXION = [
+        'host'             => '192.168.1.100',
+        'nombreCompartido' => 'POS80',
+        'puerto'           => 'COM3',
+    ];
+
+    /**
+     * Valores por defecto de todos los campos editables (el «estándar razonable»).
+     * Config\Impresora (más sus overrides de .env) provee la base; los campos de conexión
+     * que quedarían vacíos reciben un valor sugerido. NO incluye los ajustes guardados en
+     * el JSON: es justo el estado al que vuelve el botón «Restaurar valores por defecto».
+     *
+     * @return array<string,mixed>
+     */
+    public static function predeterminados(): array
+    {
+        $c   = new Impresora();
+        $def = [];
+
+        foreach (array_merge(self::CAMPOS_TICKET, self::CAMPOS_CONEXION) as $campo) {
+            $def[$campo] = $c->{$campo};
+        }
+
+        foreach (self::SUGERIDOS_CONEXION as $campo => $valor) {
+            if (($def[$campo] ?? '') === '') {
+                $def[$campo] = $valor;
+            }
+        }
+
+        return $def;
+    }
+
     private static function archivo(): string
     {
         return WRITEPATH . 'impresora_ajustes.json';

@@ -14,7 +14,7 @@
     "copias": 1,
     "abrirCajon": false,
     "conexion": "navegador",
-    "host": "",
+    "host": "192.168.1.100",
     "puertoRed": 9100,
     "nombreCompartido": "",
     "puerto": "",

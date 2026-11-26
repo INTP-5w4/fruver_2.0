@@ -102,19 +102,20 @@
                     <td><?= esc($c['telefono']) ?></td>
                     <td><?= (int) $c['compras'] ?></td>
                     <td class="pref-celda">
-                        <?php $manual = in_array($c['preferencial_modo'], ['si', 'no'], true); ?>
-                        <?php if ($c['es_preferencial']): ?>
-                            <span class="est est-preferencial">Preferencial</span>
-                        <?php else: ?>
-                            <span class="est est-pendiente">No preferencial</span>
-                        <?php endif; ?>
-                        <small class="pref-origen"><?= $manual ? 'manual' : 'por compras' ?></small>
-                        <?php if ($manual && ! empty($c['preferencial_motivo'])): ?>
-                            <small class="pref-motivo" title="<?= esc($c['preferencial_motivo'], 'attr') ?>">
-                                “<?= esc($c['preferencial_motivo']) ?>”
-                            </small>
-                        <?php endif; ?>
-                        <button type="button" class="btn-pref" <?= $conPreferencial ? '' : 'disabled' ?>
+                        <?php
+                        $manual  = in_array($c['preferencial_modo'], ['si', 'no'], true);
+                        $detalle = $manual ? 'Marcado manualmente' : 'Automático por número de compras';
+                        if ($manual && ! empty($c['preferencial_motivo'])) {
+                            $detalle .= ' · ' . $c['preferencial_motivo'];
+                        }
+                        ?>
+                        <div class="pref-chipline">
+                            <?php if ($c['es_preferencial']): ?>
+                                <span class="est est-preferencial" title="<?= esc($detalle, 'attr') ?>"><i class="fa-solid fa-star" aria-hidden="true"></i> Preferencial</span>
+                            <?php else: ?>
+                                <span class="est est-pendiente" title="<?= esc($detalle, 'attr') ?>">No preferencial</span>
+                            <?php endif; ?>
+                            <button type="button" class="btn-pref" <?= $conPreferencial ? '' : 'disabled' ?>
                                 title="Cambiar el estado preferencial"
                                 data-id="<?= (int) $c['id'] ?>"
                                 data-nombre="<?= esc(trim($c['nombre'] . ' ' . $c['ape_pat'] . ' ' . $c['ape_mat']), 'attr') ?>"
@@ -123,8 +124,9 @@
                                 data-por="<?= esc((string) ($c['preferencial_por'] ?? ''), 'attr') ?>"
                                 data-fecha="<?= esc((string) ($c['preferencial_fecha'] ?? ''), 'attr') ?>"
                                 data-compras="<?= (int) $c['compras'] ?>">
-                            <i class="fa-solid fa-star"></i> Cambiar
-                        </button>
+                                <i class="fa-solid fa-pen" aria-hidden="true"></i> Cambiar
+                            </button>
+                        </div>
                     </td>
                     <td>
                         <!-- ↓ Botón que abre el modal y llena los datos -->

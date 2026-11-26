@@ -87,7 +87,7 @@ class Modelo_repartidor extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listar(?string $buscar = '', int $porPagina = 20): array
+    public function listar(?string $buscar = '', int $porPagina = 10): array
     {
         $buscar     = trim((string) $buscar);
         $conCuenta  = $this->tieneCuenta();

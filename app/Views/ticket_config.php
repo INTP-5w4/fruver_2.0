@@ -7,10 +7,21 @@ use App\Libraries\Termica\AjustesImpresora;
 /** @var bool $navegador */
 /** @var bool $tecnico */
 
+// Estándar al que vuelve «Restaurar valores por defecto» y con el que se precargan
+// los campos de conexión que, de fábrica, irían vacíos.
+$def = AjustesImpresora::predeterminados();
+
 // Prefill: valor reenviado tras un error (old) o el valor efectivo actual del config.
 $t = static fn (string $k, $def): string => esc((string) old($k, $def), 'attr');
 $sel = static fn (string $k, $def, $opt): string => (string) old($k, $def) === (string) $opt ? ' selected' : '';
 $chk = static fn (bool $v): string => $v ? ' checked' : '';
+
+// Valor efectivo del config o, si está vacío, el sugerido estándar (campos de conexión).
+$pref = static fn (string $k, $cfgVal) => ($cfgVal === '' || $cfgVal === null) ? ($def[$k] ?? '') : $cfgVal;
+
+// data-defecto para el botón «Restaurar valores por defecto» (reset del formulario en el cliente).
+$dd  = static fn (string $k): string => ' data-defecto="' . esc((string) ($def[$k] ?? ''), 'attr') . '"';
+$ddb = static fn (string $k): string => ' data-defecto="' . (empty($def[$k]) ? '0' : '1') . '"';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -73,27 +84,27 @@ $chk = static fn (bool $v): string => $v ? ' checked' : '';
             <div class="cfg-grid">
                 <div class="cfg-campo">
                     <label for="negocioNombre">Nombre del negocio</label>
-                    <input class="w3-input w3-border" type="text" id="negocioNombre" name="negocioNombre" maxlength="40" value="<?= $t('negocioNombre', $cfg->negocioNombre) ?>">
+                    <input class="w3-input w3-border" type="text" id="negocioNombre" name="negocioNombre" maxlength="40" value="<?= $t('negocioNombre', $cfg->negocioNombre) ?>"<?= $dd('negocioNombre') ?>>
                 </div>
                 <div class="cfg-campo">
                     <label for="negocioSlogan">Slogan</label>
-                    <input class="w3-input w3-border" type="text" id="negocioSlogan" name="negocioSlogan" maxlength="40" value="<?= $t('negocioSlogan', $cfg->negocioSlogan) ?>">
+                    <input class="w3-input w3-border" type="text" id="negocioSlogan" name="negocioSlogan" maxlength="40" value="<?= $t('negocioSlogan', $cfg->negocioSlogan) ?>"<?= $dd('negocioSlogan') ?>>
                 </div>
                 <div class="cfg-campo">
                     <label for="negocioDireccion">Dirección</label>
-                    <input class="w3-input w3-border" type="text" id="negocioDireccion" name="negocioDireccion" maxlength="60" value="<?= $t('negocioDireccion', $cfg->negocioDireccion) ?>">
+                    <input class="w3-input w3-border" type="text" id="negocioDireccion" name="negocioDireccion" maxlength="60" value="<?= $t('negocioDireccion', $cfg->negocioDireccion) ?>"<?= $dd('negocioDireccion') ?> placeholder="Calle, número, colonia">
                 </div>
                 <div class="cfg-campo">
                     <label for="negocioTelefono">Teléfono</label>
-                    <input class="w3-input w3-border" type="text" id="negocioTelefono" name="negocioTelefono" maxlength="20" value="<?= $t('negocioTelefono', $cfg->negocioTelefono) ?>">
+                    <input class="w3-input w3-border" type="text" id="negocioTelefono" name="negocioTelefono" maxlength="20" value="<?= $t('negocioTelefono', $cfg->negocioTelefono) ?>"<?= $dd('negocioTelefono') ?> placeholder="222 123 4567">
                 </div>
                 <div class="cfg-campo cfg-ancho-total">
                     <label for="mensajePie">Mensaje de pie</label>
-                    <input class="w3-input w3-border" type="text" id="mensajePie" name="mensajePie" maxlength="60" value="<?= $t('mensajePie', $cfg->mensajePie) ?>">
+                    <input class="w3-input w3-border" type="text" id="mensajePie" name="mensajePie" maxlength="60" value="<?= $t('mensajePie', $cfg->mensajePie) ?>"<?= $dd('mensajePie') ?>>
                 </div>
                 <div class="cfg-campo">
                     <label for="simboloMoneda">Símbolo de moneda</label>
-                    <input class="w3-input w3-border" type="text" id="simboloMoneda" name="simboloMoneda" maxlength="3" value="<?= $t('simboloMoneda', $cfg->simboloMoneda) ?>">
+                    <input class="w3-input w3-border" type="text" id="simboloMoneda" name="simboloMoneda" maxlength="3" value="<?= $t('simboloMoneda', $cfg->simboloMoneda) ?>"<?= $dd('simboloMoneda') ?>>
                 </div>
             </div>
         </fieldset>
@@ -103,19 +114,19 @@ $chk = static fn (bool $v): string => $v ? ' checked' : '';
             <div class="cfg-grid">
                 <div class="cfg-campo">
                     <label for="papelMm">Ancho del papel</label>
-                    <select class="w3-select w3-border" id="papelMm" name="papelMm">
+                    <select class="w3-select w3-border" id="papelMm" name="papelMm"<?= $dd('papelMm') ?>>
                         <option value="80"<?= $sel('papelMm', $cfg->papelMm, 80) ?>>80 mm</option>
                         <option value="58"<?= $sel('papelMm', $cfg->papelMm, 58) ?>>58 mm</option>
                     </select>
                 </div>
                 <div class="cfg-campo">
                     <label for="columnas">Columnas</label>
-                    <input class="w3-input w3-border" type="number" id="columnas" name="columnas" min="0" max="80" value="<?= $t('columnas', $cfg->columnas) ?>">
+                    <input class="w3-input w3-border" type="number" id="columnas" name="columnas" min="0" max="80" value="<?= $t('columnas', $cfg->columnas) ?>"<?= $dd('columnas') ?>>
                     <span class="ayuda">0 = automático (58 mm → 32, 80 mm → 48). Algunas de 80 mm usan 42.</span>
                 </div>
                 <div class="cfg-campo">
                     <label for="codificacion">Codificación (acentos y ñ)</label>
-                    <select class="w3-select w3-border" id="codificacion" name="codificacion">
+                    <select class="w3-select w3-border" id="codificacion" name="codificacion"<?= $dd('codificacion') ?>>
                         <?php foreach (AjustesImpresora::CODIFICACIONES as $op): ?>
                             <option value="<?= esc($op, 'attr') ?>"<?= $sel('codificacion', $cfg->codificacion, $op) ?>><?= esc($op) ?></option>
                         <?php endforeach; ?>
@@ -124,7 +135,7 @@ $chk = static fn (bool $v): string => $v ? ' checked' : '';
                 </div>
                 <div class="cfg-campo">
                     <label for="corte">Corte del papel</label>
-                    <select class="w3-select w3-border" id="corte" name="corte">
+                    <select class="w3-select w3-border" id="corte" name="corte"<?= $dd('corte') ?>>
                         <?php foreach (AjustesImpresora::CORTES as $op): ?>
                             <option value="<?= esc($op, 'attr') ?>"<?= $sel('corte', $cfg->corte, $op) ?>><?= esc(ucfirst($op)) ?></option>
                         <?php endforeach; ?>
@@ -132,18 +143,18 @@ $chk = static fn (bool $v): string => $v ? ' checked' : '';
                 </div>
                 <div class="cfg-campo">
                     <label for="copias">Copias por impresión</label>
-                    <input class="w3-input w3-border" type="number" id="copias" name="copias" min="1" max="5" value="<?= $t('copias', $cfg->copias) ?>">
+                    <input class="w3-input w3-border" type="number" id="copias" name="copias" min="1" max="5" value="<?= $t('copias', $cfg->copias) ?>"<?= $dd('copias') ?>>
                 </div>
                 <div class="cfg-campo">
                     <label for="lineasFinales">Líneas en blanco antes de cortar</label>
-                    <input class="w3-input w3-border" type="number" id="lineasFinales" name="lineasFinales" min="0" max="10" value="<?= $t('lineasFinales', $cfg->lineasFinales) ?>">
+                    <input class="w3-input w3-border" type="number" id="lineasFinales" name="lineasFinales" min="0" max="10" value="<?= $t('lineasFinales', $cfg->lineasFinales) ?>"<?= $dd('lineasFinales') ?>>
                 </div>
                 <div class="cfg-campo cfg-check">
-                    <input type="checkbox" id="cancelarKanji" name="cancelarKanji" value="1"<?= $chk($cfg->cancelarKanji) ?>>
+                    <input type="checkbox" id="cancelarKanji" name="cancelarKanji" value="1"<?= $chk($cfg->cancelarKanji) . $ddb('cancelarKanji') ?>>
                     <label for="cancelarKanji">Cancelar Kanji (si salen símbolos raros)</label>
                 </div>
                 <div class="cfg-campo cfg-check">
-                    <input type="checkbox" id="abrirCajon" name="abrirCajon" value="1"<?= $chk($cfg->abrirCajon) ?>>
+                    <input type="checkbox" id="abrirCajon" name="abrirCajon" value="1"<?= $chk($cfg->abrirCajon) . $ddb('abrirCajon') ?>>
                     <label for="abrirCajon">Abrir cajón de dinero al imprimir</label>
                 </div>
             </div>
@@ -155,7 +166,7 @@ $chk = static fn (bool $v): string => $v ? ' checked' : '';
             <div class="cfg-grid">
                 <div class="cfg-campo">
                     <label for="conexion">Tipo de conexión</label>
-                    <select class="w3-select w3-border" id="conexion" name="conexion">
+                    <select class="w3-select w3-border" id="conexion" name="conexion"<?= $dd('conexion') ?>>
                         <?php
                         $etiquetasConexion = [
                             'navegador' => 'Navegador (vista imprimible)',
@@ -173,40 +184,42 @@ $chk = static fn (bool $v): string => $v ? ' checked' : '';
                 </div>
                 <div class="cfg-campo">
                     <label for="host">Host / IP <span class="ayuda">(red y windows)</span></label>
-                    <input class="w3-input w3-border" type="text" id="host" name="host" maxlength="120" value="<?= $t('host', $cfg->host) ?>" placeholder="192.168.1.50">
+                    <input class="w3-input w3-border" type="text" id="host" name="host" maxlength="120" value="<?= $t('host', $pref('host', $cfg->host)) ?>"<?= $dd('host') ?> placeholder="192.168.1.50">
                 </div>
                 <div class="cfg-campo">
                     <label for="puertoRed">Puerto de red <span class="ayuda">(red)</span></label>
-                    <input class="w3-input w3-border" type="number" id="puertoRed" name="puertoRed" min="1" max="65535" value="<?= $t('puertoRed', $cfg->puertoRed) ?>">
+                    <input class="w3-input w3-border" type="number" id="puertoRed" name="puertoRed" min="1" max="65535" value="<?= $t('puertoRed', $cfg->puertoRed) ?>"<?= $dd('puertoRed') ?>>
                 </div>
                 <div class="cfg-campo">
                     <label for="nombreCompartido">Nombre compartido / cola <span class="ayuda">(windows y cups)</span></label>
-                    <input class="w3-input w3-border" type="text" id="nombreCompartido" name="nombreCompartido" maxlength="120" value="<?= $t('nombreCompartido', $cfg->nombreCompartido) ?>" placeholder="POS80">
+                    <input class="w3-input w3-border" type="text" id="nombreCompartido" name="nombreCompartido" maxlength="120" value="<?= $t('nombreCompartido', $pref('nombreCompartido', $cfg->nombreCompartido)) ?>"<?= $dd('nombreCompartido') ?> placeholder="POS80">
                 </div>
                 <div class="cfg-campo">
                     <label for="puerto">Puerto serie/USB <span class="ayuda">(puerto)</span></label>
-                    <input class="w3-input w3-border" type="text" id="puerto" name="puerto" maxlength="40" value="<?= $t('puerto', $cfg->puerto) ?>" placeholder="COM5 · /dev/usb/lp0">
+                    <input class="w3-input w3-border" type="text" id="puerto" name="puerto" maxlength="40" value="<?= $t('puerto', $pref('puerto', $cfg->puerto)) ?>"<?= $dd('puerto') ?> placeholder="COM5 · /dev/usb/lp0">
                 </div>
                 <div class="cfg-campo">
                     <label for="baudios">Baudios <span class="ayuda">(puerto COM/serie)</span></label>
-                    <input class="w3-input w3-border" type="number" id="baudios" name="baudios" min="1200" max="115200" value="<?= $t('baudios', $cfg->baudios) ?>">
+                    <input class="w3-input w3-border" type="number" id="baudios" name="baudios" min="1200" max="115200" value="<?= $t('baudios', $cfg->baudios) ?>"<?= $dd('baudios') ?>>
                 </div>
                 <div class="cfg-campo">
                     <label for="timeoutSegundos">Tiempo de espera (segundos)</label>
-                    <input class="w3-input w3-border" type="number" id="timeoutSegundos" name="timeoutSegundos" min="1" max="30" value="<?= $t('timeoutSegundos', $cfg->timeoutSegundos) ?>">
+                    <input class="w3-input w3-border" type="number" id="timeoutSegundos" name="timeoutSegundos" min="1" max="30" value="<?= $t('timeoutSegundos', $cfg->timeoutSegundos) ?>"<?= $dd('timeoutSegundos') ?>>
                 </div>
                 <div class="cfg-campo cfg-check">
-                    <input type="checkbox" id="consultarEstado" name="consultarEstado" value="1"<?= $chk($cfg->consultarEstado) ?>>
+                    <input type="checkbox" id="consultarEstado" name="consultarEstado" value="1"<?= $chk($cfg->consultarEstado) . $ddb('consultarEstado') ?>>
                     <label for="consultarEstado">Consultar estado antes de imprimir (sin papel / tapa abierta, solo red)</label>
                 </div>
             </div>
         </fieldset>
         <?php endif; ?>
 
-        <div style="margin:4px 0 24px;">
+        <div style="margin:4px 0 6px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
             <button type="submit" class="btn-guardar"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Guardar configuración</button>
+            <button type="button" id="btnRestaurar" class="w3-button w3-border w3-round"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Restaurar valores por defecto</button>
             <a class="btn-cancelar" href="<?= base_url('lista_p_pedido') ?>"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Volver a pedidos</a>
         </div>
+        <p class="ayuda" style="font-size:12px;opacity:.7;margin:0 0 24px;">«Restaurar» solo rellena el formulario con los valores estándar; se aplican al pulsar <b>Guardar configuración</b>.</p>
     </form>
 
     <div style="margin:0 0 20px;">
@@ -237,5 +250,32 @@ $chk = static fn (bool $v): string => $v ? ' checked' : '';
 </div>
 
 <script src="<?= base_url('js/impresion_ticket.js') ?>"></script>
+<script>
+// «Restaurar valores por defecto»: repone cada campo del formulario a su valor estándar
+// (atributo data-defecto). No guarda nada: la persona revisa y pulsa «Guardar configuración».
+(function () {
+    'use strict';
+    var boton = document.getElementById('btnRestaurar');
+    var form  = document.querySelector('.cfg-form');
+    if (!boton || !form) { return; }
+
+    boton.addEventListener('click', function () {
+        if (!window.confirm('¿Restaurar todos los campos a los valores por defecto? Se perderán los cambios sin guardar.')) {
+            return;
+        }
+        form.querySelectorAll('[data-defecto]').forEach(function (campo) {
+            var def = campo.getAttribute('data-defecto');
+            if (campo.type === 'checkbox') {
+                campo.checked = (def === '1');
+            } else {
+                campo.value = def;
+            }
+        });
+        if (form.querySelector('[data-defecto]')) {
+            form.querySelector('[data-defecto]').focus();
+        }
+    });
+})();
+</script>
 </body>
 </html>

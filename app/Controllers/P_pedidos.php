@@ -236,7 +236,7 @@ class P_pedidos extends BaseController
     {
         $buscar    = $this->textoBusqueda();
         $pagina    = max(1, (int) $this->request->getGet('page'));
-        $porPagina = 20;
+        $porPagina = 10;
 
         $todos = (new Modelo_productopedidos())->obtenerPedidosAgrupados($buscar);
 

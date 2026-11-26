@@ -78,9 +78,12 @@ class Existencias extends BaseController
     {
         $buscar = $this->textoBusqueda();
 
+        $m = new Modelo_existencia();
+
         $datos = [
             'buscar'      => $buscar,
-            'existencias' => (new Modelo_existencia())->listarFiltrado($buscar),
+            'existencias' => $m->listarPaginado($buscar),
+            'pager'       => $m->pager,
             'productos'   => array_column((new Modelo_producto())->findAll(), null, 'id'),
         ];
 

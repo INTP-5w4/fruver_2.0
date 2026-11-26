@@ -17,6 +17,26 @@ class Modelo_existencia extends PdoModelo
      */
     public function listarFiltrado(?string $buscar = null): array
     {
+        [$sql, $params] = $this->sqlFiltrado($buscar);
+
+        return $this->filas($sql . ' ORDER BY t.id DESC', $params);
+    }
+
+    /** Igual que listarFiltrado pero paginado (lista del panel); deja el pager en $this->pager. */
+    public function listarPaginado(?string $buscar = null, int $porPagina = 10): array
+    {
+        [$sql, $params] = $this->sqlFiltrado($buscar);
+
+        return $this->paginarSql($sql . ' ORDER BY t.id DESC', $params, $porPagina);
+    }
+
+    /**
+     * SQL base de la lista de existencias + sus parámetros (con filtro de búsqueda opcional).
+     *
+     * @return array{0:string, 1:list<mixed>}
+     */
+    private function sqlFiltrado(?string $buscar): array
+    {
         $sql = 'SELECT * FROM (
                     SELECT existencia.*,
                            producto.nombre AS nombre_producto,
@@ -37,7 +57,7 @@ class Modelo_existencia extends PdoModelo
             $params = array_fill(0, 5, $like);
         }
 
-        return $this->filas($sql . ' ORDER BY t.id DESC', $params);
+        return [$sql, $params];
     }
 
     /**

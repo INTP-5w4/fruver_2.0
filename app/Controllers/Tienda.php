@@ -437,6 +437,9 @@ class Tienda extends BaseController
      * La landing no usa scripts ni estilos en línea, así que se le quita la excepción
      * "unsafe-inline" que el resto del sistema necesita (ver Config\ContentSecurityPolicy).
      * Los scripts en línea que sí lleven nonce ({csp-script-nonce}) siguen funcionando.
+     *
+     * Se conserva cdnjs.cloudflare.com en style-src para que la hoja de Font Awesome
+     * (y sus íconos: flechas, sellos, encabezado) cargue igual que en el resto del sitio.
      */
     private function cspEstricta(): void
     {
@@ -447,7 +450,7 @@ class Tienda extends BaseController
         }
 
         $csp->addScriptSrc(['self', 'nonce-' . $csp->getScriptNonce()]);
-        $csp->addStyleSrc(['self', 'https://fonts.googleapis.com', 'nonce-' . $csp->getStyleNonce()]);
+        $csp->addStyleSrc(['self', 'https://cdnjs.cloudflare.com', 'https://fonts.googleapis.com', 'nonce-' . $csp->getStyleNonce()]);
     }
 
     /** Respuesta JSON estándar: estado del carrito + mensaje + token CSRF vigente. */

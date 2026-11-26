@@ -60,7 +60,7 @@ class Modelo_sugerencia extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listar(string $buscar = '', string $valoracion = '', string $orden = 'recientes', int $porPagina = 20): array
+    public function listar(string $buscar = '', string $valoracion = '', string $orden = 'recientes', int $porPagina = 10): array
     {
         $condiciones = [];
         $params      = [];

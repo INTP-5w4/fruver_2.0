@@ -97,6 +97,30 @@
                     <button type="button" class="w3-button w3-small w3-border" data-sel="ninguno"><i class="fa-solid fa-square" aria-hidden="true"></i> Ninguno</button>
                     <button type="button" class="w3-button w3-small w3-border" data-sel="repartidor" title="Los ya asignados al repartidor elegido"><i class="fa-solid fa-user" aria-hidden="true"></i> Del repartidor</button>
                 </div>
+
+                <?php if (! empty($gruposEstado)): ?>
+                    <style>
+                        .rutas-grupos { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px; padding:8px 10px; background:#f4f8f4; border-radius:10px; }
+                        .rutas-grupos-et { font-size:.82rem; color:#5a6b5e; font-weight:600; margin-right:4px; }
+                        .rutas-grupo-chip { background:#fff !important; border:1px solid #cfe0d2 !important; border-radius:999px !important; color:#1e5e2a !important; font-weight:600; }
+                        .rutas-grupo-chip:hover { background:#e9f5ec !important; }
+                        .rutas-grupo-chip .rutas-grupo-n { display:inline-block; min-width:18px; margin-left:4px; padding:0 5px; background:#1e7e34; color:#fff; border-radius:9px; font-size:.72rem; }
+                    </style>
+                    <div class="rutas-grupos" aria-label="Preasignar una ruta por estado de entrega">
+                        <span class="rutas-grupos-et"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Preasignar por estado:</span>
+                        <?php foreach ($gruposEstado as $g): ?>
+                            <button type="button" class="w3-button w3-small rutas-grupo-chip"
+                                    data-grupo-estado
+                                    data-ids="<?= esc(implode(',', array_map(static fn ($p) => (int) $p['id_pedido'], $g['pedidos'])), 'attr') ?>"
+                                    data-repartidor="<?= (int) ($g['repartidor_sugerido'] ?? 0) ?>"
+                                    title="Selecciona los pedidos de <?= esc($g['estado'], 'attr') ?> y pone su repartidor sugerido">
+                                <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+                                <?= esc($g['estado']) ?> <span class="rutas-grupo-n"><?= count($g['pedidos']) ?></span>
+                            </button>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
                 <ul class="rutas-lista" id="listaCandidatos">
                     <?php foreach ($candidatos as $c): ?>
                         <?php $ubicada = $c['lat'] !== null && $c['lng'] !== null; ?>
@@ -140,7 +164,7 @@
             <p class="w3-small" id="estadoCalculo" role="status"></p>
         </section>
 
-        <section>
+        <section class="rutas-mapa-col">
             <div class="rutas-mapa" id="mapaRutas"></div>
             <p class="geo-estado" data-mapa-estado hidden></p>
         </section>

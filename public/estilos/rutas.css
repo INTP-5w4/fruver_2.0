@@ -17,10 +17,12 @@
 .geo-tag--no { background: #fde2e1; color: #8e1c16; }
 
 /* Planeador */
-.rutas-layout { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 16px; align-items: start; }
+.rutas-layout { display: grid; grid-template-columns: minmax(320px, 440px) 1fr; gap: 16px; align-items: stretch; }
 .rutas-panel { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.12); padding: 14px; }
 .rutas-panel h3 { margin-top: 0; }
-.rutas-mapa { width: 100%; height: 70vh; min-height: 420px; border-radius: 10px; background: #e9eee0; position: sticky; top: 80px; }
+/* La columna del mapa iguala el alto del panel izquierdo; el mapa llena esa columna. */
+.rutas-mapa-col { display: flex; flex-direction: column; min-width: 0; }
+.rutas-mapa { width: 100%; flex: 1 1 auto; min-height: 420px; border-radius: 10px; background: #e9eee0; }
 .rutas-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
 .rutas-campos label { font-size: .85em; font-weight: 600; display: block; }
 .rutas-campos .w3-input, .rutas-campos .w3-select { padding: 6px; }
@@ -121,7 +123,9 @@
     .rutas-layout { grid-template-columns: 1fr; }
     .rutas-opciones { grid-template-columns: 1fr; }
     .rutas-opciones-guardar .w3-button { width: 100%; }
-    .rutas-mapa { position: static; height: 50vh; }
+    /* En una sola columna el mapa vuelve a un alto fijo (no hay panel al lado que igualar). */
+    .rutas-mapa-col { display: block; }
+    .rutas-mapa { flex: none; height: 50vh; min-height: 0; }
 }
 
 /* Pines numerados (Leaflet) */

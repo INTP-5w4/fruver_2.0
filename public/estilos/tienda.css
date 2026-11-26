@@ -92,16 +92,34 @@ button { cursor: pointer; }
 .cuenta { display: flex; align-items: center; gap: 12px; font-size: 0.9rem; white-space: nowrap; }
 .cuenta-saludo { color: #d6e8d9; }
 .cuenta-saludo strong { color: var(--blanco); }
-.cuenta-enlace { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--blanco); text-decoration: underline; text-underline-offset: 3px; }
-.cuenta-enlace i { text-decoration: none; }
-.cuenta-enlace:hover { color: var(--mango); }
+/* Acciones de cuenta: solo íconos, sin subrayado; al pasar el cursor (o enfocar con
+   teclado) se despliega el texto hacia su derecha dentro de una pastilla translúcida. */
+.cuenta-enlace {
+    display: inline-flex; align-items: center; min-height: 44px; padding: 0 9px;
+    color: var(--blanco); text-decoration: none; border-radius: 10px;
+    transition: background-color 0.18s ease, color 0.18s ease;
+}
+.cuenta-enlace i { font-size: 18px; line-height: 1; }
+.cuenta-enlace span {
+    max-width: 0; overflow: hidden; white-space: nowrap; opacity: 0;
+    transition: max-width 0.22s ease, opacity 0.16s ease, margin-left 0.22s ease;
+}
+.cuenta-enlace:hover,
+.cuenta-enlace:focus-visible { background: rgba(255, 255, 255, 0.12); color: var(--blanco); }
+.cuenta-enlace:hover span,
+.cuenta-enlace:focus-visible span { max-width: 150px; opacity: 1; margin-left: 8px; }
 
+/* Carrito: botón con aspecto de cristal (translúcido + desenfoque), sin borde blanco. */
 .btn-carrito {
     position: relative; display: flex; align-items: center; gap: 8px;
-    background: transparent; border: 2px solid rgba(255, 255, 255, 0.35); color: var(--blanco);
-    border-radius: 10px; padding: 6px 12px; min-height: 44px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    color: var(--blanco);
+    border-radius: 12px; padding: 6px 14px; min-height: 44px;
+    transition: background-color 0.18s ease, border-color 0.18s ease;
 }
-.btn-carrito:hover { border-color: var(--mango); }
+.btn-carrito:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.32); }
 .btn-carrito-cuenta {
     min-width: 24px; height: 24px; padding: 0 6px; border-radius: 12px;
     background: var(--mango); color: var(--tinta); font-weight: 700; font-size: 0.85rem;
@@ -139,7 +157,6 @@ button { cursor: pointer; }
 .fila-verduras { --acento: #2f7a1e; --acento-texto: #ffffff; }
 /* "Para ti" (recomendaciones V4, solo con consentimiento) */
 .fila-para_ti  { --acento: #c2410c; --acento-texto: #ffffff; }
-.fila-nota { margin: 0; color: var(--tinta-suave); font-size: 0.9rem; }
 
 .fila-cabeza { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; }
 .fila-cabeza h2 {
@@ -344,6 +361,9 @@ button { cursor: pointer; }
     .cuenta { gap: 2px; }
     .cuenta-enlace { flex-direction: column; justify-content: center; gap: 2px; min-width: 52px; font-size: 11.5px; text-decoration: none; }
     .cuenta-enlace i { font-size: 17px; }
+    /* En táctil no hay hover: el texto se muestra siempre, debajo del ícono. */
+    .cuenta-enlace span { max-width: none; opacity: 1; margin-left: 0; overflow: visible; }
+    .cuenta-enlace:hover, .cuenta-enlace:focus-visible { background: transparent; }
     .producto { flex-basis: 196px; }
     .fila-flechas { display: none; }
     .fila-conteo { display: none; }

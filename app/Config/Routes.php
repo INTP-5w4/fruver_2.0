@@ -179,6 +179,7 @@ $routes->group('', ['filter' => 'group:superadmin,admin,developer'], static func
     // ===== ENTREGAS (asignación del administrador) =====
     $routes->get('lista_entrega', 'Entregas::lista_entrega');
     $routes->post('asigna_entrega', 'Entregas::asigna_entrega');
+    $routes->post('asigna_grupo', 'Entregas::asigna_grupo');
     $routes->post('cancela_entrega/(:num)', 'Entregas::cancela_entrega/$1');
 
     // ===== RUTAS DE REPARTO (openrouteservice / OpenStreetMap, o Google Maps) =====

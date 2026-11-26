@@ -93,7 +93,7 @@ class Modelo_entrega extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listarTodas(string $buscar = '', int $porPagina = 20): array
+    public function listarTodas(string $buscar = '', int $porPagina = 10): array
     {
         $where  = '';
         $params = [];
@@ -130,14 +130,16 @@ class Modelo_entrega extends PdoModelo
     public function pedidosAsignables(): array
     {
         return $this->filas(
-            "SELECT p.id, p.fecha, CONCAT_WS(' ', c.nombre, c.ape_pat) AS cliente
+            "SELECT p.id, p.fecha, CONCAT_WS(' ', c.nombre, c.ape_pat) AS cliente,
+                    d.estado, d.municipio
                FROM pedido p
-               JOIN cliente c ON c.id = p.id_cliente
+               JOIN cliente c   ON c.id = p.id_cliente
+          LEFT JOIN direccion d ON d.id = p.id_direccion
               WHERE (SELECT s.estado FROM estatus s WHERE s.id_pedido = p.id ORDER BY s.id DESC LIMIT 1)
                     IN ('pedido_confirmado', 'pedido_en_transito')
                 AND NOT EXISTS (SELECT 1 FROM entrega e
                                  WHERE e.id_pedido = p.id AND e.estado IN ('asignada', 'en_ruta', 'entregada'))
-              ORDER BY p.id DESC"
+              ORDER BY (d.estado IS NULL OR d.estado = ''), d.estado, p.id DESC"
         );
     }
 
@@ -177,7 +179,7 @@ class Modelo_entrega extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listarDeRepartidor(int $idUser, ?string $estado = null, int $porPagina = 20): array
+    public function listarDeRepartidor(int $idUser, ?string $estado = null, int $porPagina = 10): array
     {
         $where  = 'WHERE r.id_user = ?';
         $params = [$idUser];

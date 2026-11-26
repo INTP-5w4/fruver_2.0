@@ -349,6 +349,26 @@
         });
     });
 
+    // Chips "Preasignar por estado": selecciona los pedidos (ubicados) del grupo y pone su
+    // repartidor sugerido, para armar la ruta de todo un estado con un solo clic.
+    document.querySelectorAll('[data-grupo-estado]').forEach(function (b) {
+        b.addEventListener('click', function () {
+            var ids = (b.getAttribute('data-ids') || '').split(',').filter(Boolean);
+            var rep = b.getAttribute('data-repartidor');
+            var sel = document.getElementById('r_repartidor');
+            if (sel && rep && rep !== '0') { sel.value = rep; }
+            lista.querySelectorAll('li').forEach(function (li) {
+                var c = li.querySelector('input[type=checkbox]');
+                if (!c || c.disabled) { return; }
+                c.checked = ids.indexOf(li.getAttribute('data-id')) !== -1;
+            });
+            invalidar();
+            habilitarArrastre(false);
+            actualizarContador();
+            if (btnCalc) { btnCalc.focus(); }
+        });
+    });
+
     if (btnCalc) { btnCalc.addEventListener('click', function () { calcular(null); }); }
     if (btnManual) { btnManual.addEventListener('click', function () { calcular('manual'); }); }
 

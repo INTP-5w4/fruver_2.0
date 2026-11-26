@@ -71,7 +71,7 @@ class Modelo_cliente extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listar(?string $buscar = null, int $porPagina = 20): array
+    public function listar(?string $buscar = null, int $porPagina = 10): array
     {
         $buscar = trim((string) $buscar);
         $where  = '';

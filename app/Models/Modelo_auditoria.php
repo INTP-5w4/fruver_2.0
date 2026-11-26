@@ -48,7 +48,7 @@ class Modelo_auditoria extends PdoModelo
      *
      * @return list<array<string,mixed>>
      */
-    public function listar(?string $tabla, ?int $idRegistro, string $buscar = '', int $porPagina = 30): array
+    public function listar(?string $tabla, ?int $idRegistro, string $buscar = '', int $porPagina = 10): array
     {
         if (! $this->tablaExiste()) {
             return [];

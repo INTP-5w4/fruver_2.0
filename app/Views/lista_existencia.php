@@ -80,6 +80,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
+    <?= isset($pager) && $pager !== null ? $pager->links('default', 'w3_pager') : '' ?>
 </div>
     <!-- MODAL EDITAR EXISTENCIA -->
     <div id="modalEditarExistencia" class="w3-modal" style="padding-top:100px; z-index:9999;">
