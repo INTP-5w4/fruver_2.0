@@ -234,7 +234,8 @@ button { cursor: pointer; }
 .cantidad {
     display: flex; align-items: stretch; border: 2px solid var(--tinta); border-radius: 10px; overflow: hidden; width: 100%;
 }
-.cantidad .paso { width: 42px; border: 0; background: var(--papel); font-size: 1.25rem; font-weight: 700; }
+.cantidad .paso { width: 42px; border: 0; background: var(--papel); font-size: 1.25rem; font-weight: 700; color: var(--tinta); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.cantidad .paso svg { display: block; }
 .cantidad .paso:hover { background: var(--linea); }
 .cantidad input {
     flex: 1; min-width: 0; text-align: center; border: 0; font-weight: 700; background: var(--blanco);

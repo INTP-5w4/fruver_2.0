@@ -213,9 +213,9 @@ $configJson = json_encode($config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS |
                                         <?= csrf_field() ?>
                                         <input type="hidden" name="id_producto" value="<?= (int) $p['id'] ?>">
                                         <div class="cantidad" role="group" aria-label="Cantidad de <?= esc($p['nombre'], 'attr') ?>">
-                                            <button type="button" class="paso" data-paso="-1" aria-label="Una menos"><i class="fa-solid fa-minus" aria-hidden="true"></i></button>
+                                            <button type="button" class="paso" data-paso="-1" aria-label="Una menos"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>
                                             <input type="number" name="cantidad" value="1" min="1" max="<?= $stock ?>" inputmode="numeric" aria-label="Cantidad">
-                                            <button type="button" class="paso" data-paso="1" aria-label="Una más"><i class="fa-solid fa-plus" aria-hidden="true"></i> </button>
+                                            <button type="button" class="paso" data-paso="1" aria-label="Una más"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg></button>
                                         </div>
                                         <button class="btn btn-primario" type="submit"><i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar al carrito</button>
                                     </form>
