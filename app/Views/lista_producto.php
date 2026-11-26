@@ -27,8 +27,8 @@
 
 <div class="contenedor-boton">
     <h1>Productos</h1>
-    <button onclick="document.getElementById('modalCrearProducto').style.display='block'"
-            class="btn-agregar">
+    <button onclick="document.getElementById('modalCrearProducto').style.display='block'; document.getElementById('producto-barras').focus()"
+        class="btn-agregar">
         <i class="fa-solid fa-plus" aria-hidden="true"></i> Nuevo producto
     </button>
 </div>
@@ -166,14 +166,15 @@
 
 
     <script>
-        function abrirModal(id, nombre, descripcion, categoria, barras) {
-            document.getElementById('edit_id').value = id;
-            document.getElementById('edit_nom').value = nombre;
-            document.getElementById('edit_desc').value = descripcion;
-            document.getElementById('edit_cat').value = categoria;
-            document.getElementById('edit_barras').value = barras || '';
-            document.getElementById('modalEditarProducto').style.display = 'block';
-        }
+    function abrirModal(id, nombre, descripcion, categoria, barras) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_nom').value = nombre;
+    document.getElementById('edit_desc').value = descripcion;
+    document.getElementById('edit_cat').value = categoria;
+    document.getElementById('edit_barras').value = barras || '';
+    document.getElementById('modalEditarProducto').style.display = 'block';
+    document.getElementById('edit_barras').focus();
+    }
 
     </script>
 

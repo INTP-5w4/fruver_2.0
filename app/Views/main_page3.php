@@ -273,7 +273,7 @@ if (($r['sugerencias_7d'] ?? 0) > 0) {
                 <button type="button" onclick="document.getElementById('modalEntrada').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-truck-ramp-box" aria-hidden="true"></i>Entrada</button>
                 <button type="button" onclick="document.getElementById('modalExistencias').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>Existencias</button>
                 <button type="button" onclick="document.getElementById('modalMerma').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-arrow-trend-down" aria-hidden="true"></i>Merma</button>
-                <button type="button" onclick="document.getElementById('modalProducto').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-carrot" aria-hidden="true"></i>Producto</button>
+                <button type="button" onclick="document.getElementById('modalProducto').style.display='block'; document.getElementById('dash-barras').focus()" class="btn btn-secundario"><i class="fa-solid fa-carrot" aria-hidden="true"></i>Producto</button>
                 <button type="button" onclick="document.getElementById('modalCliente').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-user-plus" aria-hidden="true"></i>Cliente</button>
                 <button type="button" onclick="document.getElementById('modalDireccion').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-location-dot" aria-hidden="true"></i>Dirección</button>
                 <button type="button" onclick="document.getElementById('modalRepartidor').style.display='block'" class="btn btn-secundario"><i class="fa-solid fa-id-badge" aria-hidden="true"></i>Repartidor</button>
@@ -442,8 +442,7 @@ if (($r['sugerencias_7d'] ?? 0) > 0) {
                 <label><b>Imagen*</b></label>
                 <input type="file" name="img" class="w3-input w3-border w3-margin-bottom" required>
                 <label><b>Código de barras</b> (opcional)</label>
-                <input type="text" name="barras" maxlength="50" autocomplete="off" placeholder="Escanéalo o escríbelo" onkeydown="if (event.key === 'Enter') event.preventDefault()" class="w3-input w3-border w3-margin-bottom">
-                <input type="text" name="barras" maxlength="50" autocomplete="off" placeholder="Escanéalo o escríbelo" onkeydown="if (event.key === 'Enter') event.preventDefault()" class="w3-input w3-border w3-margin-bottom">
+                <input id="dash-barras" type="text" name="barras" maxlength="50" autocomplete="off" placeholder="Escanéalo o escríbelo" onkeydown="if (event.key === 'Enter') event.preventDefault()" class="w3-input w3-border w3-margin-bottom">
                 <footer class="w3-container w3-green w3-padding">
                     <button type="submit" class="w3-button w3-white w3-right">Guardar</button>
                     <button type="button" onclick="document.getElementById('modalProducto').style.display='none'" class="w3-button w3-white">Cancelar</button>
