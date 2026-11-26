@@ -6,9 +6,12 @@
     En orden:
       1. Busca git y php (PATH o rutas habituales de XAMPP / Git for Windows).
       2. git fetch --all --prune  (trae lo último de GitHub sin tocar tu copia).
-      3. Deja tu rama en "este punto de la rama": avanza (fast-forward) a
-         origin/<rama>. Si tienes cambios sin commit o la rama ha divergido,
-         NO fuerza nada: te avisa y sigue con los siguientes pasos.
+      3. Pone tu rama al día con origin/<rama>:
+           - Normal: avanza solo si es fast-forward (no pisa tu trabajo).
+           - Con -Sincronizar: deja tu copia EXACTAMENTE igual a GitHub
+             (git reset --hard). DESCARTA tus cambios locales en archivos
+             versionados. NO borra archivos sin seguimiento (respeta .env y
+             tus fotos en public/uploads).
       4. php spark migrate     (aplica TODAS las migraciones pendientes).
       5. php spark db:seed ...  (corre TODOS los seeders de app/Database/Seeds).
          Los seeders cargan datos de DEMOSTRACIÓN y pueden duplicar si se corren
@@ -18,10 +21,16 @@
     No toca .env, vendor/ ni los archivos ignorados por git.
 
 .PARAMETER Ruta
-    Carpeta del repositorio. Por omisión, la carpeta actual.
+    Carpeta del repositorio. Por omisión se busca sola: carpeta actual, carpeta
+    del script (y su carpeta madre) y C:\xampp\htdocs\fruver_2.0.
 
 .PARAMETER Rama
     Rama a poner al día. Por omisión, la rama activa de tu copia.
+
+.PARAMETER Sincronizar
+    Deja la copia IGUAL a GitHub (git reset --hard origin/<rama>). Descarta los
+    cambios locales en archivos versionados. Pide confirmación (usa -Si para no
+    preguntar).
 
 .PARAMETER SinSeeders
     No corre ningún seeder (solo migraciones y actualización de git).
@@ -39,12 +48,13 @@
     powershell -ExecutionPolicy Bypass -File .\herramientas\actualizar_y_migrar.ps1 -SinSeeders
 
 .EXAMPLE
-    powershell -ExecutionPolicy Bypass -File .\herramientas\actualizar_y_migrar.ps1 -Rama mejoras-inventario-rutas-roles -Si
+    powershell -ExecutionPolicy Bypass -File .\herramientas\actualizar_y_migrar.ps1 -Sincronizar -Si
 #>
 [CmdletBinding()]
 param(
-    [string]$Ruta = (Get-Location).Path,
+    [string]$Ruta = '',
     [string]$Rama = '',
+    [switch]$Sincronizar,
     [switch]$SinSeeders,
     [switch]$SinGit,
     [switch]$Si
@@ -71,6 +81,31 @@ function Buscar-Git {
         (Join-Path $env:LOCALAPPDATA 'Programs\Git\cmd\git.exe')
     )
     return ($candidatos | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1)
+}
+
+# ── Localizar la carpeta del proyecto ────────────────────────────────────
+# Es un repo de fruver_2.0 si tiene 'spark' y '.git'. Se prueba, en orden: lo que
+# diga -Ruta, la carpeta actual, la del script (y su madre, por si esta en herramientas\)
+# y la instalacion tipica de XAMPP.
+function Buscar-Repo([string]$Preferida) {
+    $candidatos = @()
+    if ($Preferida) {
+        $candidatos += $Preferida
+    } else {
+        $candidatos += (Get-Location).Path
+        if ($PSScriptRoot) {
+            $candidatos += $PSScriptRoot
+            $candidatos += (Split-Path $PSScriptRoot -Parent)
+        }
+        $candidatos += 'C:\xampp\htdocs\fruver_2.0'
+        $candidatos += (Join-Path $env:SystemDrive 'xampp\htdocs\fruver_2.0')
+    }
+    foreach ($c in $candidatos) {
+        if ($c -and (Test-Path (Join-Path $c 'spark')) -and (Test-Path (Join-Path $c '.git'))) {
+            return (Resolve-Path $c).Path
+        }
+    }
+    return $null
 }
 
 # ── Localizar php (PATH o XAMPP) ─────────────────────────────────────────
@@ -128,15 +163,12 @@ if (-not $script:Git) { throw 'No se encontro git. Instalalo (https://git-scm.co
 $script:Php = Buscar-Php
 if (-not $script:Php) { throw 'No se encontro php. Arranca XAMPP o agrega php al PATH.' }
 
-$script:Repo = (Resolve-Path $Ruta).Path
-if ((Invoke-Git @('rev-parse', '--is-inside-work-tree') -PermitirFallo).Texto -ne 'true') {
-    throw "La carpeta $script:Repo no es un repositorio de git."
+$script:Repo = Buscar-Repo $Ruta
+if (-not $script:Repo) {
+    throw "No encontre el proyecto fruver_2.0. Indica su carpeta con -Ruta C:\ruta\al\proyecto."
 }
-$script:Repo = (Invoke-Git @('rev-parse', '--show-toplevel')).Texto -replace '/', '\'
+$script:Repo = $script:Repo -replace '/', '\'
 
-if (-not (Test-Path (Join-Path $script:Repo 'spark'))) {
-    throw "No se encontro 'spark' en $script:Repo. No parece la raiz de fruver_2.0."
-}
 if (-not (Test-Path (Join-Path $script:Repo 'vendor'))) {
     Escribir-Aviso 'Falta vendor/: corre "composer install" antes de migrar (spark lo necesita).'
 }
@@ -158,31 +190,58 @@ if ($SinGit) {
         if (-not $Rama) { throw 'HEAD esta separado (sin rama). Indica la rama con -Rama <nombre>.' }
     }
 
-    Escribir-Paso "Poniendo la rama '$Rama' en su ultimo punto"
-    $sucio = @((Invoke-Git @('status', '--porcelain', '--untracked-files=no')).Lineas)
+    # La rama tiene que existir en GitHub para poder alinear la copia con ella.
+    if (@((Invoke-Git @('rev-parse', '--verify', '-q', "$Remoto/$Rama") -PermitirFallo).Lineas).Count -eq 0) {
+        throw "El remoto '$Remoto' no tiene la rama '$Rama'. Revisa el nombre con -Rama."
+    }
     $ramaActual = (Invoke-Git @('symbolic-ref', '--short', '-q', 'HEAD') -PermitirFallo).Texto
 
-    if ($sucio.Count -gt 0 -and $ramaActual -eq $Rama) {
-        Escribir-Aviso "Tienes $($sucio.Count) archivo(s) con cambios sin commit: no se cambia la rama para no pisarlos."
-        Escribir-Info 'Haz commit o guardalos (git stash) y vuelve a correr el script, o usa -SinGit.'
-    } else {
-        # Asegurar que exista la rama de seguimiento del remoto.
-        if (@((Invoke-Git @('rev-parse', '--verify', '-q', "$Remoto/$Rama") -PermitirFallo).Lineas).Count -eq 0) {
-            throw "El remoto '$Remoto' no tiene la rama '$Rama'. Revisa el nombre."
+    if ($Sincronizar) {
+        # ── Dejar la copia IGUAL a GitHub (descarta cambios locales versionados) ──
+        Escribir-Paso "Dejando tu copia IGUAL a $Remoto/$Rama"
+        $sucio = @((Invoke-Git @('status', '--porcelain')).Lineas)
+        if ($sucio.Count -gt 0) {
+            Escribir-Aviso "Se DESCARTARAN $($sucio.Count) cambio(s) local(es) sin guardar para quedar igual a GitHub."
         }
-        if ($ramaActual -ne $Rama) {
-            Invoke-Git @('checkout', $Rama) -PermitirFallo | Out-Null
-            if ((Invoke-Git @('symbolic-ref', '--short', '-q', 'HEAD') -PermitirFallo).Texto -ne $Rama) {
-                Escribir-Aviso "No se pudo cambiar a '$Rama' (quiza por cambios sin commit). Se continua en '$ramaActual'."
-            }
+        $ok = $Si
+        if (-not $ok) {
+            $resp = Read-Host '  Esto borra tus cambios locales (en archivos versionados). Continuar? (s/N)'
+            $ok = ($resp -match '^(s|si|y|yes)$')
         }
-        # Fast-forward: solo avanza si no hay divergencia (no reescribe tu trabajo).
-        $ff = Invoke-Git @('merge', '--ff-only', "$Remoto/$Rama") -PermitirFallo
-        if ($ff.Codigo -eq 0) {
-            Escribir-Ok ("Rama al dia: " + (Invoke-Git @('log', '-1', '--format=%h %s (%cr)')).Texto)
+        if (-not $ok) {
+            Escribir-Info 'Sincronizacion cancelada: no se cambio el codigo.'
         } else {
-            Escribir-Aviso "No se pudo avanzar a $Remoto/$Rama (la rama local diverge o hay cambios locales)."
-            Escribir-Info 'Resuelvelo a mano (git pull / git rebase) y vuelve a correr. Se continua con migraciones y seeders.'
+            if (@((Invoke-Git @('rev-parse', '--verify', '-q', "refs/heads/$Rama") -PermitirFallo).Lineas).Count -gt 0) {
+                Invoke-Git @('checkout', '-f', $Rama) | Out-Null
+            } else {
+                Invoke-Git @('checkout', '-f', '-B', $Rama, "$Remoto/$Rama") | Out-Null
+            }
+            Invoke-Git @('reset', '--hard', "$Remoto/$Rama") | Out-Null
+            Invoke-Git @('branch', '-q', "--set-upstream-to=$Remoto/$Rama", $Rama) -PermitirFallo | Out-Null
+            Escribir-Ok ("Copia igual a GitHub: " + (Invoke-Git @('log', '-1', '--format=%h %s (%cr)')).Texto)
+            Escribir-Info 'No se borraron archivos sin seguimiento (p. ej. .env ni tus fotos en public/uploads).'
+        }
+    } else {
+        # ── Avance seguro (fast-forward): no pisa el trabajo local ──
+        Escribir-Paso "Poniendo la rama '$Rama' en su ultimo punto (solo si es seguro)"
+        $sucio = @((Invoke-Git @('status', '--porcelain', '--untracked-files=no')).Lineas)
+        if ($sucio.Count -gt 0 -and $ramaActual -eq $Rama) {
+            Escribir-Aviso "Tienes $($sucio.Count) archivo(s) con cambios sin commit: no se cambia la rama para no pisarlos."
+            Escribir-Info 'Haz commit, guardalos (git stash), o corre con -Sincronizar para quedar igual a GitHub.'
+        } else {
+            if ($ramaActual -ne $Rama) {
+                Invoke-Git @('checkout', $Rama) -PermitirFallo | Out-Null
+                if ((Invoke-Git @('symbolic-ref', '--short', '-q', 'HEAD') -PermitirFallo).Texto -ne $Rama) {
+                    Escribir-Aviso "No se pudo cambiar a '$Rama' (quiza por cambios sin commit). Se continua en '$ramaActual'."
+                }
+            }
+            $ff = Invoke-Git @('merge', '--ff-only', "$Remoto/$Rama") -PermitirFallo
+            if ($ff.Codigo -eq 0) {
+                Escribir-Ok ("Rama al dia: " + (Invoke-Git @('log', '-1', '--format=%h %s (%cr)')).Texto)
+            } else {
+                Escribir-Aviso "No se pudo avanzar a $Remoto/$Rama (la rama local diverge o hay cambios locales)."
+                Escribir-Info 'Corre con -Sincronizar para quedar igual a GitHub (descarta cambios locales).'
+            }
         }
     }
 }
