@@ -33,6 +33,60 @@
 .pv-enlaces { margin: .5rem 0 0; }
 .pv-version { color: #4f5d53; font-size: .85rem; }
 
+/* ── Bloques desplegables (<details>) ──────────────────────── */
+.pv-desplegable > summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    color: var(--fv-green-dark);
+}
+.pv-desplegable > summary::-webkit-details-marker { display: none; }
+.pv-desplegable > summary::after {
+    content: "";
+    flex: 0 0 auto;
+    width: .55rem;
+    height: .55rem;
+    margin-right: .25rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform .15s ease;
+}
+.pv-desplegable[open] > summary::after { transform: rotate(-135deg); }
+.pv-desplegable > summary:focus-visible {
+    outline: 2px solid var(--fv-green-mid);
+    outline-offset: 3px;
+    border-radius: 6px;
+}
+.pv-desplegable[open] > summary { margin-bottom: .5rem; }
+.pv-resumen > summary .pv-titulo { font-size: 1.1rem; }
+.pv-pista { margin-left: auto; font-size: .85rem; font-weight: 400; color: #4f5d53; }
+.pv-resumen[open] .pv-pista { display: none; }
+.pv-todos {
+    padding-bottom: .6rem;
+    border-bottom: 1px dashed rgba(0, 117, 66, 0.3);
+}
+
+/* ── Registro compacto: una casilla + "Ver y editar mis opciones" ── */
+.pv-compacto { margin: 1.25rem 0; }
+.pv-total { margin: 0 0 .25rem; font-size: 1rem; }
+.pv-total input[type="checkbox"] { width: 1.3rem; height: 1.3rem; }
+.pv-total a { font-weight: 600; }
+.pv-personalizar { margin-top: .5rem; }
+.pv-personalizar > summary {
+    display: inline-block;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--fv-green-dark);
+    text-decoration: underline;
+}
+.pv-personalizar > summary:focus-visible { outline: 2px solid var(--fv-green-mid); outline-offset: 3px; border-radius: 4px; }
+.pv-personalizar[open] > summary { margin-bottom: .75rem; }
+
 /* ── Formato de consentimiento ─────────────────────────────── */
 .pv-bloque {
     margin: 0 0 1.25rem;
@@ -134,6 +188,10 @@
 .pv-subtitulo { margin-top: 0; color: var(--fv-green-dark); font-size: 1.2rem; }
 
 /* ── Documentos ────────────────────────────────────────────── */
+/* Destino de un enlace del formato de consentimiento (#finalidad-v1, #canales-preferidos…) */
+.pv-doc tr[id], .pv-doc li > [id], .pv-doc span[id] { scroll-margin-top: 1rem; }
+.pv-doc tr:target td { background: #fff6cc; }
+.pv-doc span:target, .pv-doc strong:target { background: #fff6cc; border-radius: 4px; }
 .pv-doc h2 { margin-top: 2rem; color: var(--fv-green-dark); font-size: 1.25rem; scroll-margin-top: 1rem; }
 .pv-doc h3 { margin-top: 1.25rem; color: var(--fv-green-dark); font-size: 1.05rem; }
 .pv-doc li { margin-bottom: .35rem; }

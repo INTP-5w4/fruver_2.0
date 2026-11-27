@@ -1,0 +1,426 @@
+diff --git a/app/Views/Auth/register.php b/app/Views/Auth/register.php
+index 86196b6..6300423 100644
+--- a/app/Views/Auth/register.php
++++ b/app/Views/Auth/register.php
+@@ -1,8 +1,8 @@
+ <?php
+ /**
+  * Registro (reemplaza la vista de Shield; ver Config\Auth::$views['register']).
+- * Antes de crear la cuenta se muestra el aviso de privacidad simplificado y el formato
+- * de consentimiento. Lo valida App\Controllers\Auth\RegisterController.
++ * Antes de crear la cuenta se muestra el formato de consentimiento (declaración con enlaces
++ * al aviso). Lo valida App\Controllers\Auth\RegisterController.
+  */
+ $cfg      = config('Privacidad');
+ $camposPv  = ['aviso_leido', 'mayor_edad', 'tel_contacto', 'canales', ...array_keys($cfg->finalidades), ...array_keys($cfg->canales)];
+@@ -104,14 +104,13 @@ $notasPassword = json_encode([
+                     </div>
+                     <?= $errorCampo('password_confirm') ?>
+ 
+-                    <?= view('privacidad/_resumen', ['cfg' => $cfg]) ?>
+-
+                     <?= view('privacidad/_formulario', [
+                         'cfg'            => $cfg,
+                         'valores'        => $valores,
+                         'errores'        => $erroresPv,
+                         'conDeclaracion' => true,
+                         'correo'         => null,
++                        'compacto'       => true,
+                     ]) ?>
+ 
+                     <p class="pv-nota">
+diff --git a/app/Views/privacidad/_formulario.php b/app/Views/privacidad/_formulario.php
+index e2514ab..d5ac3bd 100644
+--- a/app/Views/privacidad/_formulario.php
++++ b/app/Views/privacidad/_formulario.php
+@@ -8,14 +8,52 @@
+  * @var array<string,string>    $errores
+  * @var bool                    $conDeclaracion  ¿se piden "leí el aviso" y "soy mayor de edad"?
+  * @var string|null             $correo          correo de la cuenta (si ya existe)
++ * @var bool                    $compacto        solo una casilla "Acepto todo" con enlaces; el detalle se abre con "Ver y editar mis opciones"
+  */
+ $errores ??= [];
+ $correo  ??= null;
++$compacto ??= false;
+ $error   = static fn (string $campo): string => isset($errores[$campo])
+     ? '<p class="pv-error" id="err-' . esc($campo, 'attr') . '">' . esc($errores[$campo]) . '</p>'
+     : '';
+ $marca = static fn (string $campo): string => ! empty($valores[$campo]) ? ' checked' : '';
++
++// Enlace al texto completo (aviso de consentimiento) en la ventana modal de aviso_modal.js.
++$enlace = static fn (string $ancla, string $texto): string =>
++    '<a href="' . site_url('aviso-de-privacidad/consentimiento') . '#' . esc($ancla, 'attr') . '" target="_blank" rel="noopener">'
++    . esc($texto) . '</a>';
++
++// De la frase "Autorizo que me envíen promociones…" convierte en enlace la parte que nombra la
++// finalidad (su título); si no aparece en la frase, agrega un enlace "Leer el detalle" al final.
++$autorizoConEnlace = static function (array $f, string $clave) use ($enlace): string {
++    $frase = (string) $f['autorizo'];
++    $pos   = mb_stripos($frase, (string) $f['titulo']);
++    if ($pos === false) {
++        return esc($frase) . ' ' . $enlace('finalidad-' . $clave, 'Leer el detalle');
++    }
++    $largo = mb_strlen((string) $f['titulo']);
++
++    return esc(mb_substr($frase, 0, $pos))
++        . $enlace('finalidad-' . $clave, mb_substr($frase, $pos, $largo))
++        . esc(mb_substr($frase, $pos + $largo));
++};
+ ?>
++<?php if ($compacto): ?>
++<div class="pv-compacto" data-pv-compacto>
++    <label class="pv-check pv-total">
++        <input type="checkbox" data-pv-total>
++        <span>
++            Acepto el <a href="<?= site_url('aviso-de-privacidad') ?>" target="_blank" rel="noopener">Aviso de Privacidad</a>,
++            declaro que soy mayor de edad y autorizo todas las
++            <?= $enlace('finalidades-voluntarias', 'finalidades voluntarias') ?> y los
++            <?= $enlace('canales-preferidos', 'canales preferidos') ?>.
++        </span>
++    </label>
++    <p class="pv-nota">Las finalidades voluntarias son opcionales: abre tus opciones para quitar las que no quieras o cambiar tu teléfono.</p>
++
++    <details class="pv-personalizar"<?= $errores !== [] ? ' open' : '' ?>>
++        <summary>Ver y editar mis opciones</summary>
++<?php endif; ?>
+ <?php if ($conDeclaracion): ?>
+     <fieldset class="pv-bloque">
+         <legend>Declaración (obligatoria para continuar)</legend>
+@@ -33,37 +71,48 @@ $marca = static fn (string $campo): string => ! empty($valores[$campo]) ? ' chec
+             <input type="checkbox" name="mayor_edad" value="1" required<?= $marca('mayor_edad') ?>
+                    <?= isset($errores['mayor_edad']) ? 'aria-describedby="err-mayor_edad"' : '' ?>>
+             <span>Declaro que soy mayor de edad, que los datos que proporciono son verdaderos y que puedo
+-                modificar o revocar mi consentimiento en cualquier momento.</span>
++                <?= $enlace('derechos', 'modificar o revocar mi consentimiento') ?> en cualquier momento.</span>
+         </label>
+         <?= $error('mayor_edad') ?>
+     </fieldset>
+ <?php endif; ?>
+ 
+-<fieldset class="pv-bloque">
++<fieldset class="pv-bloque" data-pv-grupo="finalidades">
+     <legend>Finalidades voluntarias <span class="pv-opcional">(opcional; marca solo las que aceptes)</span></legend>
+     <p class="pv-nota">
+         No son necesarias para usar FRUVER. Si no marcas ninguna, tus pedidos y tu cuenta funcionan igual;
+         solo no recibirás promociones, recordatorios, encuestas ni recomendaciones personalizadas.
+     </p>
+ 
++    <label class="pv-check pv-todos">
++        <input type="checkbox" data-pv-todos="finalidades">
++        <span>Acepto todas las <?= $enlace('finalidades-voluntarias', 'finalidades voluntarias') ?> (V1 a V4).</span>
++    </label>
++
+     <?php foreach ($cfg->finalidades as $clave => $f): ?>
+         <label class="pv-check">
+-            <input type="checkbox" name="<?= esc($clave, 'attr') ?>" value="1"<?= $marca($clave) ?>>
++            <input type="checkbox" name="<?= esc($clave, 'attr') ?>" value="1" data-pv-item="finalidades"<?= $marca($clave) ?>>
+             <span>
+-                <strong><?= esc($f['codigo']) ?>.</strong> <?= esc($f['autorizo']) ?>
++                <strong><?= esc($f['codigo']) ?>.</strong> <?= $autorizoConEnlace($f, $clave) ?>
+                 <small>Datos: <?= esc($f['datos']) ?> · Medio: <?= esc($f['medio']) ?></small>
+             </span>
+         </label>
+     <?php endforeach; ?>
+ </fieldset>
+ 
+-<fieldset class="pv-bloque">
++<fieldset class="pv-bloque" data-pv-grupo="canales">
+     <legend>Canales preferidos <span class="pv-opcional">(solo si aceptaste V1, V2 o V3)</span></legend>
++
++    <label class="pv-check pv-todos">
++        <input type="checkbox" data-pv-todos="canales">
++        <span>Acepto todos los <?= $enlace('canales-preferidos', 'canales preferidos') ?>.</span>
++    </label>
++
+     <div class="pv-canales">
+         <?php foreach ($cfg->canales as $clave => $nombre): ?>
+             <label class="pv-check pv-check-linea">
+-                <input type="checkbox" name="<?= esc($clave, 'attr') ?>" value="1"<?= $marca($clave) ?>>
+-                <span><?= esc($nombre) ?></span>
++                <input type="checkbox" name="<?= esc($clave, 'attr') ?>" value="1" data-pv-item="canales"<?= $marca($clave) ?>>
++                <span><?= $enlace($clave, $nombre) ?></span>
+             </label>
+         <?php endforeach; ?>
+     </div>
+@@ -86,3 +135,11 @@ $marca = static fn (string $campo): string => ! empty($valores[$campo]) ? ' chec
+         Si no eliges ninguna finalidad voluntaria, no guardamos canales ni teléfono de contacto.
+     </p>
+ </fieldset>
++
++<?php if ($compacto): ?>
++    </details>
++</div>
++<?php endif; ?>
++
++<script src="<?= base_url('js/privacidad_form.js') ?>" defer></script>
++
+diff --git a/app/Views/privacidad/_resumen.php b/app/Views/privacidad/_resumen.php
+index e3e1709..eee4311 100644
+--- a/app/Views/privacidad/_resumen.php
++++ b/app/Views/privacidad/_resumen.php
+@@ -6,8 +6,11 @@
+  * @var \Config\Privacidad $cfg
+  */
+ ?>
+-<section class="pv-resumen" aria-labelledby="pv-resumen-titulo">
+-    <h2 id="pv-resumen-titulo">Aviso de privacidad (resumen)</h2>
++<details class="pv-resumen pv-desplegable">
++    <summary>
++        <span class="pv-titulo">Aviso de privacidad (resumen)</span>
++        <span class="pv-pista">Toca para leerlo</span>
++    </summary>
+     <p>
+         <strong><?= esc($cfg->responsable) ?></strong> es responsable de los datos personales que se tratan en FRUVER 2.0.
+     </p>
+@@ -26,4 +29,4 @@
+         <a href="<?= site_url('aviso-de-privacidad/consentimiento') ?>" target="_blank" rel="noopener">Aviso y Formato de Consentimiento</a>
+         <span class="pv-version">(versión <?= esc($cfg->version) ?>)</span>
+     </p>
+-</section>
++</details>
+diff --git a/app/Views/privacidad/consentimiento.php b/app/Views/privacidad/consentimiento.php
+index 40b7d50..04236c2 100644
+--- a/app/Views/privacidad/consentimiento.php
++++ b/app/Views/privacidad/consentimiento.php
+@@ -6,14 +6,14 @@
+  *
+  * @var \Config\Privacidad $cfg
+  */
+-$tabla = static function (array $encabezados, array $filas): string {
++$tabla = static function (array $encabezados, array $filas, array $ids = []): string {
+     $html = '<div class="pv-tabla"><table><thead><tr>';
+     foreach ($encabezados as $e) {
+         $html .= '<th scope="col">' . esc($e) . '</th>';
+     }
+     $html .= '</tr></thead><tbody>';
+-    foreach ($filas as $fila) {
+-        $html .= '<tr>';
++    foreach ($filas as $i => $fila) {
++        $html .= isset($ids[$i]) ? '<tr id="' . esc($ids[$i], 'attr') . '">' : '<tr>';
+         foreach ($fila as $celda) {
+             $html .= '<td>' . esc($celda) . '</td>';
+         }
+@@ -106,7 +106,7 @@ $cols = ['Dato', '¿Para qué lo pedimos?', '¿Por qué es necesario?'];
+     <li>Cumplir obligaciones fiscales, contables y requerimientos de autoridades competentes.</li>
+ </ol>
+ 
+-<h2>5. Finalidades que SÍ requieren tu consentimiento (voluntarias)</h2>
++<h2 id="finalidades-voluntarias">5. Finalidades que SÍ requieren tu consentimiento (voluntarias)</h2>
+ <p>
+     Los siguientes usos no son indispensables. Solo los realizaremos si los autorizas marcando la casilla
+     correspondiente. Puedes negarte a cualquiera de ellos sin que ello afecte tu acceso al Sistema, tus pedidos ni la
+@@ -114,11 +114,13 @@ $cols = ['Dato', '¿Para qué lo pedimos?', '¿Por qué es necesario?'];
+ </p>
+ <?php
+ $filasV = [];
+-foreach ($cfg->finalidades as $f) {
++$idsV   = [];
++foreach ($cfg->finalidades as $clave => $f) {
+     $filasV[] = [$f['codigo'], $f['titulo'], $f['datos'], $f['justificacion'], $f['medio']];
++    $idsV[]   = 'finalidad-' . $clave; // destino de los enlaces del formato de consentimiento
+ }
+ ?>
+-<?= $tabla(['N.º', 'Finalidad voluntaria', 'Datos involucrados', 'Justificación', 'Medio'], $filasV) ?>
++<?= $tabla(['N.º', 'Finalidad voluntaria', 'Datos involucrados', 'Justificación', 'Medio'], $filasV, $idsV) ?>
+ 
+ <h2>6. Transferencias y remisiones de tus datos</h2>
+ <p>El Responsable no vende ni cede tus datos a terceros para fines comerciales propios. Pueden tener acceso a ellos, solo para los fines indicados:</p>
+@@ -131,7 +133,7 @@ foreach ($cfg->finalidades as $f) {
+ </ul>
+ <p>Si en algún momento se requiriera compartir tus datos con un tercero para una finalidad distinta, te pediremos tu consentimiento previamente.</p>
+ 
+-<h2>7. Tus derechos y cómo revocar tu consentimiento</h2>
++<h2 id="derechos">7. Tus derechos y cómo revocar tu consentimiento</h2>
+ <ul>
+     <li>
+         Puedes modificar o retirar tu consentimiento para cualquiera de las finalidades V1–V4 en cualquier momento,
+@@ -165,7 +167,9 @@ foreach ($cfg->finalidades as $f) {
+             <?php endforeach; ?>
+         </ul>
+     </li>
+-    <li><strong>9.3. Canales preferidos para comunicaciones (solo si aceptaste V1–V4):</strong> <?= esc(implode(', ', $cfg->canales)) ?>.</li>
++    <li><strong id="canales-preferidos">9.3. Canales preferidos para comunicaciones (solo si aceptaste V1–V4):</strong>
++        <?php $nombresCanales = []; foreach ($cfg->canales as $clave => $nombre) { $nombresCanales[] = '<span id="' . esc($clave, 'attr') . '">' . esc($nombre) . '</span>'; } ?>
++        <?= implode(', ', $nombresCanales) ?>.</li>
+     <li><strong>9.4. Confirmación:</strong> "Declaro que los datos proporcionados son verdaderos, que soy mayor de edad y que puedo modificar o revocar mi consentimiento en cualquier momento escribiendo a <?= esc($cfg->contactoCorreo) ?>."</li>
+ </ul>
+ <p>
+diff --git a/public/estilos/privacidad.css b/public/estilos/privacidad.css
+index ce46b73..1d77c82 100644
+--- a/public/estilos/privacidad.css
++++ b/public/estilos/privacidad.css
+@@ -33,6 +33,60 @@
+ .pv-enlaces { margin: .5rem 0 0; }
+ .pv-version { color: #4f5d53; font-size: .85rem; }
+ 
++/* ── Bloques desplegables (<details>) ──────────────────────── */
++.pv-desplegable > summary {
++    display: flex;
++    align-items: center;
++    justify-content: space-between;
++    gap: .75rem;
++    cursor: pointer;
++    list-style: none;
++    font-weight: 700;
++    color: var(--fv-green-dark);
++}
++.pv-desplegable > summary::-webkit-details-marker { display: none; }
++.pv-desplegable > summary::after {
++    content: "";
++    flex: 0 0 auto;
++    width: .55rem;
++    height: .55rem;
++    margin-right: .25rem;
++    border-right: 2px solid currentColor;
++    border-bottom: 2px solid currentColor;
++    transform: rotate(45deg);
++    transition: transform .15s ease;
++}
++.pv-desplegable[open] > summary::after { transform: rotate(-135deg); }
++.pv-desplegable > summary:focus-visible {
++    outline: 2px solid var(--fv-green-mid);
++    outline-offset: 3px;
++    border-radius: 6px;
++}
++.pv-desplegable[open] > summary { margin-bottom: .5rem; }
++.pv-resumen > summary .pv-titulo { font-size: 1.1rem; }
++.pv-pista { margin-left: auto; font-size: .85rem; font-weight: 400; color: #4f5d53; }
++.pv-resumen[open] .pv-pista { display: none; }
++.pv-todos {
++    padding-bottom: .6rem;
++    border-bottom: 1px dashed rgba(0, 117, 66, 0.3);
++}
++
++/* ── Registro compacto: una casilla + "Ver y editar mis opciones" ── */
++.pv-compacto { margin: 1.25rem 0; }
++.pv-total { margin: 0 0 .25rem; font-size: 1rem; }
++.pv-total input[type="checkbox"] { width: 1.3rem; height: 1.3rem; }
++.pv-total a { font-weight: 600; }
++.pv-personalizar { margin-top: .5rem; }
++.pv-personalizar > summary {
++    display: inline-block;
++    cursor: pointer;
++    font-weight: 600;
++    color: var(--fv-green-dark);
++    text-decoration: underline;
++}
++.pv-personalizar > summary:focus-visible { outline: 2px solid var(--fv-green-mid); outline-offset: 3px; border-radius: 4px; }
++.pv-personalizar[open] > summary { margin-bottom: .75rem; }
++
+ /* ── Formato de consentimiento ─────────────────────────────── */
+ .pv-bloque {
+     margin: 0 0 1.25rem;
+@@ -134,6 +188,10 @@
+ .pv-subtitulo { margin-top: 0; color: var(--fv-green-dark); font-size: 1.2rem; }
+ 
+ /* ── Documentos ────────────────────────────────────────────── */
++/* Destino de un enlace del formato de consentimiento (#finalidad-v1, #canales-preferidos…) */
++.pv-doc tr[id], .pv-doc li > [id], .pv-doc span[id] { scroll-margin-top: 1rem; }
++.pv-doc tr:target td { background: #fff6cc; }
++.pv-doc span:target, .pv-doc strong:target { background: #fff6cc; border-radius: 4px; }
+ .pv-doc h2 { margin-top: 2rem; color: var(--fv-green-dark); font-size: 1.25rem; scroll-margin-top: 1rem; }
+ .pv-doc h3 { margin-top: 1.25rem; color: var(--fv-green-dark); font-size: 1.05rem; }
+ .pv-doc li { margin-bottom: .35rem; }
+diff --git a/public/js/privacidad_form.js b/public/js/privacidad_form.js
+new file mode 100644
+index 0000000..a55e4c9
+--- /dev/null
++++ b/public/js/privacidad_form.js
+@@ -0,0 +1,97 @@
++/* privacidad_form.js — casillas "Seleccionar todas/todos" del formato de consentimiento.
++   Cada casilla maestra (data-pv-todos="grupo") marca o desmarca las del mismo grupo
++   (data-pv-item="grupo") y refleja su estado: marcada, parcial (indeterminada) o vacía.
++   La maestra no tiene "name", así que no se envía con el formulario. */
++(function () {
++    'use strict';
++
++    function inicializar(maestra) {
++        var grupo = maestra.getAttribute('data-pv-todos');
++        var contenedor = maestra.closest('[data-pv-grupo]') || document;
++        var items = Array.prototype.slice.call(
++            contenedor.querySelectorAll('input[data-pv-item="' + grupo + '"]')
++        );
++        if (!items.length) { return; }
++
++        function sincronizar() {
++            var marcadas = items.filter(function (i) { return i.checked; }).length;
++            maestra.checked = marcadas === items.length;
++            maestra.indeterminate = marcadas > 0 && marcadas < items.length;
++        }
++
++        maestra.addEventListener('change', function () {
++            var estado = maestra.checked; // se guarda antes: sincronizar() puede cambiarla a mitad del bucle
++            items.forEach(function (i) { i.checked = estado; });
++            maestra.checked = estado;
++            maestra.indeterminate = false;
++        });
++        items.forEach(function (i) { i.addEventListener('change', sincronizar); });
++        sincronizar();
++    }
++
++    // Registro compacto: una casilla ("Acepto todo") marca la declaración, las finalidades y los canales.
++    // Las opciones siguen siendo editables dentro de <details> ("Ver y editar mis opciones").
++    function inicializarTotal(total) {
++        var cont = total.closest('[data-pv-compacto]');
++        if (!cont) { return; }
++        function casillas() {
++            return Array.prototype.slice.call(cont.querySelectorAll(
++                'details input[type="checkbox"]:not([data-pv-todos])'
++            ));
++        }
++        var tel = cont.querySelector('input[name="tel_contacto"]');
++        var llamada = cont.querySelector('input[name="canal_telefono"]');
++        var mensajeria = cont.querySelector('input[name="canal_mensajeria"]');
++
++        function sincronizar() {
++            var c = casillas();
++            var n = c.filter(function (i) { return i.checked; }).length;
++            total.checked = n === c.length;
++            total.indeterminate = n > 0 && n < c.length;
++            // El teléfono es obligatorio solo si se eligió llamada o WhatsApp.
++            if (tel) { tel.required = !!((llamada && llamada.checked) || (mensajeria && mensajeria.checked)); }
++        }
++
++        total.addEventListener('change', function () {
++            var estado = total.checked;
++            casillas().forEach(function (i) {
++                if (i.checked !== estado) {
++                    i.checked = estado;
++                    i.dispatchEvent(new Event('change', { bubbles: true }));
++                }
++            });
++            total.checked = estado;
++            total.indeterminate = false;
++            sincronizar();
++            total.checked = estado;
++            // Si quedó elegida una vía de contacto y falta el teléfono, se muestra el campo.
++            if (estado && tel && tel.required && !tel.value.trim()) {
++                var d = cont.querySelector('details');
++                if (d) { d.open = true; }
++                tel.focus();
++            }
++        });
++        cont.addEventListener('change', function (ev) { if (ev.target !== total) { sincronizar(); } });
++        sincronizar();
++    }
++
++    // Un campo obligatorio dentro del bloque cerrado no se puede enfocar: se abre para mostrar el aviso.
++    document.addEventListener('invalid', function (ev) {
++        var d = ev.target.closest ? ev.target.closest('details.pv-personalizar') : null;
++        if (d && !d.open) {
++            d.open = true;
++            setTimeout(function () { if (ev.target.reportValidity) { ev.target.reportValidity(); } }, 0);
++        }
++    }, true);
++
++    function arrancar() {
++        document.querySelectorAll('input[data-pv-todos]').forEach(inicializar);
++        document.querySelectorAll('input[data-pv-total]').forEach(inicializarTotal);
++    }
++
++    if (document.readyState === 'loading') {
++        document.addEventListener('DOMContentLoaded', arrancar);
++    } else {
++        arrancar();
++    }
++})();

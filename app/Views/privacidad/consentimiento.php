@@ -6,14 +6,14 @@
  *
  * @var \Config\Privacidad $cfg
  */
-$tabla = static function (array $encabezados, array $filas): string {
+$tabla = static function (array $encabezados, array $filas, array $ids = []): string {
     $html = '<div class="pv-tabla"><table><thead><tr>';
     foreach ($encabezados as $e) {
         $html .= '<th scope="col">' . esc($e) . '</th>';
     }
     $html .= '</tr></thead><tbody>';
-    foreach ($filas as $fila) {
-        $html .= '<tr>';
+    foreach ($filas as $i => $fila) {
+        $html .= isset($ids[$i]) ? '<tr id="' . esc($ids[$i], 'attr') . '">' : '<tr>';
         foreach ($fila as $celda) {
             $html .= '<td>' . esc($celda) . '</td>';
         }
@@ -106,7 +106,7 @@ $cols = ['Dato', '¿Para qué lo pedimos?', '¿Por qué es necesario?'];
     <li>Cumplir obligaciones fiscales, contables y requerimientos de autoridades competentes.</li>
 </ol>
 
-<h2>5. Finalidades que SÍ requieren tu consentimiento (voluntarias)</h2>
+<h2 id="finalidades-voluntarias">5. Finalidades que SÍ requieren tu consentimiento (voluntarias)</h2>
 <p>
     Los siguientes usos no son indispensables. Solo los realizaremos si los autorizas marcando la casilla
     correspondiente. Puedes negarte a cualquiera de ellos sin que ello afecte tu acceso al Sistema, tus pedidos ni la
@@ -114,11 +114,13 @@ $cols = ['Dato', '¿Para qué lo pedimos?', '¿Por qué es necesario?'];
 </p>
 <?php
 $filasV = [];
-foreach ($cfg->finalidades as $f) {
+$idsV   = [];
+foreach ($cfg->finalidades as $clave => $f) {
     $filasV[] = [$f['codigo'], $f['titulo'], $f['datos'], $f['justificacion'], $f['medio']];
+    $idsV[]   = 'finalidad-' . $clave; // destino de los enlaces del formato de consentimiento
 }
 ?>
-<?= $tabla(['N.º', 'Finalidad voluntaria', 'Datos involucrados', 'Justificación', 'Medio'], $filasV) ?>
+<?= $tabla(['N.º', 'Finalidad voluntaria', 'Datos involucrados', 'Justificación', 'Medio'], $filasV, $idsV) ?>
 
 <h2>6. Transferencias y remisiones de tus datos</h2>
 <p>El Responsable no vende ni cede tus datos a terceros para fines comerciales propios. Pueden tener acceso a ellos, solo para los fines indicados:</p>
@@ -131,7 +133,7 @@ foreach ($cfg->finalidades as $f) {
 </ul>
 <p>Si en algún momento se requiriera compartir tus datos con un tercero para una finalidad distinta, te pediremos tu consentimiento previamente.</p>
 
-<h2>7. Tus derechos y cómo revocar tu consentimiento</h2>
+<h2 id="derechos">7. Tus derechos y cómo revocar tu consentimiento</h2>
 <ul>
     <li>
         Puedes modificar o retirar tu consentimiento para cualquiera de las finalidades V1–V4 en cualquier momento,
@@ -165,7 +167,9 @@ foreach ($cfg->finalidades as $f) {
             <?php endforeach; ?>
         </ul>
     </li>
-    <li><strong>9.3. Canales preferidos para comunicaciones (solo si aceptaste V1–V4):</strong> <?= esc(implode(', ', $cfg->canales)) ?>.</li>
+    <li><strong id="canales-preferidos">9.3. Canales preferidos para comunicaciones (solo si aceptaste V1–V4):</strong>
+        <?php $nombresCanales = []; foreach ($cfg->canales as $clave => $nombre) { $nombresCanales[] = '<span id="' . esc($clave, 'attr') . '">' . esc($nombre) . '</span>'; } ?>
+        <?= implode(', ', $nombresCanales) ?>.</li>
     <li><strong>9.4. Confirmación:</strong> "Declaro que los datos proporcionados son verdaderos, que soy mayor de edad y que puedo modificar o revocar mi consentimiento en cualquier momento escribiendo a <?= esc($cfg->contactoCorreo) ?>."</li>
 </ul>
 <p>

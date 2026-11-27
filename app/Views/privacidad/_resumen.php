@@ -6,8 +6,11 @@
  * @var \Config\Privacidad $cfg
  */
 ?>
-<section class="pv-resumen" aria-labelledby="pv-resumen-titulo">
-    <h2 id="pv-resumen-titulo">Aviso de privacidad (resumen)</h2>
+<details class="pv-resumen pv-desplegable">
+    <summary>
+        <span class="pv-titulo">Aviso de privacidad (resumen)</span>
+        <span class="pv-pista">Toca para leerlo</span>
+    </summary>
     <p>
         <strong><?= esc($cfg->responsable) ?></strong> es responsable de los datos personales que se tratan en FRUVER 2.0.
     </p>
@@ -26,4 +29,4 @@
         <a href="<?= site_url('aviso-de-privacidad/consentimiento') ?>" target="_blank" rel="noopener">Aviso y Formato de Consentimiento</a>
         <span class="pv-version">(versión <?= esc($cfg->version) ?>)</span>
     </p>
-</section>
+</details>

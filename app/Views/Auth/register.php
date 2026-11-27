@@ -1,8 +1,8 @@
 <?php
 /**
  * Registro (reemplaza la vista de Shield; ver Config\Auth::$views['register']).
- * Antes de crear la cuenta se muestra el aviso de privacidad simplificado y el formato
- * de consentimiento. Lo valida App\Controllers\Auth\RegisterController.
+ * Antes de crear la cuenta se muestra el formato de consentimiento (declaración con enlaces
+ * al aviso). Lo valida App\Controllers\Auth\RegisterController.
  */
 $cfg      = config('Privacidad');
 $camposPv  = ['aviso_leido', 'mayor_edad', 'tel_contacto', 'canales', ...array_keys($cfg->finalidades), ...array_keys($cfg->canales)];
@@ -104,14 +104,13 @@ $notasPassword = json_encode([
                     </div>
                     <?= $errorCampo('password_confirm') ?>
 
-                    <?= view('privacidad/_resumen', ['cfg' => $cfg]) ?>
-
                     <?= view('privacidad/_formulario', [
                         'cfg'            => $cfg,
                         'valores'        => $valores,
                         'errores'        => $erroresPv,
                         'conDeclaracion' => true,
                         'correo'         => null,
+                        'compacto'       => true,
                     ]) ?>
 
                     <p class="pv-nota">
